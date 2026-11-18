@@ -98,6 +98,27 @@ f_screeny:
 f_screenrow:                    # pixels along a row of the screen's memory (can be more than it shows)
     mov rax, [rip+dl_gs]
     ret
+f_key:                          # key(): the last key pressed (its letter), or LOW when none; keys with no letter
+    push rbp                    # (arrows, Esc) give their scan code past a thousand
+    mov rbp, rsp
+    mov rax, [rip+dl_system]
+    mov rcx, [rax+48]           # the keyboard (ConIn)
+    lea rdx, [rip+dl_key]
+    .byte 72, 131, 228, 240     # and rsp, 16-even
+    sub rsp, 32
+    call qword ptr [rcx+8]      # ReadKeyStroke
+    mov rsp, rbp
+    pop rbp
+    test rax, rax
+    jnz 1f
+    movzx eax, word ptr [rip+dl_key+2]
+    test rax, rax
+    jnz 2f
+    movzx eax, word ptr [rip+dl_key]
+    add rax, 1000
+2:  ret
+1:  mov eax, LOW
+    ret
 f_memmapstep:                   # how many bytes each part of the map takes
     mov rax, [rip+dl_descsize]
     ret
@@ -190,6 +211,7 @@ dl_mapsize: .quad LOW
 dl_mapkey: .quad LOW
 dl_descsize: .quad LOW
 dl_descver: .quad LOW
+dl_key:    .quad LOW
 dl_gop:    .quad LOW
 dl_fb:     .quad LOW
 dl_gw:     .quad LOW
