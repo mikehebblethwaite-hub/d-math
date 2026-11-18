@@ -74,6 +74,29 @@ refuse "flow: spend too much" "$NET conduct wire loss 1; spend $(printf '$')CD f
 refuse "flow: going round"    'int a = 5, b = 1; conduct a loss 1, b loss 1; neighbours a: b; spend 2 from a;' 'going round'
 refuse "flow: bad words"      'int a = 5; conduct a 1;' 'loss'
 
+# things: parts, its own ~, its own functions
+prog() {  # name, whole program, expected output, [refuse word]
+  printf '%s\n' "$2" > "$T/p.delta"
+  got=$(timeout 20 $DELTA run "$T/p.delta" 2>&1); code=$?
+  if [ -n "$4" ]; then
+    if [ $code = 0 ] || ! grep -qi "$4" <<<"$got"; then echo "FAIL refuse: $1: [$got]"; bad=$((bad+1)); else echo "ok refused: $1"; pass=$((pass+1)); fi
+  elif [ "$got" != "$3" ] || [ $code != 0 ]; then echo "FAIL honest: $1: got [$got] exit $code"; bad=$((bad+1))
+  else echo "ok honest: $1"; pass=$((pass+1)); fi; }
+M='int main(int argc, char **argv)'
+honest "row values worked out"  'char *w = "ab"; int r[2] = {2 * 3, w[2]}; say("%d %c\n", r[1], r[2]);' '6 b'
+prog "thing parts"        "thing pt { int a, b; }; $M { thing pt p = {1 + 2, 4}; say(\"%d %d %d\\n\", p.a, p.b, p.~); return 1; }" '3 4 ~'
+prog "thing function"     "thing pt { int a, b; void up(int n) { a += n; } int sum() { return a + b; } }; $M { thing pt p = {3, 4}; p.up(2); say(\"%d\\n\", p.sum()); return 1; }" '9'
+prog "own ~ on D>"        "thing pl { int flesh, s, h; void eat() { flesh D> s + h ~; } }; $M { thing pl p = {7, 1, 1}; p.eat(); say(\"%d %d %d %d %d\\n\", p.flesh, p.s, p.h, p.~, ~); return 1; }" '~ 4 4 1 1'
+prog "whole copy"         "thing pt { int a, b; }; $M { thing pt p = {5, 6}, q; q = p; q.a += 1; say(\"%d %d %d\\n\", p.a, q.a, q.b); return 1; }" '5 6 6'
+prog "place and arrow"    "thing pt { int a; }; void up(thing pt *p) { p->a += 2; } $M { thing pt p = {1}; up(&p); thing pt *q = &p; say(\"%d\\n\", q->a); return 1; }" '3'
+prog "thing in a thing"   "thing seed { int x; }; thing fruit { thing seed s; int y; }; $M { thing fruit f; f.s.x = 4; f.y = 2; say(\"%d %d\\n\", f.s.x, f.y); return 1; }" '4 2'
+prog "row of things"      "thing pt { int a; }; $M { thing pt r[3]; for (int i = 1; i <= 3; i++) r[i].a = i * 2; say(\"%d\\n\", r[3].a); return 1; }" '6'
+prog "parts as neighbours" "thing lamp { int glow, wire; }; $M { thing lamp l = {1, 1}; int cell = 9; store cell, l.glow; conduct l.wire loss 1; neighbours cell: l.wire; neighbours l.wire: l.glow; spend 3 from cell; say(\"%d %d\\n\", cell, l.glow); return 1; }" $'spend 3 from cell (now 6)\n  l.wire gets 3: passes 2 on, 1 to heat\n    l.glow takes 2 (store, now 3)\n    1 heat is too thin to share 2 ways: ~\n6 3'
+prog "no such part"       "thing pt { int a; }; $M { thing pt p; p.b = 1; return 1; }" '' 'no part'
+prog "thing given whole"  "thing pt { int a; }; void f(thing pt p) { } $M { return 1; }" '' 'by its place'
+prog "thing holds itself" "thing pt { thing pt inner; };  $M { return 1; }" '' 'cannot hold itself'
+prog "thing not made"     "$M { thing ghost g; return 1; }" '' 'not made'
+
 # functions and recursion: a whole program
 cat > "$T/f.delta" <<'DC'
 int twice(int x) { return x * 2; }

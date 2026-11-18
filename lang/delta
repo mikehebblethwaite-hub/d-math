@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""delta: the Delta compiler 0.05. Delta is C with D rules: always something.
+"""delta: the Delta compiler 0.06. Delta is C with D rules: always something.
 Things count from 1 and move or change form; numbers are D numerals (digits 1-9 A-D).
 Delta -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -17,7 +17,7 @@ BANNED = {"NULL": "NULL is a make-believe zero: a pointer always points at somet
           "nullptr": "nullptr is a make-believe zero"}
 TYPES = {"int", "long", "char", "void"}
 FLOW_WORDS = {"store", "conduct", "neighbours", "spend"}
-KEYWORDS = TYPES | FLOW_WORDS | {"if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
+KEYWORDS = TYPES | FLOW_WORDS | {"thing", "if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
 
 
 def to_d(v):
@@ -127,9 +127,17 @@ def lex(src):
 # ---------------------------------------------------------------- types
 # a type is (base, stars, dims): base int|char|void, stars = pointer depth, dims = array sizes
 
+THINGS = {}     # thing name -> {"fields": {name: (type, offset)}, "order": [...], "size": n, "methods": {name: return type}}
+
+
+def is_thing(t):
+    return t[0].startswith("thing:") and not t[1] and not t[2]
+
+
 def size_of(t):
     n = 1
     for d in t[2]: n *= d
+    if t[0].startswith("thing:") and not t[1]: return n * THINGS[t[0][6:]]["size"]
     return n * (1 if (t[0] == "char" and not t[1]) else 8)
 
 
@@ -181,6 +189,8 @@ class Compiler:
     # --- program
     def program(self):
         while self.peek()[0] != "end":
+            if self.at("thing") and self.at("{", 2):
+                self.thing_def(); continue
             k = self.p
             while not (self.t[k][1] in ("(", ";", "=", "[", ",") or self.t[k][0] == "end"): k += 1
             if self.t[k][1] == "(": self.function()
@@ -210,7 +220,58 @@ class Compiler:
             break
         self.take(";")
 
+    def thing_def(self):
+        """thing plum { int sugar, heat; char *name; int ripen(int n) { ... } };
+           parts first, then its own ~ (the unknown energy it holds); functions act on it."""
+        self.take("thing"); line = self.peek()[2]; tname = self.name()
+        if tname in THINGS: raise DeltaError(line, "thing %s is already made" % tname)
+        info = {"fields": {}, "order": [], "size": 1, "methods": {}}
+        THINGS[tname] = info
+        self.take("{"); off = 0; methods = []
+        while not self.at("}"):
+            start = self.p
+            base = self.base_type()
+            while True:
+                stars = 0
+                while self.at("*"): self.take(); stars += 1
+                fline = self.peek()[2]; fn = self.name()
+                if self.at("("):                        # a function of this thing
+                    self.p = start; methods.append(start)
+                    info["methods"][fn] = (base, stars, ())
+                    while not self.at("{"): self.take()
+                    depth = 0
+                    while True:
+                        if self.at("{"): depth += 1
+                        if self.at("}"): depth -= 1
+                        self.take()
+                        if not depth: break
+                    break
+                dims = []
+                while self.at("["):
+                    self.take("["); d = self.take()
+                    if d[0] != "num": raise DeltaError(fline, "a row size must be a number")
+                    dims.append(d[1]); self.take("]")
+                ft = (base, stars, tuple(dims))
+                if is_thing(ft) and base[6:] == tname: raise DeltaError(fline, "a thing cannot hold itself (hold a place: thing %s *)" % tname)
+                if fn in info["fields"]: raise DeltaError(fline, "'%s' is already a part of %s" % (fn, tname))
+                info["fields"][fn] = (ft, off); info["order"].append(fn)
+                off += (size_of(ft) + 7) // 8 * 8
+                if self.at(","): self.take(); continue
+                self.take(";"); break
+        self.take("}")
+        if self.at(";"): self.take()
+        info["fields"]["~"] = (INT, off)           # its own unknown energy, always there
+        info["size"] = off + 8
+        after = self.p
+        for start in methods:
+            self.p = start; self.function(method_of=tname)
+        self.p = after
+
     def base_type(self):
+        if self.at("thing"):
+            self.take(); line = self.peek()[2]; tn = self.name()
+            if tn not in THINGS: raise DeltaError(line, "thing %s is not made (yet)" % tn)
+            return "thing:" + tn
         while self.at("const") or self.at("static") or self.at("unsigned") or self.at("signed"):
             self.take()
         tok = self.take()
@@ -218,9 +279,9 @@ class Compiler:
         return "int" if tok[1] == "long" else tok[1]
 
     def is_type(self):
-        return any(self.at(w) for w in ("int", "long", "char", "void", "const", "static", "unsigned", "signed"))
+        return any(self.at(w) for w in ("int", "long", "char", "void", "const", "static", "unsigned", "signed", "thing"))
 
-    def function(self):
+    def function(self, method_of=None):
         base = self.base_type()
         stars = 0
         while self.at("*"): self.take(); stars += 1
@@ -240,10 +301,19 @@ class Compiler:
             params.append((pn, (pb, ps, ())))
             if not self.at(")"): self.take(",")
         self.take(")")
+        if is_thing((base, stars, ())): raise DeltaError(line, "give back a thing by its place (thing %s *)" % base[6:])
+        for pn, pt in params:
+            if is_thing(pt): raise DeltaError(line, "give a thing by its place: thing %s *%s" % (pt[0][6:], pn))
+        if method_of:
+            params.insert(0, ("self", ("thing:" + method_of, 1, ())))
+            key, label = method_of + "." + fname, method_of + "__" + fname
+        else:
+            key, label = fname, fname
         if len(params) > 6: raise DeltaError(line, "more than 6 inputs is not in Delta yet")
-        self.funcs[fname] = (base, stars, ())
-        self.fname, self.frame, self.scopes, self.loops = fname, 0, [{}], []
-        self.label("f_" + fname)
+        self.funcs[key] = (base, stars, ())
+        self.cur_thing = method_of
+        self.fname, self.frame, self.scopes, self.loops = label, 0, [{}], []
+        self.label("f_" + label)
         self.emit("push rbp"); self.emit("mov rbp, rsp")
         fix = len(self.out); self.emit("sub rsp, FRAME")
         regs = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
@@ -253,9 +323,10 @@ class Compiler:
         self.block()
         # falling off the end of main = all good (1)
         self.emit("mov eax, 1" if fname == "main" else "xor eax, eax")
-        self.label(".Lret_" + fname)
+        self.label(".Lret_" + self.fname)
         self.emit("mov rsp, rbp"); self.emit("pop rbp"); self.emit("ret")
         self.out[fix] = "    sub rsp, %d" % ((self.frame + 15) // 16 * 16)
+        self.cur_thing = None
 
     def local(self, name, t, line):
         if name in self.scopes[-1]: raise DeltaError(line, "'%s' is already here" % name)
@@ -269,6 +340,28 @@ class Compiler:
             if name in s: return "rbp-%d" % s[name][0], s[name][1]
         if name in self.globals: return "rip+g_" + name, self.globals[name][0]
         raise DeltaError(line, "'%s' is not known here" % name)
+
+    def place(self, name, line):
+        """address of a name in rax: a local, a kept value, or (in a thing's function) one of its parts."""
+        self.last_part = None
+        try:
+            where, t = self.find(name, line)
+            self.emit("lea rax, [%s]" % where); return t
+        except DeltaError:
+            th = getattr(self, "cur_thing", None)
+            if th and name in THINGS[th]["fields"]:
+                where, _ = self.find("self", line)
+                self.emit("mov rax, [%s]" % where)
+                return self.part(th, name, line)
+            raise
+
+    def part(self, tname, name, line):
+        info = THINGS[tname]
+        if name not in info["fields"]: raise DeltaError(line, "%s has no part '%s'" % (tname, name))
+        ft, off = info["fields"][name]
+        if off: self.emit("add rax, %d" % off)
+        self.last_part = (off, info["fields"]["~"][1])
+        return ft
 
     # --- statements
     def block(self):
@@ -367,6 +460,18 @@ class Compiler:
                 if init is None:                      # not set yet: it holds ~
                     self.emit("lea rdi, [rbp-%d]" % off); self.emit("mov rcx, %d" % ((size_of(t) + 7) // 8 * 8))
                     self.emit("mov eax, LOW"); self.emit("rep stosb")
+                if init is not None and is_thing(t):
+                    self.emit("lea rdi, [rbp-%d]" % off); self.emit("mov rcx, %d" % ((size_of(t) + 7) // 8 * 8))
+                    self.emit("mov eax, LOW"); self.emit("rep stosb")     # its ~ and parts not given hold ~
+                    info = THINGS[base[6:]]; vals = self.flat(init)
+                    if len(vals) > len(info["order"]): raise DeltaError(line, "more values than parts in %s" % nm)
+                    for fn, v in zip(info["order"], vals):
+                        ft, foff = info["fields"][fn]
+                        if isinstance(v, int): self.emit("mov rax, %d" % v)
+                        else:
+                            save = self.p; self.p = v[1]; self.expr(); self.p = save
+                        self.store_to("rbp-%d" % (off - foff), ft)
+                    init = None
                 if init is not None:
                     esz = 1 if (base == "char" and not stars) else 8
                     vals = init[1] + [None] if init[0] == "str" else self.flat(init)
@@ -381,7 +486,7 @@ class Compiler:
                         elif isinstance(v, int):
                             self.emit("mov rax, %d" % v); self.emit("mov [%s], %s" % (addr, "al" if esz == 1 else "rax"))
                         else:
-                            save = self.p; self.p = v; self.expr(); self.p = save
+                            save = self.p; self.p = v[1]; self.expr(); self.p = save
                             self.emit("mov [%s], %s" % (addr, "al" if esz == 1 else "rax"))
             if self.at(","): self.take(); continue
             break
@@ -398,7 +503,7 @@ class Compiler:
                     if self.at(")") or self.at("}"): depth -= 1
                     self.take()
                 if self.p == start + 1 and self.t[start][0] == "num": items.append(self.t[start][1])
-                else: items.append(start)
+                else: items.append(["at", start])     # any other value: read it when it is stored
             if self.at(","): self.take()
         self.take("}")
         return ("list", items)
@@ -447,9 +552,11 @@ class Compiler:
         body = self.t[self.p:end]
         T = lambda k, v: [k, v, line]
         def thing(nm, kind, loss):
-            if nm[0] != "id" or nm[1] in KEYWORDS: raise DeltaError(line, "%s takes plain names" % word)
-            return [T("id", "dl_thing"), T("op", "("), T("op", "&"), T("id", nm[1]), T("op", ","),
-                    T("str", list(nm[1].encode()) + ["LOW"]), T("op", ","), T("num", kind), T("op", ","),
+            nm = nm if isinstance(nm, list) else [nm]
+            if not nm or nm[0][0] != "id" or nm[0][1] in KEYWORDS: raise DeltaError(line, "%s takes names (or parts: p.sugar)" % word)
+            text = "".join(str(x[1]) for x in nm)
+            return [T("id", "dl_thing"), T("op", "("), T("op", "&")] + [list(x) for x in nm] + [T("op", ","),
+                    T("str", list(text.encode()) + ["LOW"]), T("op", ","), T("num", kind), T("op", ","),
                     *loss, T("op", ")")]
         def split(toks, sep=","):
             out, cur, depth = [], [], 0
@@ -463,22 +570,22 @@ class Compiler:
         new = []
         if word == "store":
             for part in split(body):
-                if len(part) != 1: raise DeltaError(line, "store a, b, c;")
-                new += thing(part[0], 1, [T("num", 1)]) + [T("op", ";")]
+                new += thing(part, 1, [T("num", 1)]) + [T("op", ";")]
         elif word == "conduct":
             for part in split(body):
-                if len(part) < 3 or part[1][1] != "loss": raise DeltaError(line, "conduct wire loss N;")
-                new += thing(part[0], 2, part[2:]) + [T("op", ";")]
+                k = next((i for i, x in enumerate(part) if x[1] == "loss"), None)
+                if not k or k + 1 >= len(part): raise DeltaError(line, "conduct wire loss N;")
+                new += thing(part[:k], 2, part[k + 1:]) + [T("op", ";")]
         elif word == "neighbours":
-            if len(body) < 3 or body[1][1] != ":": raise DeltaError(line, "neighbours x: a, b, c;")
-            for part in split(body[2:]):
-                if len(part) != 1: raise DeltaError(line, "neighbours x: a, b, c;")
-                new += [T("id", "dl_link2"), T("op", "(")] + thing(body[0], 3, [T("num", 1)]) + [T("op", ",")] \
-                       + thing(part[0], 3, [T("num", 1)]) + [T("op", ")"), T("op", ";")]
+            k = next((i for i, x in enumerate(body) if x[0] == "op" and x[1] == ":"), None)
+            if not k or k + 1 >= len(body): raise DeltaError(line, "neighbours x: a, b, c;")
+            for part in split(body[k + 1:]):
+                new += [T("id", "dl_link2"), T("op", "(")] + thing(body[:k], 3, [T("num", 1)]) + [T("op", ",")] \
+                       + thing(part, 3, [T("num", 1)]) + [T("op", ")"), T("op", ";")]
         else:
             k = next((i for i, t in enumerate(body) if t[1] == "from"), None)
-            if k is None or k + 2 != len(body): raise DeltaError(line, "spend N from x;")
-            new += [T("id", "dl_spend"), T("op", "(")] + thing(body[k + 1], 3, [T("num", 1)]) + [T("op", ",")] \
+            if k is None or k + 1 >= len(body): raise DeltaError(line, "spend N from x;")
+            new += [T("id", "dl_spend"), T("op", "(")] + thing(body[k + 1:], 3, [T("num", 1)]) + [T("op", ",")] \
                    + body[:k] + [T("op", ")"), T("op", ";")]
         self.t[self.p:end + 1] = new
         if not self.uses_flow: raise DeltaError(line, "flow is not loaded")
@@ -495,7 +602,14 @@ class Compiler:
            Known parts + ~ = what the whole held; no part vanishes."""
         line = self.peek()[2]
         wname = self.peek()[1]
+        self.last_part = None
         wt = self.lvalue(); w = self.hidden(); self.emit("mov [%s], rax" % w)
+        own = None                                       # the thing's own ~, when the whole is one of its parts
+        if self.last_part:
+            foff, toff = self.last_part
+            own = self.hidden()
+            if toff > foff: self.emit("add rax, %d" % (toff - foff))
+            self.emit("mov [%s], rax" % own)
         self.check_count(wt, wname, line)
         self.take("D>")
         parts, amounts = [], []
@@ -536,6 +650,7 @@ class Compiler:
                 self.emit("mov r9, [%s]" % slot); self.emit("add [r9], rax")
         # rdx = what stays in the whole as its unknown energy; ~ adds up all of it
         self.emit("add [rip+dl_unknown], rdx")
+        if own: self.emit("mov r9, [%s]" % own); self.emit("add [r9], rdx")   # it keeps its own ~
         self.emit("mov qword ptr [r8], LOW")                # the whole now holds only ~
         self.emit("jmp " + ok)
         for lab, text in ((lowest, "%s is at its lowest point: only ~ (unknown energy) is left in it" % wname),
@@ -668,11 +783,14 @@ class Compiler:
         start = self.p
         t = self.primary()
         line = self.peek()[2]
-        if self.at("->") or self.at("."):
-            raise DeltaError(line, "structs are not in Delta yet")
-        if not (self.at("[") or self.at("++")):
+        if not (self.at("[") or self.at("++") or self.at(".") or self.at("->")):
             return t
         self.p = start; t = self.lvalue()           # read it again as a place
+        if self.at(".") or self.at("->"):           # a thing's own function
+            if self.take()[1] == "->":
+                t = elem_of(t, line); self.emit("mov rax, [rax]")
+            if not is_thing(t): raise DeltaError(line, "only a thing has its own functions")
+            return self.method_call(t[0][6:], line)
         if self.at("++"):
             self.take()
             self.emit("mov rcx, rax"); self.load_from("rcx", t)
@@ -697,8 +815,7 @@ class Compiler:
             return self.call()
         if tok[0] == "id":
             self.take()
-            where, t = self.find(tok[1], line)
-            self.emit("lea rax, [%s]" % where); self.load_from("rax", t); return t
+            t = self.place(tok[1], line); self.load_from("rax", t); return t
         raise DeltaError(line, "did not expect '%s'" % (tok[1] if tok[0] != "str" else "words"))
 
     def lvalue(self):
@@ -711,9 +828,24 @@ class Compiler:
         elif self.at("*"):
             self.take(); t = self.unary(); t = elem_of(t, line)
         else:
-            nm = self.name(); where, t = self.find(nm, line)
-            self.emit("lea rax, [%s]" % where)
-        while self.at("["):
+            nm = self.name(); t = self.place(nm, line)
+        while self.at("[") or self.at(".") or self.at("->"):
+            if self.at(".") or self.at("->"):
+                arrow = self.at("->")
+                nxt = self.peek(1)
+                th = elem_of(t, line) if arrow else t
+                if not is_thing(th): raise DeltaError(line, "only a thing has parts")
+                tn = th[0][6:]
+                if nxt[0] == "id" and nxt[1] in THINGS[tn]["methods"] and self.at("(", 2):
+                    return t                       # stop before its function; the caller calls it
+                self.take()
+                if arrow: self.emit("mov rax, [rax]")
+                pn = "~" if self.at("~") else None
+                if pn: self.take()
+                else: pn = self.name()
+                t = self.part(tn, pn, line)
+                continue
+            self.last_part = None
             self.take("[")
             if t[2]: pass                          # a row: its address is already in rax
             elif t[1]: self.emit("mov rax, [rax]") # a pointer: follow it
@@ -729,7 +861,7 @@ class Compiler:
         return t
 
     def load_from(self, reg, t, keep=None):
-        if t[2]:                                    # a row's value is where it starts
+        if t[2] or is_thing(t):                     # a row's or a thing's value is where it starts
             if reg != "rax": self.emit("mov rax, %s" % reg)
             return
         if size_of(t) == 1: self.emit("movzx eax, byte ptr [%s]" % reg)
@@ -738,6 +870,9 @@ class Compiler:
     def store_to(self, where, t):
         where = where if where.startswith("[") else "[%s]" % where
         if t[2]: raise DeltaError(0, "a whole row cannot be set at once")
+        if is_thing(t):                             # a whole thing: copy every part (rax = the other thing)
+            self.emit("mov rsi, rax"); self.emit("lea rdi, %s" % where)
+            self.emit("mov rcx, %d" % size_of(t)); self.emit("rep movsb"); return
         if size_of(t) == 1: self.emit("mov byte ptr %s, al" % where)
         else: self.emit("mov qword ptr %s, rax" % where)
 
@@ -745,6 +880,11 @@ class Compiler:
         tok = self.take(); fname = tok[1]; line = tok[2]
         self.take("(")
         if fname == "say": return self.say(line)
+        th = getattr(self, "cur_thing", None)
+        if fname not in self.funcs and th and fname in THINGS[th]["methods"]:
+            where, _ = self.find("self", line)          # its own function, on itself
+            self.emit("mov rax, [%s]" % where)
+            return self.method_call(th, line, named=fname)
         n = 0
         while not self.at(")"):
             self.expr(); self.emit("push rax"); n += 1
@@ -755,6 +895,21 @@ class Compiler:
         self.emit("call f_" + fname)
         self.calls.append((fname, line))
         return self.funcs.get(fname, INT)
+
+    def method_call(self, tname, line, named=None):
+        """self (the thing's place) is in rax; its function gets it first."""
+        mname = named or self.name()
+        if mname not in THINGS[tname]["methods"]: raise DeltaError(line, "%s has no function '%s'" % (tname, mname))
+        if named is None: self.take("(")
+        self.emit("push rax"); n = 1
+        while not self.at(")"):
+            self.expr(); self.emit("push rax"); n += 1
+            if not self.at(")"): self.take(",")
+        self.take(")")
+        if n > 6: raise DeltaError(line, "more than 5 inputs to a thing's function is not in Delta yet")
+        for r in reversed(["rdi", "rsi", "rdx", "rcx", "r8", "r9"][:n]): self.emit("pop " + r)
+        self.emit("call f_%s__%s" % (tname, mname))
+        return THINGS[tname]["methods"][mname]
 
     def say(self, line):
         """say("text %d %s %c", ...): the words are read now; numbers print as D numerals."""
@@ -783,7 +938,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Delta runtime 0.05: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Delta runtime 0.06: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text
@@ -866,7 +1021,8 @@ def compile_dc(src):
     if uses_flow:
         ftoks, _ = lex(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "flow.delta")).read())
         toks = ftoks[:-1] + toks
-    c = Compiler(toks); c.calls = []; c.uses_flow = uses_flow
+    THINGS.clear()
+    c = Compiler(toks); c.calls = []; c.uses_flow = uses_flow; c.cur_thing = None; c.last_part = None
     c.program()
     for fname, line in c.calls:
         if fname not in c.funcs and fname != "stop": raise DeltaError(line, "'%s' is not made anywhere" % fname)

@@ -1,0 +1,29 @@
+// Delta things: a plum holds its parts and its own ~, and can act by itself.
+thing plum {
+    int flesh, sugar, heat, poo;
+    char *name;
+
+    void ripen(int n) { flesh += n; }
+    void eat()        { flesh D> sugar + heat + poo ~; }     // what is left stays in it as ~
+    void show()       { say("%s: flesh %d sugar %d heat %d poo %d, its own ~ %d\n", name, flesh, sugar, heat, poo, self->~); }
+};
+
+int main(int argc, char **argv)
+{
+    thing plum p = {$A, 1, 1, 1, "plum"};
+    p.show();
+    p.ripen(3);
+    p.show();
+    p.eat();
+    p.show();
+
+    thing plum basket[2];
+    basket[1] = p;
+    basket[1].name = "copy";
+    move 2 from basket[1].sugar to basket[1].heat;
+    basket[1].show();
+
+    thing plum *q = &p;
+    say("through a place: %s sugar %d\n", q->name, q->sugar);
+    return 1;
+}
