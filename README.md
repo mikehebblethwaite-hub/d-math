@@ -166,3 +166,12 @@ not known forces and energy we cannot yet detect until D is completed to detect 
 So a LOW bit is: lower than 1, plus `~` (static, radiation, forces from the atmosphere and space, and forces not yet
 known). Every reading carries its `~`. Part of D's job is to detect what that `~` holds, one part at a time,
 naming each part as it is found (the same as `plum D> sugar + heat + poo ~`).
+
+## Licence
+
+Free under the GNU AGPL-3.0 (if you share it or run it as a service, your source must be open too), or under a
+paid commercial licence for closed products. See LICENSE.md; contact mike.hebblethwaite@gmail.com.
+
+---
+
+D and Delta © 2026 Mike J Hebblethwaite
