@@ -165,6 +165,11 @@ turn the assembly text into the program file.
 - Hello world: `lang/examples/hello.delta`. Nerds will try a zero ("I have 0 apples"): Delta answers that there are
   never zero apples. The seeds, water, sunlight and the nitrogen the fungi in the soil take up make the tree that
   gives the apples (Mike, 18 Nov 2026).
+- The Giant's Causeway in D: `lang/examples/causeway.delta`. A sheet of lava cools; every column shares its pull
+  evenly with its neighbours, so each crack centre moves toward the middle of its own share. No hexagon is drawn:
+  the columns settle into hexagons by themselves, their sides counted live (five, six, seven) in spiral numbers. The
+  heat moves to the air and the ground and out through the border into the Shrug; nothing vanishes. Why hex: it is
+  what equal neighbours make when energy moves evenly between them (close packing: six round one).
 - Faraday's electro-magnetic rotations, 1821, as he set them out: `lang/examples/faraday.delta`. Two glasses of
   mercury on a mahogany board, a brass stand and arm, a voltaic pile of copper and zinc. Left: a copper wire hangs
   from the arm and goes round and round a fixed magnet. Right: a magnet tied at its foot goes round and round a fixed
