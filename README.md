@@ -33,3 +33,11 @@ There is no zero digit, because a shape with no angles cannot be counted.
 `~` has no angles: its count is not known yet. That is why it marks the unknown parts.
 
 The shapes for each digit are still to be drawn.
+
+## Font: D Angle (font/)
+
+- `font/glyphs.json`: the editable source. Digits are drawn by rule (a hex spiral with n corners).
+  Operators are lines of [x,y] points; add a new operator by adding an entry.
+  `"liga": "D>"` makes typed keys join into one symbol.
+- `python3 font/build.py` builds `font/d-angle.ttf`; `python3 font/preview.py` draws `font/preview.png`.
+- Use the font only on D maths: in it, A B C D are the digits 10 to 13.
