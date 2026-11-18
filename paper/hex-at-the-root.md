@@ -234,7 +234,36 @@ The author's challenge to any peer who wants to disprove D: give one example, an
 there is nothing. D cannot have a zero, because a zero is not possible. (Even the emptiest vacuum yet measured is not
 empty: it holds energy, fields and radiation, and particles appear and vanish in it.)
 
-## 6. What is shown, and what is not yet
+## 6. Measuring without negatives
+
+The outside world's scales go below zero in many places. D cannot, because a negative amount is impossible. Each
+everyday negative turns out to be one of four things: a direction, a difference, an owner, or a distance still to go.
+
+**Amounts move; readings are replaced.** A scientist says a blob holds 0.2 of unknown energy; later it is found to hold
+3. Nothing was taken away: the energy was always there, and more of its `~` got a name. D keeps the two apart. An
+amount (what physically is) only moves. A reading (what has been measured so far) is replaced by a better reading.
+And 0.2 is not a fraction in D: it means "count in smaller units", as a cake is counted in crumbs.
+
+**What it needs to be 1.** Where the old world writes a negative energy, D says how much it needs to reach its next
+whole step. An electron held in a hydrogen atom is written in physics as having negative energy. In D it is bound: it
+needs 6262 thousandths of an electron-volt to be free. The amount it needs is always something.
+
+| the outside world writes | D says |
+|---|---|
+| temperatures below zero (Celsius, Fahrenheit) | count up from the lowest point, energy so low it can no longer be measured (`~`). Cold is little energy, never negative energy. Kelvin comes close but still names that point 0; D's scale starts at 1 just above it. |
+| negative charge | two kinds of charge, both something, each named (the electron's and the proton's), never signed |
+| negative voltage | a difference between two places: always a distance apart, and which way it pushes |
+| negative potential energy (gravity, a bound electron) | bound: the energy it needs to be free |
+| below sea level | depth, counted down from the surface: a distance |
+| moving backwards, negative speed | a speed and a direction |
+| a debt, a negative balance | moved: it is on the lender's side of the book |
+| before an event, negative time | before: a direction in time, counted from the event |
+| a tachyon (a particle needing its mass squared below zero) | a myth until it is seen: no detector has ever found one |
+
+Every row is the same move: the minus sign was carrying a direction, an owner or a distance still to go. D writes
+that down by name, and the amount itself is always something.
+
+## 7. What is shown, and what is not yet
 
 - The models are demonstrations by model, not proofs. They show that D's rules, kept exactly, produce hex where
   neighbours share evenly. A proof in D's own terms is the next step.
@@ -243,7 +272,7 @@ empty: it holds energy, fields and radiation, and particles appear and vanish in
   where to look next.
 - The causeway's crack centres start from a repeatable scatter. A seed from the world (sand in the air) is planned.
 
-## 7. To run the models
+## 8. To run the models
 
     lang/delta run lang/examples/hexring.delta
     lang/delta run lang/examples/formulas.delta
@@ -293,6 +322,7 @@ generations, and treats it as a source.
 | 13B | 219 |
 | 29 | 35 |
 | 27 | 33 |
+| 6262 | 13600 |
 | 9999 | 21420 |
 | 3333 | 7140 |
 | C17 | 2048 |
