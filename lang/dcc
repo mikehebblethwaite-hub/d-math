@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""dcc: the Dc compiler 0.03. Dc is C with D rules: no zero, no minus,
+"""dcc: the Dc compiler 0.04. Dc is C with D rules: no zero, no minus,
 D numerals (digits 1-9 A-D, no zero digit), counting from 1.
 Dc -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -409,9 +409,11 @@ class Compiler:
         return "rbp-%d" % self.frame
 
     def decompose(self):
-        """whole D> a + b + c ~;           even parts, the rest to ~
-           whole D> 3 a + 2 b ~ rest;     given amounts, the rest to the name after ~
-           the whole goes in full into its parts; no part vanishes: parts + ~ = what the whole held."""
+        """whole D> a + b + c ~;        even shares to the named (known) parts
+           whole D> 3 a + 2 b ~;        given amounts to the known parts
+           Every breakdown ends with ~: a thing broken down to its lowest point keeps only
+           its unknown energy (~). What does not go to a known part stays in it as that ~.
+           Known parts + ~ = what the whole held; no part vanishes."""
         line = self.peek()[2]
         wname = self.peek()[1]
         wt = self.lvalue(); w = self.hidden(); self.emit("mov [%s], rax" % w)
@@ -429,20 +431,18 @@ class Compiler:
             if self.at("+"): self.take(); continue
             break
         if any(amounts) and not all(amounts):
-            raise DcError(line, "give every part an amount, or none (then they share evenly)")
-        rest = None                        # None = no ~ written; "pool" = the program's ~
-        if self.at("~"):
-            self.take(); rest = "pool"
-            if not self.at(";"):
-                rname = self.peek()[1]
-                rt = self.lvalue(); rest = self.hidden(); self.emit("mov [%s], rax" % rest)
-                self.check_count(rt, rname, line)
+            raise DcError(line, "give every known part an amount, or none (then they share evenly)")
+        if not self.at("~"):
+            raise DcError(line, "every breakdown ends with ~: the unknown energy left in %s" % wname)
+        self.take("~")
+        if not self.at(";"):
+            raise DcError(line, "~ is the unknown energy left in %s: it has no name. A named part is a known part (write it before ~)" % wname)
         self.take(";")
-        below, little, uneven, ok = self.new(), self.new(), self.new(), self.new()
+        lowest, little, ok = self.new(), self.new(), self.new()
         self.emit("mov r8, [%s]" % w); self.emit("mov rax, [r8]")
-        self.emit("cmp rax, 1"); self.emit("jl " + below)
+        self.emit("cmp rax, 1"); self.emit("jl " + lowest)
         if all(amounts):
-            self.emit("mov rdx, rax")                       # rdx = what is left to give
+            self.emit("mov rdx, rax")                       # rdx = what is not given yet
             for a in amounts:
                 self.emit("mov rcx, [%s]" % a)
                 self.emit("cmp rcx, 1"); self.emit("jl " + little)
@@ -455,18 +455,12 @@ class Compiler:
             self.emit("cmp rax, 1"); self.emit("jl " + little)
             for slot in parts:
                 self.emit("mov r9, [%s]" % slot); self.emit("add [r9], rax")
-        # rdx = the rest
-        if rest is None:
-            self.emit("test rdx, rdx"); self.emit("jnz " + uneven)
-        elif rest == "pool":
-            self.emit("add [rip+dc_unknown], rdx")
-        else:
-            self.emit("mov r9, [%s]" % rest); self.emit("add [r9], rdx")
-        self.emit("mov qword ptr [r8], LOW")                # the whole is in its parts now
+        # rdx = what stays in the whole as its unknown energy; ~ adds up all of it
+        self.emit("add [rip+dc_unknown], rdx")
+        self.emit("mov qword ptr [r8], LOW")                # the whole now holds only ~
         self.emit("jmp " + ok)
-        for lab, text in ((below, "%s is already in its parts (it holds ~, less than 1 of it)" % wname),
-                          (little, "%s is too little for those parts" % wname),
-                          (uneven, "%s does not break evenly: write ~ for the rest" % wname)):
+        for lab, text in ((lowest, "%s is at its lowest point: only ~ (unknown energy) is left in it" % wname),
+                          (little, "%s is too little for those parts" % wname)):
             self.label(lab)
             self.say_text("Dc line %s: %s\n" % (to_d(line), text), fd=2)
             self.emit("mov edi, 2"); self.emit("jmp dc_exit")
@@ -710,7 +704,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Dc runtime 0.03: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Dc runtime 0.04: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text
@@ -779,7 +773,7 @@ dc_putd:                        # rdi = number -> D numeral; below 1 shows as ~
     ret
 .data
 dc_fd:     .quad 1
-dc_unknown: .quad LOW           # ~ : parts not named yet (always there, not known yet)
+dc_unknown: .quad LOW           # ~ : all the unknown energy left in things broken down (always there, not known yet)
 dc_digits: .ascii "123456789ABCD"
 dc_tilde:  .ascii "~"
 '''

@@ -45,7 +45,7 @@ The shapes for each digit are still to be drawn.
 ## Dc: C with D rules, straight to assembly (lang/)
 
 `lang/dcc run file.dc` | `dcc build file.dc -o out` | `dcc asm file.dc` (shows the assembly it writes).
-Dc 0.03 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+Dc 0.04 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
 turn the assembly text into the program file.
 
@@ -58,12 +58,15 @@ turn the assembly text into the program file.
 - `say("...%d %s %c...", ...)` prints; `%d` prints D numerals. `return 1` from main = all good.
 - In: int/long (64-bit), char, pointers, rows (also 2-D), functions (up to 6 inputs), recursion,
   if/else, while, for, break/continue, `? :`, `+ * / %`, `+= *= /= %=`, `++`, casts, `#define`.
-- `D>` decompose: the whole goes in full into its parts, no part vanishes; parts + ~ = what the whole held.
-  - `apple D> sugar + energy + heat + poo ~;` even shares; what does not share evenly goes to `~`.
-  - `apple D> 3 sugar + 2 heat ~ poo;` given amounts; the rest goes to the name after `~`.
-  - Without `~` the whole must share evenly, or the program stops and says so.
-  - `~` on its own is a place: it holds the parts not named yet (`say("%d", ~)`, `move 1 from ~ to x;`).
-  - Afterwards the whole holds `~`: it is in its parts now.
+- `D>` decompose: the whole goes into its known parts and its unknown energy `~`; no part vanishes.
+  - Every breakdown ends with `~`. A thing broken down to its lowest point (less than 1) still has atoms,
+    electrons and forces in it, known and unknown. The known are named parts; what stays is only its
+    unknown energy, `~` (Mike, 18 Nov 2026).
+  - `apple D> sugar + energy + heat + poo ~;` even shares to the known parts; the rest stays in the apple as `~`.
+  - `apple D> 3 sugar + 2 heat ~;` given amounts; the rest stays as `~`.
+  - `~` has no name: a named part is a known part, so it is written before `~`.
+  - Afterwards the apple holds only `~` (its lowest point); it cannot be broken down again.
+  - `~` on its own adds up all the unknown energy left in things broken down (`say("%d", ~)`).
 - Not yet: structs, fractions.
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 
