@@ -274,6 +274,21 @@ more strongly (each place's nearness to the air counts 4 to every 3 for lava). N
 Inside, column meets column on straight edges, mostly six-sided. At the outside, every column's edge against the air
 is curved. Everything's shape depends on its neighbours.
 
+### 5.3d Bubbles: neighbours make the shape of everything (`bubbles.delta`)
+
+A soap bubble alone is round; a cluster has flat walls inside and curved walls outside, and a bubble with bubbles all
+round it is a hexagon. In the model each bubble holds a fixed amount of gas. Its neighbours are the gas inside,
+pushing out equally every way; the air outside; the bubbles beside it; and the soap film, drawing them together. A
+squeezed bubble pushes harder and reaches further; one with room eases off; walls sit where pushes balance. Nothing
+round, straight or six-sided is drawn.
+
+![One bubble, three in a chain, and seven: six round one, the middle one a hexagon](images/bubbles.png)
+
+One bubble settles into a circle: only the air is its neighbour. Three settle into a chain: straight walls between
+bubbles, curved walls against the air. Seven settle six round one: the middle bubble, the only one with bubbles on
+every side, is a hexagon; the six round it are curved where the air is their neighbour. Everything's shape depends on
+its neighbours: equal neighbours on every side make hex.
+
 ### 5.4 Faraday's electro-magnetic rotations, AA1 (`faraday.delta`)
 
 The first electric motor, as Michael Faraday set it out: two glasses of mercury, a voltaic pile, a brass stand. In the

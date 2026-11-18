@@ -1,0 +1,103 @@
+// Bubbles: neighbours make the shape of everything.
+//
+// Each bubble holds a fixed amount of gas. The gas inside pushes out equally every way; the air outside is the
+// bubble's other neighbour; a bubble next to a bubble meets it where their pushes balance. Each step, every place
+// goes to the bubble whose push reaches it most strongly (a place no bubble's push reaches stays air); a bubble
+// holding less room than its gas needs pushes harder and reaches further, one with room to spare eases off; and each
+// bubble's middle moves toward the middle of what it holds, and the soap film draws the bubbles together. Nothing
+// round is drawn and nothing straight is drawn.
+//
+// It writes one picture for each cluster: one bubble, three, seven: bubbles-1.ppm, bubbles-3.ppm, bubbles-7.ppm.
+//
+//   delta run examples/bubbles.delta
+
+#define W 3C1
+#define H 268
+int nb;
+int bx[99], by[99], reach[99], area[99], sx[99], sy[99];
+int own[999999];
+char pic[1A2B1C7];
+int pn, low;
+int gas;                        // the room each bubble's gas needs, in places
+
+void share()
+{
+    int i, x, y;
+    for (i = 1; i <= nb; i++) { area[i] = low; sx[i] = low; sy[i] = low; }
+    for (y = 1; y <= H; y++) for (x = 1; x <= W; x++) {
+        int best = 9999999999, who = low;
+        for (i = 1; i <= nb; i++) {
+            int dx = apart(x, bx[i]), dy = apart(y, by[i]);
+            int d = dx * dx + dy * dy;
+            if (d < reach[i]) {                   // this bubble's push reaches here
+                int left = less(reach[i], d);     // how much push is left at this place
+                int score = less(9999999999, left);   // most push left wins (counted the other way up, so smallest wins)
+                if (score < best) { best = score; who = i; }
+            }
+        }
+        own[less(y, 1) * W + x] = who;
+        if (who >= 1) { area[who]++; sx[who] = sx[who] + x; sy[who] = sy[who] + y; }
+    }
+}
+
+void settle()
+{
+    int i, mx = low, my = low;
+    for (i = 1; i <= nb; i++) { mx = mx + bx[i]; my = my + by[i]; }
+    mx = mx / nb; my = my / nb;                       // the cluster's middle
+    for (i = 1; i <= nb; i++) {
+        bx[i] = towards(bx[i], mx, 1, 8);             // the film draws bubbles together, a little each step
+        by[i] = towards(by[i], my, 1, 8);
+        if (area[i] >= 1) {
+            reach[i] = lower(towards(reach[i], reach[i] * gas / area[i], 1, 2), W * W + H * H);   // squeezed: push harder; room: ease off
+            bx[i] = towards(bx[i], sx[i] / area[i], 1, 2);
+            by[i] = towards(by[i], sy[i] / area[i], 1, 2);
+        } else reach[i] = lower(reach[i] * 5 / 4, W * W + H * H);   // pushed out: squeezed gas pushes a little harder
+    }
+}
+
+void put(int c) { pn++; pic[pn] = c; }
+void putdec(int n) { if (n >= A) putdec(n / A); put('0' + n % A); }
+
+void picture(char *name)
+{
+    int x, y;
+    pn = low;
+    put('P'); put('6'); put('\n'); putdec(W); put(' '); putdec(H); put('\n'); putdec(168); put('\n');
+    for (y = 1; y <= H; y++) for (x = 1; x <= W; x++) {
+        int a = own[less(y, 1) * W + x];
+        int edge = (x < W && own[less(y, 1) * W + x + 1] != a) || (y < H && own[y * W + x] != a);
+        if (edge) { put(1A); put(1A); put(22); }
+        else if (a >= 1) { int t = (a * 25) % 9; put(76 + t * 5); put(81 + t * 5); put(93 + t * 5); }
+        else { put(BB); put($C9); put($D7); }
+    }
+    int fd = linux(2, name, 355, 264);
+    if (fd < 1) { say("cannot write %s\n", name); return; }
+    int done = 1;
+    while (done <= pn) { int got = linux(1, fd, &pic[done], less(pn + 1, done)); if (got < 1) return; done = done + got; }
+    linux(3, fd);
+}
+
+void cluster(int n, char *name)
+{
+    int i, s;
+    nb = n; gas = 2967;                           // each bubble's gas needs about 2967 places (in D)
+    for (i = 1; i <= nb; i++) {                   // starting points near the middle, a repeatable scatter
+        bx[i] = W / 3 + (i * 37B2) % (W / 3);
+        by[i] = H / 3 + (i * 2B4B) % (H / 3);
+        reach[i] = BAB;
+    }
+    for (s = 1; s <= 99; s++) { share(); settle(); }
+    share();
+    picture(name);
+    say("%d bubbles settled: %s\n", n, name);
+}
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    cluster(1, "bubbles-1.ppm");
+    cluster(3, "bubbles-3.ppm");
+    cluster(7, "bubbles-7.ppm");
+    return 1;
+}
