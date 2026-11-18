@@ -154,7 +154,7 @@ units with 1D/12 for √3, off by about 1 part in 7CC.
 ### 4.2 The bridge's error, and the book
 
 **The bridge.** Turning hex steps into square units needs root 3; the models use 1D/12 (26/15 in outside numbers).
-Squared, 1D/12 gives 3CC and 1 over 1A4 (676 over 225), where root 3 squared would be 3CC over 1A4 (675 over 225).
+Squared, 1D/12 gives 3CC and 1 over 144 (676 over 225), where root 3 squared would be 3CC over 144 (675 over 225).
 So every length that crosses the bridge comes out 1 part in about 7CB (1,350) too long, whatever its size: a circle
 of radius R hex steps lands R/7CB square units further out than true, and the whole numbers it rounds to are within
 one more unit. It is the same share at every radius, so a picture is never bent, only very slightly enlarged.
@@ -446,7 +446,7 @@ generations, and treats it as a source.
 | C, 11 | 12, 14 |
 | 9B | 128 |
 | 1D/12 | 26/15 |
-| 3CC and 1, 3CC, 1A4 | 676, 675, 225 |
+| 3CC and 1, 3CC, 144 | 676, 675, 225 |
 | 7CB | 1350 |
 | 9999 | 21420 |
 | 3333 | 7140 |
