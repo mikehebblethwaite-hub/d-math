@@ -14,6 +14,8 @@ The icon is our 0: a circle holding 3 dots, the unknown things left in it, like 
     lang/tests/run.sh                        # tricks refused, honest programs right
     python3 font/build.py                    # builds the D Angle font (needs fontTools)
 
+How each symbol came about, and who chose it: [HISTORY.md](HISTORY.md).
+
 ## Symbols
 
 | Meaning      | Type | Example                                  |
