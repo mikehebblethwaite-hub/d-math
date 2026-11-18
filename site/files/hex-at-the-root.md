@@ -52,7 +52,7 @@ D counts from 1 to D (thirteen digits) and has no zero digit. Ten is A, thirteen
 digit is drawn with as many angles as the number it stands for, as a hex spiral: lines 1, 1, 2, 2, 3, 3 ... long,
 turning a sixth of a turn at each corner. `~` has no angles: its count is not known yet. The old 0 key draws a circle
 holding three dots, the unknown things left inside, like three ping pong balls. (Who chose each symbol, and why, is
-kept in `HISTORY.md`.)
+kept in `HISTORY.md`; the stories behind them are in Appendix A.)
 
 In the models below the numerals move: each number is drawn as turning spirals, coloured by the spectrum its energy
 is in (heat from white-hot to deep red, electric current blue, chemical energy violet, motion green, the Shrug grey)
@@ -243,15 +243,7 @@ empty: it holds energy, fields and radiation, and particles appear and vanish in
   where to look next.
 - The causeway's crack centres start from a repeatable scatter. A seed from the world (sand in the air) is planned.
 
-## 7. Where it came from
-
-As a child the author drew three spirals in a circle again and again; his great-grandfather told him it was a carving.
-The triple spiral is cut in stone at Newgrange, older than Stonehenge. On the day these models were made, D's numerals,
-drawn as spirals that move and change colour with their energy, showed it again: "the three spirals in a circle then
-just showed up as language for everything moving." The author's family has kept knowledge by word of mouth for
-generations, and treats it as a source.
-
-## 8. To run the models
+## 7. To run the models
 
     lang/delta run lang/examples/hexring.delta
     lang/delta run lang/examples/formulas.delta
@@ -268,6 +260,14 @@ Prof Eric Laithwaite, for ping pong balls as particles. The code was written wit
 Anthropic.
 
 ---
+
+## Appendix A: Stories
+
+As a child the author drew three spirals in a circle again and again; his great-grandfather told him it was a carving.
+The triple spiral is cut in stone at Newgrange, older than Stonehenge. On the day these models were made, D's numerals,
+drawn as spirals that move and change colour with their energy, showed it again: "the three spirals in a circle then
+just showed up as language for everything moving." The author's family has kept knowledge by word of mouth for
+generations, and treats it as a source.
 
 ## The bridge (for readers of the outside world's numbers)
 
