@@ -1,7 +1,7 @@
 # D: real world physical maths model (0.01)
 
 D = decompose, destruction. A real world physical maths model: no zero, no minus,
-because nothing in the physical world goes to zero or below it.
+because zero is make-believe: no thing in the physical world goes to zero or below it.
 Nothing vanishes: everything is moved or broken into parts.
 
 ## Symbols
@@ -12,7 +12,7 @@ Nothing vanishes: everything is moved or broken into parts.
 | Decompose    | `D>` | `apple D> sugar + energy + heat + poo ~` |
 | Unknown part | `~`  | parts not named yet                      |
 
-- `~` has no angles: its count is not known yet. It is never empty.
+- `~` has no angles: its count is not known yet. It is always there.
   When a part is found, it gets a name and takes the place of `~`.
 - Read left to right: what was on the left is now on the right.
 
@@ -45,7 +45,7 @@ The shapes for each digit are still to be drawn.
 ## Dc: C with D rules, straight to assembly (lang/)
 
 `lang/dcc run file.dc` | `dcc build file.dc -o out` | `dcc asm file.dc` (shows the assembly it writes).
-Dc 0.02 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+Dc 0.03 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
 turn the assembly text into the program file.
 

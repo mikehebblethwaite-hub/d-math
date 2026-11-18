@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""dcc: the Dc compiler 0.02. Dc is C with D rules: no zero, no minus,
+"""dcc: the Dc compiler 0.03. Dc is C with D rules: no zero, no minus,
 D numerals (digits 1-9 A-D, no zero digit), counting from 1.
 Dc -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -710,7 +710,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Dc runtime 0.02: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Dc runtime 0.03: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text
