@@ -1,0 +1,6 @@
+# qwowt.net: one address. www and plain http go to https://qwowt.net (301).
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^www\.qwowt\.net$ [NC,OR]
+RewriteCond %{HTTPS} off
+RewriteCond %{REQUEST_URI} !^/\.well-known/
+RewriteRule ^ https://qwowt.net%{REQUEST_URI} [R=301,L]
