@@ -1,0 +1,124 @@
+// "Share evenly with your neighbours", in three dimensions.
+//
+// The Giant's Causeway model (causeway.delta) settles a flat sheet into hexagons. This asks the same of a block of
+// space. Cells start at a repeatable scatter in a cube that wraps round at its edges (so every cell is inside, none
+// spoiled by a wall). Each step, every small place in the cube belongs to its nearest cell's centre, and each centre
+// moves half way toward the middle of its own share. After it settles, every cell's neighbours are counted: the
+// cells it touches across a face.
+//
+// Close packing (hex layers stacked in each other's hollows) gives every cell C (twelve) neighbours. Another way of
+// settling, the truncated octahedron, gives 11 (fourteen). The program says which comes, without being told either.
+//
+//   delta run examples/cells3d.delta
+
+#define G 31                    // places along each edge of the cube (31 is forty)
+int nc;
+int cx[1BB], cy[1BB], cz[1BB];  // the centres, in sixteenths of a place
+int sxp[1BB], sxm[1BB], syp[1BB], sym[1BB], szp[1BB], szm[1BB];   // how far its share reaches ahead and behind, summed
+int cnt[1BB];
+int own[3A7AB];                 // which cell each place belongs to
+char adj[1A8C6];                // which cells touch
+int low;
+
+int side() { return G * 13; }   // the cube's edge in sixteenths (13 is sixteen)
+int wrapgap(int a, int b)       // how far apart, the short way round the cube
+{
+    int l = side(), d = apart(a, b) % l;
+    if (d * 2 > l) return less(l, d);
+    return d;
+}
+int ahead(int here, int there)  // is "there" ahead of "here", the short way round
+{
+    int l = side();
+    if (there >= here) return less(there, here) * 2 <= l;
+    return less(here, there) * 2 > l;
+}
+
+void scatter(int ma, int mb, int mc)
+{
+    int i, l = side();
+    for (i = 1; i <= nc; i++) { cx[i] = (i * ma) % l + 1; cy[i] = (i * mb) % l + 1; cz[i] = (i * mc) % l + 1; }
+}
+
+int place(int x, int y, int z) { return (less(z, 1) * G + less(y, 1)) * G + x; }
+
+void share()                    // every place to its nearest centre; sums for the middles
+{
+    int i, x, y, z;
+    for (i = 1; i <= nc; i++) { sxp[i] = low; sxm[i] = low; syp[i] = low; sym[i] = low; szp[i] = low; szm[i] = low; cnt[i] = low; }
+    for (z = 1; z <= G; z++) for (y = 1; y <= G; y++) for (x = 1; x <= G; x++) {
+        int qx = less(x, 1) * 13 + 8, qy = less(y, 1) * 13 + 8, qz = less(z, 1) * 13 + 8, best = 999999999, who = 1;
+        for (i = 1; i <= nc; i++) {
+            int dx = wrapgap(qx, cx[i]), dy = wrapgap(qy, cy[i]), dz = wrapgap(qz, cz[i]);
+            int d = dx * dx + dy * dy + dz * dz;
+            if (d < best) { best = d; who = i; }
+        }
+        own[place(x, y, z)] = who;
+        int gx = wrapgap(cx[who], qx), gy = wrapgap(cy[who], qy), gz = wrapgap(cz[who], qz);
+        if (ahead(cx[who], qx)) sxp[who] = sxp[who] + gx; else sxm[who] = sxm[who] + gx;
+        if (ahead(cy[who], qy)) syp[who] = syp[who] + gy; else sym[who] = sym[who] + gy;
+        if (ahead(cz[who], qz)) szp[who] = szp[who] + gz; else szm[who] = szm[who] + gz;
+        cnt[who]++;
+    }
+}
+
+int step(int c, int plus, int minus, int n)       // half way toward the middle of its share, round the cube
+{
+    int l = side();
+    if (n < 1) return c;
+    if (plus >= minus) return (c + less(plus, minus) / n / 2) % l + 1;
+    int back = less(minus, plus) / n / 2;
+    if (back < c) return less(c, back);
+    return less(c + l, back);
+}
+
+void settle()
+{
+    int i;
+    for (i = 1; i <= nc; i++) {
+        cx[i] = step(cx[i], sxp[i], sxm[i], cnt[i]);
+        cy[i] = step(cy[i], syp[i], sym[i], cnt[i]);
+        cz[i] = step(cz[i], szp[i], szm[i], cnt[i]);
+    }
+}
+
+int hist[99];
+void touching()                 // cells touching across a face of a place, round the cube
+{
+    int i, x, y, z;
+    for (i = 1; i <= nc * nc; i++) adj[i] = low;
+    for (z = 1; z <= G; z++) for (y = 1; y <= G; y++) for (x = 1; x <= G; x++) {
+        int a = own[place(x, y, z)];
+        int b = own[place(x % G + 1, y, z)], c2 = own[place(x, y % G + 1, z)], d2 = own[place(x, y, z % G + 1)];
+        if (a != b) { adj[less(a, 1) * nc + b] = 1; adj[less(b, 1) * nc + a] = 1; }
+        if (a != c2) { adj[less(a, 1) * nc + c2] = 1; adj[less(c2, 1) * nc + a] = 1; }
+        if (a != d2) { adj[less(a, 1) * nc + d2] = 1; adj[less(d2, 1) * nc + a] = 1; }
+    }
+    for (i = 1; i <= 2D; i++) hist[i] = low;
+    for (i = 1; i <= nc; i++) {
+        int j, n = low;
+        for (j = 1; j <= nc; j++) if (adj[less(i, 1) * nc + j]) n++;
+        if (n >= 1 && n <= 2D) hist[n]++;
+    }
+}
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    int sizes[4] = {42, 84, 9B, 99};              // cells in the cube: 54, 108, 128, 126 in outside numbers
+    int k;
+    say("cells   neighbours each cell touches (how many cells: count)        most common\n");
+    for (k = 1; k <= 4; k++) {
+        nc = sizes[k];
+        scatter(37B2, 2B4B, 5C27);
+        int s;
+        for (s = 1; s <= 3B; s++) { share(); settle(); }
+        share(); touching();
+        int i, most = 1;
+        say("%d     ", nc);
+        for (i = 1; i <= 2D; i++) if (hist[i] >= 1) { say(" %d:%d", i, hist[i]); if (hist[i] > hist[most]) most = i; }
+        say("     %d\n", most);
+    }
+    say("(C is twelve: close packing, hex layers stacked. 11 is fourteen: the truncated octahedron.)\n");
+    return 1;
+}

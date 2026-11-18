@@ -68,6 +68,31 @@ of the one below: the layers are hex, stacked.
 **Claim.** Wherever energy moves evenly between equal neighbours, the arrangement it settles into is hex. Where it is
 not hex, something is uneven, and that is where to look.
 
+### 2.1 The claim, stated formally
+
+Take a flat sheet divided into cells, where cells meet three at each corner (as cracks meet in cooling lava, and as
+soap films meet). Let a sheet settle by D's rule: every place belongs to the nearest cell's centre, and each centre
+moves toward the middle of its own share.
+
+**Part one (proved): the average is six.** For any flat network, counting gives
+
+    corners + cells = edges + 2
+
+(the outside world writes it with a minus; it needs none). Every edge has two ends and, inside the sheet, three edges
+meet at each corner, so twice the edges is three times the corners. Every edge borders two cells, so the
+sides of all the cells together are twice the edges. Putting these together, the corners are two thirds of the
+edges, so the cells are a third of the edges and 2 more, and the sides per cell are twice the edges shared among a
+third of the edges and 2 cells: just under six, and closer to six the more cells there are. Fives and sevens must balance around six, as they do on the
+Causeway and in every model sheet.
+
+**Part two (proved in the outside world's mathematics): the even sheet is hexagonal.** Of all the ways to divide a
+flat sheet into cells of equal area, the hexagonal one uses the least edge (the honeycomb conjecture, proved by Thomas
+Hales in BAA). Equal neighbours sharing evenly have nowhere better to settle.
+
+**Part three (shown, not proved): settling finds it.** From any repeatable start tried so far (5.3, 5.3a), D's rule
+settles into a sheet where six-sided cells are the most common. A proof that it always does, from every start, is
+open.
+
 ## 3. What nature shows
 
 These are observations anyone can check.
@@ -341,6 +366,7 @@ generations, and treats it as a source.
 | 4B | 63 |
 | B49, 651 | 1920, 1080 |
 | 36, 68 | 45, 86 |
+| BAA | 1999 |
 | 9999 | 21420 |
 | 3333 | 7140 |
 | C17 | 2048 |
