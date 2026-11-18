@@ -201,7 +201,10 @@ f_mouse:                        # mouse(): reads the pointer; keeps its place on
     call qword ptr [rcx+8]      # GetState
     mov rsp, rbp
     test rax, rax
-    jnz 8f
+    jnz 7f
+    mov rcx, [rip+dl_mok]
+    inc rcx
+    mov [rip+dl_mok], rcx
     movsxd rax, dword ptr [rip+dl_pstate]
     add rax, [rip+dl_mx]
     cmp rax, 1
@@ -222,8 +225,18 @@ f_mouse:                        # mouse(): reads the pointer; keeps its place on
 6:  mov [rip+dl_my], rax
     movzx eax, byte ptr [rip+dl_pstate+12]
     mov [rip+dl_mb], rax
+    jmp 8f
+7:  mov rcx, [rip+dl_mbad]      # not a reading: count it
+    inc rcx
+    mov [rip+dl_mbad], rcx
 8:  mov rax, [rip+dl_mb]
 9:  pop rbp
+    ret
+f_mousereads:                   # how many times the pointer gave a reading, and how many times not
+    mov rax, [rip+dl_mok]
+    ret
+f_mousemisses:
+    mov rax, [rip+dl_mbad]
     ret
 f_mousefound:                   # mousefound(): 1 when the firmware gave a pointer, else LOW
     mov rax, [rip+dl_ptr]
@@ -336,6 +349,8 @@ dl_hbuf:   .quad LOW
 dl_mx:     .quad LOW
 dl_my:     .quad LOW
 dl_mb:     .quad LOW
+dl_mok:    .quad LOW
+dl_mbad:   .quad LOW
 dl_pstate: .quad LOW, LOW
 dl_ptrguid: .byte 0x87, 0x8C, 0x87, 0x31, 0x75, 0x0B, 0xD5, 0x11, 0x9A, 0x4F, 0x00, 0x90, 0x27, 0x3F, 0xC1, 0x4D
 dl_gop:    .quad LOW
