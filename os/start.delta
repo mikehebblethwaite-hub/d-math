@@ -335,6 +335,7 @@ void think()                                      // Enter: work out the answer 
     for (i = 1; i <= tlen + 1; i++) heard[i] = typed[i];
     akind = 3;
     if (tlen < 1) { akind = low; return; }
+    if (tlen == 3 && typed[1] == 'o' && typed[2] == 'f' && typed[3] == 'f') off();      // switch the machine off
     for (i = 1; i <= tlen; i++) {
         if (typed[i] == '0') { akind = 2; amsg = "zero apples? Never. The seeds, water, sunlight and the fungi's nitrogen make the tree that gives them."; return; }
         if (typed[i] == '-') { akind = 2; amsg = "no negative numbers: it is impossible. Even the lowest temperature is energy too low to measure, ~, never below."; return; }
@@ -360,6 +361,7 @@ void listen()                                     // every key pressed since the
 {
     int k = key();
     while (k >= 1) {
+        if (k == 5D9) off();                                                   // Esc (its scan code past a thousand): off
         if (k == $D) { think(); tlen = low; }                                 // Enter
         else if (k == 8) { if (tlen >= 1) tlen = less(tlen, 1); }              // back a letter
         else if (k >= 26 && k < 9A && tlen < 6C) { tlen++; typed[tlen] = k; }  // a letter
@@ -412,7 +414,7 @@ int main(int argc, char **argv)
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
         emblem(W / 2, H * 3 / $A, H / 6);
         tx = 1B; ty = 1B;
-        text("Delta Hex OS 0.03", $B8, $B8, $BB); text("   an operating system with no zero, written in Delta", 93, 99, $A8);
+        text("Delta Hex OS 0.04", $B8, $B8, $BB); text("   an operating system with no zero, written in Delta", 93, 99, $A8);
         listen();
         tx = W / 6; ty = H / 2;
         label("say something to it:  "); text(typed, $D3, $D8, $DD); if ((FR / $A) % 2) text("_", $D3, $D8, $DD);
@@ -427,6 +429,7 @@ int main(int argc, char **argv)
         label("held back"); value(held, 5); label("all together"); value(all, 6);
         tx = 1B; ty = less(H, 37);
         label("every page holds something: HIGH and LOW bits, never nothing.   awake"); value(FR / 1C, 1); label("seconds");
+        tx = less(W, 233); ty = 1B; text("Esc, or type off: switch it off", 76, 7B, 89);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);
         wait(31);

@@ -119,6 +119,17 @@ f_key:                          # key(): the last key pressed (its letter), or L
 2:  ret
 1:  mov eax, LOW
     ret
+f_off:                          # off(): switch the machine off (the firmware's ResetSystem, shut down)
+    mov rax, [rip+dl_system]
+    mov rax, [rax+88]           # runtime services
+    mov ecx, 2                  # shut down
+    xor edx, edx
+    xor r8, r8
+    xor r9, r9
+    .byte 72, 131, 228, 240     # and rsp, 16-even
+    sub rsp, 32
+    call qword ptr [rax+104]    # ResetSystem
+    jmp dl_exit
 f_memmapstep:                   # how many bytes each part of the map takes
     mov rax, [rip+dl_descsize]
     ret
