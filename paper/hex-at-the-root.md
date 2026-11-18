@@ -213,7 +213,7 @@ In every one of the 4B sheets, six-sided columns are the most common. Their shar
 where each column is only a few pixels across and its edges are rough. No counter-example was found.
 
 The Causeway sheet in 5.3 is reproducible too: column i starts at (i x 37B2 mod 13 x the sheet's width, i x 38891 / 7
-mod 13 x its height), in sixteenths of a half-pixel, on a sheet half the size of a 1920 by 1080 screen.
+mod 13 x its height), in sixteenths of a half-pixel, on a sheet half the size of a B49 by 651 screen.
 
 ### 5.4 Faraday's electro-magnetic rotations, AA1 (`faraday.delta`)
 
@@ -339,6 +339,7 @@ generations, and treats it as a source.
 | 27 | 33 |
 | 6262 | 13600 |
 | 4B | 63 |
+| B49, 651 | 1920, 1080 |
 | 36, 68 | 45, 86 |
 | 9999 | 21420 |
 | 3333 | 7140 |

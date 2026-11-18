@@ -200,6 +200,21 @@ uneven.
 The heat moves from the lava to the air and the ground, and through the border into the Shrug; the book's total
 equals its start at every step.
 
+### 5.3a Looking for a counter-example (`causeway-search.delta`)
+
+The review asked whether the Causeway's rule settles into hexagons from any start, not just one. The search runs the
+same rule on 4B sheets: three sizes (A1 by 69, 15A by C6, 1D2 by 145 half-pixels), three numbers of columns (4C, 93,
+125) and seven repeatable starting scatters (column i starts at i x A mod the width, i x B / 7 mod the height, for the
+seven pairs A, B written in the program). Each sheet settles for 11B steps; then the sides of every column away from
+the border are counted.
+
+In every one of the 4B sheets, six-sided columns are the most common. Their share runs from 36 to 68 in every 79
+(79 is a hundred). The lowest shares come from the sheets packed with the most columns into the fewest half-pixels,
+where each column is only a few pixels across and its edges are rough. No counter-example was found.
+
+The Causeway sheet in 5.3 is reproducible too: column i starts at (i x 37B2 mod 13 x the sheet's width, i x 38891 / 7
+mod 13 x its height), in sixteenths of a half-pixel, on a sheet half the size of a B49 by 651 screen.
+
 ### 5.4 Faraday's electro-magnetic rotations, AA1 (`faraday.delta`)
 
 The first electric motor, as Michael Faraday set it out: two glasses of mercury, a voltaic pile, a brass stand. In the
@@ -323,6 +338,9 @@ generations, and treats it as a source.
 | 29 | 35 |
 | 27 | 33 |
 | 6262 | 13600 |
+| 4B | 63 |
+| B49, 651 | 1920, 1080 |
+| 36, 68 | 45, 86 |
 | 9999 | 21420 |
 | 3333 | 7140 |
 | C17 | 2048 |
