@@ -311,6 +311,23 @@ bubbles, curved walls against the air. Seven settle six round one: the middle bu
 every side, is a hexagon; the six round it are curved where the air is their neighbour. Everything's shape depends on
 its neighbours: equal neighbours on every side make hex.
 
+### 5.3e Bubbles in three dimensions, with an outside (`bubbles3d.delta`)
+
+The same bubble rule in a block of space 31 places each way, with air all round instead of a cube that wraps. After
+1C9 steps:
+
+| bubbles | what settles |
+|---|---|
+| 1 | a ball: B places across, B deep, B high, holding 499 places of gas (497 asked) |
+| 7 | the middle bubble touches 6 others |
+| D | the middle bubble touches C others: one with twelve round it, the close-packing count |
+| 16 | the middle bubble touches D others |
+
+A lone bubble is a ball, the same every way, with nothing round drawn. And with a real outside, the middle of a
+cluster of D settles touching C, where the endless wrapped cube of 5.3b settled at 11. Neighbours make the shape: an
+outside changes the answer. Twelve neighbours alone does not prove hex layers (twelve can also sit in other
+arrangements); which arrangement the twelve take is the next thing to measure.
+
 ### 5.4 Faraday's electro-magnetic rotations, AA1 (`faraday.delta`)
 
 The first electric motor, as Michael Faraday set it out: two glasses of mercury, a voltaic pile, a brass stand. In the
@@ -448,6 +465,9 @@ generations, and treats it as a source.
 | 1D/12 | 26/15 |
 | 3CC and 1, 3CC, 144 | 676, 675, 225 |
 | 7CB | 1350 |
+| 1C9 | 334 |
+| 497, 499 | 800, 802 |
+| 16 | 19 |
 | 9999 | 21420 |
 | 3333 | 7140 |
 | C17 | 2048 |

@@ -1,0 +1,109 @@
+// Bubbles in three dimensions: neighbours make the shape, with a real outside.
+//
+// The same rule as bubbles.delta, in a block of space with air all round (not a cube that wraps). Each bubble holds
+// a fixed amount of gas pushing out equally every way; a squeezed bubble reaches further, one with room eases off;
+// walls sit where pushes balance; the soap film draws the bubbles together. Then it says the shape of a lone bubble
+// (how wide it is each way) and, for clusters, how many bubbles the middle one touches.
+//
+//   delta run examples/bubbles3d.delta
+
+#define G 31                    // places along each edge of the block (forty)
+int nb;
+int bx[99], by[99], bz[99], reach[99], vol[99], sx[99], sy[99], sz[99];
+int own[3A7AB];
+char adj[999];
+int gas, low;
+
+int at3(int x, int y, int z) { return (less(z, 1) * G + less(y, 1)) * G + x; }
+
+void share()
+{
+    int i, x, y, z;
+    for (i = 1; i <= nb; i++) { vol[i] = low; sx[i] = low; sy[i] = low; sz[i] = low; }
+    for (z = 1; z <= G; z++) for (y = 1; y <= G; y++) for (x = 1; x <= G; x++) {
+        int best = 9999999999, who = low;
+        for (i = 1; i <= nb; i++) {
+            int dx = apart(x * 13, bx[i]), dy = apart(y * 13, by[i]), dz = apart(z * 13, bz[i]);   // sixteenths
+            int d = dx * dx + dy * dy + dz * dz;
+            if (d < reach[i]) {
+                int score = less(9999999999, less(reach[i], d));
+                if (score < best) { best = score; who = i; }
+            }
+        }
+        own[at3(x, y, z)] = who;
+        if (who >= 1) { vol[who]++; sx[who] = sx[who] + x * 13; sy[who] = sy[who] + y * 13; sz[who] = sz[who] + z * 13; }
+    }
+}
+
+void settle()
+{
+    int i, mx = low, my = low, mz = low, lim = G * G * 3 * 169;
+    for (i = 1; i <= nb; i++) { mx = mx + bx[i]; my = my + by[i]; mz = mz + bz[i]; }
+    mx = mx / nb; my = my / nb; mz = mz / nb;
+    for (i = 1; i <= nb; i++) {
+        bx[i] = towards(bx[i], mx, 1, 8); by[i] = towards(by[i], my, 1, 8); bz[i] = towards(bz[i], mz, 1, 8);
+        if (vol[i] >= 1) {
+            reach[i] = lower(towards(reach[i], reach[i] * gas / vol[i], 1, 2), lim);
+            bx[i] = towards(bx[i], sx[i] / vol[i], 1, 2); by[i] = towards(by[i], sy[i] / vol[i], 1, 2); bz[i] = towards(bz[i], sz[i] / vol[i], 1, 2);
+        } else reach[i] = lower(reach[i] * 5 / 4, lim);
+    }
+}
+
+int touching(int who)           // how many bubbles touch bubble who across a face
+{
+    int i, x, y, z, n = low;
+    for (i = 1; i <= nb; i++) adj[i] = low;
+    for (z = 1; z < G; z++) for (y = 1; y < G; y++) for (x = 1; x < G; x++) {
+        int a = own[at3(x, y, z)], b = own[at3(x + 1, y, z)], c = own[at3(x, y + 1, z)], d = own[at3(x, y, z + 1)];
+        if (a == who && b >= 1 && b != who) adj[b] = 1;
+        if (b == who && a >= 1 && a != who) adj[a] = 1;
+        if (a == who && c >= 1 && c != who) adj[c] = 1;
+        if (c == who && a >= 1 && a != who) adj[a] = 1;
+        if (a == who && d >= 1 && d != who) adj[d] = 1;
+        if (d == who && a >= 1 && a != who) adj[a] = 1;
+    }
+    for (i = 1; i <= nb; i++) if (adj[i]) n++;
+    return n;
+}
+
+void cluster(int n)
+{
+    int i, s;
+    nb = n; gas = 497;                            // each bubble's gas needs about 497 places
+    for (i = 1; i <= nb; i++) {
+        bx[i] = (G / 4 + (i * 37B2) % (G / 2)) * 13 + i;     // each start a little apart from every other
+        by[i] = (G / 4 + (i * 2B4B) % (G / 2)) * 13 + i * 2;
+        bz[i] = (G / 4 + (i * 5C27) % (G / 2)) * 13 + i * 3;
+        reach[i] = 27 * 169;                      // a small start, in sixteenths squared
+    }
+    for (s = 1; s <= 1C9; s++) { share(); settle(); }
+    share();
+    if (n == 1) {                                 // a lone bubble: how wide it is each way
+        int x, y, z, x1 = G, x2 = 1, y1 = G, y2 = 1, z1 = G, z2 = 1;
+        for (z = 1; z <= G; z++) for (y = 1; y <= G; y++) for (x = 1; x <= G; x++) if (own[at3(x, y, z)] == 1) {
+            x1 = lower(x1, x); x2 = higher(x2, x); y1 = lower(y1, y); y2 = higher(y2, y); z1 = lower(z1, z); z2 = higher(z2, z);
+        }
+        say("1 bubble: %d places of gas, %d across, %d deep, %d high\n", vol[1], less(x2, x1) + 1, less(y2, y1) + 1, less(z2, z1) + 1);
+        return;
+    }
+    int mx = low, my = low, mz = low, mid = 1, best = 9999999999;
+    for (i = 1; i <= nb; i++) { mx = mx + bx[i]; my = my + by[i]; mz = mz + bz[i]; }
+    mx = mx / nb; my = my / nb; mz = mz / nb;
+    for (i = 1; i <= nb; i++) {
+        int d = apart(bx[i], mx) * apart(bx[i], mx) + apart(by[i], my) * apart(by[i], my) + apart(bz[i], mz) * apart(bz[i], mz);
+        if (d < best) { best = d; mid = i; }
+    }
+    int holding = low;
+    for (i = 1; i <= nb; i++) if (vol[i] >= 1) holding++;
+    say("%d bubbles (%d holding gas): the middle one holds %d places and touches %d others\n", n, holding, vol[mid], touching(mid));
+}
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    cluster(1);
+    cluster(7);
+    cluster(D);
+    cluster(16);
+    return 1;
+}
