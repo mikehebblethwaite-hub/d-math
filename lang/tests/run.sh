@@ -134,10 +134,13 @@ prog "mix: nothing shared" "thing p { int x; }; thing q { int y; }; $M { thing p
 
 # room: a move needs somewhere to go
 honest "room: fits in"       'int tank = 9, pump = $D; fits tank $D; move 4 from pump to tank; say("%d %d\n", tank, pump);' 'D 9'
-last "rupture: levels out"   'int tank = 9, pump = $D, sky = 1, ground = 4; fits tank $D; store tank, sky, ground; neighbours tank: sky, ground; move 5 from pump to tank; say("%d %d %d %d\n", tank, sky, ground, tank + sky + ground);' '7 6 6 16'
-last "rupture: air pushes back" 'int tank = $D, pump = 5, sky = $DD; fits tank $D; store tank, sky; neighbours tank: sky; move 1 from pump to tank; say("%d %d\n", tank, sky);' '11 DD'
+TV='int tank = $D, pump = $D, valve = 1, pipe = 1, sky = 1; fits tank $D, valve 3, pipe 2; store tank, valve, pipe, sky; neighbours tank: valve, pipe; neighbours valve: sky;'
+last "overflow: to room"     "$TV move 3 from pump to tank; say(\"%d %d %d\\n\", tank, valve, pipe);" 'D 3 2'
+last "overflow: passes on"   "$TV move 3 from pump to tank; move 2 from pump to tank; say(\"%d %d %d %d\\n\", tank, valve, pipe, sky);" 'D 3 2 3'
+last "overflow: total kept"  "$TV move 3 from pump to tank; move 2 from pump to tank; say(\"%d\\n\", tank + valve + pipe + sky + pump);" '23'
+last "overflow: to the air"  'int tank = $D, pump = 5, sky = $DD; fits tank $D; store tank, sky; neighbours tank: sky; move 1 from pump to tank; say("%d %d\n", tank, sky);' 'D 111'
+last "rupture: dead end"     'int tank = $D, pump = 5, pipe = 2; fits tank $D, pipe 2; store tank, pipe; neighbours tank: pipe; move 1 from pump to tank; say("%d %d %d\n", tank, pipe, tank + pipe + pump);' '11 2 17'
 last "rupture: no neighbours" 'int tank = $D, pump = 5; fits tank $D; move 1 from pump to tank; say("%d %d\n", tank, ~);' '~ 11'
-last "rupture: open after"  'int tank = $D, pump = 5, sky = 1; fits tank $D; store tank, sky; neighbours tank: sky; move 1 from pump to tank; move 3 from pump to tank; say("%d\n", tank);' 'B'
 last "room: store full, back" 'int cell = 9, lamp = 1; fits lamp 3; store cell, lamp; neighbours cell: lamp; spend 5 from cell; say("%d %d\n", cell, lamp);' '7 3'
 last "room: leak to full"    'int s = 9, air = 2; fits air 2; store s leak 3; store air; neighbours s: air; tick; say("%d %d\n", s, air);' '9 2'
 last "room: wear part full"  'int r = 9, d = 1, sun = 2; fits d 2; wear r by sun D> d ~; tick; say("%d %d\n", r, d);' '8 2'

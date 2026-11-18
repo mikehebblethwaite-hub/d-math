@@ -17,6 +17,13 @@ void dl_unfit(int *at)             // ruptured: it holds nothing back any more
     for (int i = 1; i < dl_cnext; i++) if (dl_cat[i] == at) dl_cap[i] = $DDDDDD;
 }
 
+// how much it holds when full (a great deal when no fits was given)
+int dl_capof(int *at)
+{
+    for (int i = 1; i < dl_cnext; i++) if (dl_cat[i] == at) return dl_cap[i];
+    return $DDDDDD;
+}
+
 // how much more it can take in: ~ when it is full; a great deal when no fits was given
 int dl_room(int *at)
 {

@@ -209,3 +209,47 @@ void dl_rupture(int *at, char *nm)
     dl_unfit(at);
     dl_release(at, nm);
 }
+
+// Overflow: pushed past full, the extra has to go somewhere. It moves on to the neighbours that have room
+// (the rubber in a pipe, a valve), most room first. Only if no neighbour can take it does the tank rupture.
+int dl_busy[$DDD];             // already passing something on (so it never goes round in circles)
+
+void dl_overflow(int *at, char *nm)
+{
+    int over = *at, cap = dl_capof(at), sink;
+    if (over <= cap) return;
+    move cap from over to sink;
+    say("%s is full: %d has to go somewhere\n", nm, over);
+    int id;
+    for (int i = 1; i < dl_next; i++) if (dl_val[i] == at) id = i;
+    int got[$DDD];
+    while (over >= 1 && id >= 1) {
+        int best, bestroom;
+        for (int j = 1; j < dl_next; j++) {
+            if (!dl_link[id][j]) continue;
+            int r = dl_room(dl_val[j]);
+            if (r >= 1 && (best < 1 || r > bestroom)) { best = j; bestroom = r; }
+        }
+        if (best < 1) break;
+        move 1 from *at to *dl_val[best] and 1 from over to sink;
+        got[best]++;
+    }
+    for (int j = 1; j < dl_next; j++)
+        if (got[j] >= 1) { dl_pad(1); say("%s takes %d (now %d)\n", dl_name[j], got[j], *dl_val[j]); }
+    // no neighbour has room: pass it on through a full neighbour (a valve to the sky), which overflows in turn
+    if (over >= 1 && id >= 1) {
+        dl_busy[id] = 1;
+        for (int j = 1; j < dl_next && over >= 1; j++) {
+            if (!dl_link[id][j] || dl_busy[j]) continue;
+            int onward;
+            for (int k = 1; k < dl_next; k++) if (dl_link[j][k] && !dl_busy[k]) onward++;
+            if (onward < 1) continue;                // nothing beyond it: it cannot pass anything on
+            dl_pad(1); say("%s passes %d on through %s\n", nm, over, dl_name[j]);
+            int n = over;
+            move n from *at to *dl_val[j] and n from over to sink;
+            dl_overflow(dl_val[j], dl_name[j]);
+        }
+        dl_busy[id] = dl_busy[id] / $D;          // done here (LOW)
+    }
+    if (over >= 1) dl_rupture(at, nm);
+}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""delta: the Delta compiler 0.12. Delta is C with D rules: always something.
+"""delta: the Delta compiler 0.13. Delta is C with D rules: always something.
 Things count from 1 and move or change form; numbers are D numerals (digits 1-9 A-D).
 Delta -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -581,12 +581,12 @@ class Compiler:
             self.emit("cmp rax, rcx"); self.emit("jg " + full)
         self.emit("sub [r8], rax")                # under the hood: a gives, b takes
         self.emit("add [r9], rax"); self.emit("jmp " + ok)
-        if full:                                  # pushed into a full thing: it goes in, and it ruptures
+        if full:                                  # pushed past full: the extra moves on to a neighbour with room, or it ruptures
             self.label(full)
             self.emit("sub [r8], rax"); self.emit("add [r9], rax")
             lab = self.string(list(bn.encode()) + ["LOW"])
             self.emit("mov rdi, r9"); self.emit("lea rsi, [rip+%s]" % lab)
-            self.emit("call f_dl_rupture"); self.calls.append(("dl_rupture", line))
+            self.emit("call f_dl_overflow"); self.calls.append(("dl_overflow", line))
             self.emit("jmp " + ok)
         self.label(less)
         self.say_text("Delta line %s: move needs 1 or more\n" % to_d(line), fd=2)
@@ -1049,7 +1049,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Delta runtime 0.12: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Delta runtime 0.13: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text
