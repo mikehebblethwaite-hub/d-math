@@ -58,7 +58,13 @@ turn the assembly text into the program file.
 - `say("...%d %s %c...", ...)` prints; `%d` prints D numerals. `return 1` from main = all good.
 - In: int/long (64-bit), char, pointers, rows (also 2-D), functions (up to 6 inputs), recursion,
   if/else, while, for, break/continue, `? :`, `+ * / %`, `+= *= /= %=`, `++`, casts, `#define`.
-- Not yet: structs, fractions, `D>` (decompose: needs Mike's rule for how a thing splits).
+- `D>` decompose: the whole goes in full into its parts, no part vanishes; parts + ~ = what the whole held.
+  - `apple D> sugar + energy + heat + poo ~;` even shares; what does not share evenly goes to `~`.
+  - `apple D> 3 sugar + 2 heat ~ poo;` given amounts; the rest goes to the name after `~`.
+  - Without `~` the whole must share evenly, or the program stops and says so.
+  - `~` on its own is a place: it holds the parts not named yet (`say("%d", ~)`, `move 1 from ~ to x;`).
+  - Afterwards the whole holds `~`: it is in its parts now.
+- Not yet: structs, fractions.
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 
 ## The machine has no zero either

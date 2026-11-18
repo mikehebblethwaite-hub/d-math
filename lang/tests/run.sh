@@ -45,6 +45,18 @@ honest "move keeps total"  'int a = 4, b = 1; move 4 from a to b; say("%d %d\n",
 honest "letters in names"  'int Bob = 2, ABCD = 3; say("%d\n", Bob + ABCD);'    '5'
 honest "index by sum"      'int r[4] = {1,2,3,4}; int k = 2; say("%d\n", r[k + 1]);' '3'
 honest "2D row"            'int g[2][3] = {{1,2,3},{4,5,6}}; say("%d\n", g[2][3]);' '6'
+refuse "D> leaves a rest"   'int a = 7, p = 1, q = 1; a D> p + q;'                 'evenly'
+refuse "D> too little"      'int a = 2, p = 1, q = 1, r = 1; a D> p + q + r ~;'    'too little'
+refuse "D> amounts too big" 'int a = 3, p = 1, q = 1; a D> 2 p + 2 q ~;'          'too little'
+refuse "D> some amounts"    'int a = 6, p = 1, q = 1; a D> 2 p + q ~;'            'every part'
+refuse "D> twice"           'int a = 4, p = 1, q = 1; a D> p + q; a D> p + q;'    'already in its parts'
+refuse "D> into words"      'int a = 4; char *w = "x"; a D> w ~;'                 'whole number'
+honest "D> even"            'int a = $C, x = 1, y = 1, z = 1; a D> x + y + z; say("%d %d %d %d\n", x, y, z, a);' '5 5 5 ~'
+honest "D> amounts, rest named" 'int a = $A, s = 1, h = 1, r = 1; a D> 3 s + 2 h ~ r; say("%d %d %d %d\n", s, h, r, a);' '4 3 6 ~'
+honest "D> rest to ~"       'int a = 7, p = 1, q = 1; a D> p + q ~; say("%d %d %d\n", p, q, ~);' '4 4 1'
+honest "D> keeps the total" 'int a = $D, p = 1, q = 1, r = 1; a D> 4 p + 3 q ~ r; say("%d\n", p + q + r);' '13'
+honest "D > is still compare" 'int D = 2; if (D > 1) say("yes\n");'               'yes'
+
 # functions and recursion: a whole program
 cat > "$T/f.dc" <<'DC'
 int twice(int x) { return x * 2; }

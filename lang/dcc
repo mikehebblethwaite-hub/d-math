@@ -11,10 +11,10 @@ printing and exit are Linux system calls from our own runtime.
 import os, re, subprocess, sys, tempfile
 
 DIG = "123456789ABCD"
-BANNED = {"NULL": "NULL is zero (nothing): a pointer always points at something",
-          "false": "false is zero: say what is true instead",
-          "EXIT_SUCCESS": "EXIT_SUCCESS is zero: main ends with return 1 (all good)",
-          "nullptr": "nullptr is zero"}
+BANNED = {"NULL": "NULL is a make-believe zero: a pointer always points at something",
+          "false": "false is a make-believe zero: say what is true instead",
+          "EXIT_SUCCESS": "EXIT_SUCCESS is a make-believe zero: main ends with return 1 (all good)",
+          "nullptr": "nullptr is a make-believe zero"}
 TYPES = {"int", "long", "char", "void"}
 KEYWORDS = TYPES | {"if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
 
@@ -44,6 +44,7 @@ TOK = re.compile(r'''
  | (?P<chr>'(?:\\.|[^'\\\n])+')
  | (?P<dnum>\$[0-9A-Za-z.]+)
  | (?P<num>[0-9][0-9A-Za-z_.]*)
+ | (?P<dop>D>)
  | (?P<id>[A-Za-z_][A-Za-z0-9_]*)
  | (?P<op>->|==|!=|<=|>=|&&|\|\||\+\+|--|\+=|-=|\*=|/=|%=|[^\sA-Za-z0-9_])
 ''', re.S | re.X)
@@ -92,7 +93,7 @@ def lex(src):
             pm = re.match(r"#\s*(\w+)\s*(.*)", text)
             word = pm.group(1) if pm else ""
             if word == "include":
-                pass                                   # nothing to include: the runtime is built in
+                pass                                   # the runtime is built in
             elif word == "define":
                 dm = re.match(r"(\w+)\s*(.*)", pm.group(2))
                 defines[dm.group(1)] = [t for t in lex(dm.group(2))[0] if t[0] != "end"]
@@ -117,7 +118,7 @@ def lex(src):
             out.append(["str", unescape(text[1:-1], line), line]); continue
         if kind == "id" and text in defines:
             out.extend([list(t) for t in defines[text]]); continue
-        out.append([kind, text, line])
+        out.append(["op" if kind == "dop" else kind, text, line])
     out.append(["end", "", line])
     return out, defines
 
@@ -296,6 +297,10 @@ class Compiler:
             if not self.loops: raise DcError(line, "%s outside a loop" % w)
             self.emit("jmp " + self.loops[-1][0 if w == "break" else 1]); self.take(";"); return
         if self.at("move"): self.move(); return
+        k = self.p
+        while self.t[k][1] != ";" and self.t[k][0] != "end":
+            if self.t[k][0] == "op" and self.t[k][1] == "D>": self.decompose(); return
+            k += 1
         self.expr(); self.take(";")
 
     def declaration(self):
@@ -398,6 +403,78 @@ class Compiler:
         self.say_text("\n", fd=2)
         self.emit("mov edi, 2"); self.emit("jmp dc_exit")
         self.label(ok)
+
+    def hidden(self):
+        self.frame += 8
+        return "rbp-%d" % self.frame
+
+    def decompose(self):
+        """whole D> a + b + c ~;           even parts, the rest to ~
+           whole D> 3 a + 2 b ~ rest;     given amounts, the rest to the name after ~
+           the whole goes in full into its parts; no part vanishes: parts + ~ = what the whole held."""
+        line = self.peek()[2]
+        wname = self.peek()[1]
+        wt = self.lvalue(); w = self.hidden(); self.emit("mov [%s], rax" % w)
+        self.check_count(wt, wname, line)
+        self.take("D>")
+        parts, amounts = [], []
+        while True:
+            amt = None
+            if self.peek()[0] == "num" or self.at("("):
+                self.unary(); amt = self.hidden(); self.emit("mov [%s], rax" % amt)
+            pname = self.peek()[1]
+            pt = self.lvalue(); slot = self.hidden(); self.emit("mov [%s], rax" % slot)
+            self.check_count(pt, pname, line)
+            parts.append(slot); amounts.append(amt)
+            if self.at("+"): self.take(); continue
+            break
+        if any(amounts) and not all(amounts):
+            raise DcError(line, "give every part an amount, or none (then they share evenly)")
+        rest = None                        # None = no ~ written; "pool" = the program's ~
+        if self.at("~"):
+            self.take(); rest = "pool"
+            if not self.at(";"):
+                rname = self.peek()[1]
+                rt = self.lvalue(); rest = self.hidden(); self.emit("mov [%s], rax" % rest)
+                self.check_count(rt, rname, line)
+        self.take(";")
+        below, little, uneven, ok = self.new(), self.new(), self.new(), self.new()
+        self.emit("mov r8, [%s]" % w); self.emit("mov rax, [r8]")
+        self.emit("cmp rax, 1"); self.emit("jl " + below)
+        if all(amounts):
+            self.emit("mov rdx, rax")                       # rdx = what is left to give
+            for a in amounts:
+                self.emit("mov rcx, [%s]" % a)
+                self.emit("cmp rcx, 1"); self.emit("jl " + little)
+                self.emit("cmp rcx, rdx"); self.emit("jg " + little)
+                self.emit("sub rdx, rcx")                   # under the hood only
+            for a, slot in zip(amounts, parts):
+                self.emit("mov rcx, [%s]" % a); self.emit("mov r9, [%s]" % slot); self.emit("add [r9], rcx")
+        else:
+            self.emit("mov rcx, %d" % len(parts)); self.emit("cqo"); self.emit("idiv rcx")
+            self.emit("cmp rax, 1"); self.emit("jl " + little)
+            for slot in parts:
+                self.emit("mov r9, [%s]" % slot); self.emit("add [r9], rax")
+        # rdx = the rest
+        if rest is None:
+            self.emit("test rdx, rdx"); self.emit("jnz " + uneven)
+        elif rest == "pool":
+            self.emit("add [rip+dc_unknown], rdx")
+        else:
+            self.emit("mov r9, [%s]" % rest); self.emit("add [r9], rdx")
+        self.emit("mov qword ptr [r8], LOW")                # the whole is in its parts now
+        self.emit("jmp " + ok)
+        for lab, text in ((below, "%s is already in its parts (it holds ~, less than 1 of it)" % wname),
+                          (little, "%s is too little for those parts" % wname),
+                          (uneven, "%s does not break evenly: write ~ for the rest" % wname)):
+            self.label(lab)
+            self.say_text("Dc line %s: %s\n" % (to_d(line), text), fd=2)
+            self.emit("mov edi, 2"); self.emit("jmp dc_exit")
+        self.label(ok)
+
+    def check_count(self, t, nm, line):
+        if t[1] or t[2] or size_of(t) != 8:
+            raise DcError(line, "'%s' must hold a whole number to break down or take parts" % nm)
 
     def say_text(self, text, fd=None):
         if fd: self.emit("mov qword ptr [rip+dc_fd], %d" % fd)
@@ -541,6 +618,8 @@ class Compiler:
             lab = self.string(data + ["LOW"]); self.emit("lea rax, [rip+%s]" % lab); return ("char", 1, ())
         if self.at("("):
             self.take(); t = self.expr(); self.take(")"); return t
+        if self.at("~"):                               # the unknown parts so far
+            self.take(); self.emit("mov rax, [rip+dc_unknown]"); return INT
         if tok[0] == "id" and self.at("(", 1):
             return self.call()
         if tok[0] == "id":
@@ -554,6 +633,8 @@ class Compiler:
         tok = self.peek(); line = tok[2]
         if self.at("("):
             self.take(); t = self.lvalue(); self.take(")")
+        elif self.at("~"):
+            self.take(); self.emit("lea rax, [rip+dc_unknown]"); t = INT
         elif self.at("*"):
             self.take(); t = self.unary(); t = elem_of(t, line)
         else:
@@ -630,7 +711,7 @@ class Compiler:
 
 RUNTIME = r'''
 # Dc runtime 0.02: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
-# never nothing: it carries ~ (static, radiation, outside forces, forces not yet known).
+# it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text
 .globl _start
@@ -698,6 +779,7 @@ dc_putd:                        # rdi = number -> D numeral; below 1 shows as ~
     ret
 .data
 dc_fd:     .quad 1
+dc_unknown: .quad LOW           # ~ : parts not named yet (always there, not known yet)
 dc_digits: .ascii "123456789ABCD"
 dc_tilde:  .ascii "~"
 '''
