@@ -1,3 +1,5 @@
 # built programs (delta run leaves one next to its .delta)
 lang/examples/*
 !lang/examples/*.delta
+lang/dc
+lang/dc.o
