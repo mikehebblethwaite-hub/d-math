@@ -181,7 +181,8 @@ turn the assembly text into the program file.
 - Faraday's electro-magnetic rotations, 1821, as he set them out: `lang/examples/faraday.delta`. Two glasses of
   mercury on a mahogany board, a brass stand and arm, a voltaic pile of copper and zinc. Left: a copper wire hangs
   from the arm and goes round and round a fixed magnet. Right: a magnet tied at its foot goes round and round a fixed
-  copper rod. The first electric motor, at its real size, in Delta's own window, with the same honest energy book,
+  copper rod. The magnetic field is drawn too: faint lines out of each magnet's north end and round into its south,
+  in six planes (hex), worked out from the hex circle, with dots flowing north to south. The first electric motor, at its real size, in Delta's own window, with the same honest energy book,
   heat, current and moving spiral numbers as the world below. Keys: r replays, q closes.
 - A 3-D world: `lang/examples/world.delta` (`lang/delta run lang/examples/world.delta`). Delta opens its own
   full-screen window (it speaks X11 to the display itself: `lang/window.delta`, no C library, no toolkit) and draws a

@@ -450,6 +450,42 @@ void freemagnet(int i, int pass)
     }
 }
 
+// the magnetic field: out of each magnet's north end and round into its south, in six planes a sixth of a turn
+// apart (hex). Each line keeps to r = L x sin² of its angle from the magnet's line, worked out from the hex circle:
+// no sines, no cosines. Faint, with slow dots flowing north to south along it. It is why the wire and magnet turn:
+// the current crosses the field, and the field pushes it sideways.
+void fieldlay()                                       // the field's ink, faint, then cleared
+{
+    int x, y;
+    for (y = iy1; y <= iy2; y++) for (x = ix1; x <= ix2; x++) if (x >= 1 && x <= W && y >= 1 && y <= H) {
+        int k = y * W + x + 1;
+        if (wc[k] >= 1) { mixpx(x, y, 6C, $BC, 118, wc[k] / 3 + 1); wc[k] = low; }
+    }
+    ix1 = W; ix2 = 1; iy1 = H; iy2 = 1;
+}
+void field(int cx, int cz, int cy, int fr)          // a magnet upright at (cx, cz), its middle at height cy
+{
+    int L[4], q, k, i;
+    L[1] = $AA; L[2] = 13C; L[3] = 1B8;                // three lines in each plane, wider and wider
+    for (q = 1; q <= 3; q++) for (k = 1; k <= 6; k++) {
+        int phi = less(k, 1) * 13 + 1, have = low, lx = low, ly = low;   // six planes: a sixth of 96 is 13 (sixteen)
+        for (i = 1; i <= 39; i++) {                   // half way round: from the north end over to the south end
+            int c = cosk(i), s1 = sink(i);
+            int sn = apart(s1, K), cs = apart(c, K);
+            int r = L[q] * sn / K * sn / K;
+            int out = r * sn / K, along = r * cs / K;
+            if (r < 2B) { have = low; continue; }    // inside the magnet itself: not drawn
+            int y = c >= K ? cy + along : (along < cy ? less(cy, along) : low);
+            if (y < 1) { have = low; continue; }      // under the floor
+            proj(turnx(cx, out, phi), y, turnz(cz, out, phi));
+            if (have) inkline(lx, ly, PX, PY, 13);
+            if ((i + fr / 2) % 8 == 1) sprite(PX, PY, 21, 3B, 7A, 72);   // a dot going north to south
+            lx = PX; ly = PY; have = 1;
+        }
+    }
+    fieldlay();
+}
+
 void current(int i, int pass, int fr)           // the current: down the hanging wire, down the fixed rod
 {
     int u;
@@ -722,6 +758,8 @@ int main(int argc, char **argv)
         freemagnet(back, 2);
         cyl(LC, MID, 4C, 1, 88, 3);                     // the glasses
         cyl(RC, MID, 4C, 1, 88, 3);
+        field(LC, MID, 71, f);                          // the fixed magnet's field (its middle 71 up)
+        field(towards(RC, turnx(RC, 28, back), 1, 2), towards(MID, turnz(MID, 28, back), 1, 2), 67, f);   // the free one's, near enough upright
         current(step, 1, f);
         current(step, 2, f);
         TUBER = 26; tube(SX, TOP, SZ, LC, TOP, MID); lay(5, 1);        // the brass arm over both glasses
