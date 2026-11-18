@@ -108,7 +108,9 @@ def lex(src):
             continue
         if kind == "op" and text in ("-", "--", "-="):
             raise DeltaError(line, "in D things are moved (move N from a to b;) "
-                                "or broken into parts, never taken below what is there")
+                                "or broken into parts, never taken below what is there. There are no negative numbers: "
+                                "it is impossible. Even the lowest temperature is not below anything: it is energy so low "
+                                "we can no longer measure it, ~ (count temperature up from there, never below)")
         if kind == "id" and text in BANNED:
             raise DeltaError(line, BANNED[text])
         if kind == "id" and "0" in text:

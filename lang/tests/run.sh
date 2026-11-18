@@ -24,6 +24,7 @@ refuse "false"             'int b = false;'           false
 refuse "zero char"         "char c = '\\0';"          zero
 refuse "take away"             'int x = 5 - 2;' moved
 refuse "-1"         'int x = -1;' moved
+refuse "minus ten degrees"  'int frost = -$A;' 'no longer measure'
 refuse "count down"        'int i = 3; i--;' moved
 refuse "-="      'int i = 3; i -= 2;' moved
 refuse "0 in a name"    'int x0 = 1;' 'always something'
