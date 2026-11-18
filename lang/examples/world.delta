@@ -1,0 +1,325 @@
+// A 3-D world in Delta: a box room 20 feet by 20 feet by 20 feet (D numerals: 17 by 17 by 17), with
+// Faraday's homopolar motor from motor.delta standing on the middle of the floor, at its real size:
+// a 1.5 V AA battery on a neodymium magnet, a copper wire touching the battery's top and the magnet's side.
+// The camera flies in from near the front wall, high up, down to the motor. The wire turns at 1/10 speed. It runs a minute.
+//
+// Units: 1/64 inch. The floor is at height 1 (counting starts at 1), the room runs 1 to ROOM each way.
+// There is no minus in Delta: wherever a number comes down, something is moved out of it (less()).
+// The picture is drawn in a row of pixels and sent to the terminal in one go (two pixels per letter, the
+// top and bottom halves of a ▀). The terminal speaks old decimal for its colours, so putn() writes that;
+// every number for people is a D numeral (putD()).
+//
+//   delta run examples/world.delta       (a terminal 120 letters wide or more, true colour)
+
+#define W 93
+#define H 53
+#define BIG 28D221
+#define INCH 4C
+#define FOOT 471
+#define ROOM 6CB7
+#define MID 365B
+#define K 1B31
+#define FRAMES 8B5
+#define FLY $B7
+
+int R[53][93];
+int G[53][93];
+int B[53][93];
+char frame[17D13B];
+int fn = 1;
+int low;                       // lower than 1: the end of the words for say (the old "0" byte)
+char *digs;
+char *dd;
+int camX, camY, camZ, F, CXb, CYb;
+int PX, PY, PD;
+int HX, HY, HZ, HD;
+int C[75];                 // K + K cos: the turn, always something (a half step off, never at nothing)
+
+// ---------------------------------------------------------------- numbers that only move
+
+int less(int a, int b) { int gone = 1; if (b >= 1) move b from a to gone; return a; }
+int gap(int a, int b) { if (a >= b) return less(a, b); return less(b, a); }
+int under(int a, int b) { if (b >= a) return 1; return less(a, b); }
+int blend(int a, int b, int t, int n) { if (b >= a) return a + less(b, a) * t / n; return less(a, less(a, b) * t / n); }
+int shift(int base, int a, int b, int f, int d) { if (a >= b) return base + less(a, b) * f / d; return less(base, less(b, a) * f / d); }
+int ease(int t, int n) { return t * t * less(3 * n, 2 * t) / (n * n); }
+int isqrt(int n)
+{
+    if (n < 2) return n;
+    int x = n, y = (n + 1) / 2;
+    while (y < x) { x = y; y = (x + n / x) / 2; }
+    return x;
+}
+int cosk(int i) { return C[(i + 74) % 75 + 1]; }          // turn index 1..96
+int sink(int i) { return C[(i + 56) % 75 + 1]; }          // a quarter turn on
+int turnx(int r, int i) { return less(MID + r * cosk(i) / K, r); }
+int turnz(int r, int i) { return less(MID + r * sink(i) / K, r); }
+
+// ---------------------------------------------------------------- the frame of words
+
+void putc(int c) { frame[fn] = c; fn++; }
+void put(char *s) { int i = 1; while (s[i] >= 1) { putc(s[i]); i++; } }
+void putn(int n) { if (n >= $A) putn(n / $A); putc(digs[n % $A + 1]); }
+void putD(int n)
+{
+    if (n < 1) putc('~');
+    else {
+        int r = n % $D, q = n / $D;
+        if (r < 1) { r = $D; q = less(q, 1); }
+        if (q >= 1) putD(q);
+        putc(dd[r]);
+    }
+}
+
+// ---------------------------------------------------------------- pixels
+
+int clampc(int v) { if (v > 168) return 168; if (v < 1) return 1; return v; }
+
+void pixb(int xb, int yb, int r, int g, int b)
+{
+    if (xb > BIG && xb <= BIG + W && yb > BIG && yb <= BIG + H) {
+        int x = less(xb, BIG), y = less(yb, BIG);
+        R[y][x] = clampc(r); G[y][x] = clampc(g); B[y][x] = clampc(b);
+    }
+}
+
+void proj(int x, int y, int z)
+{
+    PD = under(z, camZ);
+    PX = shift(CXb, x, camX, F, PD);
+    PY = shift(CYb, camY, y, F, PD);
+}
+
+// ---------------------------------------------------------------- the room: each pixel looks out until it meets a wall
+
+int lightat(int nrm)                         // the ceiling lamp, over the middle of the room
+{
+    int ly = less(ROOM, INCH * 6);
+    int a = gap(HX, MID), b = gap(HY, ly), c = gap(HZ, MID);
+    int d2 = a * a + b * b + c * c + 1;
+    int d = isqrt(d2);
+    return 55 + 125 * nrm / d * 5BC / (5BC + d2 / 146777);
+}
+
+// far lines fade into their wall, as they do to an eye
+int fadeto(int base, int ln) { return blend(base, ln, 149A, HD + 149A); }
+
+void shade(int px, int py, int surf)
+{
+    int lw = HD / F + 6;                  // a grid line is about one pixel wide at any distance
+    int r, g, b, L, line;
+    if (surf == 2) {                       // the floor: oak boards, a line every foot
+        line = HX % FOOT < lw || HZ % FOOT < lw;
+        L = lightat(gap(less(ROOM, INCH * 6), HY));
+        int m2 = gap(HX, MID) * gap(HX, MID) + gap(HZ, MID) * gap(HZ, MID);
+        if (m2 < 22CC) L = L * (m2 + 839) / 2B38;     // the motor's shadow under the lamp
+        r = $C2; g = 88; b = 53;
+        if (line) { r = fadeto(r, 75); g = fadeto(g, 51); b = fadeto(b, 31); }
+    } else if (surf == 3) {                // the ceiling
+        line = HX % FOOT < lw || HZ % FOOT < lw;
+        L = $B7;
+        r = 145; g = 145; b = 141;
+        if (line) { r = fadeto(r, 125); g = fadeto(g, 125); b = fadeto(b, 121); }
+    } else if (surf == 4) {                // a side wall
+        line = HZ % FOOT < lw || HY % FOOT < lw;
+        L = lightat(gap(HX, MID));
+        r = $D7; g = 114; b = 129;
+        if (line) { r = fadeto(r, $B7); g = fadeto(g, $C4); b = fadeto(b, $DB); }
+    } else {                                   // the back wall
+        line = HX % FOOT < lw || HY % FOOT < lw;
+        L = lightat(gap(HZ, MID));
+        r = 129; g = 118; b = $D1;
+        if (line) { r = fadeto(r, $D9); g = fadeto(g, $C8); b = fadeto(b, $B3); }
+    }
+    pixb(BIG + px, BIG + py, r * L / 169, g * L / 169, b * L / 169);
+}
+
+void room()
+{
+    int py, px;
+    for (py = 1; py <= H; py++) for (px = 1; px <= W; px++) {
+        int xb = BIG + px, yb = BIG + py;
+        int dxp = gap(xb, CXb), right = xb > CXb;
+        int dyp = gap(yb, CYb), below = yb > CYb;
+        int dz = less(ROOM + 1, camZ), surf = 1, d;
+        if (dyp >= 1) {
+            if (below) d = less(camY, 1) * F / dyp; else d = less(ROOM + 1, camY) * F / dyp;
+            if (d < dz) { dz = d; surf = below ? 2 : 3; }
+        }
+        if (dxp >= 1) {
+            if (right) d = less(ROOM + 1, camX) * F / dxp; else d = less(camX, 1) * F / dxp;
+            if (d < dz) { dz = d; surf = 4; }
+        }
+        if (dz < 1) dz = 1;
+        int ox = dxp * dz / F, oy = dyp * dz / F;
+        HX = right ? camX + ox : under(camX, ox);
+        HY = below ? under(camY, oy) : camY + oy;
+        HZ = camZ + dz; HD = dz;
+        shade(px, py, surf);
+    }
+}
+
+// ---------------------------------------------------------------- the motor
+
+// an upright cylinder standing on the middle: kind 1 magnet, 2 battery, 3 the battery's + nub
+void cyl(int rad, int yb, int yt, int kind)
+{
+    proj(MID, yt, MID); int sx = PX, syt = PY, d = PD;
+    proj(MID, yb, MID); int syb = PY;
+    int hw = rad * F / d; if (hw < 1) hw = 1;
+    int et = hw * gap(camY, yt) / d, eb = hw * gap(camY, yb) / d;
+    int c;
+    for (c = less(sx, hw); c <= sx + hw; c++) {
+        int u = gap(c, sx);
+        int s = isqrt(less(hw * hw, u * u));
+        int ct = et * s / hw, cb = eb * s / hw;
+        int top = less(syt, ct), edge = syt + ct, bot = syb + cb;
+        int face = 48 + 121 * s / hw;                 // round: brightest where it faces the camera
+        if (c < sx) face = face + 31 * u / hw;            // the lamp is up and to the left a little
+        else face = under(face, 24 * u / hw);
+        int shine = gap(c + hw / 3, sx) * 3 <= hw / 2 + 1; // a stripe of shine
+        int y;
+        for (y = top; y <= bot; y++) {
+            int r, g, b;
+            if (y <= edge) {                                  // its top, seen from above
+                r = 132; g = 134; b = 138;
+                if (kind == 2) { r = 118; g = 11A; b = 123; }
+                r = r * (125 + 44 * s / hw) / 169; g = g * (125 + 44 * s / hw) / 169; b = b * (125 + 44 * s / hw) / 169;
+            } else {
+                int along = less(y, edge) * 79 / (less(bot, edge) + 1);   // 1..100 down its side
+                if (kind == 1 || kind == 3) { r = $DD; g = 114; b = 11C; }
+                else if (along < 7 || along > 75) { r = $D7; g = $D9; b = 112; }
+                else if (along < $B) { r = 14B; g = 14B; b = 152; }
+                else { r = 2C; g = 57; b = $CC; }
+                r = r * face / 169; g = g * face / 169; b = b * face / 169;
+                if (shine) { r = (r + 168) / 2; g = (g + 168) / 2; b = (b + 168) / 2; }
+            }
+            pixb(c, y, r, g, b);
+        }
+    }
+}
+
+void seg(int x1, int y1, int z1, int x2, int y2, int z2)
+{
+    proj(x1, y1, z1); int ax = PX, ay = PY;
+    proj(x2, y2, z2); int bx = PX, by = PY;
+    int n = gap(ax, bx); if (gap(ay, by) > n) n = gap(ay, by); n++;
+    int t;
+    for (t = 1; t <= n; t++) pixb(blend(ax, bx, t, n), blend(ay, by, t, n), 136, 95, 4C);
+}
+
+// the wire: from the + nub over the top and down both sides to the magnet's edge, turned to step i.
+// pass 1 draws the parts behind the battery, pass 2 the parts in front.
+int WR[4];
+int WY[4];
+void wire(int i, int pass, int fr)
+{
+    int arm, k;
+    for (arm = 1; arm <= 2; arm++) {
+        int j = arm == 1 ? i : (i + 38) % 75 + 1;
+        for (k = 1; k <= 3; k++) {
+            int x1 = turnx(WR[k], j), z1 = turnz(WR[k], j), x2 = turnx(WR[k + 1], j), z2 = turnz(WR[k + 1], j);
+            int behind = (z1 + z2) / 2 > MID;
+            if ((pass == 1 && behind) || (pass == 2 && behind < 1)) seg(x1, WY[k], z1, x2, WY[k + 1], z2);
+        }
+        int tx = turnx(WR[4], j), tz = turnz(WR[4], j);
+        if (pass == 2 || tz > MID) {                     // the sliding contact: warm (it takes B9 of 24B)
+            proj(tx, WY[4], tz);
+            int glow = fr % 2 ? 168 : 149;
+            pixb(PX, PY, 168, glow, $AA);
+            pixb(PX + 1, PY, 168, $D1, 6C);
+        }
+    }
+}
+
+// ---------------------------------------------------------------- the screen
+
+void emit()
+{
+    fn = 1;
+    put("\e[H");
+    int row, x, pr = 5BB, pg = 5BB, pb = 5BB, qr = 5BB, qg = 5BB, qb = 5BB;
+    for (row = 1; row <= H / 2; row++) {
+        int t = less(row * 2, 1), b = row * 2;
+        for (x = 1; x <= W; x++) {
+            if (R[t][x] != pr || G[t][x] != pg || B[t][x] != pb || R[b][x] != qr || G[b][x] != qg || B[b][x] != qb) {
+                put("\e[38;2;"); putn(R[t][x]); putc(';'); putn(G[t][x]); putc(';'); putn(B[t][x]);
+                put(";48;2;"); putn(R[b][x]); putc(';'); putn(G[b][x]); putc(';'); putn(B[b][x]); putc('m');
+                pr = R[t][x]; pg = G[t][x]; pb = B[t][x]; qr = R[b][x]; qg = G[b][x]; qb = B[b][x];
+            }
+            put("▀");
+        }
+        put("\e[m\n"); pr = 5BB; qr = 5BB;
+    }
+}
+
+int main(int argc, char **argv)
+{
+    digs = "0123456789";                // the terminal's own old decimal, for its colour codes only
+    dd = "123456789ABCD";
+    low = less(1, 1);
+    int c[75] = {395D, 3948, 391C, 38AC, 3858, 37BC, 3741, 367C, 35A8, 34C2, 33C8, 32C1, 31A6, 2D7C, 2C48, 2AD6, 2988, 2831, 26A1, 2537, 2398, 2225, 1D7C, 1BD5, 1A5A, 18B3, 173A, 1597, 1428, 1291, 1131, $CA7, $B59, $A17, 8B3, 789, 671, 567, 46D, 387, 2B3, 221, 173, $D7, 83, 43, 17, 2, 2, 17, 43, 83, $D7, 173, 221, 2B3, 387, 46D, 567, 671, 789, 8B3, $A17, $B59, $CA7, 1131, 1291, 1428, 1597, 173A, 18B3, 1A5A, 1BD5, 1D7C, 2225, 2398, 2537, 26A1, 2831, 2988, 2AD6, 2C48, 2D7C, 31A6, 32C1, 33C8, 34C2, 35A8, 367C, 3741, 37BC, 3858, 38AC, 391C, 3948, 395D};
+    int i;
+    for (i = 1; i <= 75; i++) C[i] = c[i];
+    WR[1] = 1;      WY[1] = $AC;    // over the + nub
+    WR[2] = 31; WY[2] = $A6;    // out over the top
+    WR[3] = 35; WY[3] = 3B;     // down the side
+    WR[4] = 1C; WY[4] = 6;      // in to touch the magnet's edge
+
+    // the energy, as in motor.delta, in microjoules: 8.7 W for 1/25 s is 348000 each frame
+    int chemistry = $C349BA483;        // an AA holds about 10 kJ
+    int cell = 1, contact = 1, wirew = 1, magnet = 1, spin = 1, air = 1;
+    int start = chemistry + cell + contact + wirew + magnet + spin + air;
+    int each = $C2523, weights = 24B;
+
+    put("\e[2J\e[?25l"); putc(low); say("%s", frame);
+    int f;
+    for (f = 1; f <= FRAMES; f++) {
+        int t = f > FLY ? FLY : f;
+        int e = ease(t, FLY);
+        camX = MID;
+        camY = blend(MID, 143, e, FLY);                  // from 10 feet up to 3.5 inches
+        camZ = blend(FOOT + 1, less(MID, INCH * 7), e, FLY);  // from 1 foot off the front wall to 7 inches away
+        F = blend(39, $DB, e, FLY);
+        int aim = blend(4A, 28, e, FLY);             // where the motor sits on the screen
+        CXb = BIG + W / 2;
+        CYb = less(BIG + aim, less(camY, 55) * F / less(MID, camZ));
+
+        room();
+        int step = (f * 4) % 75 + 1;               // 4 steps of 96 a frame: 1/10 of its real 10 turns a second
+        wire(step, 1, f);
+        cyl(1B, 1, 9, 1);                        // the magnet: 3/4 inch across, 1/8 inch thick
+        cyl(15, 9, $A6, 2);              // the battery: AA, 14.5 mm by 50.5 mm
+        cyl(7, $A6, $A9, 3);             // its + nub
+        wire(step, 2, f);
+
+        // a frame of energy: shares by resistance; what does not share evenly goes to the lowest (spin)
+        int s1 = each * 14B / weights, s2 = each * $B9 / weights, s3 = each * 11 / weights,
+            s4 = each * 2 / weights, s5 = each / weights;
+        move s1 from chemistry to cell and s2 from chemistry to contact and s3 from chemistry to wirew;
+        move s4 from chemistry to magnet and s5 from chemistry to spin;
+        int rest = less(less(less(less(less(each, s1), s2), s3), s4), s5);
+        if (rest >= 1) move rest from chemistry to spin;
+        int all = spin; if (all > 1) move less(all, 1) from spin to air;     // air drag: the turn becomes warm air
+        if (cell / 31 >= 1) move cell / 31 from cell to air;           // the warm parts warm the air
+        if (contact / 31 >= 1) move contact / 31 from contact to air;
+        if (wirew / 31 >= 1) move wirew / 31 from wirew to air;
+        if (magnet / 31 >= 1) move magnet / 31 from magnet to air;
+
+        emit();
+        put(" Faraday's motor (year AA1) on the floor of a room 17 x 17 x 17 feet (D numerals), lines every foot\e[K\n");
+        put(" of every "); putD(weights); put(" parts spent: battery warms 14B, contact B9, wire 11, magnet 2, the turn 1\e[K\n");
+        put(" battery holds "); putD(chemistry / 5BC); put(" mJ   warm: battery "); putD(cell / 5BC);
+        put(" contact "); putD(contact / 5BC); put(" wire "); putD(wirew / 5BC); put(" magnet "); putD(magnet / 5BC);
+        put(" mJ   air "); putD(air / 5BC); put(" mJ\e[K\n");
+        put(" the turn: "); putD(s5 + rest); put(" uJ each 1/1C s (about 19 mW), shown at 1/A speed   all together ");
+        int total = chemistry + cell + contact + wirew + magnet + spin + air;
+        putD(total); if (total == start) put(" = the start: nothing vanished"); else put(" NOT the start");
+        put("\e[K\n");
+        putc(low);
+        say("%s", frame);
+        wait(31);
+    }
+    say("\e[?25h");
+    return 1;
+}

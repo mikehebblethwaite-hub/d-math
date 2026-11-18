@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""delta: the Delta compiler 0.17. Delta is C with D rules: always something.
+"""delta: the Delta compiler 0.18. Delta is C with D rules: always something.
 Things count from 1 and move or change form; numbers are D numerals (digits 1-9 A-D).
 Delta -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -69,6 +69,10 @@ def unescape(body, line):
 
 def d_numeral(text, line):
     body = text[1:] if text.startswith("$") else text
+    if body.strip("0").rstrip("lLuU") == "":
+        raise DeltaError(line, "'%s': zero apples? There are never zero apples. The seeds, water, sunlight and the "
+                            "nitrogen the fungi in the soil take up make the tree that gives the apples. Say what is "
+                            "there: D numerals use the digits 1-9 A-D (ten is $A, thirteen $D, fourteen 11)" % text)
     if "0" in body:
         raise DeltaError(line, "'%s': D numerals use the digits 1-9 A-D "
                             "(ten is $A, thirteen $D, fourteen 11)" % text)
@@ -1084,7 +1088,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Delta runtime 0.17: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Delta runtime 0.18: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .weak f_dl_report
@@ -1109,6 +1113,21 @@ dl_exit:
     syscall
 f_stop:                         # stop(n): end the program now with n
     jmp dl_exit
+f_wait:                         # wait(ms): time runs on while the program rests (Linux nanosleep)
+    mov rax, rdi
+    xor edx, edx
+    mov rcx, 1000
+    div rcx
+    imul rdx, rdx, 1000000
+    push rdx
+    push rax
+    mov rdi, rsp
+    xor esi, esi
+    mov eax, 35
+    syscall
+    add rsp, 16
+    mov eax, 1
+    ret
 dl_write:                       # rdi = where, rsi = how many bytes
     mov rdx, rsi
     mov rsi, rdi
@@ -1184,7 +1203,7 @@ def compile_dc(src):
     c.uses_vessel = uses_vessel; c.uses_room = uses_room; c.fname = ""
     c.program()
     for fname, line in c.calls:
-        if fname not in c.funcs and fname != "stop": raise DeltaError(line, "'%s' is not made anywhere" % fname)
+        if fname not in c.funcs and fname not in ("stop", "wait"): raise DeltaError(line, "'%s' is not made anywhere" % fname)
     asm = [".intel_syntax noprefix", RUNTIME, ".text"] + c.out + ["", ".data"]
     for nm, (t, v) in c.globals.items():
         if v is not None: asm.append("g_%s: .quad %d" % (nm, v))

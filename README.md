@@ -57,7 +57,7 @@ The shapes for each digit are still to be drawn.
 ## Delta: C with D rules, straight to assembly (lang/)
 
 `lang/delta run file.delta` | `delta build file.delta -o out` | `delta asm file.delta` (shows the assembly it writes).
-Delta 0.17 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+Delta 0.18 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
 turn the assembly text into the program file.
 
@@ -149,7 +149,17 @@ turn the assembly text into the program file.
     Flow into a full store goes back where it came from; leaks and wear go only where there is room; a full
     vessel pushed past full ruptures the same way.
   - `tick;` / `tick 5;` time passes (it only runs on) and every leak, wear and mix is shown.
-- Kept-for-the-run values (globals), `stop(n)`. A value not set yet holds `~`.
+- Kept-for-the-run values (globals), `stop(n)`, `wait(ms)` (time runs on while the program rests). A value not set yet holds `~`.
+- Hello world: `lang/examples/hello.delta`. Nerds will try a zero ("I have 0 apples"): Delta answers that there are
+  never zero apples. The seeds, water, sunlight and the nitrogen the fungi in the soil take up make the tree that
+  gives the apples (Mike, 18 Nov 2026).
+- A 3-D world: `lang/examples/world.delta` (`lang/delta run lang/examples/world.delta`, a true-colour terminal 120
+  letters wide). A box room 20 feet each way (17 in D) with Faraday's motor standing on the middle of the floor at its
+  real size (AA battery, neodymium magnet, copper wire). Each pixel looks out until it meets the floor, a wall or the
+  ceiling; the motor is drawn round, lit by a ceiling lamp, with its shadow. The camera flies in from high by the
+  front wall to the motor; the wire turns at 1/10 speed. Its energy book runs every frame by moves only (no minus in
+  Delta: a number comes down only by moving something out of it), and the total is checked each frame:
+  nothing vanished.
 - Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come).
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 

@@ -16,6 +16,7 @@ honest() {  # name, code, expected output
 refuse "plain 0"        'int x = 0;' 'digits 1-9 A-D'
 refuse "ten written 10"     'int x = 10;' 'digits 1-9 A-D'
 refuse "hex 0x"          'int x = 0x1;' 'digits 1-9 A-D'
+refuse "zero apples"  'int apples = 0;' 'never zero apples'
 refuse "0L"       'long x = 0L;' 'digits 1-9 A-D'
 refuse "1.0"  'double x = 1.0;' 'digits 1-9 A-D'
 refuse "NULL"              'char *p = NULL;'          NULL
@@ -29,6 +30,7 @@ refuse "0 in a name"    'int x0 = 1;' 'always something'
 refuse "#define 20"   '#define N 20' 'digits 1-9 A-D'
 refuse "move too many"     'int a = 2, b = 1; move 3 from a to b;' 'cannot move'
 
+honest "wait"  'wait(1); say("%d\n", 2);'  '2'
 honest "D numerals"        'say("%d %d %d\n", $A, $D, 11);'                     'A D 11'
 honest "ten is A, 14 is 11" 'int x = 9 + 1; say("%d %d\n", x, x + 4);'          'A 11'
 honest "row from 1"        'int r[3] = {7, 8, 9}; say("%d %d\n", r[1], r[3]);'  '7 9'

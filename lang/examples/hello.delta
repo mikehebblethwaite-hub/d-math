@@ -1,0 +1,14 @@
+// Hello world in Delta.
+//
+// Nerds will try a zero, because they are nerds: "I have 0 apples".
+//     int apples = 0;
+// Delta answers: there are never zero apples. The seeds, water, sunlight and the nitrogen the fungi
+// in the soil take up make the tree that gives the apples. Say what is there.
+
+int main(int argc, char **argv)
+{
+    int apples = 1;
+    say("Hello, world\n");
+    say("I have %d apple, and the seeds, water, sunlight and soil that make more\n", apples);
+    return 1;
+}
