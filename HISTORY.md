@@ -76,3 +76,5 @@ Mike named it: Delta Hex OS.
 
 Mike's challenge (14:32): "Any peer wanting to disprove D math please give one example in the known universe where
 there is nothing, as D math cannot have a zero because it is not possible."
+
+Mike, 14:46: the three spirals in a circle are "6000 years old, in mini me as a child's imagination".

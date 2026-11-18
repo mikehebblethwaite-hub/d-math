@@ -318,7 +318,7 @@ void encode(char *m)
     int d = alu(m);
     if (is(m, "mov")) {
         if (a == 1 && c == 1) { rex(osize[1] == 8, oreg[2], 1); ob("89"); modrm(r3(oreg[2]), 1); return; }
-        if (a == 1 && c == 2) { if (osize[1] == 1) { rex(low, oreg[1], 2); ob("8A"); } else { rex(1, oreg[1], 2); ob("8B"); } modrm(r3(oreg[1]), 2); return; }
+        if (a == 1 && c == 2) { if (osize[1] == 1) { rex(low, oreg[1], 2); ob("8A"); } else { rex(osize[1] == 8, oreg[1], 2); ob("8B"); } modrm(r3(oreg[1]), 2); return; }
         if (a == 2 && c == 1) { if (osize[2] == 1) { rex(low, oreg[2], 1); ob("88"); } else { rex(1, oreg[2], 1); ob("89"); } modrm(r3(oreg[2]), 1); return; }
         if (a == 1 && c == 3) {
             if (osize[1] == 4) { if (hi(oreg[1])) b(hx("41")); b(hx("B8") + r3(oreg[1])); le(ival[2], 4); return; }

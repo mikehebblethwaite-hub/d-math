@@ -61,6 +61,43 @@ f_memmap:                       # memmap(row, bytes): the firmware's memory map 
     pop rbp
     mov rax, [rip+dl_mapsize]
     ret
+f_screen:                       # screen(): the firmware's graphics output; gives back where the screen's pixels are
+    push rbp
+    mov rbp, rsp
+    mov rax, [rip+dl_system]
+    mov rax, [rax+96]
+    lea rcx, [rip+dl_gopguid]
+    xor edx, edx
+    lea r8, [rip+dl_gop]
+    .byte 72, 131, 228, 240     # and rsp, 16-even
+    sub rsp, 32
+    call qword ptr [rax+320]    # LocateProtocol
+    mov rsp, rbp
+    pop rbp
+    mov rax, [rip+dl_gop]
+    test rax, rax
+    jz 1f
+    mov rax, [rax+24]           # its mode
+    mov rcx, [rax+24]           # where the pixels are
+    mov [rip+dl_fb], rcx
+    mov rax, [rax+8]            # its mode's shape
+    mov ecx, dword ptr [rax+4]
+    mov [rip+dl_gw], rcx
+    mov ecx, dword ptr [rax+8]
+    mov [rip+dl_gh], rcx
+    mov ecx, dword ptr [rax+32]
+    mov [rip+dl_gs], rcx
+    mov rax, [rip+dl_fb]
+1:  ret
+f_screenx:
+    mov rax, [rip+dl_gw]
+    ret
+f_screeny:
+    mov rax, [rip+dl_gh]
+    ret
+f_screenrow:                    # pixels along a row of the screen's memory (can be more than it shows)
+    mov rax, [rip+dl_gs]
+    ret
 f_memmapstep:                   # how many bytes each part of the map takes
     mov rax, [rip+dl_descsize]
     ret
@@ -153,6 +190,12 @@ dl_mapsize: .quad LOW
 dl_mapkey: .quad LOW
 dl_descsize: .quad LOW
 dl_descver: .quad LOW
+dl_gop:    .quad LOW
+dl_fb:     .quad LOW
+dl_gw:     .quad LOW
+dl_gh:     .quad LOW
+dl_gs:     .quad LOW
+dl_gopguid: .byte 0xDE, 0xA9, 0x42, 0x90, 0xDC, 0x23, 0x38, 0x4A, 0x96, 0xFB, 0x7A, 0xDE, 0xD0, 0x80, 0x51, 0x6A
 dl_digits: .ascii "123456789ABCD"
 dl_tilde:  .ascii "~"
 .bss
