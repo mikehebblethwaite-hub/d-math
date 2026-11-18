@@ -55,3 +55,9 @@ Dc -> C -> gcc. Rules the compiler holds to:
 - Counting starts at 1: `row[1]` is the first place.
 - `say(...)` is printf that prints D numerals. `return 1` from main = all good.
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
+
+## The machine has no zero either
+
+Mike, 18 Nov 2026: "a transistor is never zero, it is lower than 1, but is mass and has effects within from its atoms".
+An "off" bit is a LOW: a voltage lower than 1, still current leaking, still atoms with mass. A bit is HIGH (1) or LOW
+(lower than 1), never nothing. So D runs all the way down: the "0" in machine code is only an old label for LOW.
