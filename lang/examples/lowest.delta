@@ -1,0 +1,12 @@
+// The base D rule: 1 less in a thing is 1 more in its lowest neighbour. Nothing disappears.
+int main(int argc, char **argv)
+{
+    int tank = 9, sky = 4, ground = 2, pipe = 3;
+    store tank, sky, ground, pipe;
+    neighbours tank: sky, ground, pipe;
+
+    move 2 from tank;                 // no "to": the lowest neighbour takes it
+    tank = 3;                         // set lower: the 4 has to go somewhere
+    say("tank %d  sky %d  ground %d  pipe %d  total %d\n", tank, sky, ground, pipe, tank + sky + ground + pipe);
+    return 1;
+}

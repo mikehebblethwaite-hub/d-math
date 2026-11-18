@@ -39,7 +39,15 @@ void dl_flow(int id, int came, int a, int depth)
     if (dl_kind[id] == 1) {
         int room = dl_room(dl_val[id]), take = a, back = a, sink;
         if (take > room) take = room;
-        if (take >= 1) {
+        int others;
+        for (int j = 1; j < dl_next; j++) if (dl_link[id][j] && j != came) others++;
+        if (take >= 2 && others >= 1) {          // it warms: its vibration passes half on to its other neighbours
+            int pass = take / 2, keep = take;
+            move pass from keep to sink;
+            *dl_val[id] += keep; move take from back to sink;
+            say("%s takes %d (store, now %d): its vibration passes %d on\n", dl_name[id], keep, *dl_val[id], pass);
+            dl_share(id, came, pass, depth + 1, "heat");
+        } else if (take >= 1) {
             *dl_val[id] += take; move take from back to sink;
             say("%s takes %d (store, now %d)\n", dl_name[id], take, *dl_val[id]);
         }
@@ -62,20 +70,70 @@ void dl_share(int id, int skip, int amount, int depth, char *what)
 {
     int k;
     for (int j = 1; j < dl_next; j++) if (dl_link[id][j] && j != skip) k++;
-    if (k < 1) {
-        dl_pad(depth); say("%d %s stays in %s as ~ (no neighbour to take it)\n", amount, what, dl_name[id]);
-        move amount from amount to ~; return;
-    }
+    if (k < 1) { dl_hand(id, amount, skip, depth, what); return; }
     int share = amount / k, rest = amount % k;
-    if (share < 1) {
-        dl_pad(depth); say("%d %s is too thin to share %d ways: ~\n", amount, what, k);
-        move amount from amount to ~; return;
-    }
-    if (rest >= 1) {
-        dl_pad(depth); say("%d %s does not share evenly: ~\n", rest, what);
-        move rest from rest to ~;
-    }
+    if (share < 1) { dl_hand(id, amount, skip, depth, what); return; }
     for (int j = 1; j < dl_next; j++) if (dl_link[id][j] && j != skip) dl_flow(j, id, share, depth);
+    if (rest >= 1) dl_hand(id, rest, skip, depth, what);     // what does not share evenly: 1 at a time
+}
+
+// The base rule: 1 less in a thing is 1 more in its lowest neighbour. Nothing disappears.
+// n has already left id; it goes 1 at a time to the lowest neighbour (not skip) that has room.
+// No neighbour has room: to the lowest one, which passes it on. No neighbours at all: the unknown world, ~.
+void dl_hand(int id, int n, int skip, int depth, char *what)
+{
+    int got[$DDD], last, sink;
+    while (n >= 1) {
+        int best, full;
+        for (int j = 1; j < dl_next; j++) {
+            if (!dl_link[id][j] || j == skip) continue;
+            if (dl_room(dl_val[j]) >= 1) { if (best < 1 || *dl_val[j] < *dl_val[best]) best = j; }
+            else if (full < 1 || *dl_val[j] < *dl_val[full]) full = j;
+        }
+        if (best < 1 && full < 1 && skip != id && dl_link[id][skip] && skip >= 1) best = skip;   // only back where it came from
+        if (best < 1 && full >= 1) {
+            dl_pad(depth); say("%d %s%sgoes to %s, the lowest neighbour (full: it passes it on)\n", n, what, what[1] ? " " : "", dl_name[full]);
+            int all = n;
+            move all from n to *dl_val[full];
+            dl_overflow(dl_val[full], dl_name[full]);
+            break;
+        }
+        if (best < 1) {
+            dl_pad(depth); say("%d %s%s: %s has no neighbours: it goes out to the unknown world, ~\n", n, what, what[1] ? " " : "", dl_name[id]);
+            move n from n to ~;
+            break;
+        }
+        move 1 from n to *dl_val[best];
+        got[best]++;
+    }
+    for (int j = 1; j < dl_next; j++)
+        if (got[j] >= 1) { dl_pad(depth); say("%d %s%sto %s, the lowest neighbour (now %d)\n", got[j], what, what[1] ? " " : "", dl_name[j], *dl_val[j]); }
+}
+
+// move N from x;  (no "to"): it goes to x's lowest neighbour
+void dl_moveout(int *at, int n, char *nm)
+{
+    int id;
+    for (int i = 1; i < dl_next; i++) if (dl_val[i] == at) id = i;
+    if (id < 1) { say("Delta: %s has no neighbours: say where it goes (move N from %s to y;)\n", nm, nm); stop(2); }
+    int out;
+    move n from *at to out;
+    say("%s gives %d (now %d)\n", nm, out, *at);
+    dl_hand(id, out, id, 1, "");
+}
+
+// a thing set lower (x = 3 when it held 9): the 6 goes to its lowest neighbours. Nothing vanishes.
+void dl_lower(int *at, int now)
+{
+    int id;
+    for (int i = 1; i < dl_next; i++) if (dl_val[i] == at) id = i;
+    if (id < 1 || now >= *at) return;
+    int d = *at, sink;
+    if (now >= 1) move now from d to sink;
+    int out;
+    move d from *at to out;
+    say("%s is set %d lower (now %d)\n", dl_name[id], out, *at);
+    dl_hand(id, out, id, 1, "");
 }
 
 void dl_spend(int id, int n)
@@ -121,8 +179,8 @@ void dl_wear1()
         move amount from *dl_val[id] to out;
         dl_pad(1); say("%s wears %d by %s (now %d)\n", dl_name[id], out, dl_name[by], *dl_val[id]);
         int share = out / dl_wn[w], rest = out % dl_wn[w];
-        if (share < 1) { dl_pad(2); say("%d is too thin to share %d ways: ~\n", out, dl_wn[w]); move out from out to ~; continue; }
-        for (int k = 1; k <= dl_wn[w]; k++) {
+        if (share < 1) { int all = out; move all from out to rest; }     // too thin to share: 1 at a time below
+        for (int k = 1; k <= dl_wn[w] && share >= 1; k++) {
             int part = dl_wparts[w][k], room = dl_room(dl_val[part]), take = share, back = share, sink;
             if (take > room) take = room;
             if (take >= 1) {
@@ -134,7 +192,18 @@ void dl_wear1()
                 dl_pad(2); say("%s is full: %d stays in %s\n", dl_name[part], back, dl_name[id]);
             }
         }
-        if (rest >= 1) { dl_pad(2); say("%d left over: ~\n", rest); move rest from rest to ~; }
+        while (rest >= 1) {                  // what does not share evenly: 1 at a time to the lowest part with room
+            int best;
+            for (int k = 1; k <= dl_wn[w]; k++) {
+                int part = dl_wparts[w][k];
+                if (dl_room(dl_val[part]) >= 1 && (best < 1 || *dl_val[part] < *dl_val[dl_wparts[w][best]])) best = k;
+            }
+            if (best < 1) { int all = rest; move all from rest to *dl_val[id];
+                            dl_pad(2); say("its parts are full: %d stays in %s\n", all, dl_name[id]); break; }
+            int part = dl_wparts[w][best];
+            move 1 from rest to *dl_val[part];
+            dl_pad(2); say("1 to %s, the lowest part (now %d)\n", dl_name[part], *dl_val[part]);
+        }
     }
 }
 

@@ -65,9 +65,9 @@ last() {  # name, code, expected last line
   if [ "$got" != "$3" ]; then echo "FAIL honest: $1: got [$got]"; bad=$((bad+1))
   else echo "ok honest: $1"; pass=$((pass+1)); fi; }
 NET='int battery = $D, wire = 1, lamp = 1, air = 1; store battery, lamp, air; neighbours battery: wire; neighbours wire: lamp, air;'
-last "flow: wire loses heat"  "$NET conduct wire loss 1; spend 5 from battery; say(\"%d %d %d %d\\n\", battery, lamp, air, ~);" '8 3 3 1'
+last "flow: wire loses heat"  "$NET conduct wire loss 1; spend 5 from battery; say(\"%d %d %d %d\\n\", battery, lamp, air, ~);" '8 4 3 ~'
 last "flow: total kept"       "$NET conduct wire loss 1; spend 5 from battery; say(\"%d\\n\", battery + wire + lamp + air + ~);" '13'
-last "flow: heat to all"      "$NET conduct wire loss 6; spend 9 from battery; say(\"%d %d %d %d\\n\", battery, lamp, air, ~);" '6 4 4 1'
+last "flow: heat to all"      "$NET conduct wire loss 6; spend 9 from battery; say(\"%d %d %d %d\\n\", battery, lamp, air, ~);" '6 5 4 ~'
 last "flow: heat total kept"  "$NET conduct wire loss 6; spend 9 from battery; say(\"%d\\n\", battery + wire + lamp + air + ~);" '13'
 last "flow: lone store"       'int s = 3; store s; spend 1 from s; say("%d %d\n", s, ~);' '2 1'
 refuse "flow: spend too much" "$NET conduct wire loss 1; spend $(printf '$')CD from battery;" 'cannot move'
@@ -91,7 +91,7 @@ prog "whole copy"         "thing pt { int a, b; }; $M { thing pt p = {5, 6}, q; 
 prog "place and arrow"    "thing pt { int a; }; void up(thing pt *p) { p->a += 2; } $M { thing pt p = {1}; up(&p); thing pt *q = &p; say(\"%d\\n\", q->a); return 1; }" '3'
 prog "thing in a thing"   "thing seed { int x; }; thing fruit { thing seed s; int y; }; $M { thing fruit f; f.s.x = 4; f.y = 2; say(\"%d %d\\n\", f.s.x, f.y); return 1; }" '4 2'
 prog "row of things"      "thing pt { int a; }; $M { thing pt r[3]; for (int i = 1; i <= 3; i++) r[i].a = i * 2; say(\"%d\\n\", r[3].a); return 1; }" '6'
-prog "parts as neighbours" "thing lamp { int glow, wire; }; $M { thing lamp l = {1, 1}; int cell = 9; store cell, l.glow; conduct l.wire loss 1; neighbours cell: l.wire; neighbours l.wire: l.glow; spend 3 from cell; say(\"%d %d\\n\", cell, l.glow); return 1; }" $'spend 3 from cell (now 6)\n  l.wire gets 3: passes 2 on, 1 to heat\n    l.glow takes 2 (store, now 3)\n    1 heat is too thin to share 2 ways: ~\n6 3'
+prog "parts as neighbours" "thing lamp { int glow, wire; }; $M { thing lamp l = {1, 1}; int cell = 9; store cell, l.glow; conduct l.wire loss 1; neighbours cell: l.wire; neighbours l.wire: l.glow; spend 3 from cell; say(\"%d %d\\n\", cell, l.glow); return 1; }" $'spend 3 from cell (now 6)\n  l.wire gets 3: passes 2 on, 1 to heat\n    l.glow takes 2 (store, now 3)\n    1 heat to l.glow, the lowest neighbour (now 4)\n6 4'
 prog "no such part"       "thing pt { int a; }; $M { thing pt p; p.b = 1; return 1; }" '' 'no part'
 prog "thing given whole"  "thing pt { int a; }; void f(thing pt p) { } $M { return 1; }" '' 'by its place'
 prog "thing holds itself" "thing pt { thing pt inner; };  $M { return 1; }" '' 'cannot hold itself'
@@ -146,6 +146,16 @@ last "room: leak to full"    'int s = 9, air = 2; fits air 2; store s leak 3; st
 last "room: wear part full"  'int r = 9, d = 1, sun = 2; fits d 2; wear r by sun D> d ~; tick; say("%d %d\n", r, d);' '8 2'
 prog "rupture: vessel"       "thing tank { int gas, air; }; $M { thing tank t = {9}; vessel t; int sky = 9; move 1 from sky to t.air; say(\"%d %d\\n\", t.gas, t.air); return 1; }" "$(printf 'BANG! t ruptured: more went in than it holds\n  no neighbours given: 9 goes out to the unknown world: ~\n  no neighbours given: 1 goes out to the unknown world: ~\n~ ~')"
 refuse "room: fits on words" 'char *w = "x"; fits w 3;' 'whole number'
+
+# the base rule: 1 less in a thing is 1 more in its lowest neighbour; heat cascades
+LOW='int tank = 9, sky = 4, ground = 2, pipe = 3; store tank, sky, ground, pipe; neighbours tank: sky, ground, pipe;'
+last "lowest: move with no to"  "$LOW move 2 from tank; say(\"%d %d\\n\", tank, ground);" '7 4'
+last "lowest: set lower"        "$LOW tank = 3; say(\"%d %d %d %d\\n\", tank, sky, ground, pipe);" '3 5 5 5'
+last "lowest: total kept"       "$LOW move 2 from tank; tank /= 2; say(\"%d\\n\", tank + sky + ground + pipe);" '15'
+refuse "lowest: no neighbours"  'int a = 5; move 2 from a;' 'say where it goes'
+CAS='int battery = $D, wire = 1, lamp = 1, air = 1, wall = 1, ground = 1; store battery, lamp, air, wall, ground; conduct wire loss 1; neighbours battery: wire; neighbours wire: lamp; neighbours lamp: air; neighbours air: wall, ground; spend 8 from battery;'
+last "heat cascades"            "$CAS say(\"%d %d %d %d\\n\", lamp, air, wall, ground);" '5 3 2 1'
+last "cascade: total kept"      "$CAS say(\"%d\\n\", battery + wire + lamp + air + wall + ground + ~);" '15'
 
 # functions and recursion: a whole program
 cat > "$T/f.delta" <<'DC'

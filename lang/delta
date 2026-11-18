@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""delta: the Delta compiler 0.13. Delta is C with D rules: always something.
+"""delta: the Delta compiler 0.14. Delta is C with D rules: always something.
 Things count from 1 and move or change form; numbers are D numerals (digits 1-9 A-D).
 Delta -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -566,7 +566,15 @@ class Compiler:
     def move_one(self):
         line = self.peek()[2]
         self.expr(); self.emit("push rax")
-        self.take("from"); an = self.peek()[1]; at = self.lvalue(); self.emit("push rax")
+        self.take("from"); start = self.p; at = self.lvalue(); self.emit("push rax")
+        an = "".join(str(x[1]) for x in self.t[start:self.p])
+        if not self.at("to"):                      # move N from x;  to x's lowest neighbour
+            if not self.uses_flow:
+                raise DeltaError(line, "%s has no neighbours: say where it goes (move N from %s to y;)" % (an, an))
+            lab = self.string(list(an.encode()) + ["LOW"])
+            self.emit("pop rdi"); self.emit("pop rsi"); self.emit("lea rdx, [rip+%s]" % lab)
+            self.emit("call f_dl_moveout"); self.calls.append(("dl_moveout", line))
+            return
         self.take("to"); bn = self.peek()[1]; bt = self.lvalue(); self.emit("push rax")
         less, more, ok = self.new(), self.new(), self.new()
         self.emit("pop r9"); self.emit("pop r8"); self.emit("pop rax")
@@ -812,6 +820,10 @@ class Compiler:
                     else:
                         self.emit("push rcx"); self.emit("mov rcx, rdx"); self.emit("cqo"); self.emit("idiv rcx"); self.emit("pop rcx")
                         if op == "%=": self.emit("mov rax, rdx")
+                if self.uses_flow and t == INT and not self.fname.startswith("dl_"):
+                    self.emit("push rax"); self.emit("push rcx")
+                    self.emit("mov rdi, rcx"); self.emit("mov rsi, rax"); self.emit("call f_dl_lower")
+                    self.emit("pop rcx"); self.emit("pop rax")
                 self.store_to("rcx", t)
                 return t
         return lhs_t
@@ -1049,7 +1061,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Delta runtime 0.13: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Delta runtime 0.14: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text

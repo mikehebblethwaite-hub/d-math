@@ -57,7 +57,7 @@ The shapes for each digit are still to be drawn.
 ## Delta: C with D rules, straight to assembly (lang/)
 
 `lang/delta run file.delta` | `delta build file.delta -o out` | `delta asm file.delta` (shows the assembly it writes).
-Delta 0.13 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+Delta 0.14 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
 turn the assembly text into the program file.
 
@@ -84,7 +84,14 @@ turn the assembly text into the program file.
   - `conduct wire loss 1;` a conductor passes energy on to its other neighbours, less its loss; the loss is heat,
     and heat goes to all its neighbours, and so on.
   - `neighbours wire: lamp, air;` links both ways. `spend 5 from battery;` sends 5 out and prints every step.
-  - A share less than 1 is `~` (unknown energy); stores + conductors + `~` always add up to what there was.
+  - The base rule: 1 less in a thing is 1 more in its lowest neighbour. Nothing disappears: there is only move,
+    never a "minus 1" (Mike, 18 Nov 2026). What does not share evenly goes 1 at a time to the lowest neighbour
+    with room; `move 2 from tank;` (no "to") goes to the lowest neighbour; `tank = 3;` when it held 9 sends the
+    6 to its lowest neighbours. Only a thing with no neighbours at all sends it out to the unknown world, `~`.
+  - Heat cascades, as in the real world: using a thing turns it into heat, the heat vibrates its neighbours,
+    and they warm theirs. A store that takes spent energy or heat keeps half; its vibration passes the other
+    half on to its other neighbours, and so on, until the pieces are less than 1.
+  - Everything always adds up to what there was; the tests check it.
   - Energy still going round conductors after DD steps stops the program and says where.
   - The flow engine is written in Delta (`lang/flow.delta`), so it keeps D's rules too.
 - Things: a thing holds named parts and its own `~`, and can act by itself.
