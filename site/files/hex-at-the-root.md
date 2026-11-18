@@ -151,6 +151,28 @@ The outside world is square: screen pixels, memory addresses, other people's sin
 through one bridge at the smallest point and nowhere else. In the models the bridge turns hex down steps into square
 units with 1D/12 for √3, off by about 1 part in 7CC.
 
+### 4.2 The bridge's error, and the book
+
+**The bridge.** Turning hex steps into square units needs root 3; the models use 1D/12 (26/15 in outside numbers).
+Squared, 1D/12 gives 3CC and 1 over 1A4 (676 over 225), where root 3 squared would be 3CC over 1A4 (675 over 225).
+So every length that crosses the bridge comes out 1 part in about 7CB (1,350) too long, whatever its size: a circle
+of radius R hex steps lands R/7CB square units further out than true, and the whole numbers it rounds to are within
+one more unit. It is the same share at every radius, so a picture is never bent, only very slightly enlarged.
+
+**The book never crosses the bridge.** The bridge is used only to place things on the square screen (where a wire is
+drawn, which way a spiral turns). Every amount in every model's energy book moves in whole units, by `move`, `D>`
+and the flow words, and never passes through root 3. Its effect on the books is none.
+
+**The book, written out.** Every model keeps one balance, checked every frame:
+
+    what it started with = what each part holds + what the neighbours took (air, floor, room)
+                           + the Shrug (waste: gone where we have not traced yet)
+                           + ~ (unknown energy left inside things broken down)
+
+Every term is always something (or LOW, never below it), and nothing is ever taken away: an amount only moves from
+one term to another. The Shrug is a term like any other, so the book is fully algebraic: tracing the waste back along
+its paths (a later step) moves amounts out of the Shrug into named parts, and the balance still holds.
+
 ## 5. Models
 
 Each model is a Delta program in `lang/examples/`; each runs with `lang/delta run <file>`.
@@ -423,6 +445,9 @@ generations, and treats it as a source.
 | 42, 84, 9B, 99 | 54, 108, 128, 126 |
 | C, 11 | 12, 14 |
 | 9B | 128 |
+| 1D/12 | 26/15 |
+| 3CC and 1, 3CC, 1A4 | 676, 675, 225 |
+| 7CB | 1350 |
 | 9999 | 21420 |
 | 3333 | 7140 |
 | C17 | 2048 |
