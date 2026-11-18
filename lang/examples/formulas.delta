@@ -1,0 +1,55 @@
+// Formulas with pi deleted: counted in hex, checked by counting.
+//
+// The outside world measures a circle against a turn and gets pi: length 2 pi r, area pi r², a ball's skin 4 pi r²,
+// a ball 4/3 pi r³. In D a circle is made of tiny hex connections, so it is counted, not measured:
+//
+//   the ring:   every place R hex steps from the middle             6R places
+//   the disc:   every place up to R steps                          3R(R + 1) + 1 places
+//   the shell:  equal balls packed close (hex layers stacked),
+//               every ball R steps from the middle one               AR² + 2 balls        (A is ten)
+//   the ball:   every ball up to R steps                           (2R + 1)(5R² + 5R + 3) / 3 balls
+//
+// Whole numbers, no pi, no root, no fraction of a turn. pi only appears at the bridge, if someone outside wants the
+// answer in their square units. This program walks the hex grid and the close packing and counts every place, for
+// R from 1 to 9, and says whether each count is the formula.
+//
+//   delta run examples/formulas.delta
+
+int main(int argc, char **argv)
+{
+    int R, x, y, z, all = 1;
+    int mid = 99;                                   // the middle, far from the edge of the numbers
+    say("R   ring 6R   disc 3R(R+1)+1   shell AR²+2   ball (2R+1)(5R²+5R+3)/3\n");
+    for (R = 1; R <= 9; R++) {
+        // flat: places (across, down) in doubled steps; a place's hex steps from the middle are
+        // the higher of its down, and half of (across + down)
+        int ring = less(1, 1), disc = less(1, 1);
+        for (y = less(mid, 2 * R); y <= mid + 2 * R; y++) for (x = less(mid, 4 * R); x <= mid + 4 * R; x++) {
+            int ax = apart(x, mid), ay = apart(y, mid);
+            if ((ax + ay) % 2 == 1) continue;           // not a place on the grid
+            int steps = higher(ay, (ax + ay) / 2);
+            if (steps == R) ring++;
+            if (steps <= R) disc++;
+        }
+        // close packing: ball centres (x, y, z) with x + y + z even; each ball touches 12 (in D: C) others,
+        // one step away. A ball's steps from the middle: the highest of half (x + y + z) and each of x, y, z
+        int shell = less(1, 1), ball = less(1, 1);
+        for (z = less(mid, 2 * R); z <= mid + 2 * R; z++)
+        for (y = less(mid, 2 * R); y <= mid + 2 * R; y++)
+        for (x = less(mid, 2 * R); x <= mid + 2 * R; x++) {
+            int ax = apart(x, mid), ay = apart(y, mid), az = apart(z, mid);
+            if ((ax + ay + az) % 2 == 1) continue;
+            int steps = higher(higher(ax, ay), higher(az, (ax + ay + az) / 2));
+            if (steps == R) shell++;
+            if (steps <= R) ball++;
+        }
+        int f1 = 6 * R, f2 = 3 * R * (R + 1) + 1, f3 = $A * R * R + 2, f4 = (2 * R + 1) * (5 * R * R + 5 * R + 3) / 3;
+        say("%d   %d", R, ring); if (ring == f1) say(" yes"); else say(" NO");
+        say("      %d", disc); if (disc == f2) say(" yes"); else say(" NO");
+        say("          %d", shell); if (shell == f3) say(" yes"); else say(" NO");
+        say("        %d", ball); if (ball == f4) say(" yes\n"); else say(" NO\n");
+        if (ring != f1 || disc != f2 || shell != f3 || ball != f4) all = 2;
+    }
+    if (all == 1) say("every count is its formula: pi deleted\n"); else say("a count is not its formula: look again\n");
+    return all;
+}

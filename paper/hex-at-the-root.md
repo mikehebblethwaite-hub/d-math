@@ -137,7 +137,38 @@ radius to within one step: measured in hex steps, a circle's length is 4√3 R. 
 in hex steps, not measured against a turn. (Why it comes to
 4√3 is to be written out in the next draft.)
 
-### 5.2 The Giant's Causeway (`causeway.delta`)
+### 5.2 Formulas with π deleted (`formulas.delta`)
+
+The outside world measures a circle against a turn, and π appears: a circle's length 2πr, its area πr², a ball's
+skin 4πr², a ball (4/3)πr³. In D a circle is made of tiny hex connections, so it is counted:
+
+| outside, with π | D, counted in hex steps | |
+|---|---|---|
+| circle's length 2πr | the ring: every place R steps from the middle | **6R** places |
+| circle's area πr² | the disc: every place up to R steps | **3R(R + 1) + 1** places |
+| ball's skin 4πr² | the shell: equal balls packed close, R steps out | **AR² + 2** balls |
+| ball (4/3)πr³ | the ball: every close-packed ball up to R steps | **(2R + 1)(5R² + 5R + 3) / 3** balls |
+
+Whole numbers: no π, no root, no fraction of a turn. The close packing is hex layers stacked in each other's hollows,
+each ball touching C others. The Delta program walks the hex grid and the close packing and counts every place for R
+from 1 to 9: every count equals its formula.
+
+| R | ring | disc | shell | ball |
+|---|---|---|---|---|
+| 1 | 6 | 7 | C | D |
+| 2 | C | 16 | 33 | 43 |
+| 3 | 15 | 2B | 71 | B4 |
+| 4 | 1B | 49 | C6 | 1AA |
+| 5 | 24 | 6D | 165 | 342 |
+| 6 | 2A | 9A | 21B | 55D |
+| 7 | 33 | CD | 2BB | 84B |
+| 8 | 39 | 139 | 3A5 | C23 |
+| 9 | 42 | 17B | 4A6 | 13C9 |
+
+A round circle can also be walked in tiny hex steps (5.1): its length is then 4√3 R steps. π only appears at the
+bridge, when someone outside asks for the answer in their square units and radians.
+
+### 5.3 The Giant's Causeway (`causeway.delta`)
 
 A sheet of lava is given 219 crack centres at a repeatable scatter (not real random: no seed from the world yet) and
 one rule: every column shares its pull evenly with its neighbours, so each centre moves half way toward the middle
@@ -149,7 +180,7 @@ RESULTS: (filled in from the run: sides five, six, seven and other, step by step
 The heat moves from the lava to the air and the ground, and through the border into the Shrug; the book's total
 equals its start at every step.
 
-### 5.3 Faraday's electro-magnetic rotations, AA1 (`faraday.delta`)
+### 5.4 Faraday's electro-magnetic rotations, AA1 (`faraday.delta`)
 
 The first electric motor, as Michael Faraday set it out: two glasses of mercury, a voltaic pile, a brass stand. In the
 left glass a hanging copper wire goes round a fixed magnet; in the right glass a magnet tied at its foot goes round a
@@ -157,7 +188,7 @@ fixed copper rod. The pile's energy is shared by resistance (a rough guide: pile
 the two turns 6, of every 24A); heat rises from the pile, the wires and the mercury into the air, the floor, the
 walls, and out through the border into the Shrug. Every value is shown, and the total equals the start every frame.
 
-### 5.4 Today's simple motor in a room (`world.delta`)
+### 5.5 Today's simple motor in a room (`world.delta`)
 
 A battery of one and a half volts on a magnet, a copper wire touching both: today's toy on Faraday's principle, drawn at real size
 in a room 17 feet each way, with the same book.
@@ -182,6 +213,7 @@ generations, and treats it as a source.
 ## 8. To run the models
 
     lang/delta run lang/examples/hexring.delta
+    lang/delta run lang/examples/formulas.delta
     lang/delta run lang/examples/causeway.delta
     lang/delta run lang/examples/faraday.delta
     lang/delta run lang/examples/world.delta
