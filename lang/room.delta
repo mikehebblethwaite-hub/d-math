@@ -1,0 +1,25 @@
+// Delta room: a move needs somewhere to go. A tank at full pressure cannot take 1 more.
+// fits tank 13;  the tank can hold up to 13. Written in Delta, so it keeps D's rules.
+
+int *dl_cat[$DDD];
+int dl_cap[$DDD];
+int dl_cnext = 1;
+
+void dl_fits(int *at, int n)
+{
+    for (int i = 1; i < dl_cnext; i++) if (dl_cat[i] == at) { dl_cap[i] = n; return; }
+    dl_cat[dl_cnext] = at; dl_cap[dl_cnext] = n; dl_cnext++;
+}
+
+// how much more it can take in: ~ when it is full; a great deal when no fits was given
+int dl_room(int *at)
+{
+    for (int i = 1; i < dl_cnext; i++)
+        if (dl_cat[i] == at) {
+            int r = dl_cap[i], sink;
+            if (*at >= r) return r / (r + 1);
+            if (*at >= 1) move *at from r to sink;
+            return r;
+        }
+    return $DDDDDD;
+}

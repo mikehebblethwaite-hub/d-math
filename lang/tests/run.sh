@@ -132,6 +132,16 @@ prog "mix: things even out" "$A $M { thing air t = {\$D, 1}, r = {1, 9}; mix t, 
 last "mix: numbers"         'int a = 9, b = 3; mix a, b; tick; say("%d %d %d\n", a, b, a + b);' '6 6 C'
 prog "mix: nothing shared" "thing p { int x; }; thing q { int y; }; $M { thing p a; thing q b; mix a, b; return 1; }" '' 'no parts in common'
 
+# room: a move needs somewhere to go
+honest "room: fits in"       'int tank = 9, pump = $D; fits tank $D; move 4 from pump to tank; say("%d %d\n", tank, pump);' 'D 9'
+refuse "room: full tank"     'int tank = $D, pump = 5; fits tank $D; move 1 from pump to tank;' 'is full'
+refuse "room: too much"      'int tank = 9, pump = $D; fits tank $D; move 5 from pump to tank;' 'room for 4'
+last "room: store full, back" 'int cell = 9, lamp = 1; fits lamp 3; store cell, lamp; neighbours cell: lamp; spend 5 from cell; say("%d %d\n", cell, lamp);' '7 3'
+last "room: leak to full"    'int s = 9, air = 2; fits air 2; store s leak 3; store air; neighbours s: air; tick; say("%d %d\n", s, air);' '9 2'
+last "room: wear part full"  'int r = 9, d = 1, sun = 2; fits d 2; wear r by sun D> d ~; tick; say("%d %d\n", r, d);' '8 2'
+prog "room: vessel full"     "thing tank { int gas, air; }; $M { thing tank t = {9}; vessel t; int sky = 9; move 1 from sky to t.air; return 1; }" '' 'is full'
+refuse "room: fits on words" 'char *w = "x"; fits w 3;' 'whole number'
+
 # functions and recursion: a whole program
 cat > "$T/f.delta" <<'DC'
 int twice(int x) { return x * 2; }

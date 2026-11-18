@@ -34,5 +34,11 @@ void dl_vcheck()
             say("Something must always go in to let something out.\n");
             stop(2);
         }
+        if (now > dl_vfull[v]) {
+            int more = now, sink;
+            move dl_vfull[v] from more to sink;
+            say("%s is full: %d more cannot go in. Something must come out to let something in.\n", dl_vname[v], more);
+            stop(2);
+        }
     }
 }

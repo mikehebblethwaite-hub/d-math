@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""delta: the Delta compiler 0.10. Delta is C with D rules: always something.
+"""delta: the Delta compiler 0.11. Delta is C with D rules: always something.
 Things count from 1 and move or change form; numbers are D numerals (digits 1-9 A-D).
 Delta -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -17,7 +17,7 @@ BANNED = {"NULL": "NULL is a make-believe zero: a pointer always points at somet
           "nullptr": "nullptr is a make-believe zero"}
 TYPES = {"int", "long", "char", "void"}
 FLOW_WORDS = {"store", "conduct", "neighbours", "spend", "tick", "wear", "mix"}
-KEYWORDS = TYPES | FLOW_WORDS | {"thing", "vessel", "and", "if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
+KEYWORDS = TYPES | FLOW_WORDS | {"thing", "vessel", "and", "fits", "if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
 
 
 def to_d(v):
@@ -418,6 +418,7 @@ class Compiler:
             if not self.loops: raise DeltaError(line, "%s outside a loop" % w)
             self.emit("jmp " + self.loops[-1][0 if w == "break" else 1]); self.take(";"); return
         if self.at("vessel"): self.vessel(); return
+        if self.at("fits"): self.fits(); return
         if self.at("move"): self.move(); self.vcheck(); return
         if any(self.at(w) for w in FLOW_WORDS): self.flow_words(); return self.statement()
         k = self.p
@@ -430,6 +431,19 @@ class Compiler:
         """after anything that changes amounts: every vessel must still be full."""
         if self.uses_vessel and not self.fname.startswith("dl_"):
             self.emit("call f_dl_vcheck")
+
+    def fits(self):
+        """fits tank 13;  fits a.gas 4, b 9;  how much each can hold: a move needs room to go to."""
+        line = self.take("fits")[2]
+        while True:
+            self.last_part = None
+            t = self.lvalue()
+            if t != INT: raise DeltaError(line, "fits is for a whole number or a part that holds one")
+            self.emit("push rax"); self.expr(); self.emit("mov rsi, rax"); self.emit("pop rdi")
+            self.emit("call f_dl_fits"); self.calls.append(("dl_fits", line))
+            if self.at(","): self.take(); continue
+            break
+        self.take(";")
 
     def vessel(self):
         """vessel tank;  tank (a thing of whole numbers) is always full from now on."""
@@ -558,6 +572,13 @@ class Compiler:
         self.emit("pop r9"); self.emit("pop r8"); self.emit("pop rax")
         self.emit("cmp rax, 1"); self.emit("jl " + less)
         self.emit("cmp rax, [r8]"); self.emit("jg " + more)
+        full = None
+        if self.uses_room and not self.fname.startswith("dl_"):   # it needs room where it goes
+            full = self.new()
+            self.emit("push rax"); self.emit("push r8"); self.emit("push r9")
+            self.emit("mov rdi, r9"); self.emit("call f_dl_room"); self.emit("mov rcx, rax")
+            self.emit("pop r9"); self.emit("pop r8"); self.emit("pop rax")
+            self.emit("cmp rax, rcx"); self.emit("jg " + full)
         self.emit("sub [r8], rax")                # under the hood: a gives, b takes
         self.emit("add [r9], rax"); self.emit("jmp " + ok)
         self.label(less)
@@ -571,6 +592,15 @@ class Compiler:
         self.emit("pop rdi"); self.emit("call dl_putd")
         self.say_text("\n", fd=2)
         self.emit("mov edi, 2"); self.emit("jmp dl_exit")
+        if full:
+            self.label(full)
+            self.emit("push rcx"); self.emit("push rax")
+            self.say_text("Delta line %s: %s is full: it cannot take " % (to_d(line), bn), fd=2)
+            self.emit("pop rdi"); self.emit("call dl_putd")
+            self.say_text(" (room for ", fd=2)
+            self.emit("pop rdi"); self.emit("call dl_putd")
+            self.say_text(")\n", fd=2)
+            self.emit("mov edi, 2"); self.emit("jmp dl_exit")
         self.label(ok)
 
     def flow_words(self):
@@ -1021,7 +1051,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Delta runtime 0.10: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Delta runtime 0.11: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text
@@ -1102,14 +1132,15 @@ def compile_dc(src):
     toks, _ = lex(src)
     uses_flow = any(t[0] == "id" and t[1] in FLOW_WORDS for t in toks)
     uses_vessel = any(t[0] == "id" and t[1] == "vessel" for t in toks)
+    uses_room = uses_flow or uses_vessel or any(t[0] == "id" and t[1] == "fits" for t in toks)
     here = os.path.dirname(os.path.abspath(__file__))
-    for used, f in ((uses_vessel, "vessel.delta"), (uses_flow, "flow.delta")):
+    for used, f in ((uses_vessel, "vessel.delta"), (uses_flow, "flow.delta"), (uses_room, "room.delta")):
         if used:
             ftoks, _ = lex(open(os.path.join(here, f)).read())
             toks = ftoks[:-1] + toks
     THINGS.clear()
     c = Compiler(toks); c.calls = []; c.uses_flow = uses_flow; c.cur_thing = None; c.last_part = None
-    c.uses_vessel = uses_vessel; c.fname = ""
+    c.uses_vessel = uses_vessel; c.uses_room = uses_room; c.fname = ""
     c.program()
     for fname, line in c.calls:
         if fname not in c.funcs and fname != "stop": raise DeltaError(line, "'%s' is not made anywhere" % fname)

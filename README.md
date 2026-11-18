@@ -57,7 +57,7 @@ The shapes for each digit are still to be drawn.
 ## Delta: C with D rules, straight to assembly (lang/)
 
 `lang/delta run file.delta` | `delta build file.delta -o out` | `delta asm file.delta` (shows the assembly it writes).
-Delta 0.10 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+Delta 0.11 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
 turn the assembly text into the program file.
 
@@ -119,6 +119,10 @@ turn the assembly text into the program file.
     that amount.
   - Mixing: `mix tank, room;` put a thing next to a thing: every part they share evens out, more to less,
     with no wall between them.
+  - Room: a move needs somewhere to go. `fits tank $D;` the tank holds up to 13; at full pressure it cannot
+    take 1 more (Mike, 18 Nov 2026). A move into a full thing stops the program and says how much room there was.
+    Flow into a full store goes back where it came from; leaks and wear go only where there is room; a full
+    vessel takes nothing in unless something comes out in the same step.
   - `tick;` / `tick 5;` time passes (it only runs on) and every leak, wear and mix is shown.
 - Kept-for-the-run values (globals), `stop(n)`. A value not set yet holds `~`.
 - Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come).

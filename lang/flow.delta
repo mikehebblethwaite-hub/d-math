@@ -37,8 +37,17 @@ void dl_flow(int id, int came, int a, int depth)
         say("energy is still going round at %s: stopped here\n", dl_name[id]); stop(2);
     }
     if (dl_kind[id] == 1) {
-        *dl_val[id] += a;
-        say("%s takes %d (store, now %d)\n", dl_name[id], a, *dl_val[id]);
+        int room = dl_room(dl_val[id]), take = a, back = a, sink;
+        if (take > room) take = room;
+        if (take >= 1) {
+            *dl_val[id] += take; move take from back to sink;
+            say("%s takes %d (store, now %d)\n", dl_name[id], take, *dl_val[id]);
+        }
+        if (back >= 1) {                     // it is full: the rest goes back where it came from
+            if (take >= 1) dl_pad(depth);
+            *dl_val[came] += back;
+            say("%s is full: %d goes back to %s\n", dl_name[id], back, dl_name[came]);
+        }
         return;
     }
     int on = a; int heat;
@@ -114,9 +123,16 @@ void dl_wear1()
         int share = out / dl_wn[w], rest = out % dl_wn[w];
         if (share < 1) { dl_pad(2); say("%d is too thin to share %d ways: ~\n", out, dl_wn[w]); move out from out to ~; continue; }
         for (int k = 1; k <= dl_wn[w]; k++) {
-            int part = dl_wparts[w][k];
-            *dl_val[part] += share;
-            dl_pad(2); say("%s takes %d (now %d)\n", dl_name[part], share, *dl_val[part]);
+            int part = dl_wparts[w][k], room = dl_room(dl_val[part]), take = share, back = share, sink;
+            if (take > room) take = room;
+            if (take >= 1) {
+                *dl_val[part] += take; move take from back to sink;
+                dl_pad(2); say("%s takes %d (now %d)\n", dl_name[part], take, *dl_val[part]);
+            }
+            if (back >= 1) {                 // no room in that part: it stays in the whole
+                *dl_val[id] += back;
+                dl_pad(2); say("%s is full: %d stays in %s\n", dl_name[part], back, dl_name[id]);
+            }
         }
         if (rest >= 1) { dl_pad(2); say("%d left over: ~\n", rest); move rest from rest to ~; }
     }
@@ -147,9 +163,11 @@ void dl_tick1(int t)
             if (!dl_link[i][j]) continue;
             int half = dl_more(*dl_val[i], *dl_val[j]) / 2;
             if (half < 1) continue;
-            int g = per;
+            int g = per, room = dl_room(dl_val[j]);
             if (g > half) g = half;
             if (g > budget) g = budget;
+            if (g > room) g = room;
+            if (g < 1) { dl_pad(1); say("%s cannot leak to %s: it is full\n", dl_name[i], dl_name[j]); continue; }
             move g from *dl_val[i] to *dl_val[j] and g from budget to given;
             dl_pad(1); say("%s leaks %d to %s (now %d, %s now %d)\n", dl_name[i], g, dl_name[j], *dl_val[i], dl_name[j], *dl_val[j]);
         }
