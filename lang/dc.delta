@@ -4,8 +4,8 @@
 //   dc run file.delta [-o out]       build it and run it
 //   dc asm file.delta                show the assembly it writes
 //
-// Delta -> our own x86-64 assembly (the runtime is runtime.s, beside this compiler) -> GNU as and ld turn the text
-// into the program file. The flow engine (flow.delta, room.delta, vessel.delta) and Delta's own window
+// Delta -> our own x86-64 assembly (the runtime is runtime.s, beside this compiler) -> da, Delta's own assembler and
+// linker, turns the text into the program file. The flow engine (flow.delta, room.delta, vessel.delta) and Delta's own window
 // (window.delta) are Delta too: they are read in when a program uses them.
 // Dividing by a LOW (lower than 1) never crashes the machine: it stops with words, as a jammed pump stops.
 // Every number in this file is a D numeral: 1 2 3 4 5 6 7 8 9 A B C D, then 11. (The outside world's 256 is 169 here.)
@@ -1601,9 +1601,10 @@ int main(int argc, char **argv)
     if (fd < 1) { say("dc: cannot write %s\n", sp1); return 2; }
     finish(fd);
     linux(3, fd);
-    if (run("/usr/bin/as", "--64", sp1, "-o", op1, low) >= 1) { say("dc: the assembly did not go through (a dc bug)\n"); return 3; }
-    if (run("/usr/bin/ld", "--no-warn-rwx-segments", "-n", op1, "-o", outp) >= 1) { say("dc: the program could not be put together\n"); return 3; }
-    linux($69, sp1); linux($69, op1);
+    char dap[999];
+    join(dap, here, "da");                            // Delta's own assembler and linker: no GNU as or ld
+    if (run(dap, sp1, outp, low, low, low) >= 1) { say("dc: the program could not be put together (a dc or da bug)\n"); return 3; }
+    linux($69, sp1);
     if (same(cmd, "run")) {                          // the program takes over, with the words given after the file
         char *av[999];
         av[1] = outp;

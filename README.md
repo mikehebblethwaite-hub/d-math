@@ -10,7 +10,7 @@ The icon is our 0: a circle holding 3 dots, the unknown things left in it, like 
 
 ## Try it
 
-    lang/delta run lang/examples/plum.delta      # needs GNU as/ld (x86-64 Linux); nothing else
+    lang/delta run lang/examples/plum.delta      # x86-64 Linux; nothing else
     lang/tests/run.sh                        # tricks refused, honest programs right
     python3 font/build.py                    # builds the D Angle font (needs fontTools)
 
@@ -59,12 +59,13 @@ The shapes for each digit are still to be drawn.
 ## Delta: C with D rules, straight to assembly (lang/)
 
 `lang/delta run file.delta` | `delta build file.delta -o out` | `delta asm file.delta` (shows the assembly it writes).
-Delta compiles itself. Its compiler, `lang/dc.delta`, is written in Delta: it was built once by a first compiler
-(in Python, now retired), then compiled itself, and that copy compiled itself again: all three wrote the same assembly,
-line for line. `lang/dc.s` is its seed, dc's own assembly written by dc; `lang/delta` puts dc together from the seed
-the first time (GNU `as` and `ld` turn the text into the program file) and then runs it. No Python, no C compiler, no C
-library. Dividing by a LOW never crashes the machine: it stops with words, "shared among less than 1: there is nothing
-to share it with", as a jammed pump stops.
+Delta builds itself, all the way to the program file. Its compiler, `lang/dc.delta`, and its own assembler and
+linker, `lang/da.delta`, are written in Delta. dc turns Delta into our own x86-64 assembly; da turns that into the
+machine's bytes, joins every name to its place and writes the Linux program file (ELF) itself. Built by themselves,
+then by those copies, both come out the same, byte for byte. `lang/seed/` holds the two program files they made of
+themselves; `lang/delta` starts from them. No Python, no C compiler, no C library, no GNU as or ld: only Linux.
+Dividing by a LOW never crashes the machine: it stops with words, "shared among less than 1: there is nothing to
+share it with", as a jammed pump stops.
 
 Delta 0.18 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only

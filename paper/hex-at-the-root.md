@@ -108,8 +108,9 @@ What it gives instead:
 The machine is always something too. A transistor does not switch between 1 and 0: it goes HIGH or LOW. A LOW is
 lower than 1, still with current leaking and atoms with mass, carrying its `~`. Delta's own runtime calls it LOW.
 
-Delta compiles itself. Its compiler, `lang/dc.delta`, is written in Delta: built once by the first compiler, it
-compiles itself, and that copy compiles itself again; all three write the same assembly, line for line.
+Delta builds itself, all the way to the program file. Its compiler (`lang/dc.delta`) and its own assembler and
+linker (`lang/da.delta`) are written in Delta; built by themselves, then by those copies, both come out the same byte
+for byte. Nothing else is needed but Linux: every test and model in this paper is built by Delta alone.
 
 A model written in Delta cannot cheat D: no quantity can vanish or go below what is there, because the language has
 no way to say so, and every model keeps an energy book whose total is checked against its start every frame.
@@ -226,6 +227,12 @@ share evenly stay on the knife, the cake's neighbour.
 
 The endless 3s belong to the writing, not to the cake. D does not write a fraction of a whole: it counts the parts and
 moves them, and every part arrives somewhere: on a plate, or on the knife.
+
+### 5.7 The challenge
+
+The author's challenge to any peer who wants to disprove D: give one example, anywhere in the known universe, where
+there is nothing. D cannot have a zero, because a zero is not possible. (Even the emptiest vacuum yet measured is not
+empty: it holds energy, fields and radiation, and particles appear and vanish in it.)
 
 ## 6. What is shown, and what is not yet
 

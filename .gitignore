@@ -3,3 +3,4 @@ lang/examples/*
 !lang/examples/*.delta
 lang/dc
 lang/dc.o
+lang/da

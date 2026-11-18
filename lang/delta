@@ -1,13 +1,13 @@
 #!/bin/sh
-# delta: Delta's own compiler, dc, which is written in Delta (dc.delta).
+# delta: Delta's own compiler, dc, and its own assembler and linker, da. Both are written in Delta (dc.delta, da.delta).
 #   delta run file.delta [args]      build and run
 #   delta build file.delta [-o out]  build a program
 #   delta asm file.delta             show the assembly it writes
-# The first time (or after dc.s changes) dc is put together from its seed, dc.s: dc's own assembly, written by dc.
-# To refresh the seed after changing dc.delta:  lang/delta build lang/dc.delta -o lang/dc && lang/delta asm lang/dc.delta > lang/dc.s
+# No Python, no C compiler, no GNU as or ld. The first time, dc and da come from their seeds (seed/dc, seed/da: the
+# program files dc and da made of themselves). After changing dc.delta or da.delta, make new seeds with:
+#   lang/delta build lang/dc.delta -o lang/dc && lang/delta build lang/da.delta -o lang/da && cp lang/dc lang/da lang/seed/
 here=$(dirname "$(readlink -f "$0")")
-if [ ! -x "$here/dc" ] || [ "$here/dc.s" -nt "$here/dc" ]; then
-    as --64 "$here/dc.s" -o "$here/dc.o" && ld --no-warn-rwx-segments -n "$here/dc.o" -o "$here/dc" && rm -f "$here/dc.o" || exit 3
-fi
+[ -x "$here/dc" ] || cp "$here/seed/dc" "$here/dc"
+[ -x "$here/da" ] || cp "$here/seed/da" "$here/da"
 case "$1" in run|build|asm) ;; *) "$here/dc"; exit 2;; esac
 exec "$here/dc" "$@"

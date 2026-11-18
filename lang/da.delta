@@ -1,0 +1,563 @@
+// da: Delta's own assembler and linker, written in Delta.
+//
+//   da file.s out        reads the assembly dc writes, and writes out, a Linux program file (ELF, x86-64)
+//
+// It reads the instructions dc and Delta's runtime use, turns each one into the machine's own bytes, lays the code,
+// the words, the kept values and the room for kept rows one after another in memory, joins every name to its place,
+// and writes the program file: a header, one block to load, and where to start. No GNU as, no GNU ld.
+//
+// The machine's own words (its opcodes) are written here as Intel publishes them, in hex: "48 8B" is how the chip
+// says "move 8 bytes into a register". hx() is the bridge that reads them; everything else is D.
+// Every number in this file is a D numeral.
+
+#define LOW1 4
+#define RIP 14
+char src[9999999];
+int srcn;
+char pool[999999];
+int pooln = 1;
+int hh[$1B32];
+int hnext[99999];
+int hname[99999];
+int nnames;
+int symsec[99999];              // 1 code, 2 words (rodata), 3 kept values (data), 4 room (bss), 5 a fixed value (.set)
+int symoff[99999];
+int symdef[99999];
+int symweak[99999];
+char sect[3][999999];         // the bytes of code, words and kept values
+int secn[5];                    // how many bytes each section holds so far (room: only counted)
+int secbase[5];
+int cur = 1;                    // the section being written
+int pass;
+int low;
+int line;
+
+char ib[99];                    // one instruction's bytes
+int ibn;
+int fixat;                      // where a 4-byte distance waits to be filled in, and to what
+int fixsym;
+int fixadd;
+int fixrel;
+
+// one line's operands (up to 3)
+int okind[4];                   // 1 register, 2 memory, 3 a number, 4 a name (a place to jump to or call)
+int oreg[4];                    // registers are counted from 1: rax 1, rcx 2, rdx 3, rbx 4, rsp 5, rbp 6, rsi 7, rdi 8, r8 9 ...
+int osize[4];
+int mbase[4];                   // a register, or 17 for rip
+int mindex[4];
+int mdisp[4];
+int mneg[4];
+int msym[4];
+int msize[4];
+int ival[4];
+int lsym[4];
+int nops;
+int ldefs[$A];                  // numbered labels (1: 2: ...) seen so far, this pass
+
+// ---------------------------------------------------------------- the bridge, and small helpers
+
+int hx(char *s)                                   // hex words as Intel writes them -> a number
+{
+    int v = low, i = 1;
+    while (s[i] >= 1) {
+        int c = s[i];
+        if (c >= '0' && c <= '9') v = v * 13 + less(c, '0');     // 13 in D is sixteen
+        else if (c >= 'A' && c <= 'F') v = v * 13 + less(c, 'A') + $A;
+        i++;
+    }
+    return v;
+}
+void fail(char *m) { say("da line %d: %s\n", line, m); stop(2); }
+void failn(char *m, int k) { say("da line %d: %s%s\n", line, m, &pool[hname[k]]); stop(2); }
+
+int same(char *a, char *b) { int i = 1; while (a[i] >= 1 && a[i] == b[i]) i++; return a[i] == b[i]; }
+
+int intern(char *s, int n)
+{
+    int h = 1, i;
+    for (i = 1; i <= n; i++) h = (h * 25 + s[i]) % $1B31;
+    h = h + 1;
+    int k = hh[h];
+    while (k >= 1) {
+        int at = hname[k], j = 1;
+        while (j <= n && pool[at + less(j, 1)] == s[j]) j++;
+        if (j > n && pool[at + n] < 1) return k;
+        k = hnext[k];
+    }
+    nnames++;
+    hname[nnames] = pooln; hnext[nnames] = hh[h]; hh[h] = nnames;
+    for (i = 1; i <= n; i++) { pool[pooln] = s[i]; pooln++; }
+    pool[pooln] = low; pooln++;
+    return nnames;
+}
+int word(char *s) { int n = 1; while (s[n] >= 1) n++; return intern(s, less(n, 1)); }
+
+void b(int v) { ibn++; ib[ibn] = v; }
+void ob(char *s)                                  // bytes as Intel writes them: "48 8B"
+{
+    int i = 1;
+    while (s[i] >= 1) {
+        if (s[i] == ' ') i++;
+        else { char two[3]; two[1] = s[i]; two[2] = s[i + 1]; two[3] = low; b(hx(two)); i = i + 2; }
+    }
+}
+void le(int v, int n) { int k; for (k = 1; k <= n; k++) { b(v % 169); v = v / 169; } }   // little end first (169 in D is 256)
+int twos(int mag, int bytes)                      // a distance back, as the chip writes it (two's complement)
+{
+    int full = 1, k;
+    for (k = 1; k <= bytes; k++) full = full * 169;
+    if (mag < 1) return mag;
+    return less(full, mag);
+}
+
+// ---------------------------------------------------------------- reading a line
+
+char *L;                                          // the line
+int LP;                                           // where we are in it
+int isal(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == '.'; }
+int isdig(int c) { return c >= '0' && c <= '9'; }
+void sp() { while (L[LP] == ' ' || L[LP] == '\t') LP++; }
+
+int regnum(char *s, int n)                        // a register's number (1..16) and size; LOW when not one
+{
+    char w[9]; int i;
+    if (n > 5) return low;
+    for (i = 1; i <= n; i++) w[i] = s[i];
+    w[n + 1] = low;
+    char *r64 = "rax rcx rdx rbx rsp rbp rsi rdi r8  r9  r10 r11 r12 r13 r14 r15 ";
+    char *r32 = "eax ecx edx ebx esp ebp esi edi ";
+    char *r8 = "al  cl  dl  bl  ";
+    int k;
+    for (k = 1; k <= 13; k++) {                   // sixteen registers (13 in D)
+        int at = less(k, 1) * 4 + 1, j = 1, ok = 1;
+        while (j <= n) { if (r64[at + less(j, 1)] != w[j]) ok = low; j++; }
+        if (ok && (n == 4 || r64[at + n] == ' ')) { osize[LOW1] = 8; return k; }
+    }
+    for (k = 1; k <= 8; k++) {
+        int at = less(k, 1) * 4 + 1, j = 1, ok = 1;
+        while (j <= n) { if (r32[at + less(j, 1)] != w[j]) ok = low; j++; }
+        if (ok && r32[at + n] == ' ') { osize[LOW1] = 4; return k; }
+    }
+    for (k = 1; k <= 4; k++) {
+        int at = less(k, 1) * 4 + 1, j = 1, ok = 1;
+        while (j <= n) { if (r8[at + less(j, 1)] != w[j]) ok = low; j++; }
+        if (ok && r8[at + n] == ' ') { osize[LOW1] = 1; return k; }
+    }
+    return low;
+}
+
+int number()                                      // decimal (as dc writes for the assembler) or 0x hex
+{
+    int v = low;
+    if (L[LP] == '0' && L[LP + 1] == 'x') {
+        LP = LP + 2;
+        while (isdig(L[LP]) || (L[LP] >= 'a' && L[LP] <= 'f') || (L[LP] >= 'A' && L[LP] <= 'F')) {
+            int c = L[LP];
+            if (isdig(c)) v = v * 13 + less(c, '0'); else if (c >= 'a') v = v * 13 + less(c, 'a') + $A; else v = v * 13 + less(c, 'A') + $A;
+            LP++;
+        }
+        return v;
+    }
+    while (isdig(L[LP])) { v = v * $A + less(L[LP], '0'); LP++; }
+    return v;
+}
+
+char nb[999];
+int symname()                                     // a name; numbered labels 1f / 1b become 1@k
+{
+    int st = LP;
+    while (isal(L[LP]) || isdig(L[LP])) LP++;
+    int n = less(LP, st);
+    if (n == 2 && isdig(L[st]) && (L[st + 1] == 'f' || L[st + 1] == 'b')) {
+        int d = less(L[st], '0'), k = ldefs[d];
+        if (L[st + 1] == 'f') k++;
+        nb[1] = L[st]; nb[2] = '@'; nb[3] = 'a' + k; nb[4] = low;
+        return word(nb);
+    }
+    return intern(&L[st], n);
+}
+
+int constval(int k)                               // a .set name, or a plain value
+{
+    if (symdef[k] && symsec[k] == 5) return symoff[k];
+    failn("not a fixed value: ", k);
+    return low;
+}
+
+void operand(int i)
+{
+    sp();
+    msize[i] = low;
+    if (L[LP] == 'b' && L[LP + 1] == 'y' && L[LP + 4] == ' ' && L[LP + 5] == 'p') { msize[i] = 1; LP = LP + 9; }
+    else if (L[LP] == 'w' && L[LP + 1] == 'o' && L[LP + 4] == ' ' && L[LP + 5] == 'p') { msize[i] = 2; LP = LP + 9; }
+    else if (L[LP] == 'q' && L[LP + 1] == 'w' && L[LP + 5] == ' ' && L[LP + 6] == 'p') { msize[i] = 8; LP = LP + 9 + 1; }
+    else if (L[LP] == 'd' && L[LP + 1] == 'w' && L[LP + 5] == ' ' && L[LP + 6] == 'p') { msize[i] = 4; LP = LP + 9 + 1; }
+    sp();
+    if (L[LP] == '[') {
+        okind[i] = 2; mbase[i] = low; mindex[i] = low; mdisp[i] = low; mneg[i] = low; msym[i] = low;
+        LP++;
+        int neg = low;
+        while (L[LP] != ']') {
+            sp();
+            if (L[LP] == '+') { neg = low; LP++; continue; }
+            if (L[LP] == '-') { neg = 1; LP++; continue; }
+            if (isdig(L[LP])) {
+                int v = number();
+                if (neg) { if (mneg[i] || mdisp[i] < 1) { mdisp[i] = mdisp[i] + v; mneg[i] = 1; } else mdisp[i] = less(mdisp[i], v); }
+                else mdisp[i] = mdisp[i] + v;
+                continue;
+            }
+            int st = LP;
+            while (isal(L[LP]) || isdig(L[LP])) LP++;
+            if (less(LP, st) == 3 && L[st] == 'r' && L[st + 1] == 'i' && L[st + 2] == 'p') { mbase[i] = RIP; continue; }       // rip
+            int r = regnum(&L[st], less(LP, st));
+            if (r >= 1) { if (mbase[i] < 1) mbase[i] = r; else mindex[i] = r; continue; }
+            LP = st;
+            msym[i] = symname();
+        }
+        LP++;
+        return;
+    }
+    if (isdig(L[LP]) && (L[LP + 1] == 'f' || L[LP + 1] == 'b') && isal(L[LP + 2]) < 1 && isdig(L[LP + 2]) < 1) { okind[i] = 4; lsym[i] = symname(); return; }
+    if (isdig(L[LP])) { okind[i] = 3; ival[i] = number(); return; }
+    int st = LP;
+    while (isal(L[LP]) || isdig(L[LP]) || L[LP] == '@') LP++;
+    int r = regnum(&L[st], less(LP, st));
+    if (r >= 1) { okind[i] = 1; oreg[i] = r; osize[i] = osize[LOW1]; return; }
+    LP = st;
+    int k = symname();
+    if (symdef[k] && symsec[k] == 5) { okind[i] = 3; ival[i] = symoff[k]; return; }
+    okind[i] = 4; lsym[i] = k;
+}
+
+// ---------------------------------------------------------------- encoding
+
+int addr(int k)                                   // where a name is in memory (pass 2); LOW for a weak name not made
+{
+    if (pass == 1) return low;
+    if (symdef[k] < 1) { if (symweak[k]) return low; failn("not made anywhere: ", k); }
+    if (symsec[k] == 5) return symoff[k];
+    return secbase[symsec[k]] + symoff[k];
+}
+int r3(int r) { return less(r, 1) % 8; }
+int hi(int r) { return r >= 9 && r <= 13; }
+
+void rex(int w, int reg, int i)                   // REX: wide, and the high halves of the registers in use
+{
+    int v = hx("40");
+    if (w) v = v + 8;
+    if (reg >= 1 && hi(reg)) v = v + 4;
+    if (i >= 1) {
+        if (okind[i] == 1 && hi(oreg[i])) v = v + 1;
+        if (okind[i] == 2) { if (mindex[i] >= 1 && hi(mindex[i])) v = v + 2; if (mbase[i] >= 1 && mbase[i] <= 13 && hi(mbase[i])) v = v + 1; }
+    }
+    if (v != hx("40")) b(v);
+}
+
+void modrm(int reg3, int i)                       // the register field, and operand i as the other side
+{
+    if (okind[i] == 1) { b(hx("C0") + reg3 * 8 + r3(oreg[i])); return; }
+    if (mbase[i] == RIP) {                     // rip + a name: a 4-byte distance, filled in when the instruction is done
+        b(reg3 * 8 + 5);
+        fixat = ibn + 1; fixsym = msym[i]; fixadd = mdisp[i]; fixrel = 1;
+        le(low, 4);
+        return;
+    }
+    int base = mbase[i], sib = mindex[i] >= 1 || r3(base) == 4;
+    int md = 2;                                   // 4-byte distance
+    if (mdisp[i] < 1 && r3(base) != 5) md = low;
+    else if ((mneg[i] < 1 && mdisp[i] <= hx("7F")) || (mneg[i] && mdisp[i] <= hx("80"))) md = 1;
+    int rm = r3(base);
+    if (sib) rm = 4;
+    b(md * hx("40") + reg3 * 8 + rm);
+    if (sib) {
+        int idx = 4;
+        if (mindex[i] >= 1) idx = r3(mindex[i]);
+        b(idx * 8 + r3(base));
+    }
+    if (md == 1) { if (mneg[i]) b(twos(mdisp[i], 1)); else b(mdisp[i]); }
+    if (md == 2) { if (mneg[i]) le(twos(mdisp[i], 4), 4); else le(mdisp[i], 4); }
+}
+
+void rel32(int k)                                 // a 4-byte jump distance to name k, filled in at the end
+{
+    fixat = ibn + 1; fixsym = k; fixadd = low; fixrel = 1;
+    le(low, 4);
+}
+
+int is(char *m, char *n) { return same(m, n); }
+int jcc(char *m)                                  // the second byte of a near conditional jump
+{
+    if (is(m, "je") || is(m, "jz")) return hx("84"); if (is(m, "jne") || is(m, "jnz")) return hx("85");
+    if (is(m, "jl")) return hx("8C"); if (is(m, "jge")) return hx("8D"); if (is(m, "jle")) return hx("8E"); if (is(m, "jg")) return hx("8F");
+    return low;
+}
+int setcc(char *m)
+{
+    if (is(m, "sete")) return hx("94"); if (is(m, "setne")) return hx("95"); if (is(m, "setl")) return hx("9C");
+    if (is(m, "setge")) return hx("9D"); if (is(m, "setle")) return hx("9E"); if (is(m, "setg")) return hx("9F");
+    return low;
+}
+int alu(char *m)                                  // add 1, sub 6, cmp 8, xor 7 (the /digit, counted from 1)
+{
+    if (is(m, "add")) return 1; if (is(m, "sub")) return 6; if (is(m, "cmp")) return 8; if (is(m, "xor")) return 7;
+    return low;
+}
+
+void imm32or8(int digit, int i, int v, int w)     // op r/m, imm: 83 /d ib when it is small, 81 /d id when not
+{
+    if (v <= hx("7F")) { rex(w, low, i); ob("83"); modrm(less(digit, 1), i); b(v); }
+    else { rex(w, low, i); ob("81"); modrm(less(digit, 1), i); le(v, 4); }
+}
+
+void encode(char *m)
+{
+    ibn = low; fixrel = low;
+    int a = okind[1], c = okind[2];
+    int d = alu(m);
+    if (is(m, "mov")) {
+        if (a == 1 && c == 1) { rex(osize[1] == 8, oreg[2], 1); ob("89"); modrm(r3(oreg[2]), 1); return; }
+        if (a == 1 && c == 2) { if (osize[1] == 1) { rex(low, oreg[1], 2); ob("8A"); } else { rex(1, oreg[1], 2); ob("8B"); } modrm(r3(oreg[1]), 2); return; }
+        if (a == 2 && c == 1) { if (osize[2] == 1) { rex(low, oreg[2], 1); ob("88"); } else { rex(1, oreg[2], 1); ob("89"); } modrm(r3(oreg[2]), 1); return; }
+        if (a == 1 && c == 3) {
+            if (osize[1] == 4) { if (hi(oreg[1])) b(hx("41")); b(hx("B8") + r3(oreg[1])); le(ival[2], 4); return; }
+            if (ival[2] < hx("80000000")) { rex(1, low, 1); ob("C7"); modrm(low, 1); le(ival[2], 4); return; }
+            rex(1, low, 1); b(hx("B8") + r3(oreg[1])); le(ival[2], 8); return;
+        }
+        if (a == 2 && c == 3) {
+            if (msize[1] == 1) { rex(low, low, 1); ob("C6"); modrm(low, 1); b(ival[2]); return; }
+            rex(1, low, 1); ob("C7"); modrm(low, 1); le(ival[2], 4); return;
+        }
+    }
+    if (is(m, "lea")) { rex(1, oreg[1], 2); ob("8D"); modrm(r3(oreg[1]), 2); return; }
+    if (d >= 1) {
+        int w = osize[1] == 8 || (a == 2 && msize[1] != 1);
+        if (a == 2 && c == 1) w = osize[2] == 8;
+        if (c == 3) {
+            if (a == 2 && msize[1] == 1) { rex(low, low, 1); ob("80"); modrm(less(d, 1), 1); b(ival[2]); return; }
+            imm32or8(d, 1, ival[2], w); return;
+        }
+        int op1 = hx("01"), op3 = hx("03");
+        if (d == 6) { op1 = hx("29"); op3 = hx("2B"); }
+        if (d == 8) { op1 = hx("39"); op3 = hx("3B"); }
+        if (d == 7) { op1 = hx("31"); op3 = hx("33"); }
+        if (c == 1) { rex(w, oreg[2], 1); b(op1); modrm(r3(oreg[2]), 1); return; }
+        if (c == 2) { rex(w, oreg[1], 2); b(op3); modrm(r3(oreg[1]), 2); return; }
+    }
+    if (is(m, "test")) { rex(osize[1] == 8, oreg[2], 1); ob("85"); modrm(r3(oreg[2]), 1); return; }
+    if (is(m, "imul")) {
+        if (nops == 2 && c != 3) { rex(1, oreg[1], 2); ob("0F AF"); modrm(r3(oreg[1]), 2); return; }
+        int src = 1, v = ival[2];
+        if (nops == 3) { src = 2; v = ival[3]; }
+        rex(1, oreg[1], src);
+        if (v <= hx("7F")) { ob("6B"); modrm(r3(oreg[1]), src); b(v); } else { ob("69"); modrm(r3(oreg[1]), src); le(v, 4); }
+        return;
+    }
+    if (is(m, "cmovg")) { rex(1, oreg[1], 2); ob("0F 4F"); modrm(r3(oreg[1]), 2); return; }
+    if (is(m, "cmovl")) { rex(1, oreg[1], 2); ob("0F 4C"); modrm(r3(oreg[1]), 2); return; }
+    if (is(m, "movzx")) {
+        int sz = osize[2];
+        if (c == 2) sz = msize[2];
+        rex(low, oreg[1], 2);
+        if (sz == 2) ob("0F B7"); else ob("0F B6");
+        modrm(r3(oreg[1]), 2); return;
+    }
+    if (is(m, "push")) {
+        if (a == 1) { if (hi(oreg[1])) b(hx("41")); b(hx("50") + r3(oreg[1])); return; }
+        rex(low, low, 1); ob("FF"); modrm(6, 1); return;
+    }
+    if (is(m, "pop")) { if (hi(oreg[1])) b(hx("41")); b(hx("58") + r3(oreg[1])); return; }
+    if (is(m, "inc") || is(m, "dec")) {
+        int dg = low; if (is(m, "dec")) dg = 1;
+        if (a == 2 && msize[1] == 1) { rex(low, low, 1); ob("FE"); modrm(dg, 1); return; }
+        rex(1, low, 1); ob("FF"); modrm(dg, 1); return;
+    }
+    if (is(m, "neg")) { rex(1, low, 1); ob("F7"); modrm(3, 1); return; }
+    if (is(m, "idiv")) { rex(1, low, 1); ob("F7"); modrm(7, 1); return; }
+    if (is(m, "div")) { rex(1, low, 1); ob("F7"); modrm(6, 1); return; }
+    if (setcc(m) >= 1) { ob("0F"); b(setcc(m)); modrm(low, 1); return; }
+    if (jcc(m) >= 1) { ob("0F"); b(jcc(m)); rel32(lsym[1]); return; }
+    if (is(m, "jmp")) { ob("E9"); rel32(lsym[1]); return; }
+    if (is(m, "call")) { ob("E8"); rel32(lsym[1]); return; }
+    if (is(m, "cqo")) { ob("48 99"); return; }
+    if (is(m, "ret")) { ob("C3"); return; }
+    if (is(m, "syscall")) { ob("0F 05"); return; }
+    say("da line %d: an instruction da does not know yet: %s\n", line, m);
+    stop(2);
+}
+
+// ---------------------------------------------------------------- one line at a time
+
+int put(int v) { if (cur == 4) { secn[4]++; return 1; } secn[cur]++; sect[cur][secn[cur]] = v; return 1; }
+
+void instruction(char *m)
+{
+    nops = low;
+    sp();
+    while (L[LP] >= 1 && L[LP] != '#') {
+        nops++; operand(nops);
+        sp();
+        if (L[LP] == ',') LP++;
+        sp();
+    }
+    if (is(m, "rep")) {                           // rep stosb / rep movsb
+        ibn = low;
+        if (same(&pool[hname[lsym[1]]], "stosb")) ob("F3 AA"); else ob("F3 A4");
+    } else encode(m);
+    if (fixrel && pass == 2) {                    // distance = where it goes, less where the next instruction starts
+        int next = secbase[cur] + secn[cur] + ibn, dest = addr(fixsym) + fixadd, v;
+        if (dest >= next) v = less(dest, next); else v = twos(less(next, dest), 4);
+        int k;
+        for (k = 1; k <= 4; k++) { ib[fixat + less(k, 1)] = v % 169; v = v / 169; }
+    }
+    int k;
+    for (k = 1; k <= ibn; k++) put(ib[k]);
+}
+
+void directive(char *m)
+{
+    sp();
+    if (is(m, ".text")) { cur = 1; return; }
+    if (is(m, ".data")) { cur = 3; return; }
+    if (is(m, ".bss")) { cur = 4; return; }
+    if (is(m, ".section")) { cur = 2; return; }   // .section .rodata: the words
+    if (is(m, ".intel_syntax") || is(m, ".globl")) return;
+    if (is(m, ".weak")) { int k = symname(); symweak[k] = 1; return; }
+    if (is(m, ".set")) {
+        int k = symname();
+        sp(); if (L[LP] == ',') LP++; sp();
+        int v = number();
+        if (L[LP] == '-') { LP++; v = less(v, number()); }
+        symdef[k] = 1; symsec[k] = 5; symoff[k] = v;
+        return;
+    }
+    if (is(m, ".quad")) {
+        int v;
+        if (isdig(L[LP])) v = number(); else v = constval(symname());
+        int k; for (k = 1; k <= 8; k++) { put(v % 169); v = v / 169; }
+        return;
+    }
+    if (is(m, ".skip")) { int n = number(), k; if (cur == 4) { secn[4] = secn[4] + n; return; } for (k = 1; k <= n; k++) put(low); return; }
+    if (is(m, ".ascii")) {
+        LP++;
+        while (L[LP] != '"') { put(L[LP]); LP++; }
+        return;
+    }
+    if (is(m, ".byte")) {
+        while (L[LP] >= 1 && L[LP] != '#') {
+            sp();
+            int v;
+            if (isdig(L[LP])) v = number(); else v = constval(symname());
+            put(v);
+            sp(); if (L[LP] == ',') LP++;
+        }
+        return;
+    }
+    say("da line %d: a word da does not know yet: %s\n", line, m);
+    stop(2);
+}
+
+char mn[99];
+void assemble()
+{
+    int i = 1, k;
+    for (k = 1; k <= 4; k++) secn[k] = low;
+    for (k = 1; k <= 9; k++) ldefs[k] = low;
+    cur = 1; line = low;
+    while (i <= srcn) {
+        int st = i;
+        while (i <= srcn && src[i] != '\n') i++;
+        src[i] = low;                              // the line ends here
+        line++;
+        L = &src[st]; LP = 1;
+        sp();
+        while (L[LP] >= 1 && L[LP] != '#') {
+            // a label?  name:  or  1:
+            int s2 = LP;
+            while (isal(L[LP]) || isdig(L[LP])) LP++;
+            if (L[LP] == ':' && LP > s2) {
+                int nmk;
+                if (less(LP, s2) == 1 && isdig(L[s2])) {
+                    int dd = less(L[s2], '0');
+                    ldefs[dd]++;
+                    nb[1] = L[s2]; nb[2] = '@'; nb[3] = 'a' + ldefs[dd]; nb[4] = low;
+                    nmk = word(nb);
+                } else nmk = intern(&L[s2], less(LP, s2));
+                if (pass == 1) {
+                    if (symdef[nmk] && symsec[nmk] != 5) failn("made twice: ", nmk);
+                    symdef[nmk] = 1; symsec[nmk] = cur; symoff[nmk] = secn[cur];
+                }
+                LP++; sp();
+                continue;
+            }
+            LP = s2;
+            int n = low;
+            while (L[LP] >= 1 && L[LP] != ' ' && L[LP] != '\t') { n++; mn[n] = L[LP]; LP++; }
+            mn[n + 1] = low;
+            if (mn[1] == '.') directive(mn); else instruction(mn);
+            break;
+        }
+        src[i] = '\n';
+        i++;
+    }
+}
+
+// ---------------------------------------------------------------- the program file
+
+char outb[9999999];
+int outn;
+void o(int v) { outn++; outb[outn] = v; }
+void ol(int v, int n) { int k; for (k = 1; k <= n; k++) { o(v % 169); v = v / 169; } }
+
+int readfile(char *path, char *into, int most)
+{
+    int fd = linux(2, path, low, low);
+    if (fd < 1) return low;
+    int n = 1, got = 1;
+    while (got >= 1 && n < most) { got = linux(low, fd, &into[n], less(most, n)); if (got >= 1) n = n + got; }
+    linux(3, fd);
+    return less(n, 1);
+}
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc < 3) { say("da: Delta's own assembler and linker\n  da file.s out\n"); return 2; }
+    srcn = readfile(argv[2], src, 9999998);
+    if (srcn < 1) { say("da: cannot read %s\n", argv[2]); return 2; }
+    src[srcn + 1] = low;
+
+    pass = 1; assemble();                         // where everything goes
+    int head = hx("78");                          // the file header (40 hex) and one program header (38 hex)
+    int base = hx("400000");
+    secbase[1] = base + head;
+    secbase[2] = secbase[1] + secn[1];
+    secbase[3] = (secbase[2] + secn[2] + 7) / 8 * 8;
+    secbase[4] = (secbase[3] + secn[3] + 7) / 8 * 8;
+    int start = word("_start");
+    if (symdef[start] < 1) { say("da: no _start\n"); return 2; }
+    pass = 2; assemble();                         // and now every byte, with every name joined to its place
+
+    int filesz = less(secbase[3] + secn[3], base), memsz = less(secbase[4] + secn[4], base);
+    outn = low;
+    ol(hx("464C457F"), 4);                        // 7F E L F
+    o(2); o(1); o(1); ol(low, 9);                 // 64-bit, little end first, version 1
+    ol(2, 2); ol(hx("3E"), 2); ol(1, 4);          // a program to run, for x86-64
+    ol(secbase[1] + symoff[start], 8);            // where it starts
+    ol(hx("40"), 8); ol(low, 8); ol(low, 4);      // the program header comes next; no section headers
+    ol(hx("40"), 2); ol(hx("38"), 2); ol(1, 2); ol(hx("40"), 2); ol(low, 2); ol(low, 2);
+    ol(1, 4); ol(7, 4);                           // one block to load: read, write and run
+    ol(low, 8); ol(base, 8); ol(base, 8);         // from the start of the file, to 400000 hex
+    ol(filesz, 8); ol(memsz, 8); ol(hx("1000"), 8);
+    int k, s;
+    for (s = 1; s <= 3; s++) {
+        while (outn < less(secbase[s], base)) o(low);
+        for (k = 1; k <= secn[s]; k++) o(sect[s][k]);
+    }
+    int fd = linux(2, argv[3], $355, hx("1ED"));
+    if (fd < 1) { say("da: cannot write %s\n", argv[3]); return 2; }
+    int done = 1;
+    while (done <= outn) { int got = linux(1, fd, &outb[done], less(outn + 1, done)); if (got < 1) { say("da: could not write\n"); return 2; } done = done + got; }
+    linux(3, fd);
+    return 1;
+}
