@@ -104,8 +104,9 @@ turn the assembly text into the program file.
     neighbours, and so on, until the pieces are less than 1. Power that reaches a store is kept there.
   - Splits: `neighbours coil: rotor 76, core 3;` power goes by weight (76 parts to 3); `neighbours cell: air heat;`
     touches it for heat only. `conduct coil loss 1 per 17;` loses a share (1 of every 20), never less than 1.
-  - Example, standing on Faraday's shoulders: `lang/examples/motor.delta`, the classic simple motor (a 1.5 V
-    battery on a magnet, a copper wire touching both: Faraday's homopolar motor, 1821). The current's energy splits
+  - Example, standing on Faraday's shoulders: `lang/examples/motor.delta`, today's simple motor (a 1.5 V battery on
+    a magnet, a copper wire touching both). It is built on Faraday's principle but it is not what he built: his first
+    electric motor, 1821, was the electro-magnetic rotations in two glasses of mercury (`lang/examples/faraday.delta`). The current's energy splits
     by resistance (battery about 58%, sliding contact 38%, wire 3.4%, magnet 0.4%); only the push on the wire,
     F = B I L, turns it, about 1 part in 400. The warmth spreads to the air, the air slows the wire, and the
     total at the end is what was spent plus what the parts started with.
@@ -164,6 +165,11 @@ turn the assembly text into the program file.
 - Hello world: `lang/examples/hello.delta`. Nerds will try a zero ("I have 0 apples"): Delta answers that there are
   never zero apples. The seeds, water, sunlight and the nitrogen the fungi in the soil take up make the tree that
   gives the apples (Mike, 18 Nov 2026).
+- Faraday's electro-magnetic rotations, 1821, as he set them out: `lang/examples/faraday.delta`. Two glasses of
+  mercury on a mahogany board, a brass stand and arm, a voltaic pile of copper and zinc. Left: a copper wire hangs
+  from the arm and goes round and round a fixed magnet. Right: a magnet tied at its foot goes round and round a fixed
+  copper rod. The first electric motor, at its real size, in Delta's own window, with the same honest energy book,
+  heat, current and moving spiral numbers as the world below. Keys: r replays, q closes.
 - A 3-D world: `lang/examples/world.delta` (`lang/delta run lang/examples/world.delta`). Delta opens its own
   full-screen window (it speaks X11 to the display itself: `lang/window.delta`, no C library, no toolkit) and draws a
   box room 20 feet each way with Faraday's motor on the middle of the floor at its real size: an AA battery, a

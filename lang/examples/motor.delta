@@ -1,5 +1,5 @@
-// The classic simple motor, standing on Faraday's shoulders (Michael Faraday, 1821: the first
-// electric motor was a homopolar motor like this). A 1.5 V AA battery stands on a neodymium magnet;
+// The simple battery-and-magnet motor of today, standing on Faraday's shoulders. It is not what Faraday built:
+// his first electric motor (1821) was the electro-magnetic rotations in two glasses of mercury, see faraday.delta. A 1.5 V AA battery stands on a neodymium magnet;
 // a bent copper wire touches the battery's top and the magnet's side.
 //
 // Current runs battery -> wire -> sliding contact -> magnet -> battery. Each part it passes through
