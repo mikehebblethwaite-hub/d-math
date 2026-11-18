@@ -1,8 +1,18 @@
+<p align="center"><img src="icon.png" width="160" alt="D icon: our 0, a circle holding 3 unknown things"></p>
+
 # D: real world physical maths model (0.01)
 
-D = decompose, destruction. A real world physical maths model: no zero, no minus,
-because zero is make-believe: no thing in the physical world goes to zero or below it.
-Nothing vanishes: everything is moved or broken into parts.
+D = decompose, destruction. A real world physical maths, and **Dc**, a computer language based on C,
+with no zero and no minus: zero is make-believe. Nothing in the physical world goes to zero or below it.
+Nothing vanishes: everything is moved, or broken into known parts and the unknown `~`.
+
+The icon is our 0: a circle holding 3 dots, the unknown things left in it, like 3 ping pong balls.
+
+## Try it
+
+    lang/dcc run lang/examples/apple.dc      # needs python3 and GNU as/ld (x86-64 Linux)
+    lang/tests/run.sh                        # tricks refused, honest programs right
+    python3 font/build.py                    # builds the D Angle font (needs fontTools)
 
 ## Symbols
 

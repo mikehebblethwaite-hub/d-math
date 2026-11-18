@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="640" height="640">
+  <title>D: our 0, a circle holding 3 unknown things</title>
+  <circle cx="320" cy="320" r="290" fill="none" stroke="#111" stroke-width="56"/>
+  <circle cx="320" cy="239" r="64" fill="#111"/>
+  <circle cx="250" cy="360" r="64" fill="#111"/>
+  <circle cx="390" cy="360" r="64" fill="#111"/>
+</svg>
