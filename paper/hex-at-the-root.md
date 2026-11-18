@@ -240,6 +240,28 @@ where each column is only a few pixels across and its edges are rough. No counte
 The Causeway sheet in 5.3 is reproducible too: column i starts at (i x 37B2 mod 13 x the sheet's width, i x 38891 / 7
 mod 13 x its height), in sixteenths of a half-pixel, on a sheet half the size of a B49 by 651 screen.
 
+### 5.3b The same rule in three dimensions (`cells3d.delta`)
+
+The review asked for the "share evenly" run in a block of space. Cells start at a repeatable scatter in a cube of 31
+by 31 by 31 places that wraps round at its edges (so no cell touches a wall). Each step, every place belongs to the
+nearest centre, and each centre moves half way toward the middle of its share; after 3B steps, every cell's
+neighbours (the cells it touches across a face) are counted.
+
+| cells | neighbours per cell: how many cells | most common |
+|---|---|---|
+| 42 | A:1 B:2 C:6 D:D 11:12 12:8 13:6 14:3 | 11 |
+| 84 | B:3 C:5 D:1A 11:2B 12:22 13:A 14:2 | 11 |
+| 9B | C:8 D:24 11:3B 12:1D 13:C 14:2 | 11 |
+| 99 | B:1 C:A D:24 11:2D 12:26 13:D 14:1 | 11 |
+
+In every cube the most common cell touches 11 (fourteen) neighbours, not C (twelve). The spread is still wide, so the
+cubes are not fully settled at this size, but every run leans the same way. In three dimensions, D's sharing rule
+settles toward the truncated octahedron (eight hexagonal faces and six square ones), not toward close packing.
+
+This is a result against the simplest form of the claim, and it is reported as such. In a flat sheet two questions
+give the same answer: how equal balls pack, and how equal shares divide the space. In three dimensions they part:
+equal balls pack in hex layers with twelve neighbours each, while equal shares settle with fourteen.
+
 ### 5.4 Faraday's electro-magnetic rotations, AA1 (`faraday.delta`)
 
 The first electric motor, as Michael Faraday set it out: two glasses of mercury, a voltaic pile, a brass stand. In the
@@ -307,7 +329,9 @@ that down by name, and the amount itself is always something.
 
 - The models are demonstrations by model, not proofs. They show that D's rules, kept exactly, produce hex where
   neighbours share evenly. A proof in D's own terms is the next step.
-- In three dimensions equal balls pack in hex layers stacked in the hollows; this paper models flat sheets only.
+- In three dimensions equal balls pack in hex layers stacked in the hollows (twelve neighbours), but D's own sharing
+  rule settles toward fourteen neighbours (5.3b). The flat claim holds; the three-dimensional one must be stated as two
+  questions, packing and sharing, with different answers.
 - Five-fold things exist (Jupiter's south pole, some crystals). In D's terms they mark uneven sharing, and they are
   where to look next.
 - The causeway's crack centres start from a repeatable scatter. A seed from the world (sand in the air) is planned.
@@ -367,6 +391,10 @@ generations, and treats it as a source.
 | B49, 651 | 1920, 1080 |
 | 36, 68 | 45, 86 |
 | BAA | 1999 |
+| 31 | 40 |
+| 3B | 50 |
+| 42, 84, 9B, 99 | 54, 108, 128, 126 |
+| C, 11 | 12, 14 |
 | 9999 | 21420 |
 | 3333 | 7140 |
 | C17 | 2048 |
