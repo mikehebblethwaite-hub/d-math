@@ -1,0 +1,12 @@
+// Dc: count from 1 to D and fill a row that starts at 1.
+int main(int argc, char **argv)
+{
+    int row[$D];                    // thirteen places: row[1] .. row[D]
+    for (int i = 1; i <= $D; i++)
+        row[i] = i * i;
+    for (int i = 1; i <= $D; i++)
+        say("%d squared is %d\n", i, row[i]);
+    char *word = "hen";
+    say("first letter of %s: %c\n", word, word[1]);
+    return 1;
+}

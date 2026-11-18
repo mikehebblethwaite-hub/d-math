@@ -41,3 +41,17 @@ The shapes for each digit are still to be drawn.
   `"liga": "D>"` makes typed keys join into one symbol.
 - `python3 font/build.py` builds `font/d-angle.ttf`; `python3 font/preview.py` draws `font/preview.png`.
 - Use the font only on D maths: in it, A B C D are the digits 10 to 13.
+
+## Dc: C with D rules (lang/)
+
+`lang/dcc run file.dc` | `dcc build file.dc -o out` | `dcc c file.dc` (shows the C it makes).
+Dc -> C -> gcc. Rules the compiler holds to:
+
+- No zero anywhere in code: no `0` digit, `NULL`, `false`, `'\0'`, no 0 in names.
+- Numbers are D numerals: digits 1-9 A-D, no zero digit. Ten is `$A`, thirteen `$D`, fourteen `11`.
+  (`$` is only needed when a numeral starts with a letter.)
+- No minus: `move N from a to b;` moves, the total stays the same. Moving more than is there stops the program.
+  A thing moved out in full shows as `~`: its place is taken by something else.
+- Counting starts at 1: `row[1]` is the first place.
+- `say(...)` is printf that prints D numerals. `return 1` from main = all good.
+- Tests: `lang/tests/run.sh` (tricks refused, honest programs right).

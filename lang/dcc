@@ -1,0 +1,211 @@
+#!/usr/bin/env python3
+"""dcc: the Dc compiler 0.01. Dc is C with D rules: no zero, no minus,
+D numerals (digits 1-9 A-D, no zero digit), counting from 1.
+Dc -> C -> gcc.   dcc build file.dc [-o out]  |  dcc run file.dc [args]  |  dcc c file.dc
+"""
+import os, re, subprocess, sys, tempfile
+
+DIG = "123456789ABCD"
+TYPES = {"int", "char", "long", "short", "unsigned", "signed", "float", "double",
+         "void", "struct", "const", "static", "size_t", "FILE", "bool", "extern", "union", "enum"}
+BANNED = {"NULL": "NULL is zero (nothing): a pointer always points at something",
+          "false": "false is zero: say what is true instead",
+          "EXIT_SUCCESS": "EXIT_SUCCESS is zero: main ends with return 1 (all good)",
+          "nullptr": "nullptr is zero"}
+
+class DcError(Exception): pass
+
+def d_value(s, line):
+    v = 0
+    for ch in s:
+        if ch not in DIG: raise DcError("line %d: '%s' is not a D numeral (digits 1-9 A-D)" % (line, s))
+        v = v * 13 + DIG.index(ch) + 1
+    return v
+
+def to_d(v):
+    out = ""
+    while v > 0:
+        r = v % 13
+        if r == 0: r = 13
+        out = DIG[r - 1] + out
+        v = (v - r) // 13
+    return out
+
+TOK = re.compile(r'''
+   (?P<ws>\s+)
+ | (?P<lc>//[^\n]*)
+ | (?P<bc>/\*.*?\*/)
+ | (?P<pp>\#[^\n]*(?:\\\n[^\n]*)*)
+ | (?P<str>"(?:\\.|[^"\\\n])*")
+ | (?P<chr>'(?:\\.|[^'\\\n])+')
+ | (?P<dnum>\$[0-9A-Za-z]+)
+ | (?P<num>[0-9][0-9A-Za-z_.]*)
+ | (?P<id>[A-Za-z_][A-Za-z0-9_]*)
+ | (?P<arrow>->)
+ | (?P<op>[^\sA-Za-z0-9_])
+''', re.S | re.X)
+
+def lex(src):
+    pos, line, out = 0, 1, []
+    while pos < len(src):
+        m = TOK.match(src, pos)
+        kind, text = m.lastgroup, m.group()
+        out.append((kind, text, line))
+        line += text.count("\n"); pos = m.end()
+    return out
+
+def check_code(kind, text, line):
+    """Rules on code (not strings, not comments)."""
+    if kind == "num" or kind == "dnum":
+        body = text[1:] if kind == "dnum" else text
+        if "0" in body:
+            raise DcError("line %d: '%s' has a zero digit. D numerals have no zero: digits 1-9 A-D (ten is $A, thirteen $D, fourteen 11)" % (line, text))
+        if "." in body:
+            raise DcError("line %d: '%s': fractions are not in Dc 0.01" % (line, text))
+        m = re.fullmatch(r"([0-9A-Za-z]+?)([uUlL]*)", body)
+        digits, suf = m.group(1), m.group(2)
+        return str(d_value(digits, line)) + suf
+    if kind == "id" and text in BANNED:
+        raise DcError("line %d: %s" % (line, BANNED[text]))
+    if kind == "id" and "0" in text:
+        raise DcError("line %d: '%s' has a zero in it. No zero anywhere in code" % (line, text))
+    if kind == "chr" and text in ("'\\0'", "'\\x0'", "'\\00'", "'\\000'"):
+        raise DcError("line %d: %s is the zero character" % (line, text))
+    if kind == "op" and text == "-":
+        raise DcError("line %d: no minus in D. Things are moved (move N from a to b;) or broken into parts, never taken below what is there" % line)
+    if kind == "op" and text == "0":
+        raise DcError("line %d: zero" % line)
+    return text
+
+def translate(src):
+    toks = lex(src)
+    out = []
+    # statement tracking for declaration brackets vs index brackets
+    stmt_is_decl, depth_par, seen_eq, prev_sig = False, 0, False, None
+    brack_stack = []        # True = index bracket (needs -1), False = declaration
+    i = 0
+    while i < len(toks):
+        kind, text, line = toks[i]
+        if kind in ("ws", "lc", "bc", "str"):
+            out.append(text); i += 1; continue
+        if kind == "pp":
+            body = text
+            if re.match(r"#\s*include", body): out.append(body); i += 1; continue
+            # preprocessor lines follow the same rules
+            sub = translate_pp(body, line); out.append(sub); i += 1; continue
+        # move statement: move N from a to b;
+        if kind == "id" and text == "move" and (prev_sig in (None, ";", "{", "}", ")")):
+            j, parts = i + 1, []
+            while j < len(toks) and toks[j][1] != ";":
+                parts.append(toks[j]); j += 1
+            words = "".join(t[1] for t in parts)
+            m = re.fullmatch(r"\s*(.+?)\s+from\s+(.+?)\s+to\s+(.+?)\s*", words, re.S)
+            if not m: raise DcError("line %d: move is: move N from a to b;" % line)
+            n, a, b = (translate_expr(x, line) for x in m.groups())
+            out.append('dc_move((%s), &(%s), &(%s), "%s", "%s", %d)' % (n, a, b, a.strip(), b.strip(), line))
+            i = j; prev_sig = None; continue
+        t = check_code(kind, text, line)
+        if kind == "id" and text in TYPES and prev_sig in (None, ";", "{", "}", "(") :
+            stmt_is_decl = depth_par == 0 or prev_sig == "("
+            seen_eq = False
+        if text == ";" or text == "{" or text == "}":
+            stmt_is_decl, seen_eq = False, False
+        if text == "(":
+            depth_par += 1
+        if text == ")":
+            depth_par = max(depth_par - 1, 0)
+        if text == "=" and depth_par == 0:
+            seen_eq = True
+        if text == "," and depth_par == 0 and not brack_stack:
+            seen_eq = False
+        if text == "[":
+            nxt = next((x for x in toks[i+1:] if x[0] not in ("ws", "lc", "bc")), None)
+            is_decl = (stmt_is_decl and not seen_eq and depth_par == 0) or (nxt and nxt[1] == "]")
+            brack_stack.append(not is_decl)
+            out.append("[(" if not is_decl else "[")
+        elif text == "]":
+            idx = brack_stack.pop() if brack_stack else False
+            out.append(")-1]" if idx else "]")
+        elif kind == "id" and text == "main" and prev_sig in ("int",):
+            out.append("dc_main")
+        else:
+            out.append(t)
+        prev_sig = text
+        i += 1
+    return "".join(out)
+
+def translate_expr(s, line):
+    return translate(s).strip()
+
+def translate_pp(body, line):
+    out = []
+    for kind, text, _ in lex(body[1:]):
+        out.append(text if kind in ("ws", "str", "lc", "bc") else check_code(kind, text, line))
+    return "#" + "".join(out)
+
+RUNTIME = r'''
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+/* Dc runtime 0.01. Under the hood the machine still uses C; the code you write does not. */
+static void dc_d(long v, char *buf) {          /* number -> D numeral */
+    const char *dig = "123456789ABCD"; char tmp[64]; int n = 0;
+    if (v < 1) { strcpy(buf, "~"); return; }    /* nothing below 1 is shown as a number */
+    while (v > 0) { long r = v % 13; if (r == 0) r = 13; tmp[n++] = dig[r - 1]; v = (v - r) / 13; }
+    for (int i = 0; i < n; i++) buf[i] = tmp[n - 1 - i];
+    buf[n] = 0;
+}
+/* say: like printf, but %d prints D numerals */
+static void say(const char *fmt, ...) {
+    va_list ap; va_start(ap, fmt); char b[64];
+    for (const char *p = fmt; *p; p++) {
+        if (*p != '%') { putchar(*p); continue; }
+        p++;
+        if (*p == 'd') { dc_d(va_arg(ap, int), b); fputs(b, stdout); }
+        else if (*p == 'l' && p[1] == 'd') { p++; dc_d(va_arg(ap, long), b); fputs(b, stdout); }
+        else if (*p == 's') fputs(va_arg(ap, char *), stdout);
+        else if (*p == 'c') putchar(va_arg(ap, int));
+        else if (*p == '%') putchar('%');
+        else if (!*p) break;
+    }
+    va_end(ap);
+}
+/* move N from a to b: the total stays the same, nothing vanishes */
+static void dc_move(long n, int *a, int *b, const char *an, const char *bn, int line) {
+    if (n < 1) { fprintf(stderr, "Dc line %d: move needs 1 or more\n", line); exit(2); }
+    if (n > *a) { char x[64], y[64]; dc_d(n, x); dc_d(*a, y);
+        fprintf(stderr, "Dc line %d: cannot move %s from %s, it holds %s\n", line, x, an, y); exit(2); }
+    *a -= n; *b += n;       /* a moved out in full holds ~ : its place is taken by something else */
+}
+static int dc_main(int argc, char **argv);
+int main(int argc, char **argv) { int r = dc_main(argc, argv); return r == 1 ? 0 : (r ? r : 0); }
+#line 1
+'''
+
+def to_c(path):
+    src = open(path).read()
+    return RUNTIME + translate(src)
+
+def main():
+    if len(sys.argv) < 3 or sys.argv[1] not in ("build", "run", "c"):
+        print(__doc__.strip()); sys.exit(2)
+    cmd, path = sys.argv[1], sys.argv[2]
+    try:
+        csrc = to_c(path)
+    except DcError as e:
+        print("Dc %s: %s" % (os.path.basename(path), e), file=sys.stderr); sys.exit(2)
+    if cmd == "c":
+        print(csrc); return
+    out = os.path.splitext(path)[0]
+    if "-o" in sys.argv: out = sys.argv[sys.argv.index("-o") + 1]
+    with tempfile.NamedTemporaryFile("w", suffix=".c", delete=False, dir=os.path.dirname(os.path.abspath(out))) as f:
+        f.write(csrc.replace("#line 1", '#line 1 "%s"' % os.path.abspath(path))); cpath = f.name
+    r = subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wno-unused-function", "-O2", cpath, "-o", out])
+    os.unlink(cpath)
+    if r.returncode: sys.exit(r.returncode)
+    if cmd == "run":
+        sys.exit(subprocess.run([os.path.abspath(out)] + sys.argv[3:]).returncode)
+
+if __name__ == "__main__":
+    main()

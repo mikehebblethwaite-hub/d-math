@@ -1,0 +1,11 @@
+// Dc: apples move from Mike to Bob. Nothing vanishes.
+int main(int argc, char **argv)
+{
+    int mike = 5, bob = 1;
+    say("Mike %d  Bob %d  total %d\n", mike, bob, mike + bob);
+    move 2 from mike to bob;
+    say("Mike %d  Bob %d  total %d\n", mike, bob, mike + bob);
+    move 3 from mike to bob;
+    say("Mike %d  Bob %d  total %d\n", mike, bob, mike + bob);
+    return 1;   // 1 = all good
+}
