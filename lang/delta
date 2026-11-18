@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""delta: the Delta compiler 0.15. Delta is C with D rules: always something.
+"""delta: the Delta compiler 0.16. Delta is C with D rules: always something.
 Things count from 1 and move or change form; numbers are D numerals (digits 1-9 A-D).
 Delta -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -16,7 +16,7 @@ BANNED = {"NULL": "NULL is a make-believe zero: a pointer always points at somet
           "EXIT_SUCCESS": "EXIT_SUCCESS is a make-believe zero: main ends with return 1 (all good)",
           "nullptr": "nullptr is a make-believe zero"}
 TYPES = {"int", "long", "char", "void"}
-FLOW_WORDS = {"store", "conduct", "neighbours", "spend", "tick", "wear", "mix"}
+FLOW_WORDS = {"store", "conduct", "neighbours", "spend", "tick", "wear", "mix", "shrug"}
 KEYWORDS = TYPES | FLOW_WORDS | {"thing", "vessel", "and", "fits", "if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
 
 
@@ -420,7 +420,7 @@ class Compiler:
         if self.at("vessel"): self.vessel(); return
         if self.at("fits"): self.fits(); return
         if self.at("move"): self.move(); self.vcheck(); return
-        if any(self.at(w) for w in FLOW_WORDS): self.flow_words(); return self.statement()
+        if any(self.at(w) for w in FLOW_WORDS) and not self.at("(", 1): self.flow_words(); return self.statement()
         k = self.p
         while self.t[k][1] != ";" and self.t[k][0] != "end":
             if self.t[k][0] == "op" and self.t[k][1] == "D>": self.decompose(); self.vcheck(); return
@@ -684,6 +684,12 @@ class Compiler:
                    + thing(by, 3, [T("num", 1)]) + [T("op", ",")] + per + [T("op", ")"), T("op", ";")]
             for pt in parts:
                 new += [T("id", "dl_wear_part"), T("op", "(")] + thing(pt, 3, [T("num", 1)]) + [T("op", ")"), T("op", ";")]
+        elif word == "shrug":                           # shrug N from x;  a loss not traced yet
+            k = next((i for i, x in enumerate(body) if x[1] == "from"), None)
+            if not k or k + 1 >= len(body): raise DeltaError(line, "shrug N from x;")
+            nm = body[k + 1:]
+            new += [T("id", "dl_shrugoff"), T("op", "("), T("op", "&")] + [list(x) for x in nm] + [T("op", ",")] + body[:k] \
+                   + [T("op", ","), T("str", list("".join(str(x[1]) for x in nm).encode()) + ["LOW"]), T("op", ")"), T("op", ";")]
         elif word == "tick":                            # tick;  tick N;  time passes, every leak shown
             n = body if body else [T("num", 1)]
             new += [T("id", "for"), T("op", "("), T("id", "int"), T("id", "dl_t"), T("op", "="), T("num", 1), T("op", ";"),
@@ -1002,6 +1008,7 @@ class Compiler:
     def call(self):
         tok = self.take(); fname = tok[1]; line = tok[2]
         self.take("(")
+        if fname == "shrug": fname = "dl_shrugread"          # shrug(): how much is in the Shrug
         if fname == "say": return self.say(line)
         th = getattr(self, "cur_thing", None)
         if fname not in self.funcs and th and fname in THINGS[th]["methods"]:
@@ -1061,7 +1068,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Delta runtime 0.15: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Delta runtime 0.16: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .weak f_dl_report

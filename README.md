@@ -57,7 +57,7 @@ The shapes for each digit are still to be drawn.
 ## Delta: C with D rules, straight to assembly (lang/)
 
 `lang/delta run file.delta` | `delta build file.delta -o out` | `delta asm file.delta` (shows the assembly it writes).
-Delta 0.15 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+Delta 0.16 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
 turn the assembly text into the program file.
 
@@ -92,7 +92,9 @@ turn the assembly text into the program file.
     given) goes to the Shrug until investigated. A run that leaves anything in it says so at the end:
     `Shrug 2 ¯\\_(ツ)_/¯ where did that go? Investigate to bring the Shrug down.` `shrug()` reads it.
     An engineer aims for the smallest Shrug possible (Mike, 18 Nov 2026).
-    As an engineer would say: "I built a new motor. It has losses, but at this point I have to shrug them off." `~` is different: the unknown energy
+    As an engineer would say: "I built a new motor. It has losses, but at this point I have to shrug them off."
+    In Delta: `shrug 2 from core;` (a loss not traced yet). See `lang/examples/motor.delta`: the first build shrugs
+    off the core's heat; the second gives the core its neighbours (casing, then air) and adds nothing to the Shrug. `~` is different: the unknown energy
     left inside a thing, whose place is known.
   - Heat cascades, as in the real world: using a thing turns it into heat, the heat vibrates its neighbours,
     and they warm theirs. A store that takes spent energy or heat keeps half; its vibration passes the other

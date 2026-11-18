@@ -12,7 +12,14 @@ char dl_link[$DDD][$DDD];      // 1 = neighbours
 int dl_next = 1;               // the next thing's number
 int dl_shrug;                  // the Shrug ¯\_(ツ)_/¯ : gone where we have not looked yet. Investigate to bring it down.
 
-int shrug() { return dl_shrug; }
+int dl_shrugread() { return dl_shrug; }
+
+// shrug N from x;  "it has losses, but at this point I have to shrug them off": x lost N, not traced yet
+void dl_shrugoff(int *at, int n, char *nm)
+{
+    move n from *at to dl_shrug;
+    say("%s: %d shrugged off ¯\\_(ツ)_/¯ (where it goes is not traced yet)\n", nm, n);
+}
 
 void dl_report()               // at the end of a run: how much is still in the Shrug
 {

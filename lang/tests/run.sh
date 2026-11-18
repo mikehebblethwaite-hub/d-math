@@ -159,6 +159,11 @@ CAS='int battery = $D, wire = 1, lamp = 1, air = 1, wall = 1, ground = 1; store 
 last "heat cascades"            "$CAS say(\"%d %d %d %d\\n\", lamp, air, wall, ground);" '5 3 2 1'
 last "cascade: total kept"      "$CAS say(\"%d\\n\", battery + wire + lamp + air + wall + ground + ~);" '15'
 
+# shrug N from x;  a loss not traced yet
+last "shrug off a loss"      'int core = 5, coil = 1; store core, coil; neighbours core: coil; shrug 2 from core; say("%d %d\n", core, shrug());' 'Shrug 2 ¯\_(ツ)_/¯ where did that go? Investigate to bring the Shrug down.'
+got=$(timeout 20 $DELTA run ../examples/motor.delta 2>&1); rm -f ../examples/motor
+if grep -q "first build: load got 2 of C spent, Shrug 2" <<<"$got" && grep -q "second build added nothing to the Shrug" <<<"$got"; then echo "ok honest: motor: first shrugs 2, second traces all"; pass=$((pass+1)); else echo "FAIL honest: motor example: [$got]"; bad=$((bad+1)); fi
+
 # functions and recursion: a whole program
 cat > "$T/f.delta" <<'DC'
 int twice(int x) { return x * 2; }

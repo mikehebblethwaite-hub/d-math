@@ -1,0 +1,48 @@
+// A motor and its losses.
+// "I built a new motor. It has losses, but at this point I have to shrug them off."
+// The first build shrugs off the losses not traced yet. The second traces them to where they go.
+// An engineer aims for the smallest Shrug.
+
+thing motor { int wire, coil, core, rotor, bearings; };
+
+int main(int argc, char **argv)
+{
+    // ---------------- first build ----------------
+    int battery = $DD, load = 1, air = 1;
+    thing motor m = {1, 1, 1, 1, 1};
+    store battery, load, air, m.core;
+    conduct m.wire loss 1, m.coil loss 2, m.rotor loss 1, m.bearings loss 1;
+    neighbours battery: m.wire;
+    neighbours m.wire: m.coil;
+    neighbours m.coil: m.rotor, m.core;      // the iron core sits in the coil
+    neighbours m.rotor: m.bearings;
+    neighbours m.bearings: load;
+    neighbours load: air;
+
+    say("== first build: power in, the rotor turns the load\n");
+    spend $C from battery;
+    say("== the core runs warm; we have not found where that heat goes yet\n");
+    shrug 2 from m.core;
+    int first = shrug();
+    say("first build: load got %d of C spent, Shrug %d\n\n", load, first);
+
+    // ---------------- second build: losses traced ----------------
+    int battery2 = $DD, load2 = 1, air2 = 1, casing = 1;
+    thing motor n = {1, 1, 1, 1, 1};
+    store battery2, load2, air2, casing, n.core;
+    conduct n.wire loss 1, n.coil loss 2, n.rotor loss 1, n.bearings loss 1;
+    neighbours battery2: n.wire;
+    neighbours n.wire: n.coil;
+    neighbours n.coil: n.rotor, n.core;
+    neighbours n.rotor: n.bearings;
+    neighbours n.bearings: load2;
+    neighbours load2: air2;
+    neighbours n.core: casing;               // traced: the core warms the casing
+    neighbours casing: air2;                 // and the casing warms the air
+
+    say("== second build: same motor, the core's heat traced\n");
+    spend $C from battery2;
+    say("second build: load got %d of C spent, the core warmed the casing (%d) and the air (%d)\n", load2, casing, air2);
+    if (shrug() == first) say("second build added nothing to the Shrug: every loss traced\n");
+    return 1;
+}
