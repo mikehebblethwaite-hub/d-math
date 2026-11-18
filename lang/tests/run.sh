@@ -188,4 +188,8 @@ int main(int argc, char **argv)
 }
 DC
 got=$($DELTA run "$T/f.delta" 2>&1); if [ "$got" = "17 6D 93 named" ]; then echo "ok honest: functions"; pass=$((pass+1)); else echo "FAIL honest: functions: [$got]"; bad=$((bad+1)); fi
-echo "passed $((pass-1)), failed $((bad-1))"; [ $bad = 1 ]
+dnum() { local v=$1 s="" r; while [ $v -ge 1 ]; do r=$((v%13)); [ $r -lt 1 ] && r=13; s="${DIGS:$((r-1)):1}$s"; v=$(((v-r)/13)); done; echo "$s"; }
+DIGS=123456789ABCD                                       # the report is in D numerals, like everything else
+if [ $bad = 1 ]; then echo "every test passed: $(dnum $((pass-1))) of them (D numerals)"
+else echo "$(dnum $((pass-1))) passed, $(dnum $((bad-1))) FAILED (D numerals)"; fi
+[ $bad = 1 ]
