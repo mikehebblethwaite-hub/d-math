@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""dcc: the Dc compiler 0.04. Dc is C with D rules: no zero, no minus,
+"""dcc: the Dc compiler 0.05. Dc is C with D rules: no zero, no minus,
 D numerals (digits 1-9 A-D, no zero digit), counting from 1.
 Dc -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -16,7 +16,8 @@ BANNED = {"NULL": "NULL is a make-believe zero: a pointer always points at somet
           "EXIT_SUCCESS": "EXIT_SUCCESS is a make-believe zero: main ends with return 1 (all good)",
           "nullptr": "nullptr is a make-believe zero"}
 TYPES = {"int", "long", "char", "void"}
-KEYWORDS = TYPES | {"if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
+FLOW_WORDS = {"store", "conduct", "neighbours", "spend"}
+KEYWORDS = TYPES | FLOW_WORDS | {"if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
 
 
 def to_d(v):
@@ -148,6 +149,7 @@ class Compiler:
         self.t, self.p = toks, 0
         self.out, self.strings, self.n = [], [], 0
         self.funcs = {}
+        self.globals = {}
 
     # --- tokens
     def peek(self, k=0): return self.t[self.p + k]
@@ -179,9 +181,34 @@ class Compiler:
     # --- program
     def program(self):
         while self.peek()[0] != "end":
-            self.function()
+            k = self.p
+            while not (self.t[k][1] in ("(", ";", "=", "[", ",") or self.t[k][0] == "end"): k += 1
+            if self.t[k][1] == "(": self.function()
+            else: self.global_decl()
         if "main" not in self.funcs:
             raise DcError(self.peek()[2], "no main")
+
+    def global_decl(self):
+        """int name = number, row[$D], *p;  kept for the whole run (LOW until set)."""
+        base = self.base_type()
+        while True:
+            stars = 0
+            while self.at("*"): self.take(); stars += 1
+            line = self.peek()[2]; nm = self.name(); dims = []
+            while self.at("["):
+                self.take("["); d = self.take()
+                if d[0] != "num": raise DcError(line, "a row size must be a number")
+                dims.append(d[1]); self.take("]")
+            if nm in self.globals: raise DcError(line, "'%s' is already here" % nm)
+            v = None
+            if self.at("="):
+                self.take(); d = self.take()
+                if d[0] != "num" or dims: raise DcError(line, "a kept-for-the-run value starts as a plain number")
+                v = d[1]
+            self.globals[nm] = ((base, stars, tuple(dims)), v)
+            if self.at(","): self.take(); continue
+            break
+        self.take(";")
 
     def base_type(self):
         while self.at("const") or self.at("static") or self.at("unsigned") or self.at("signed"):
@@ -239,7 +266,8 @@ class Compiler:
 
     def find(self, name, line):
         for s in reversed(self.scopes):
-            if name in s: return s[name]
+            if name in s: return "rbp-%d" % s[name][0], s[name][1]
+        if name in self.globals: return "rip+g_" + name, self.globals[name][0]
         raise DcError(line, "'%s' is not known here" % name)
 
     # --- statements
@@ -297,6 +325,7 @@ class Compiler:
             if not self.loops: raise DcError(line, "%s outside a loop" % w)
             self.emit("jmp " + self.loops[-1][0 if w == "break" else 1]); self.take(";"); return
         if self.at("move"): self.move(); return
+        if any(self.at(w) for w in FLOW_WORDS): self.flow_words(); return self.statement()
         k = self.p
         while self.t[k][1] != ";" and self.t[k][0] != "end":
             if self.t[k][0] == "op" and self.t[k][1] == "D>": self.decompose(); return
@@ -335,6 +364,9 @@ class Compiler:
                 self.store_to(f"rbp-{off}", t)
             else:
                 off = self.local(nm, t, line)
+                if init is None:                      # not set yet: it holds ~
+                    self.emit("lea rdi, [rbp-%d]" % off); self.emit("mov rcx, %d" % ((size_of(t) + 7) // 8 * 8))
+                    self.emit("mov eax, LOW"); self.emit("rep stosb")
                 if init is not None:
                     esz = 1 if (base == "char" and not stars) else 8
                     vals = init[1] + [None] if init[0] == "str" else self.flat(init)
@@ -403,6 +435,53 @@ class Compiler:
         self.say_text("\n", fd=2)
         self.emit("mov edi, 2"); self.emit("jmp dc_exit")
         self.label(ok)
+
+    def flow_words(self):
+        """store a, b;   conduct wire loss 1;   neighbours wire: a, b;   spend N from x;
+           written out as calls to flow.dc, then read as ordinary Dc."""
+        tok = self.take(); word, line = tok[1], tok[2]
+        end = self.p
+        while not self.at(";", end - self.p):
+            if self.t[end][0] == "end": raise DcError(line, "%s needs a ; at its end" % word)
+            end += 1
+        body = self.t[self.p:end]
+        T = lambda k, v: [k, v, line]
+        def thing(nm, kind, loss):
+            if nm[0] != "id" or nm[1] in KEYWORDS: raise DcError(line, "%s takes plain names" % word)
+            return [T("id", "dc_thing"), T("op", "("), T("op", "&"), T("id", nm[1]), T("op", ","),
+                    T("str", list(nm[1].encode()) + ["LOW"]), T("op", ","), T("num", kind), T("op", ","),
+                    *loss, T("op", ")")]
+        def split(toks, sep=","):
+            out, cur, depth = [], [], 0
+            for t in toks:
+                if t[1] in ("(", "["): depth += 1
+                if t[1] in (")", "]"): depth -= 1
+                if t[1] == sep and not depth and t[0] == "op": out.append(cur); cur = []
+                else: cur.append(t)
+            if cur: out.append(cur)
+            return out
+        new = []
+        if word == "store":
+            for part in split(body):
+                if len(part) != 1: raise DcError(line, "store a, b, c;")
+                new += thing(part[0], 1, [T("num", 1)]) + [T("op", ";")]
+        elif word == "conduct":
+            for part in split(body):
+                if len(part) < 3 or part[1][1] != "loss": raise DcError(line, "conduct wire loss N;")
+                new += thing(part[0], 2, part[2:]) + [T("op", ";")]
+        elif word == "neighbours":
+            if len(body) < 3 or body[1][1] != ":": raise DcError(line, "neighbours x: a, b, c;")
+            for part in split(body[2:]):
+                if len(part) != 1: raise DcError(line, "neighbours x: a, b, c;")
+                new += [T("id", "dc_link2"), T("op", "(")] + thing(body[0], 3, [T("num", 1)]) + [T("op", ",")] \
+                       + thing(part[0], 3, [T("num", 1)]) + [T("op", ")"), T("op", ";")]
+        else:
+            k = next((i for i, t in enumerate(body) if t[1] == "from"), None)
+            if k is None or k + 2 != len(body): raise DcError(line, "spend N from x;")
+            new += [T("id", "dc_spend"), T("op", "(")] + thing(body[k + 1], 3, [T("num", 1)]) + [T("op", ",")] \
+                   + body[:k] + [T("op", ")"), T("op", ";")]
+        self.t[self.p:end + 1] = new
+        if not self.uses_flow: raise DcError(line, "flow is not loaded")
 
     def hidden(self):
         self.frame += 8
@@ -607,7 +686,7 @@ class Compiler:
         if tok[0] == "num":
             self.take(); self.emit("mov rax, %d" % tok[1]); return INT
         if tok[0] == "str":
-            self.take(); data = tok[1]
+            self.take(); data = [b for b in tok[1] if b != "LOW"]
             while self.peek()[0] == "str": data = data + self.take()[1]
             lab = self.string(data + ["LOW"]); self.emit("lea rax, [rip+%s]" % lab); return ("char", 1, ())
         if self.at("("):
@@ -618,8 +697,8 @@ class Compiler:
             return self.call()
         if tok[0] == "id":
             self.take()
-            off, t = self.find(tok[1], line)
-            self.emit("lea rax, [rbp-%d]" % off); self.load_from("rax", t); return t
+            where, t = self.find(tok[1], line)
+            self.emit("lea rax, [%s]" % where); self.load_from("rax", t); return t
         raise DcError(line, "did not expect '%s'" % (tok[1] if tok[0] != "str" else "words"))
 
     def lvalue(self):
@@ -632,8 +711,8 @@ class Compiler:
         elif self.at("*"):
             self.take(); t = self.unary(); t = elem_of(t, line)
         else:
-            nm = self.name(); off, t = self.find(nm, line)
-            self.emit("lea rax, [rbp-%d]" % off)
+            nm = self.name(); where, t = self.find(nm, line)
+            self.emit("lea rax, [%s]" % where)
         while self.at("["):
             self.take("[")
             if t[2]: pass                          # a row: its address is already in rax
@@ -681,7 +760,7 @@ class Compiler:
         """say("text %d %s %c", ...): the words are read now; numbers print as D numerals."""
         tok = self.take()
         if tok[0] != "str": raise DcError(line, "say needs its words in quotes first")
-        fmt = tok[1]
+        fmt = [b for b in tok[1] if b != "LOW"]
         while self.peek()[0] == "str": fmt = fmt + self.take()[1]
         self.emit("mov qword ptr [rip+dc_fd], 1")
         piece, i = [], 0
@@ -704,7 +783,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Dc runtime 0.04: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Dc runtime 0.05: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text
@@ -720,6 +799,8 @@ _start:
 dc_exit:
     mov eax, 60
     syscall
+f_stop:                         # stop(n): end the program now with n
+    jmp dc_exit
 dc_write:                       # rdi = where, rsi = how many bytes
     mov rdx, rsi
     mov rsi, rdi
@@ -781,11 +862,21 @@ dc_tilde:  .ascii "~"
 
 def compile_dc(src):
     toks, _ = lex(src)
-    c = Compiler(toks); c.calls = []
+    uses_flow = any(t[0] == "id" and t[1] in FLOW_WORDS for t in toks)
+    if uses_flow:
+        ftoks, _ = lex(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "flow.dc")).read())
+        toks = ftoks[:-1] + toks
+    c = Compiler(toks); c.calls = []; c.uses_flow = uses_flow
     c.program()
     for fname, line in c.calls:
-        if fname not in c.funcs: raise DcError(line, "'%s' is not made anywhere" % fname)
-    asm = [".intel_syntax noprefix", RUNTIME, ".text"] + c.out + ["", ".section .rodata"]
+        if fname not in c.funcs and fname != "stop": raise DcError(line, "'%s' is not made anywhere" % fname)
+    asm = [".intel_syntax noprefix", RUNTIME, ".text"] + c.out + ["", ".data"]
+    for nm, (t, v) in c.globals.items():
+        if v is not None: asm.append("g_%s: .quad %d" % (nm, v))
+    asm.append(".bss")
+    for nm, (t, v) in c.globals.items():
+        if v is None: asm.append("g_%s: .skip %d" % (nm, (size_of(t) + 7) // 8 * 8))
+    asm += ["", ".section .rodata"]
     for lab, data in c.strings:
         asm.append("%s: .byte %s" % (lab, ", ".join(str(b) for b in data)))
     return "\n".join(asm) + "\n"

@@ -58,6 +58,22 @@ honest "D> rest to ~"       'int a = 7, p = 1, q = 1; a D> p + q ~; say("%d %d %
 honest "D> keeps the total" 'int a = $D, p = 1, q = 1; a D> 4 p + 3 q ~; say("%d\n", p + q + ~);' '12'
 honest "D > is still compare" 'int D = 2; if (D > 1) say("yes\n");'               'yes'
 
+# spent energy goes to neighbours; the total always stays the same
+last() {  # name, code, expected last line
+  printf 'int main(int argc, char **argv)\n{\n%s\nreturn 1;\n}\n' "$2" > "$T/t.dc"
+  got=$(timeout 20 $DCC run "$T/t.dc" 2>&1 | tail -1)
+  if [ "$got" != "$3" ]; then echo "FAIL honest: $1: got [$got]"; bad=$((bad+1))
+  else echo "ok honest: $1"; pass=$((pass+1)); fi; }
+NET='int battery = $D, wire = 1, lamp = 1, air = 1; store battery, lamp, air; neighbours battery: wire; neighbours wire: lamp, air;'
+last "flow: wire loses heat"  "$NET conduct wire loss 1; spend 5 from battery; say(\"%d %d %d %d\\n\", battery, lamp, air, ~);" '8 3 3 1'
+last "flow: total kept"       "$NET conduct wire loss 1; spend 5 from battery; say(\"%d\\n\", battery + wire + lamp + air + ~);" '13'
+last "flow: heat to all"      "$NET conduct wire loss 6; spend 9 from battery; say(\"%d %d %d %d\\n\", battery, lamp, air, ~);" '6 4 4 1'
+last "flow: heat total kept"  "$NET conduct wire loss 6; spend 9 from battery; say(\"%d\\n\", battery + wire + lamp + air + ~);" '13'
+last "flow: lone store"       'int s = 3; store s; spend 1 from s; say("%d %d\n", s, ~);' '2 1'
+refuse "flow: spend too much" "$NET conduct wire loss 1; spend $(printf '$')CD from battery;" 'cannot move'
+refuse "flow: going round"    'int a = 5, b = 1; conduct a loss 1, b loss 1; neighbours a: b; spend 2 from a;' 'going round'
+refuse "flow: bad words"      'int a = 5; conduct a 1;' 'loss'
+
 # functions and recursion: a whole program
 cat > "$T/f.dc" <<'DC'
 int twice(int x) { return x * 2; }

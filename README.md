@@ -45,7 +45,7 @@ The shapes for each digit are still to be drawn.
 ## Dc: C with D rules, straight to assembly (lang/)
 
 `lang/dcc run file.dc` | `dcc build file.dc -o out` | `dcc asm file.dc` (shows the assembly it writes).
-Dc 0.04 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+Dc 0.05 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
 turn the assembly text into the program file.
 
@@ -67,7 +67,16 @@ turn the assembly text into the program file.
   - `~` has no name: a named part is a known part, so it is written before `~`.
   - Afterwards the apple holds only `~` (its lowest point); it cannot be broken down again.
   - `~` on its own adds up all the unknown energy left in things broken down (`say("%d", ~)`).
-- Not yet: structs, fractions.
+- Neighbours: spent energy goes to neighbours, and the effect on them is always shown.
+  - `store battery, lamp, air;` stores absorb what they get.
+  - `conduct wire loss 1;` a conductor passes energy on to its other neighbours, less its loss; the loss is heat,
+    and heat goes to all its neighbours, and so on.
+  - `neighbours wire: lamp, air;` links both ways. `spend 5 from battery;` sends 5 out and prints every step.
+  - A share less than 1 is `~` (unknown energy); stores + conductors + `~` always add up to what there was.
+  - Energy still going round conductors after DD steps stops the program and says where.
+  - The flow engine is written in Dc (`lang/flow.dc`), so it keeps D's rules too.
+- Kept-for-the-run values (globals), `stop(n)`. A value not set yet holds `~`.
+- Not yet: structs, fractions (heat smaller than 1 per neighbour is `~` until fractions come).
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 
 ## The machine has no zero either
