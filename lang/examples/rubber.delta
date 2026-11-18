@@ -1,0 +1,12 @@
+// Rubber in sunlight breaks down under photon bombardment: how much depends on its neighbour, the sun.
+// Never presume the amount placed stays that amount.
+int main(int argc, char **argv)
+{
+    int rubber = $D, dust = 1, gas = 1, sun = 8;
+    wear rubber by sun per 4 D> dust + gas ~;
+    tick 2;
+    sun = 1;                          // cloud: too weak to wear it
+    tick;
+    say("rubber %d  dust %d  gas %d\n", rubber, dust, gas);
+    return 1;
+}

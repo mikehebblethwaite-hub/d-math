@@ -83,18 +83,76 @@ int dl_leak[$DDD];
 
 void dl_setleak(int id, int n) { dl_leak[id] = n; }
 
+// Wear: outside forces (sunlight's photons on rubber, weather, use) break a thing down each tick.
+// Never presume the amount placed stays that amount. How much wears depends on its neighbour:
+// wear rubber by sun per 4  ->  each tick the rubber wears (the sun's amount / 4).
+int dl_wfrom[$DDD], dl_wby[$DDD], dl_wper[$DDD], dl_wparts[$DDD][$D], dl_wn[$DDD];
+int dl_wnext = 1;
+
+void dl_wear(int id, int by, int per) { dl_wfrom[dl_wnext] = id; dl_wby[dl_wnext] = by; dl_wper[dl_wnext] = per; dl_wnext++; }
+
+void dl_wear_part(int id)
+{
+    int w;
+    for (int i = 1; i < dl_wnext; i++) w = i;          // the last wear made
+    if (dl_wn[w] >= $D) { say("Delta: a wear has more than D parts\n"); stop(2); }
+    dl_wn[w]++;
+    dl_wparts[w][dl_wn[w]] = id;
+}
+
+void dl_wear1()
+{
+    for (int w = 1; w < dl_wnext; w++) {
+        int id = dl_wfrom[w], by = dl_wby[w];
+        if (*dl_val[id] < 1) continue;
+        int amount = *dl_val[by] / dl_wper[w];
+        if (amount < 1) { dl_pad(1); say("%s: %s is too weak to wear it this tick\n", dl_name[id], dl_name[by]); continue; }
+        if (amount > *dl_val[id]) amount = *dl_val[id];
+        int out;
+        move amount from *dl_val[id] to out;
+        dl_pad(1); say("%s wears %d by %s (now %d)\n", dl_name[id], out, dl_name[by], *dl_val[id]);
+        int share = out / dl_wn[w], rest = out % dl_wn[w];
+        if (share < 1) { dl_pad(2); say("%d is too thin to share %d ways: ~\n", out, dl_wn[w]); move out from out to ~; continue; }
+        for (int k = 1; k <= dl_wn[w]; k++) {
+            int part = dl_wparts[w][k];
+            *dl_val[part] += share;
+            dl_pad(2); say("%s takes %d (now %d)\n", dl_name[part], share, *dl_val[part]);
+        }
+        if (rest >= 1) { dl_pad(2); say("%d left over: ~\n", rest); move rest from rest to ~; }
+    }
+}
+
+// how much more a holds than b (1 or more), or ~ when it holds no more
+int dl_more(int a, int b)
+{
+    int d = a, sink;
+    if (b >= 1) { if (b >= a) return d / (d + 1); move b from d to sink; }
+    return d;
+}
+
+int dl_clock;                  // time so far: it only runs on
+
 void dl_tick1(int t)
 {
-    say("tick %d\n", t);
+    dl_clock++;
+    say("tick %d\n", dl_clock);
     for (int i = 1; i < dl_next; i++) {
         if (dl_leak[i] < 1 || *dl_val[i] < 1) continue;
-        int k;
-        for (int j = 1; j < dl_next; j++) if (dl_link[i][j]) k++;
-        if (k < 1) { dl_pad(1); say("%s has no neighbours to leak to\n", dl_name[i]); continue; }
-        int amount = dl_leak[i], out;
-        if (amount > *dl_val[i]) amount = *dl_val[i];
-        move amount from *dl_val[i] to out;
-        dl_pad(1); say("%s leaks %d (now %d)\n", dl_name[i], out, *dl_val[i]);
-        dl_share(i, i, out, 2, "leak");
+        int lower;
+        for (int j = 1; j < dl_next; j++) if (dl_link[i][j] && dl_more(*dl_val[i], *dl_val[j]) >= 2) lower++;
+        if (lower < 1) { dl_pad(1); say("%s holds: no neighbour holds less\n", dl_name[i]); continue; }
+        int budget = dl_leak[i], per = dl_leak[i] / lower, given;
+        if (per < 1) per = 1;
+        for (int j = 1; j < dl_next && budget >= 1; j++) {
+            if (!dl_link[i][j]) continue;
+            int half = dl_more(*dl_val[i], *dl_val[j]) / 2;
+            if (half < 1) continue;
+            int g = per;
+            if (g > half) g = half;
+            if (g > budget) g = budget;
+            move g from *dl_val[i] to *dl_val[j] and g from budget to given;
+            dl_pad(1); say("%s leaks %d to %s (now %d, %s now %d)\n", dl_name[i], g, dl_name[j], *dl_val[i], dl_name[j], *dl_val[j]);
+        }
     }
+    dl_wear1();
 }

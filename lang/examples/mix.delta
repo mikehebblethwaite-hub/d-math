@@ -1,0 +1,13 @@
+// Put a thing next to a thing: what they both hold mixes, from more to less, until even.
+thing air { int hydrogen, oxygen; };
+
+int main(int argc, char **argv)
+{
+    thing air tank = {$D, 1};        // a tank of hydrogen
+    thing air room = {1, 9};         // a room of oxygen
+    mix tank, room;
+    tick 2;
+    say("tank: hydrogen %d oxygen %d   room: hydrogen %d oxygen %d\n",
+        tank.hydrogen, tank.oxygen, room.hydrogen, room.oxygen);
+    return 1;
+}

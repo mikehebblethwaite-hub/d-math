@@ -57,7 +57,7 @@ The shapes for each digit are still to be drawn.
 ## Delta: C with D rules, straight to assembly (lang/)
 
 `lang/delta run file.delta` | `delta build file.delta -o out` | `delta asm file.delta` (shows the assembly it writes).
-Delta 0.07 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+Delta 0.10 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
 turn the assembly text into the program file.
 
@@ -110,6 +110,16 @@ turn the assembly text into the program file.
   ```
   A tank emptied of gas with nothing going in is crushed by the atmosphere: there is always something.
   `move ... and ...;` makes several moves in one step. The vessel engine is written in Delta (`lang/vessel.delta`).
+- Everything's amount depends on its neighbours (Mike, 18 Nov 2026). Nothing is solid, nothing stays put:
+  - Leaks: `store tank leak 3;` no store is solid (hydrogen is so small it slips through a tank wall). Each tick
+    it leaks to neighbours holding less, from more to less, never more than half the difference, up to what its
+    wall lets through. Level with its neighbours, it holds.
+  - Wear: `wear rubber by sun per 4 D> dust + gas ~;` outside forces break things down (rubber in sunlight
+    under photon bombardment). Each tick it wears (the sun's amount / 4). Never presume the amount placed stays
+    that amount.
+  - Mixing: `mix tank, room;` put a thing next to a thing: every part they share evens out, more to less,
+    with no wall between them.
+  - `tick;` / `tick 5;` time passes (it only runs on) and every leak, wear and mix is shown.
 - Kept-for-the-run values (globals), `stop(n)`. A value not set yet holds `~`.
 - Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come).
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).

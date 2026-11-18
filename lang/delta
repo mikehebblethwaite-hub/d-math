@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""delta: the Delta compiler 0.08. Delta is C with D rules: always something.
+"""delta: the Delta compiler 0.10. Delta is C with D rules: always something.
 Things count from 1 and move or change form; numbers are D numerals (digits 1-9 A-D).
 Delta -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -16,7 +16,7 @@ BANNED = {"NULL": "NULL is a make-believe zero: a pointer always points at somet
           "EXIT_SUCCESS": "EXIT_SUCCESS is a make-believe zero: main ends with return 1 (all good)",
           "nullptr": "nullptr is a make-believe zero"}
 TYPES = {"int", "long", "char", "void"}
-FLOW_WORDS = {"store", "conduct", "neighbours", "spend", "tick"}
+FLOW_WORDS = {"store", "conduct", "neighbours", "spend", "tick", "wear", "mix"}
 KEYWORDS = TYPES | FLOW_WORDS | {"thing", "vessel", "and", "if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
 
 
@@ -609,6 +609,45 @@ class Compiler:
                     if not k or k + 1 >= len(part): raise DeltaError(line, "store x leak N;")
                     new += [T("id", "dl_setleak"), T("op", "(")] + thing(part[:k], 1, [T("num", 1)]) \
                            + [T("op", ",")] + part[k + 1:] + [T("op", ")"), T("op", ";")]
+        elif word == "mix":                             # mix a, b;  next to each other: shared parts even out
+            names = split(body)
+            if len(names) != 2 or any(len(n) != 1 for n in names): raise DeltaError(line, "mix a, b;")
+            (_, ta), (_, tb) = self.find(names[0][0][1], line), self.find(names[1][0][1], line)
+            pairs = []
+            if is_thing(ta) and is_thing(tb):
+                fa, fb = THINGS[ta[0][6:]], THINGS[tb[0][6:]]
+                common = [f for f in fa["order"] if f in fb["fields"] and fa["fields"][f][0] == INT and fb["fields"][f][0] == INT]
+                if not common: raise DeltaError(line, "%s and %s have no parts in common to mix" % (names[0][0][1], names[1][0][1]))
+                for f in common:
+                    pairs.append(([names[0][0], T("op", "."), T("id", f)], [names[1][0], T("op", "."), T("id", f)]))
+            elif ta == INT and tb == INT:
+                pairs.append((names[0], names[1]))
+            else:
+                raise DeltaError(line, "mix two things (their shared parts mix) or two whole numbers")
+            open_wall = [T("num", 13 ** 6)]          # no wall between them: only the difference limits it
+            for a, b in pairs:
+                for x in (a, b):
+                    new += [T("id", "dl_setleak"), T("op", "(")] + thing(x, 1, [T("num", 1)]) + [T("op", ",")] + open_wall + [T("op", ")"), T("op", ";")]
+                new += [T("id", "dl_link2"), T("op", "(")] + thing(a, 3, [T("num", 1)]) + [T("op", ",")] + thing(b, 3, [T("num", 1)]) + [T("op", ")"), T("op", ";")]
+        elif word == "wear":                            # wear rubber by sun per N D> dust + gas ~;  each tick
+            k = next((i for i, x in enumerate(body) if x[0] == "op" and x[1] == "D>"), None)
+            if not k: raise DeltaError(line, "wear x by y per N D> a + b ~;")
+            parts = split(body[k + 1:], "+")
+            if not parts or parts[-1][-1][1] != "~": raise DeltaError(line, "every wear ends with ~: the unknown energy it leaves")
+            parts[-1] = parts[-1][:-1]
+            if not parts[-1]: parts = parts[:-1]
+            if not parts: raise DeltaError(line, "wear needs at least one known part before ~")
+            head = body[:k]
+            bi = next((i for i, x in enumerate(head) if x[1] == "by"), None)
+            if not bi: raise DeltaError(line, "wear needs what wears it, a neighbour: wear rubber by sun D> dust ~;")
+            pi = next((i for i, x in enumerate(head) if x[1] == "per"), None)
+            by = head[bi + 1:pi] if pi else head[bi + 1:]
+            per = head[pi + 1:] if pi else [T("num", 1)]
+            if not by or not per: raise DeltaError(line, "wear x by y per N D> a + b ~;")
+            new += [T("id", "dl_wear"), T("op", "(")] + thing(head[:bi], 3, [T("num", 1)]) + [T("op", ",")] \
+                   + thing(by, 3, [T("num", 1)]) + [T("op", ",")] + per + [T("op", ")"), T("op", ";")]
+            for pt in parts:
+                new += [T("id", "dl_wear_part"), T("op", "(")] + thing(pt, 3, [T("num", 1)]) + [T("op", ")"), T("op", ";")]
         elif word == "tick":                            # tick;  tick N;  time passes, every leak shown
             n = body if body else [T("num", 1)]
             new += [T("id", "for"), T("op", "("), T("id", "int"), T("id", "dl_t"), T("op", "="), T("num", 1), T("op", ";"),
@@ -982,7 +1021,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Delta runtime 0.08: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Delta runtime 0.10: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text

@@ -109,10 +109,28 @@ honest "move and move"      'int a = 5, b = 1, c = 2; move 2 from a to b and 1 f
 
 # leaks: no store is solid
 last "leak: total kept"     'int h = $D, sky = 1, brick = 9, room = 1, ground = 1; store h leak 3, brick leak 2; store sky, room, ground; neighbours h: sky; neighbours brick: room, ground; tick 3; say("%d\n", h + sky + brick + room + ground + ~);' '1C'
-last "leak: runs out"       'int s = 3, air = 1; store s leak 5; store air; neighbours s: air; tick 2; say("%d %d\n", s, air);' '~ 4'
+last "leak: evens out"      'int s = 3, air = 1; store s leak 5; store air; neighbours s: air; tick 2; say("%d %d\n", s, air);' '2 2'
+last "leak: not to more"    'int s = 3, air = 9; store s leak 5; store air; neighbours s: air; tick; say("%d %d\n", s, air);' '3 9'
 last "leak: no neighbours"  'int s = 3; store s leak 1; tick; say("%d\n", s);' '3'
 prog "leak: vessel crushed" "thing tank { int gas, air; }; $M { thing tank t = {9}; vessel t; int sky = 1; store t.gas leak 2; store sky; neighbours t.gas: sky; tick; return 1; }" '' 'BLAM'
 refuse "leak: no amount"    'int s = 3; store s leak;' 'leak N'
+
+# wear: outside forces break things down; never presume the amount stays
+last "wear: rubber in sun"  'int rubber = $D, dust = 1, gas = 1; int sun = 8; wear rubber by sun per 4 D> dust + gas ~; tick 3; say("%d %d %d\n", rubber, dust, gas);' '7 4 4'
+last "wear: total kept"     'int r = $D, d = 1, g = 1, s = 3; wear r by s D> d + g ~; tick 4; say("%d\n", r + d + g + ~);' '12'
+last "wear: wears away"     'int r = 3, d = 1, s = 2; wear r by s D> d ~; tick 3; say("%d %d\n", r, d);' '~ 4'
+last "wear: thing part"     'int sun = 1; int roof[2] = {9, 1}; wear roof[1] by sun D> roof[2] ~; tick 2; say("%d %d\n", roof[1], roof[2]);' '7 3'
+refuse "wear: no ~"         'int r = 3, d = 1, s = 1; wear r by s D> d;' 'ends with ~'
+refuse "wear: no known part" 'int r = 3, s = 1; wear r by s D> ~;' 'known part'
+refuse "wear: needs a neighbour" 'int r = 3, d = 1; wear r 1 D> d ~;' 'what wears it'
+last "wear: weak sun"       'int r = 9, d = 1, sun = 3; wear r by sun per 4 D> d ~; tick 2; say("%d %d\n", r, d);' '9 1'
+last "tick runs on"         'int r = 9, d = 1, sun = 1; wear r by sun D> d ~; tick; tick; say("%d\n", r);' '7'
+
+# mixing: a thing next to a thing; shared parts even out, more to less
+A="thing air { int hydrogen, oxygen; };"
+prog "mix: things even out" "$A $M { thing air t = {\$D, 1}, r = {1, 9}; mix t, r; tick 2; say(\"%d %d %d %d\\n\", t.hydrogen, t.oxygen, r.hydrogen, r.oxygen); return 1; }" "$(printf 'tick 1\n  t.hydrogen leaks 6 to r.hydrogen (now 7, r.hydrogen now 7)\n  r.hydrogen holds: no neighbour holds less\n  t.oxygen holds: no neighbour holds less\n  r.oxygen leaks 4 to t.oxygen (now 5, t.oxygen now 5)\ntick 2\n  t.hydrogen holds: no neighbour holds less\n  r.hydrogen holds: no neighbour holds less\n  t.oxygen holds: no neighbour holds less\n  r.oxygen holds: no neighbour holds less\n7 5 7 5')"
+last "mix: numbers"         'int a = 9, b = 3; mix a, b; tick; say("%d %d %d\n", a, b, a + b);' '6 6 C'
+prog "mix: nothing shared" "thing p { int x; }; thing q { int y; }; $M { thing p a; thing q b; mix a, b; return 1; }" '' 'no parts in common'
 
 # functions and recursion: a whole program
 cat > "$T/f.delta" <<'DC'
