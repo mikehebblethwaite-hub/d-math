@@ -1,0 +1,11 @@
+// Dc: a plum moves to Bob, then breaks down. Nothing vanishes.
+int main(int argc, char **argv)
+{
+    int plum = $D, mike = 1, bob = 1;
+    int sugar = 1, energy = 1, heat = 1, poo = 1;
+    move 1 from mike to bob;
+    say("plum %d, before: sugar %d energy %d heat %d poo %d\n", plum, sugar, energy, heat, poo);
+    plum D> sugar + energy + heat + poo ~;
+    say("plum %d, after:  sugar %d energy %d heat %d poo %d, ~ %d\n", plum, sugar, energy, heat, poo, ~);
+    return 1;
+}

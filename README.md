@@ -10,7 +10,7 @@ The icon is our 0: a circle holding 3 dots, the unknown things left in it, like 
 
 ## Try it
 
-    lang/dcc run lang/examples/apple.dc      # needs python3 and GNU as/ld (x86-64 Linux)
+    lang/dcc run lang/examples/plum.dc      # needs python3 and GNU as/ld (x86-64 Linux)
     lang/tests/run.sh                        # tricks refused, honest programs right
     python3 font/build.py                    # builds the D Angle font (needs fontTools)
 
@@ -18,8 +18,8 @@ The icon is our 0: a circle holding 3 dots, the unknown things left in it, like 
 
 | Meaning      | Type | Example                                  |
 |--------------|------|------------------------------------------|
-| Move         | `>`  | `apple > Bob`                            |
-| Decompose    | `D>` | `apple D> sugar + energy + heat + poo ~` |
+| Move         | `>`  | `plum > Bob`                            |
+| Decompose    | `D>` | `plum D> sugar + energy + heat + poo ~` |
 | Unknown part | `~`  | parts not named yet                      |
 
 - `~` has no angles: its count is not known yet. It is always there.
@@ -28,10 +28,10 @@ The icon is our 0: a circle holding 3 dots, the unknown things left in it, like 
 
 ## Example
 
-    apple > Bob D> sugar + energy + heat + poo ~
+    plum > Bob D> sugar + energy + heat + poo ~
 
 Old math: 1 - 1 = 0 (where did it go?)
-D math: the apple is at Bob, then in sugar, energy, heat, poo and ~.
+D math: the plum is at Bob, then in sugar, energy, heat, poo and ~.
 
 ## Angle digits
 
@@ -74,10 +74,10 @@ turn the assembly text into the program file.
   - Every breakdown ends with `~`. A thing broken down to its lowest point (less than 1) still has atoms,
     electrons and forces in it, known and unknown. The known are named parts; what stays is only its
     unknown energy, `~` (Mike, 18 Nov 2026).
-  - `apple D> sugar + energy + heat + poo ~;` even shares to the known parts; the rest stays in the apple as `~`.
-  - `apple D> 3 sugar + 2 heat ~;` given amounts; the rest stays as `~`.
+  - `plum D> sugar + energy + heat + poo ~;` even shares to the known parts; the rest stays in the plum as `~`.
+  - `plum D> 3 sugar + 2 heat ~;` given amounts; the rest stays as `~`.
   - `~` has no name: a named part is a known part, so it is written before `~`.
-  - Afterwards the apple holds only `~` (its lowest point); it cannot be broken down again.
+  - Afterwards the plum holds only `~` (its lowest point); it cannot be broken down again.
   - `~` on its own adds up all the unknown energy left in things broken down (`say("%d", ~)`).
 - Neighbours: spent energy goes to neighbours, and the effect on them is always shown.
   - `store battery, lamp, air;` stores absorb what they get.
@@ -103,4 +103,4 @@ not known forces and energy we cannot yet detect until D is completed to detect 
 
 So a LOW bit is: lower than 1, plus `~` (static, radiation, forces from the atmosphere and space, and forces not yet
 known). Every reading carries its `~`. Part of D's job is to detect what that `~` holds, one part at a time,
-naming each part as it is found (the same as `apple D> sugar + heat + poo ~`).
+naming each part as it is found (the same as `plum D> sugar + heat + poo ~`).

@@ -16,7 +16,7 @@ for i, (key, name) in enumerate(items):
     d.text((x, y), key, font=f, fill="black",
            **({"features": ["liga"]} if raqm else {}))
     d.text((x, y + 125), "%s  %s" % (key, name), font=lab, fill="#666")
-d.text((20, rows * ch + 30), "apple > Bob D> sugar + heat + poo ~", font=lab, fill="#666")
+d.text((20, rows * ch + 30), "plum > Bob D> sugar + heat + poo ~", font=lab, fill="#666")
 d.text((20, rows * ch + 60), "1 > D D> 3 + 4 + 6 ~", font=f, fill="black",
        **({"features": ["liga"]} if raqm else {}))
 img.save(os.path.join(HERE, "preview.png")); print("raqm", raqm)
