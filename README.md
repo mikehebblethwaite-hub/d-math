@@ -160,8 +160,9 @@ turn the assembly text into the program file.
   picture fills it). A box room 20 feet each way (17 in D) with Faraday's motor standing on the middle of the floor at
   its real size (AA battery, neodymium magnet, copper wire). Each pixel looks out until it meets the floor (oak
   boards), a wall (skirting) or the ceiling; light gathers less into corners; the motor is drawn round, lit by a
-  ceiling lamp, with its shadow. Blue dots are the current running down the wire; orange packets are heat leaving the
-  battery, contact and wire, rising and giving their heat to the air. The magnet warms the floor, the air warms the
+  ceiling lamp, with its shadow. Blue dots are the current running down the wire; glowing packets are heat leaving the
+  battery, contact and wire, coloured by how hot they are as a thermal camera sees it (white-hot at the contact,
+  then yellow, orange, red), rising and giving their heat to the air, hotter ones faster (Newton's cooling). The magnet warms the floor, the air warms the
   ceiling and walls, and the box's border is the Shrug (Mike, 18 Nov 2026: by default things move to neighbours or
   end up in the Shrug; the border is the Shrug): what passes out through the walls goes to the Shrug, where it is not
   known yet. The camera flies in from high by the front wall, watches the heat leave the motor, then pulls back to

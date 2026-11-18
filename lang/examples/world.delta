@@ -173,7 +173,7 @@ void shade(int px, int py, int surf)
         int d = isqrt(a * a + c * c + e * e), rad = isqrt(roomh) / 2 + 1;
         if (d < rad) { heat = roomh / 6CD58; if (heat > 9D) heat = 9D; heat = heat * less(rad, d) / rad; }
     }
-    pixb(BIG + px, BIG + py, r * L / 169 + heat, g * L / 169 + heat * 2 / 5, b * L / 169);
+    pixb(BIG + px, BIG + py, r * L / 169 + heat, g * L / 169 + heat / 4, b * L / 169);
 }
 
 void room()
@@ -298,12 +298,36 @@ void current(int i, int pass, int fr)
 
 // ---------------------------------------------------------------- heat on the move
 
-void glow(int xb, int yb, int h)
+// heat's colour by how hot it is, as a thermal camera sees it: white-yellow, yellow, orange, red, deep red
+int HR, HG, HB;
+void heatcolour(int h)
+{
+    if (h > 132)      { HR = 168; HG = 163; HB = 132; }
+    else if (h > $C4) { HR = 168; HG = blend($B7, 163, less(h, $C4), 3B); HB = blend(31, 132, less(h, $C4), 3B); }
+    else if (h > 79) { HR = 168; HG = blend(48, $B7, less(h, 79), 48); HB = 31; }
+    else if (h > 31)  { HR = blend($B7, 168, less(h, 31), 48); HG = blend(17, 48, less(h, 31), 48); HB = 24; }
+    else                  { HR = $B7; HG = 17; HB = 24; }
+}
+
+void add1(int xb, int yb, int r, int g, int b, int share)        // share of 8
 {
     if (xb > BIG && xb <= BIG + W && yb > BIG && yb <= BIG + H) {
         int x = less(xb, BIG), y = less(yb, BIG);
-        R[y][x] = clampc(R[y][x] + h); G[y][x] = clampc(G[y][x] + h * 2 / 5); B[y][x] = clampc(B[y][x] + h / $A);
+        R[y][x] = clampc(R[y][x] + r * share / 8); G[y][x] = clampc(G[y][x] + g * share / 8); B[y][x] = clampc(B[y][x] + b * share / 8);
     }
+}
+
+// a soft warm glow, brightest at its middle; it fades as the packet gives its heat to the air
+void glow(int xb, int yb, int h)
+{
+    heatcolour(h);
+    int a = h;                                // how strongly it shows
+    int r = HR * a / 169, g = HG * a / 169, b = HB * a / 169;
+    add1(xb, yb, r, g, b, 8);
+    add1(xb + 1, yb, r, g, b, 3); add1(less(xb, 1), yb, r, g, b, 3);
+    add1(xb, yb + 1, r, g, b, 3); add1(xb, less(yb, 1), r, g, b, 3);
+    add1(xb + 1, yb + 1, r, g, b, 1); add1(less(xb, 1), less(yb, 1), r, g, b, 1);
+    add1(xb + 1, less(yb, 1), r, g, b, 1); add1(less(xb, 1), yb + 1, r, g, b, 1);
 }
 
 void spawn(int r, int y, int j, int h) { qr[qn] = r; qy[qn] = y; qj[qn] = j; qh[qn] = h; qn = qn % 124D + 1; qk++; }
@@ -324,7 +348,8 @@ void drift(int f)                     // warm air rises and spreads; each packet
     for (i = 1; i <= 124D; i++) if (qh[i] >= 1) {
         qy[i] = qy[i] + 2;
         if (f % 2) qr[i]++;
-        if (qh[i] > 3) qh[i] = less(qh[i], 3); else qh[i] = less(qh[i], qh[i]);
+        int give = qh[i] / 13 + 1;               // hotter gives faster (Newton's cooling)
+        if (qh[i] > give) qh[i] = less(qh[i], give); else qh[i] = less(qh[i], qh[i]);
     }
 }
 
@@ -434,11 +459,11 @@ int main(int argc, char **argv)
         warmW = wirew / 1A89; if (warmW > 93) warmW = 93;
         warmM = magnet / 372; if (warmM > 6C) warmM = 6C;
         int n;
-        pc = pc + mc; for (n = pc / 9146; n >= 1; n = less(n, 1)) spawn(18, 9 + (qk * 41) % 9A, (qk * 2B) % 75 + 1, 9D);
-        pc = pc % 9146;
-        pk = pk + mk; for (n = pk / 9146; n >= 1; n = less(n, 1)) spawn(1D, 4 + qk % 5, qk % 2 ? step : (step + 38) % 75 + 1, 168);
+        pc = pc + mc; for (n = pc / 213D5; n >= 1; n = less(n, 1)) spawn(1A, 9 + (qk * 41) % 9A, (qk * 2B) % 75 + 1, 86);
+        pc = pc % 213D5;
+        pk = pk + mk; for (n = pk / 9146; n >= 1; n = less(n, 1)) spawn(1D, 4 + qk % 5, qk % 2 ? step : (step + 38) % 75 + 1, 163);
         pk = pk % 9146;
-        pw = pw + mw; for (n = pw / 9146; n >= 1; n = less(n, 1)) spawn(33, 3B + (qk * 23) % 68, qk % 2 ? step : (step + 38) % 75 + 1, 149);
+        pw = pw + mw; for (n = pw / 9146; n >= 1; n = less(n, 1)) spawn(33, 3B + (qk * 23) % 68, qk % 2 ? step : (step + 38) % 75 + 1, 118);
         pw = pw % 9146;
         drift(f);
 
