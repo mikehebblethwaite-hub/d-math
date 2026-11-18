@@ -1,0 +1,95 @@
+// Neighbour-dependent edges: lava columns with the atmosphere as their outside neighbour.
+//
+// Inside a cooling sheet every column's neighbours are columns like itself: where two equal neighbours' pulls
+// balance is a straight line, and the columns settle into hexagons. At the edge, a column's neighbour on one side is
+// the air, which pulls differently. Here the air's pull is a little stronger (each place's nearness to an air
+// centre counts 4 to every 3 for lava). Where unequal pulls balance is not a straight line: nothing curved is drawn,
+// any curve comes only from the uneven neighbours. As the outer rings of a molecule under the microscope curve where
+// the atmosphere is their neighbour.
+//
+// It writes the picture to edge.ppm (a plain picture file any viewer opens) and says how the columns settled.
+//
+//   delta run examples/edge.delta
+
+#define W 3C1                   // the picture, in places
+#define H 268
+int nl, na;                     // lava centres, air centres
+int ex[3B9], ey[3B9];           // centres in sixteenths: lava first (1..nl), then air
+int sx[3B9], sy[3B9], cnt[3B9];
+int own[999999];
+int low;
+char pic[1A2B1C7];
+int pn;
+
+int lava(int i) { return i <= nl; }
+int pull(int i) { if (lava(i)) return 4; return 3; }    // smaller is stronger: air reaches further
+
+int nearest(int qx, int qy)
+{
+    int best = 999999999, who = 1, i;
+    for (i = 1; i <= nl + na; i++) {
+        int dx = apart(qx, ex[i]), dy = apart(qy, ey[i]);
+        int d = (dx * dx + dy * dy) / 13 * pull(i);
+        if (d < best) { best = d; who = i; }
+    }
+    return who;
+}
+
+void share(int step)                              // every step-th place to its nearest centre
+{
+    int i, x, y;
+    for (i = 1; i <= nl; i++) { sx[i] = low; sy[i] = low; cnt[i] = low; }
+    for (y = 1; y <= H; y = y + step) for (x = 1; x <= W; x = x + step) {
+        int who = nearest(x * 13 + 8, y * 13 + 8);
+        own[less(y, 1) * W + x] = who;
+        if (lava(who)) { sx[who] = sx[who] + x * 13 + 8; sy[who] = sy[who] + y * 13 + 8; cnt[who]++; }
+    }
+}
+
+void settle()
+{
+    int i;
+    for (i = 1; i <= nl; i++) if (cnt[i] >= 1) {
+        ex[i] = towards(ex[i], sx[i] / cnt[i], 1, 2);
+        ey[i] = towards(ey[i], sy[i] / cnt[i], 1, 2);
+    }
+}
+
+void put(int c) { pn++; pic[pn] = c; }
+void putdec(int n) { if (n >= A) putdec(n / A); put('0' + n % A); }   // the picture file's header speaks old decimal
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    int i, k = low, x, y;
+    // lava: a block of columns in the middle, at a repeatable scatter
+    nl = 9B;
+    for (i = 1; i <= nl; i++) {
+        ex[i] = (W / 4 + (i * 37B2) % (W / 2)) * 13;
+        ey[i] = (H / 4 + (i * 2B4B) % (H / 2)) * 13;
+    }
+    // air: centres all round the outside, a little apart
+    na = low;
+    for (x = 1; x <= W; x = x + 31) { na++; ex[nl + na] = x * 13; ey[nl + na] = 13 * 2; na++; ex[nl + na] = x * 13; ey[nl + na] = less(H, 2) * 13; }
+    for (y = 31; y <= H; y = y + 31) { na++; ex[nl + na] = 13 * 2; ey[nl + na] = y * 13; na++; ex[nl + na] = less(W, 2) * 13; ey[nl + na] = y * 13; }
+    for (i = 1; i <= 4C; i++) { share(2); settle(); }
+    share(1);
+
+    // the picture: lava columns in basalt greys, the air pale blue, a dark line wherever two shares meet
+    pn = low;
+    put('P'); put('6'); put('\n'); putdec(W); put(' '); putdec(H); put('\n'); putdec(168); put('\n');
+    for (y = 1; y <= H; y++) for (x = 1; x <= W; x++) {
+        int a = own[less(y, 1) * W + x];
+        int edge = (x < W && own[less(y, 1) * W + x + 1] != a) || (y < H && own[y * W + x] != a);
+        if (edge) { put(1A); put(1A); put(22); }
+        else if (lava(a)) { int t = (a * 25) % 9; put(5A + t * 4); put(5A + t * 4); put(62 + t * 4); }
+        else { put(BB); put($C9); put($D7); }
+    }
+    int fd = linux(2, "edge.ppm", 355, 264);
+    if (fd < 1) { say("cannot write edge.ppm\n"); return 2; }
+    int done = 1;
+    while (done <= pn) { int got = linux(1, fd, &pic[done], less(pn + 1, done)); if (got < 1) return 2; done = done + got; }
+    linux(3, fd);
+    say("%d lava columns settled beside %d air neighbours; picture in edge.ppm\n", nl, na);
+    return 1;
+}

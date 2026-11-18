@@ -262,6 +262,18 @@ This is a result against the simplest form of the claim, and it is reported as s
 give the same answer: how equal balls pack, and how equal shares divide the space. In three dimensions they part:
 equal balls pack in hex layers with twelve neighbours each, while equal shares settle with fourteen.
 
+### 5.3c Neighbour-dependent edges (`edge.delta`)
+
+Under the microscope, the outer rings of a molecule curve where the atmosphere is their neighbour. In D an edge
+between two cells is where their pulls balance: equal neighbours balance on a straight line, unequal ones on a curve.
+The model settles 9B lava columns with the air all round them; the only difference is that the air pulls a little
+more strongly (each place's nearness to the air counts 4 to every 3 for lava). Nothing curved is drawn.
+
+![Lava columns settled inside a border of air: straight edges between columns, curved outer edges against the air](images/edge.png)
+
+Inside, column meets column on straight edges, mostly six-sided. At the outside, every column's edge against the air
+is curved. Everything's shape depends on its neighbours.
+
 ### 5.4 Faraday's electro-magnetic rotations, AA1 (`faraday.delta`)
 
 The first electric motor, as Michael Faraday set it out: two glasses of mercury, a voltaic pile, a brass stand. In the
@@ -395,6 +407,7 @@ generations, and treats it as a source.
 | 3B | 50 |
 | 42, 84, 9B, 99 | 54, 108, 128, 126 |
 | C, 11 | 12, 14 |
+| 9B | 128 |
 | 9999 | 21420 |
 | 3333 | 7140 |
 | C17 | 2048 |
