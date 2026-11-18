@@ -1,6 +1,7 @@
-# D math 0.01
+# D: real world physical maths model (0.01)
 
-D = decompose, destruction. A math with no zero and no minus.
+D = decompose, destruction. A real world physical maths model: no zero, no minus,
+because nothing in the physical world goes to zero or below it.
 Nothing vanishes: everything is moved or broken into parts.
 
 ## Symbols
