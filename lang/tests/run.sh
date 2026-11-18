@@ -35,9 +35,26 @@ honest "row from 1"        'int r[3] = {7, 8, 9}; say("%d %d\n", r[1], r[3]);'  
 honest "zero in a string"  'say("0 is only in words: %s\n", "10");'            '0 is only in words: 10'
 honest "zero in a comment" '// 0 and 10 and -1 here are only words
 say("%d\n", 2);'                                                              '2'
-honest "pointer arrow"     'struct p { int a; } s = {5}, *q = &s; say("%d\n", q->a);' '5'
+honest "pointer"           'int a = 5; int *q = &a; *q += 2; say("%d\n", a);'  '7'
+honest "loop and if"       'int n = 1; while (n < $D) { n += 3; if (n > 9) break; } if (n == $A) say("ten\n"); else say("%d\n", n);' 'ten'
+honest "row step up"       'int r[2] = {4, 5}; r[2]++; ++r[1]; say("%d %d\n", r[1], r[2]);' '5 6'
+honest "words one by one"  'char *w = "hen"; for (int i = 1; w[i]; i++) say("%c.", w[i]); say("\n");' 'h.e.n.'
+honest "char row"          'char b[4] = "ab"; b[3] = (char)78; say("%s\n", b);' 'abc'
+refuse "struct (not yet)"  'struct p { int a; } s; say("%d\n", s.a);'   'struct'
 honest "move keeps total"  'int a = 4, b = 1; move 4 from a to b; say("%d %d\n", a, b);' '~ 5'
 honest "letters in names"  'int Bob = 2, ABCD = 3; say("%d\n", Bob + ABCD);'    '5'
 honest "index by sum"      'int r[4] = {1,2,3,4}; int k = 2; say("%d\n", r[k + 1]);' '3'
 honest "2D row"            'int g[2][3] = {{1,2,3},{4,5,6}}; say("%d\n", g[2][3]);' '6'
+# functions and recursion: a whole program
+cat > "$T/f.dc" <<'DC'
+int twice(int x) { return x * 2; }
+int fact_up(int i, int n) { if (i == n) return n; return i * fact_up(i + 1, n); }
+int sum_to(int n) { int s = 1; for (int i = 2; i <= n; i++) s += i; return s; }
+int main(int argc, char **argv)
+{
+    say("%d %d %d %s\n", twice($A), sum_to($D), fact_up(1, 5), argc >= 1 ? "named" : "none");
+    return 1;
+}
+DC
+got=$($DCC run "$T/f.dc" 2>&1); if [ "$got" = "17 6D 93 named" ]; then echo "ok honest: functions"; pass=$((pass+1)); else echo "FAIL honest: functions: [$got]"; bad=$((bad+1)); fi
 echo "passed $((pass-1)), failed $((bad-1))"; [ $bad = 1 ]

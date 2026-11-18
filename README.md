@@ -42,18 +42,23 @@ The shapes for each digit are still to be drawn.
 - `python3 font/build.py` builds `font/d-angle.ttf`; `python3 font/preview.py` draws `font/preview.png`.
 - Use the font only on D maths: in it, A B C D are the digits 10 to 13.
 
-## Dc: C with D rules (lang/)
+## Dc: C with D rules, straight to assembly (lang/)
 
-`lang/dcc run file.dc` | `dcc build file.dc -o out` | `dcc c file.dc` (shows the C it makes).
-Dc -> C -> gcc. Rules the compiler holds to:
+`lang/dcc run file.dc` | `dcc build file.dc -o out` | `dcc asm file.dc` (shows the assembly it writes).
+Dc 0.02 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
+turn the assembly text into the program file.
 
 - No zero anywhere in code: no `0` digit, `NULL`, `false`, `'\0'`, no 0 in names.
 - Numbers are D numerals: digits 1-9 A-D, no zero digit. Ten is `$A`, thirteen `$D`, fourteen `11`.
-  (`$` is only needed when a numeral starts with a letter.)
+  (`$` is only needed when a numeral starts with a letter.) `99` is 126; the letter c is `78` or `'c'`.
 - No minus: `move N from a to b;` moves, the total stays the same. Moving more than is there stops the program.
   A thing moved out in full shows as `~`: its place is taken by something else.
-- Counting starts at 1: `row[1]` is the first place.
-- `say(...)` is printf that prints D numerals. `return 1` from main = all good.
+- Counting starts at 1: `row[1]` is the first place; `argv[1]` is the program itself.
+- `say("...%d %s %c...", ...)` prints; `%d` prints D numerals. `return 1` from main = all good.
+- In: int/long (64-bit), char, pointers, rows (also 2-D), functions (up to 6 inputs), recursion,
+  if/else, while, for, break/continue, `? :`, `+ * / %`, `+= *= /= %=`, `++`, casts, `#define`.
+- Not yet: structs, fractions, `D>` (decompose: needs Mike's rule for how a thing splits).
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 
 ## The machine has no zero either

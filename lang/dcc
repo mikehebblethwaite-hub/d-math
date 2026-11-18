@@ -1,211 +1,743 @@
 #!/usr/bin/env python3
-"""dcc: the Dc compiler 0.01. Dc is C with D rules: no zero, no minus,
+"""dcc: the Dc compiler 0.02. Dc is C with D rules: no zero, no minus,
 D numerals (digits 1-9 A-D, no zero digit), counting from 1.
-Dc -> C -> gcc.   dcc build file.dc [-o out]  |  dcc run file.dc [args]  |  dcc c file.dc
+Dc -> our own x86-64 assembly -> program. No C compiler, no C library:
+printing and exit are Linux system calls from our own runtime.
+
+  dcc run file.dc [args]     build and run
+  dcc build file.dc [-o out] build a program
+  dcc asm file.dc            show the assembly it writes
 """
 import os, re, subprocess, sys, tempfile
 
 DIG = "123456789ABCD"
-TYPES = {"int", "char", "long", "short", "unsigned", "signed", "float", "double",
-         "void", "struct", "const", "static", "size_t", "FILE", "bool", "extern", "union", "enum"}
 BANNED = {"NULL": "NULL is zero (nothing): a pointer always points at something",
           "false": "false is zero: say what is true instead",
           "EXIT_SUCCESS": "EXIT_SUCCESS is zero: main ends with return 1 (all good)",
           "nullptr": "nullptr is zero"}
+TYPES = {"int", "long", "char", "void"}
+KEYWORDS = TYPES | {"if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
 
-class DcError(Exception): pass
-
-def d_value(s, line):
-    v = 0
-    for ch in s:
-        if ch not in DIG: raise DcError("line %d: '%s' is not a D numeral (digits 1-9 A-D)" % (line, s))
-        v = v * 13 + DIG.index(ch) + 1
-    return v
 
 def to_d(v):
+    if v < 1: return "~"
     out = ""
     while v > 0:
-        r = v % 13
-        if r == 0: r = 13
+        r = v % 13 or 13
         out = DIG[r - 1] + out
         v = (v - r) // 13
     return out
 
+
+class DcError(Exception):
+    def __init__(self, line, msg): super().__init__("line %s: %s" % (to_d(line), msg))
+
+
+# ---------------------------------------------------------------- words (lexer + D rules)
+
 TOK = re.compile(r'''
-   (?P<ws>\s+)
+   (?P<ws>[ \t\r\n]+)
  | (?P<lc>//[^\n]*)
  | (?P<bc>/\*.*?\*/)
- | (?P<pp>\#[^\n]*(?:\\\n[^\n]*)*)
+ | (?P<pp>\#[^\n]*)
  | (?P<str>"(?:\\.|[^"\\\n])*")
  | (?P<chr>'(?:\\.|[^'\\\n])+')
- | (?P<dnum>\$[0-9A-Za-z]+)
+ | (?P<dnum>\$[0-9A-Za-z.]+)
  | (?P<num>[0-9][0-9A-Za-z_.]*)
  | (?P<id>[A-Za-z_][A-Za-z0-9_]*)
- | (?P<arrow>->)
- | (?P<op>[^\sA-Za-z0-9_])
+ | (?P<op>->|==|!=|<=|>=|&&|\|\||\+\+|--|\+=|-=|\*=|/=|%=|[^\sA-Za-z0-9_])
 ''', re.S | re.X)
 
+ESC = {"n": 10, "t": 9, "r": 13, "\\": 92, "'": 39, '"': 34, "a": 7, "e": 27}
+
+
+def unescape(body, line):
+    out, i = [], 0
+    while i < len(body):
+        c = body[i]
+        if c == "\\":
+            e = body[i + 1]
+            if e not in ESC:
+                raise DcError(line, "\\%s: that is the zero character or not known" % e)
+            out.append(ESC[e]); i += 2
+        else:
+            out.extend(c.encode()); i += 1
+    return out
+
+
+def d_numeral(text, line):
+    body = text[1:] if text.startswith("$") else text
+    if "0" in body:
+        raise DcError(line, "'%s' has a zero digit. D numerals have no zero: digits 1-9 A-D "
+                            "(ten is $A, thirteen $D, fourteen 11)" % text)
+    if "." in body:
+        raise DcError(line, "'%s': fractions are not in Dc yet" % text)
+    v = 0
+    for ch in body:
+        if ch not in DIG:
+            raise DcError(line, "'%s' is not a D numeral (digits 1-9 A-D)" % text)
+        v = v * 13 + DIG.index(ch) + 1
+    return v
+
+
 def lex(src):
-    pos, line, out = 0, 1, []
+    pos, line, out, defines = 0, 1, [], {}
     while pos < len(src):
         m = TOK.match(src, pos)
         kind, text = m.lastgroup, m.group()
-        out.append((kind, text, line))
-        line += text.count("\n"); pos = m.end()
-    return out
-
-def check_code(kind, text, line):
-    """Rules on code (not strings, not comments)."""
-    if kind == "num" or kind == "dnum":
-        body = text[1:] if kind == "dnum" else text
-        if "0" in body:
-            raise DcError("line %d: '%s' has a zero digit. D numerals have no zero: digits 1-9 A-D (ten is $A, thirteen $D, fourteen 11)" % (line, text))
-        if "." in body:
-            raise DcError("line %d: '%s': fractions are not in Dc 0.01" % (line, text))
-        m = re.fullmatch(r"([0-9A-Za-z]+?)([uUlL]*)", body)
-        digits, suf = m.group(1), m.group(2)
-        return str(d_value(digits, line)) + suf
-    if kind == "id" and text in BANNED:
-        raise DcError("line %d: %s" % (line, BANNED[text]))
-    if kind == "id" and "0" in text:
-        raise DcError("line %d: '%s' has a zero in it. No zero anywhere in code" % (line, text))
-    if kind == "chr" and text in ("'\\0'", "'\\x0'", "'\\00'", "'\\000'"):
-        raise DcError("line %d: %s is the zero character" % (line, text))
-    if kind == "op" and text == "-":
-        raise DcError("line %d: no minus in D. Things are moved (move N from a to b;) or broken into parts, never taken below what is there" % line)
-    if kind == "op" and text == "0":
-        raise DcError("line %d: zero" % line)
-    return text
-
-def translate(src):
-    toks = lex(src)
-    out = []
-    # statement tracking for declaration brackets vs index brackets
-    stmt_is_decl, depth_par, seen_eq, prev_sig = False, 0, False, None
-    brack_stack = []        # True = index bracket (needs -1), False = declaration
-    i = 0
-    while i < len(toks):
-        kind, text, line = toks[i]
-        if kind in ("ws", "lc", "bc", "str"):
-            out.append(text); i += 1; continue
+        pos = m.end()
+        if kind in ("ws", "lc", "bc"):
+            line += text.count("\n"); continue
         if kind == "pp":
-            body = text
-            if re.match(r"#\s*include", body): out.append(body); i += 1; continue
-            # preprocessor lines follow the same rules
-            sub = translate_pp(body, line); out.append(sub); i += 1; continue
-        # move statement: move N from a to b;
-        if kind == "id" and text == "move" and (prev_sig in (None, ";", "{", "}", ")")):
-            j, parts = i + 1, []
-            while j < len(toks) and toks[j][1] != ";":
-                parts.append(toks[j]); j += 1
-            words = "".join(t[1] for t in parts)
-            m = re.fullmatch(r"\s*(.+?)\s+from\s+(.+?)\s+to\s+(.+?)\s*", words, re.S)
-            if not m: raise DcError("line %d: move is: move N from a to b;" % line)
-            n, a, b = (translate_expr(x, line) for x in m.groups())
-            out.append('dc_move((%s), &(%s), &(%s), "%s", "%s", %d)' % (n, a, b, a.strip(), b.strip(), line))
-            i = j; prev_sig = None; continue
-        t = check_code(kind, text, line)
-        if kind == "id" and text in TYPES and prev_sig in (None, ";", "{", "}", "(") :
-            stmt_is_decl = depth_par == 0 or prev_sig == "("
-            seen_eq = False
-        if text == ";" or text == "{" or text == "}":
-            stmt_is_decl, seen_eq = False, False
-        if text == "(":
-            depth_par += 1
-        if text == ")":
-            depth_par = max(depth_par - 1, 0)
-        if text == "=" and depth_par == 0:
-            seen_eq = True
-        if text == "," and depth_par == 0 and not brack_stack:
-            seen_eq = False
-        if text == "[":
-            nxt = next((x for x in toks[i+1:] if x[0] not in ("ws", "lc", "bc")), None)
-            is_decl = (stmt_is_decl and not seen_eq and depth_par == 0) or (nxt and nxt[1] == "]")
-            brack_stack.append(not is_decl)
-            out.append("[(" if not is_decl else "[")
-        elif text == "]":
-            idx = brack_stack.pop() if brack_stack else False
-            out.append(")-1]" if idx else "]")
-        elif kind == "id" and text == "main" and prev_sig in ("int",):
-            out.append("dc_main")
+            pm = re.match(r"#\s*(\w+)\s*(.*)", text)
+            word = pm.group(1) if pm else ""
+            if word == "include":
+                pass                                   # nothing to include: the runtime is built in
+            elif word == "define":
+                dm = re.match(r"(\w+)\s*(.*)", pm.group(2))
+                defines[dm.group(1)] = [t for t in lex(dm.group(2))[0] if t[0] != "end"]
+                for t in defines[dm.group(1)]: t[2] = line
+            else:
+                raise DcError(line, "'%s' is not known" % text.strip())
+            continue
+        if kind == "op" and text in ("-", "--", "-="):
+            raise DcError(line, "no minus in D. Things are moved (move N from a to b;) "
+                                "or broken into parts, never taken below what is there")
+        if kind == "id" and text in BANNED:
+            raise DcError(line, BANNED[text])
+        if kind == "id" and "0" in text:
+            raise DcError(line, "'%s' has a zero in it. No zero anywhere in code" % text)
+        if kind in ("num", "dnum"):
+            out.append(["num", d_numeral(text, line), line]); continue
+        if kind == "chr":
+            b = unescape(text[1:-1], line)
+            if len(b) != 1: raise DcError(line, "%s is not one character" % text)
+            out.append(["num", b[0], line]); continue
+        if kind == "str":
+            out.append(["str", unescape(text[1:-1], line), line]); continue
+        if kind == "id" and text in defines:
+            out.extend([list(t) for t in defines[text]]); continue
+        out.append([kind, text, line])
+    out.append(["end", "", line])
+    return out, defines
+
+
+# ---------------------------------------------------------------- types
+# a type is (base, stars, dims): base int|char|void, stars = pointer depth, dims = array sizes
+
+def size_of(t):
+    n = 1
+    for d in t[2]: n *= d
+    return n * (1 if (t[0] == "char" and not t[1]) else 8)
+
+
+def elem_of(t, line):
+    if t[2]: return (t[0], t[1], t[2][1:])
+    if t[1]: return (t[0], t[1] - 1, ())
+    raise DcError(line, "only rows and pointers have places to count")
+
+
+INT = ("int", 0, ())
+
+
+# ---------------------------------------------------------------- compiler
+
+class Compiler:
+    def __init__(self, toks):
+        self.t, self.p = toks, 0
+        self.out, self.strings, self.n = [], [], 0
+        self.funcs = {}
+
+    # --- tokens
+    def peek(self, k=0): return self.t[self.p + k]
+    def at(self, text, k=0):
+        tok = self.t[self.p + k]
+        return tok[0] in ("op", "id") and tok[1] == text
+    def take(self, text=None):
+        tok = self.t[self.p]
+        if text is not None and not self.at(text):
+            raise DcError(tok[2], "expected '%s', found '%s'" % (text, tok[1] if tok[0] != "str" else "words"))
+        self.p += 1
+        return tok
+    def name(self):
+        tok = self.take()
+        if tok[0] != "id" or tok[1] in KEYWORDS:
+            raise DcError(tok[2], "expected a name, found '%s'" % tok[1])
+        return tok[1]
+
+    def emit(self, s): self.out.append("    " + s)
+    def label(self, l): self.out.append(l + ":")
+    def new(self, what="L"):
+        self.n += 1
+        return ".%s%d" % (what, self.n)
+    def string(self, data):
+        lab = ".S%d" % (len(self.strings) + 1)
+        self.strings.append((lab, data))
+        return lab
+
+    # --- program
+    def program(self):
+        while self.peek()[0] != "end":
+            self.function()
+        if "main" not in self.funcs:
+            raise DcError(self.peek()[2], "no main")
+
+    def base_type(self):
+        while self.at("const") or self.at("static") or self.at("unsigned") or self.at("signed"):
+            self.take()
+        tok = self.take()
+        if tok[1] not in TYPES: raise DcError(tok[2], "expected a type, found '%s'" % tok[1])
+        return "int" if tok[1] == "long" else tok[1]
+
+    def is_type(self):
+        return any(self.at(w) for w in ("int", "long", "char", "void", "const", "static", "unsigned", "signed"))
+
+    def function(self):
+        base = self.base_type()
+        stars = 0
+        while self.at("*"): self.take(); stars += 1
+        line = self.peek()[2]
+        fname = self.name()
+        self.take("(")
+        params = []
+        while not self.at(")"):
+            if self.at("void") and self.at(")", 1): self.take(); break
+            pb = self.base_type(); ps = 0
+            while self.at("*"): self.take(); ps += 1
+            pn = self.name()
+            while self.at("["):                       # int a[] in a list = a pointer
+                self.take("[")
+                while not self.at("]"): self.take()
+                self.take("]"); ps += 1
+            params.append((pn, (pb, ps, ())))
+            if not self.at(")"): self.take(",")
+        self.take(")")
+        if len(params) > 6: raise DcError(line, "more than 6 inputs is not in Dc yet")
+        self.funcs[fname] = (base, stars, ())
+        self.fname, self.frame, self.scopes, self.loops = fname, 0, [{}], []
+        self.label("f_" + fname)
+        self.emit("push rbp"); self.emit("mov rbp, rsp")
+        fix = len(self.out); self.emit("sub rsp, FRAME")
+        regs = ["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
+        for (pn, pt), r in zip(params, regs):
+            off = self.local(pn, pt, line)
+            self.emit("mov [rbp-%d], %s" % (off, r))
+        self.block()
+        # falling off the end of main = all good (1)
+        self.emit("mov eax, 1" if fname == "main" else "xor eax, eax")
+        self.label(".Lret_" + fname)
+        self.emit("mov rsp, rbp"); self.emit("pop rbp"); self.emit("ret")
+        self.out[fix] = "    sub rsp, %d" % ((self.frame + 15) // 16 * 16)
+
+    def local(self, name, t, line):
+        if name in self.scopes[-1]: raise DcError(line, "'%s' is already here" % name)
+        sz = (size_of(t) + 7) // 8 * 8
+        self.frame += sz
+        self.scopes[-1][name] = (self.frame, t)
+        return self.frame
+
+    def find(self, name, line):
+        for s in reversed(self.scopes):
+            if name in s: return s[name]
+        raise DcError(line, "'%s' is not known here" % name)
+
+    # --- statements
+    def block(self):
+        self.take("{"); self.scopes.append({})
+        while not self.at("}"): self.statement()
+        self.take("}"); self.scopes.pop()
+
+    def statement(self):
+        tok = self.peek(); line = tok[2]
+        if self.at("{"): return self.block()
+        if self.at(";"): self.take(); return
+        if self.is_type(): self.declaration(); self.take(";"); return
+        if self.at("if"):
+            self.take(); self.take("("); self.cond_false(els := self.new()); self.take(")")
+            self.statement()
+            if self.at("else"):
+                end = self.new(); self.emit("jmp " + end); self.label(els)
+                self.take(); self.statement(); self.label(end)
+            else:
+                self.label(els)
+            return
+        if self.at("while"):
+            top, end = self.new(), self.new()
+            self.take(); self.take("("); self.label(top); self.cond_false(end); self.take(")")
+            self.loops.append((end, top)); self.statement(); self.loops.pop()
+            self.emit("jmp " + top); self.label(end); return
+        if self.at("for"):
+            self.take(); self.take("("); self.scopes.append({})
+            if self.is_type(): self.declaration()
+            elif not self.at(";"): self.expr()
+            self.take(";")
+            top, step, end = self.new(), self.new(), self.new()
+            self.label(top)
+            if not self.at(";"): self.cond_false(end)
+            self.take(";")
+            # the step is written after the body: keep its tokens aside
+            start = self.p; depth = 0
+            while depth or not self.at(")"):
+                if self.at("("): depth += 1
+                if self.at(")"): depth -= 1
+                self.take()
+            step_toks = (start, self.p); self.take(")")
+            self.loops.append((end, step)); self.statement(); self.loops.pop()
+            self.label(step)
+            if step_toks[1] > step_toks[0]:
+                save = self.p; self.p = step_toks[0]; self.expr(); self.p = save
+            self.emit("jmp " + top); self.label(end); self.scopes.pop(); return
+        if self.at("return"):
+            self.take()
+            if not self.at(";"): self.expr()
+            self.take(";"); self.emit("jmp .Lret_" + self.fname); return
+        if self.at("break") or self.at("continue"):
+            w = self.take()[1]
+            if not self.loops: raise DcError(line, "%s outside a loop" % w)
+            self.emit("jmp " + self.loops[-1][0 if w == "break" else 1]); self.take(";"); return
+        if self.at("move"): self.move(); return
+        self.expr(); self.take(";")
+
+    def declaration(self):
+        base = self.base_type()
+        while True:
+            stars = 0
+            while self.at("*"): self.take(); stars += 1
+            line = self.peek()[2]; nm = self.name(); dims = []
+            while self.at("["):
+                self.take("[")
+                if self.at("]"): dims.append(None)
+                else:
+                    d = self.take()
+                    if d[0] != "num": raise DcError(line, "a row size must be a number")
+                    dims.append(d[1])
+                self.take("]")
+            init = None
+            if self.at("="):
+                self.take()
+                if self.at("{"):
+                    init = self.brace_list()
+                elif self.peek()[0] == "str" and dims:
+                    init = ("str", self.take()[1])
+                else:
+                    init = "expr"
+            if dims and dims[0] is None:                # int a[] = {..}: size from the list
+                dims[0] = len(init[1]) + 1 if init and init[0] == "str" else len(self.flat(init))
+            t = (base, stars, tuple(dims))
+            if init == "expr":
+                rt = self.expr()            # value first, then the name exists
+                off = self.local(nm, t, line)
+                self.store_to(f"rbp-{off}", t)
+            else:
+                off = self.local(nm, t, line)
+                if init is not None:
+                    esz = 1 if (base == "char" and not stars) else 8
+                    vals = init[1] + [None] if init[0] == "str" else self.flat(init)
+                    cap = 1
+                    for d in dims: cap *= d
+                    if len(vals) > cap: raise DcError(line, "more values than places in %s" % nm)
+                    for k in range(cap):          # places not given are LOW
+                        v = vals[k] if k < len(vals) else None
+                        addr = "rbp-%d" % (off - k * esz)
+                        if v is None:
+                            self.emit("mov %s ptr [%s], LOW" % ("byte" if esz == 1 else "qword", addr))
+                        elif isinstance(v, int):
+                            self.emit("mov rax, %d" % v); self.emit("mov [%s], %s" % (addr, "al" if esz == 1 else "rax"))
+                        else:
+                            save = self.p; self.p = v; self.expr(); self.p = save
+                            self.emit("mov [%s], %s" % (addr, "al" if esz == 1 else "rax"))
+            if self.at(","): self.take(); continue
+            break
+
+    def brace_list(self):
+        """{ a, b, {c, d} } -> nested lists of token positions (numbers kept as ints)."""
+        self.take("{"); items = []
+        while not self.at("}"):
+            if self.at("{"): items.append(self.brace_list())
+            else:
+                start = self.p; depth = 0
+                while depth or not (self.at(",") or self.at("}")):
+                    if self.at("(") or self.at("{"): depth += 1
+                    if self.at(")") or self.at("}"): depth -= 1
+                    self.take()
+                if self.p == start + 1 and self.t[start][0] == "num": items.append(self.t[start][1])
+                else: items.append(start)
+            if self.at(","): self.take()
+        self.take("}")
+        return ("list", items)
+
+    def flat(self, init):
+        out = []
+        for it in init[1]:
+            if isinstance(it, tuple): out.extend(self.flat(it))
+            else: out.append(it)
+        return out
+
+    def move(self):
+        """move N from a to b;  the total stays the same."""
+        line = self.take("move")[2]
+        self.expr(); self.emit("push rax")
+        self.take("from"); an = self.peek()[1]; at = self.lvalue(); self.emit("push rax")
+        self.take("to"); bn = self.peek()[1]; bt = self.lvalue(); self.emit("push rax")
+        self.take(";")
+        less, more, ok = self.new(), self.new(), self.new()
+        self.emit("pop r9"); self.emit("pop r8"); self.emit("pop rax")
+        self.emit("cmp rax, 1"); self.emit("jl " + less)
+        self.emit("cmp rax, [r8]"); self.emit("jg " + more)
+        self.emit("sub [r8], rax")                # under the hood: a gives, b takes
+        self.emit("add [r9], rax"); self.emit("jmp " + ok)
+        self.label(less)
+        self.say_text("Dc line %s: move needs 1 or more\n" % to_d(line), fd=2)
+        self.emit("mov edi, 2"); self.emit("jmp dc_exit")
+        self.label(more)
+        self.emit("push qword ptr [r8]"); self.emit("push rax")
+        self.say_text("Dc line %s: cannot move " % to_d(line), fd=2)
+        self.emit("pop rdi"); self.emit("call dc_putd")
+        self.say_text(" from %s, it holds " % an, fd=2)
+        self.emit("pop rdi"); self.emit("call dc_putd")
+        self.say_text("\n", fd=2)
+        self.emit("mov edi, 2"); self.emit("jmp dc_exit")
+        self.label(ok)
+
+    def say_text(self, text, fd=None):
+        if fd: self.emit("mov qword ptr [rip+dc_fd], %d" % fd)
+        data = list(text.encode()) if isinstance(text, str) else text
+        if not data: return
+        lab = self.string(data)
+        self.emit("lea rdi, [rip+%s]" % lab); self.emit("mov rsi, %d" % len(data)); self.emit("call dc_write")
+
+    def cond_false(self, target):
+        self.expr(); self.emit("test rax, rax"); self.emit("jz " + target)
+
+    # --- expressions: value in rax, returns its type
+    def expr(self): return self.assign()
+
+    def assign(self):
+        start = self.p
+        lhs_t = self.logic_or()
+        if self.at("?"):                            # a ? b : c
+            self.take(); no, end = self.new(), self.new()
+            self.emit("test rax, rax"); self.emit("jz " + no)
+            t = self.assign(); self.take(":"); self.emit("jmp " + end)
+            self.label(no); self.assign(); self.label(end)
+            return t
+        for op in ("=", "+=", "*=", "/=", "%="):
+            if self.at(op):
+                line = self.take()[2]
+                end = self.p; self.p = start
+                t = self.lvalue(); self.emit("push rax")
+                self.p = end
+                rt = self.assign()
+                self.emit("pop rcx")
+                if op != "=":
+                    self.emit("mov rdx, rax"); self.load_from("rcx", t, keep="rcx")
+                    if op == "+=": self.emit("add rax, rdx")
+                    elif op == "*=": self.emit("imul rax, rdx")
+                    else:
+                        self.emit("push rcx"); self.emit("mov rcx, rdx"); self.emit("cqo"); self.emit("idiv rcx"); self.emit("pop rcx")
+                        if op == "%=": self.emit("mov rax, rdx")
+                self.store_to("rcx", t)
+                return t
+        return lhs_t
+
+    def logic_or(self):
+        t = self.logic_and()
+        while self.at("||"):
+            self.take(); yes, end = self.new(), self.new()
+            self.emit("test rax, rax"); self.emit("jnz " + yes)
+            self.logic_and(); self.emit("test rax, rax"); self.emit("jnz " + yes)
+            self.emit("xor eax, eax"); self.emit("jmp " + end)
+            self.label(yes); self.emit("mov eax, 1"); self.label(end); t = INT
+        return t
+
+    def logic_and(self):
+        t = self.equality()
+        while self.at("&&"):
+            self.take(); no, end = self.new(), self.new()
+            self.emit("test rax, rax"); self.emit("jz " + no)
+            self.equality(); self.emit("test rax, rax"); self.emit("jz " + no)
+            self.emit("mov eax, 1"); self.emit("jmp " + end)
+            self.label(no); self.emit("xor eax, eax"); self.label(end); t = INT
+        return t
+
+    def binary(self, nxt, ops):
+        t = nxt()
+        while any(self.at(o) for o in ops):
+            op = self.take()[1]
+            self.emit("push rax"); rt = nxt(); self.emit("mov rcx, rax"); self.emit("pop rax")
+            t = self.apply(op, t, rt)
+        return t
+
+    def equality(self): return self.binary(self.relation, ("==", "!="))
+    def relation(self): return self.binary(self.additive, ("<=", ">=", "<", ">"))
+    def additive(self): return self.binary(self.term, ("+",))
+    def term(self): return self.binary(self.unary, ("*", "/", "%"))
+
+    def apply(self, op, lt, rt):
+        setcc = {"==": "sete", "!=": "setne", "<": "setl", ">": "setg", "<=": "setle", ">=": "setge"}
+        if op in setcc:
+            self.emit("cmp rax, rcx"); self.emit(setcc[op] + " al"); self.emit("movzx eax, al"); return INT
+        if op == "+":
+            if lt[1] or lt[2]:
+                es = size_of(elem_of(lt, 0))
+                if es != 1: self.emit("imul rcx, %d" % es)
+                self.emit("add rax, rcx"); return (lt[0], lt[1] + (1 if lt[2] else 0), ()) if lt[2] else lt
+            self.emit("add rax, rcx"); return INT
+        if op == "*": self.emit("imul rax, rcx"); return INT
+        self.emit("cqo"); self.emit("idiv rcx")
+        if op == "%": self.emit("mov rax, rdx")
+        return INT
+
+    def unary(self):
+        line = self.peek()[2]
+        if self.at("!"):
+            self.take(); self.unary(); self.emit("test rax, rax"); self.emit("sete al"); self.emit("movzx eax, al"); return INT
+        if self.at("+"): self.take(); return self.unary()
+        if self.at("(") and self.peek(1)[1] in TYPES:      # (type) value
+            self.take(); base = self.base_type(); stars = 0
+            while self.at("*"): self.take(); stars += 1
+            self.take(")"); self.unary()
+            if base == "char" and not stars: self.emit("movzx eax, al")
+            return (base, stars, ())
+        if self.at("&"):
+            self.take(); t = self.lvalue_unary(); return (t[0], t[1] + 1, ())
+        if self.at("*"):
+            self.take(); t = self.unary(); et = elem_of(t, line); self.load_from("rax", et); return et
+        if self.at("++"):
+            self.take(); t = self.lvalue_unary()
+            self.emit("inc %s ptr [rax]" % ("byte" if size_of(t) == 1 else "qword"))
+            self.load_from("rax", t); return t
+        return self.postfix()
+
+    def lvalue_unary(self):
+        if self.at("*"):
+            line = self.take()[2]; t = self.unary(); return elem_of(t, line)
+        return self.lvalue()
+
+    def postfix(self):
+        start = self.p
+        t = self.primary()
+        line = self.peek()[2]
+        if self.at("->") or self.at("."):
+            raise DcError(line, "structs are not in Dc yet")
+        if not (self.at("[") or self.at("++")):
+            return t
+        self.p = start; t = self.lvalue()           # read it again as a place
+        if self.at("++"):
+            self.take()
+            self.emit("mov rcx, rax"); self.load_from("rcx", t)
+            self.emit("inc %s ptr [rcx]" % ("byte" if size_of(t) == 1 else "qword"))
         else:
-            out.append(t)
-        prev_sig = text
-        i += 1
-    return "".join(out)
+            self.load_from("rax", t)
+        return t
 
-def translate_expr(s, line):
-    return translate(s).strip()
+    def primary(self):
+        tok = self.peek(); line = tok[2]
+        if tok[0] == "num":
+            self.take(); self.emit("mov rax, %d" % tok[1]); return INT
+        if tok[0] == "str":
+            self.take(); data = tok[1]
+            while self.peek()[0] == "str": data = data + self.take()[1]
+            lab = self.string(data + ["LOW"]); self.emit("lea rax, [rip+%s]" % lab); return ("char", 1, ())
+        if self.at("("):
+            self.take(); t = self.expr(); self.take(")"); return t
+        if tok[0] == "id" and self.at("(", 1):
+            return self.call()
+        if tok[0] == "id":
+            self.take()
+            off, t = self.find(tok[1], line)
+            self.emit("lea rax, [rbp-%d]" % off); self.load_from("rax", t); return t
+        raise DcError(line, "did not expect '%s'" % (tok[1] if tok[0] != "str" else "words"))
 
-def translate_pp(body, line):
-    out = []
-    for kind, text, _ in lex(body[1:]):
-        out.append(text if kind in ("ws", "str", "lc", "bc") else check_code(kind, text, line))
-    return "#" + "".join(out)
+    def lvalue(self):
+        """address in rax; returns the type that lives there."""
+        tok = self.peek(); line = tok[2]
+        if self.at("("):
+            self.take(); t = self.lvalue(); self.take(")")
+        elif self.at("*"):
+            self.take(); t = self.unary(); t = elem_of(t, line)
+        else:
+            nm = self.name(); off, t = self.find(nm, line)
+            self.emit("lea rax, [rbp-%d]" % off)
+        while self.at("["):
+            self.take("[")
+            if t[2]: pass                          # a row: its address is already in rax
+            elif t[1]: self.emit("mov rax, [rax]") # a pointer: follow it
+            else: raise DcError(line, "only rows and pointers have places to count")
+            et = elem_of(t, line)
+            self.emit("push rax"); self.expr(); self.take("]")
+            # counting starts at 1: place i is (i - 1) steps along. Under the hood only.
+            es = size_of(et)
+            self.emit("dec rax")
+            if es != 1: self.emit("imul rax, %d" % es)
+            self.emit("pop rcx"); self.emit("add rax, rcx")
+            t = et
+        return t
+
+    def load_from(self, reg, t, keep=None):
+        if t[2]:                                    # a row's value is where it starts
+            if reg != "rax": self.emit("mov rax, %s" % reg)
+            return
+        if size_of(t) == 1: self.emit("movzx eax, byte ptr [%s]" % reg)
+        else: self.emit("mov rax, [%s]" % reg)
+
+    def store_to(self, where, t):
+        where = where if where.startswith("[") else "[%s]" % where
+        if t[2]: raise DcError(0, "a whole row cannot be set at once")
+        if size_of(t) == 1: self.emit("mov byte ptr %s, al" % where)
+        else: self.emit("mov qword ptr %s, rax" % where)
+
+    def call(self):
+        tok = self.take(); fname = tok[1]; line = tok[2]
+        self.take("(")
+        if fname == "say": return self.say(line)
+        n = 0
+        while not self.at(")"):
+            self.expr(); self.emit("push rax"); n += 1
+            if not self.at(")"): self.take(",")
+        self.take(")")
+        if n > 6: raise DcError(line, "more than 6 inputs is not in Dc yet")
+        for r in reversed(["rdi", "rsi", "rdx", "rcx", "r8", "r9"][:n]): self.emit("pop " + r)
+        self.emit("call f_" + fname)
+        self.calls.append((fname, line))
+        return self.funcs.get(fname, INT)
+
+    def say(self, line):
+        """say("text %d %s %c", ...): the words are read now; numbers print as D numerals."""
+        tok = self.take()
+        if tok[0] != "str": raise DcError(line, "say needs its words in quotes first")
+        fmt = tok[1]
+        while self.peek()[0] == "str": fmt = fmt + self.take()[1]
+        self.emit("mov qword ptr [rip+dc_fd], 1")
+        piece, i = [], 0
+        while i < len(fmt):
+            c = fmt[i]
+            if c == ord("%") and i + 1 < len(fmt):
+                k = chr(fmt[i + 1])
+                if k == "l" and i + 2 < len(fmt) and chr(fmt[i + 2]) == "d": i += 1; k = "d"
+                if k == "%": piece.append(c); i += 2; continue
+                if k not in "dsc": raise DcError(line, "say knows %%d %%s %%c, not %%%s" % k)
+                self.say_text(piece); piece = []
+                self.take(","); self.expr(); self.emit("mov rdi, rax")
+                self.emit("call " + {"d": "dc_putd", "s": "dc_puts", "c": "dc_putc"}[k])
+                i += 2; continue
+            piece.append(c); i += 1
+        self.say_text(piece)
+        if not self.at(")"): raise DcError(line, "say has more values than %d %s %c places")
+        self.take(")")
+        return INT
+
 
 RUNTIME = r'''
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-/* Dc runtime 0.01. Under the hood the machine still uses C; the code you write does not. */
-static void dc_d(long v, char *buf) {          /* number -> D numeral */
-    const char *dig = "123456789ABCD"; char tmp[64]; int n = 0;
-    if (v < 1) { strcpy(buf, "~"); return; }    /* nothing below 1 is shown as a number */
-    while (v > 0) { long r = v % 13; if (r == 0) r = 13; tmp[n++] = dig[r - 1]; v = (v - r) / 13; }
-    for (int i = 0; i < n; i++) buf[i] = tmp[n - 1 - i];
-    buf[n] = 0;
-}
-/* say: like printf, but %d prints D numerals */
-static void say(const char *fmt, ...) {
-    va_list ap; va_start(ap, fmt); char b[64];
-    for (const char *p = fmt; *p; p++) {
-        if (*p != '%') { putchar(*p); continue; }
-        p++;
-        if (*p == 'd') { dc_d(va_arg(ap, int), b); fputs(b, stdout); }
-        else if (*p == 'l' && p[1] == 'd') { p++; dc_d(va_arg(ap, long), b); fputs(b, stdout); }
-        else if (*p == 's') fputs(va_arg(ap, char *), stdout);
-        else if (*p == 'c') putchar(va_arg(ap, int));
-        else if (*p == '%') putchar('%');
-        else if (!*p) break;
-    }
-    va_end(ap);
-}
-/* move N from a to b: the total stays the same, nothing vanishes */
-static void dc_move(long n, int *a, int *b, const char *an, const char *bn, int line) {
-    if (n < 1) { fprintf(stderr, "Dc line %d: move needs 1 or more\n", line); exit(2); }
-    if (n > *a) { char x[64], y[64]; dc_d(n, x); dc_d(*a, y);
-        fprintf(stderr, "Dc line %d: cannot move %s from %s, it holds %s\n", line, x, an, y); exit(2); }
-    *a -= n; *b += n;       /* a moved out in full holds ~ : its place is taken by something else */
-}
-static int dc_main(int argc, char **argv);
-int main(int argc, char **argv) { int r = dc_main(argc, argv); return r == 1 ? 0 : (r ? r : 0); }
-#line 1
+# Dc runtime 0.02: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label).
+.set LOW, 1-1
+.text
+.globl _start
+_start:
+    mov rdi, [rsp]              # how many words on the command line
+    lea rsi, [rsp+8]            # the words; argv[1] is the program itself
+    call f_main
+    mov rdi, rax
+    cmp rax, 1                  # main gives 1 = all good; Linux calls that LOW
+    jne dc_exit
+    mov edi, LOW
+dc_exit:
+    mov eax, 60
+    syscall
+dc_write:                       # rdi = where, rsi = how many bytes
+    mov rdx, rsi
+    mov rsi, rdi
+    mov rdi, [rip+dc_fd]
+    mov eax, 1
+    syscall
+    ret
+dc_puts:                        # rdi = words ending in a LOW byte
+    mov rcx, rdi
+1:  cmp byte ptr [rcx], LOW
+    je 2f
+    inc rcx
+    jmp 1b
+2:  mov rsi, rcx
+    sub rsi, rdi
+    jmp dc_write
+dc_putc:                        # rdi = one character
+    push rdi
+    mov rdi, rsp
+    mov rsi, 1
+    call dc_write
+    pop rdi
+    ret
+dc_putd:                        # rdi = number -> D numeral; below 1 shows as ~
+    cmp rdi, 1
+    jge 1f
+    lea rdi, [rip+dc_tilde]
+    mov rsi, 1
+    jmp dc_write
+1:  sub rsp, 72
+    lea r8, [rsp+64]
+    mov rax, rdi
+    mov r9, 13
+    lea r10, [rip+dc_digits]
+2:  xor edx, edx
+    div r9
+    test rdx, rdx
+    jnz 3f
+    mov rdx, 13                 # no zero digit: a full 13 is D, carry one less
+    dec rax
+3:  mov cl, [r10+rdx-1]
+    dec r8
+    mov [r8], cl
+    test rax, rax
+    jnz 2b
+    mov rdi, r8
+    lea rsi, [rsp+64]
+    sub rsi, r8
+    call dc_write
+    add rsp, 72
+    ret
+.data
+dc_fd:     .quad 1
+dc_digits: .ascii "123456789ABCD"
+dc_tilde:  .ascii "~"
 '''
 
-def to_c(path):
-    src = open(path).read()
-    return RUNTIME + translate(src)
+
+def compile_dc(src):
+    toks, _ = lex(src)
+    c = Compiler(toks); c.calls = []
+    c.program()
+    for fname, line in c.calls:
+        if fname not in c.funcs: raise DcError(line, "'%s' is not made anywhere" % fname)
+    asm = [".intel_syntax noprefix", RUNTIME, ".text"] + c.out + ["", ".section .rodata"]
+    for lab, data in c.strings:
+        asm.append("%s: .byte %s" % (lab, ", ".join(str(b) for b in data)))
+    return "\n".join(asm) + "\n"
+
 
 def main():
-    if len(sys.argv) < 3 or sys.argv[1] not in ("build", "run", "c"):
+    if len(sys.argv) < 3 or sys.argv[1] not in ("build", "run", "asm"):
         print(__doc__.strip()); sys.exit(2)
     cmd, path = sys.argv[1], sys.argv[2]
     try:
-        csrc = to_c(path)
+        asm = compile_dc(open(path).read())
     except DcError as e:
         print("Dc %s: %s" % (os.path.basename(path), e), file=sys.stderr); sys.exit(2)
-    if cmd == "c":
-        print(csrc); return
+    if cmd == "asm":
+        print(asm); return
     out = os.path.splitext(path)[0]
     if "-o" in sys.argv: out = sys.argv[sys.argv.index("-o") + 1]
-    with tempfile.NamedTemporaryFile("w", suffix=".c", delete=False, dir=os.path.dirname(os.path.abspath(out))) as f:
-        f.write(csrc.replace("#line 1", '#line 1 "%s"' % os.path.abspath(path))); cpath = f.name
-    r = subprocess.run(["gcc", "-std=gnu11", "-Wall", "-Wno-unused-function", "-O2", cpath, "-o", out])
-    os.unlink(cpath)
-    if r.returncode: sys.exit(r.returncode)
+    d = os.path.dirname(os.path.abspath(out))
+    with tempfile.TemporaryDirectory(dir=d) as tmp:
+        s, o = os.path.join(tmp, "p.s"), os.path.join(tmp, "p.o")
+        open(s, "w").write(asm)
+        for step in (["as", "--64", s, "-o", o], ["ld", "-static", "-n", o, "-o", out]):
+            r = subprocess.run(step, capture_output=True, text=True)
+            if r.returncode:
+                print("Dc %s: the assembly did not go through (a Dc bug):\n%s" % (os.path.basename(path), r.stderr), file=sys.stderr)
+                sys.exit(3)
     if cmd == "run":
         sys.exit(subprocess.run([os.path.abspath(out)] + sys.argv[3:]).returncode)
+
 
 if __name__ == "__main__":
     main()
