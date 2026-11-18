@@ -105,6 +105,12 @@ What it gives instead:
   overflow; the Shrug (`shrug N from x;`), reported at the end of every run;
 - a full-screen window of its own (it speaks X11 to the display itself) so that models can be seen.
 
+The machine is always something too. A transistor does not switch between 1 and 0: it goes HIGH or LOW. A LOW is
+lower than 1, still with current leaking and atoms with mass, carrying its `~`. Delta's own runtime calls it LOW.
+
+Delta compiles itself. Its compiler, `lang/dc.delta`, is written in Delta: built once by the first compiler, it
+compiles itself, and that copy compiles itself again; all three write the same assembly, line for line.
+
 A model written in Delta cannot cheat D: no quantity can vanish or go below what is there, because the language has
 no way to say so, and every model keeps an energy book whose total is checked against its start every frame.
 
@@ -175,7 +181,20 @@ one rule: every column shares its pull evenly with its neighbours, so each centr
 of its own share, each step. Cracks lie where two shares meet. No hexagon is drawn anywhere in the program. The sides
 of every column away from the border are counted as it goes.
 
-RESULTS: (filled in from the run: sides five, six, seven and other, step by step)
+Counted as it ran (columns away from the border; steps after the cracks first open):
+
+| step | five sides | six sides | seven sides | other |
+|---|---|---|---|---|
+| 2D | 44 | D4 | 44 | 2 |
+| 5C | 42 | 115 | 37 | ~ |
+| 8B | 31 | 133 | 2A | ~ |
+| BA | 2B | 13A | 26 | ~ |
+| 119 and on | 29 | 13B | 27 | ~ |
+
+From a scatter, the sheet settles in about 119 steps and then holds: 13B of its 191 columns are six-sided (three
+in every four), and the rest are fives and sevens in nearly equal numbers, so the columns still average six sides.
+That is how the real Causeway looks: mostly hexagons, with five- and seven-sided columns where the cooling was
+uneven.
 
 The heat moves from the lava to the air and the ground, and through the border into the Shrug; the book's total
 equals its start at every step.
@@ -192,6 +211,21 @@ walls, and out through the border into the Shrug. Every value is shown, and the 
 
 A battery of one and a half volts on a magnet, a copper wire touching both: today's toy on Faraday's principle, drawn at real size
 in a room 17 feet each way, with the same book.
+
+### 5.6 A cake cut into three (`cake.delta`)
+
+The outside world says 1 / 3 = 0.3333... for ever. No cake has ever done that. A cake is a whole number of crumbs
+(and the crumbs of molecules). Cut into three, each plate takes its share of whole crumbs; the one or two that do not
+share evenly stay on the knife, the cake's neighbour.
+
+| the cake | plate one | plate two | plate three | on the knife | all together |
+|---|---|---|---|---|---|
+| 9999 crumbs | 3333 | 3333 | 3333 | nothing | 9999 |
+| 999A crumbs | 3333 | 3333 | 3333 | 1 | 999A |
+| 999B crumbs | 3333 | 3333 | 3333 | 2 | 999B |
+
+The endless 3s belong to the writing, not to the cake. D does not write a fraction of a whole: it counts the parts and
+moves them, and every part arrives somewhere: on a plate, or on the knife.
 
 ## 6. What is shown, and what is not yet
 
@@ -248,5 +282,11 @@ Anthropic.
 | B94 | 1980 |
 | B95 | 1981 |
 | 7CC | 1351 |
+| 191 | 287 |
+| 13B | 219 |
+| 29 | 35 |
+| 27 | 33 |
+| 9999 | 21420 |
+| 3333 | 7140 |
 | C17 | 2048 |
 | 65C6 | 14189 |

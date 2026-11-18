@@ -1,0 +1,953 @@
+// dc: the Delta compiler, written in Delta. Stage 1: the core of the language.
+//
+//   dc build file.delta [-o out]     build a program
+//   dc run file.delta [-o out]       build it and run it
+//   dc asm file.delta                show the assembly it writes
+//
+// Delta -> our own x86-64 assembly (the runtime is runtime.s, beside this compiler) -> GNU as and ld turn the text
+// into the program file. Stage 1 holds: D numerals, int / long / char / void, pointers, rows (counted from 1),
+// functions (up to 6 inputs), kept-for-the-run values, if / else / while / for / break / continue / return,
+// && || ! ?: == != < <= > >= + * / %  = += *= /= %=  ++, casts, #define, say, move, and Delta's own less, apart,
+// lower, higher, towards and copy. It refuses every zero and every minus, as Delta does.
+// Still to come (stage 2): D>, things, vessels, the flow engine (store, neighbours, spend, ...), 2-D rows.
+// Every number in this file is a D numeral: 1 2 3 4 5 6 7 8 9 A B C D, then 11. (The outside world's 256 is 169 here.)
+
+#define TNUM 1
+#define TID 2
+#define TSTR 3
+#define TOP 4
+#define TEND 5
+#define TI 1
+#define TC 2
+#define TV 3
+#define PTR 4
+#define HS $1B31
+
+char src[999999];
+int srcn;
+char pool[999999];
+int pooln = 1;
+int hh[$1B32];
+int hnext[99999];
+int hname[99999];
+int nnames;
+int tk[99999];
+int tv[99999];
+int tl[99999];
+int tn[99999];
+int ntok;
+char out[9999999];
+int outn = 1;
+int low;
+int line = 1;
+char *digs;
+char *dig13;
+
+int defname[999];
+int defs[999];
+int defe[999];
+int ndef;
+
+int gn[9999];
+int gt[9999];
+int ga[9999];
+int gi[9999];
+int ghas[9999];
+int ng;
+int fnm[9999];
+int frt[9999];
+int fdone[9999];
+int nf;
+int ln[9999];
+int lt[9999];
+int la[9999];
+int lo[9999];
+int nloc;
+int sc[999];
+int nsc;
+int cnm[99999];
+int cline[99999];
+int ncall;
+int sp[99999];
+int sl[99999];
+int nstr;
+int brk[999];
+int cont[999];
+int nloop;
+int P;
+int LV;
+int labn = 1;
+int curfn;
+int frame;
+
+int kint, kchar, klong, kvoid, kunsigned, ksigned, kconst, kstatic, kif, kelse, kwhile, kfor, kreturn, kbreak;
+int kcontinue, kmove, kfrom, kto, kand, ksay, kless, kapart, klower, khigher, ktowards, kcopy, kmain;
+int kdefine, kinclude, kthing, kvessel, klinux, kwait, kstop, kwide, khigh;
+
+// ---------------------------------------------------------------- words
+
+void fail(char *m) { say("Delta line %d: %s\n", line, m); stop(2); }
+void failat(char *m) { line = tl[P]; fail(m); }
+
+int same(char *a, char *b) { int i = 1; while (a[i] >= 1 && a[i] == b[i]) i++; return a[i] == b[i]; }
+
+int intern(char *s, int n)                         // a name's place in the pool; the same name, the same place
+{
+    int h = 1, i;
+    for (i = 1; i <= n; i++) h = (h * 25 + s[i]) % HS;
+    h = h + 1;
+    int k = hh[h];
+    while (k >= 1) {
+        int at = hname[k], j = 1;
+        while (j <= n && pool[at + less(j, 1)] == s[j]) j++;
+        if (j > n && pool[at + n] < 1) return at;
+        k = hnext[k];
+    }
+    nnames++;
+    hname[nnames] = pooln; hnext[nnames] = hh[h]; hh[h] = nnames;
+    int at2 = pooln;
+    for (i = 1; i <= n; i++) { pool[pooln] = s[i]; pooln++; }
+    pool[pooln] = low; pooln++;
+    return at2;
+}
+int word(char *s) { int n = 1; while (s[n] >= 1) n++; return intern(s, less(n, 1)); }
+
+int isdig(int c) { return c >= '0' && c <= '9'; }
+int isal(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'; }
+int isaln(int c) { return isal(c) || isdig(c); }
+
+void addtok(int k, int v, int n) { ntok++; tk[ntok] = k; tv[ntok] = v; tn[ntok] = n; tl[ntok] = line; }
+
+int escape(int c)
+{
+    if (c == 'n') return '\n'; if (c == 't') return '\t'; if (c == 'r') return '\r'; if (c == '\\') return '\\';
+    if (c == '\'') return '\''; if (c == '"') return '"'; if (c == 'a') return '\a'; if (c == 'e') return '\e';
+    fail("that is the zero character or not known");
+    return 1;
+}
+
+void lexrange(int i, int e)
+{
+    while (i <= e) {
+        int c = src[i];
+        if (c == '\n') { line++; i++; }
+        else if (c == ' ' || c == '\t' || c == '\r') i++;
+        else if (c == '/' && src[i + 1] == '/') { while (i <= e && src[i] != '\n') i++; }
+        else if (c == '/' && src[i + 1] == '*') {
+            i = i + 2;
+            while (i <= e && (src[i] != '*' || src[i + 1] != '/')) { if (src[i] == '\n') line++; i++; }
+            i = i + 2;
+        }
+        else if (c == '#') {
+            i++;
+            while (src[i] == ' ') i++;
+            int w = i; while (isal(src[i])) i++;
+            int dw = intern(&src[w], less(i, w));
+            if (dw == kinclude) { while (i <= e && src[i] != '\n') i++; }
+            else if (dw == kdefine) {
+                while (src[i] == ' ') i++;
+                int nmS = i; while (isaln(src[i])) i++;
+                ndef++; defname[ndef] = intern(&src[nmS], less(i, nmS));
+                defs[ndef] = i;
+                while (i <= e && src[i] != '\n') i++;
+                defe[ndef] = less(i, 1);
+            }
+            else fail("that # word is not known");
+        }
+        else if (c == '"') {
+            int at = pooln, n = low;
+            i++;
+            while (src[i] != '"') {
+                int b = src[i];
+                if (b == '\n' || i > e) fail("words in quotes need their closing quote");
+                if (b == '\\') { i++; b = escape(src[i]); }
+                pool[pooln] = b; pooln++; n++; i++;
+            }
+            pool[pooln] = low; pooln++;
+            i++;
+            addtok(TSTR, at, n);
+        }
+        else if (c == '\'') {
+            i++;
+            int b = src[i];
+            if (b == '\\') { i++; b = escape(src[i]); }
+            i++;
+            if (src[i] != '\'') fail("that is not one character");
+            i++;
+            addtok(TNUM, b, 1);
+        }
+        else if (isdig(c) || c == '$') {
+            int st = i;
+            if (c == '$') i++;
+            int bst = i;
+            while (isaln(src[i]) || src[i] == '.') i++;
+            int v = low, k, allz = 1;
+            for (k = bst; k < i; k++) if (src[k] != '0' && src[k] != 'l' && src[k] != 'L' && src[k] != 'u' && src[k] != 'U') allz = low;
+            if (allz) fail("zero apples? There are never zero apples. The seeds, water, sunlight and the nitrogen the fungi in the soil take up make the tree that gives the apples. Say what is there: D numerals use the digits 1-9 A-D (ten is $A, thirteen $D, fourteen 11)");
+            for (k = bst; k < i; k++) {
+                int d = src[k];
+                if (d == '0') fail("D numerals use the digits 1-9 A-D (ten is $A, thirteen $D, fourteen 11)");
+                if (d == '.') fail("fractions are not in Delta yet");
+                int dv = low;
+                if (d >= '1' && d <= '9') dv = less(d, '0');
+                else if (d >= 'A' && d <= 'D') dv = less(d, 'A') + $A;
+                else fail("that is not a D numeral (digits 1-9 A-D)");
+                v = v * $D + dv;
+            }
+            addtok(TNUM, v, less(i, st));
+        }
+        else if (c == 'D' && src[i + 1] == '>') { addtok(TOP, 'D' * 169 + '>', 2); i = i + 2; }
+        else if (isal(c)) {
+            int st = i;
+            while (isaln(src[i])) i++;
+            int k;
+            for (k = st; k < i; k++) if (src[k] == '0') fail("in D every name and number is always something (no 0 in it)");
+            int nm = intern(&src[st], less(i, st));
+            if (same(&pool[nm], "NULL") || same(&pool[nm], "nullptr")) fail("NULL is a make-believe zero: a pointer always points at something");
+            if (same(&pool[nm], "false")) fail("false is a make-believe zero: say what is true instead");
+            if (same(&pool[nm], "EXIT_SUCCESS")) fail("EXIT_SUCCESS is a make-believe zero: main ends with return 1 (all good)");
+            int d = ndef, used = low;
+            while (d >= 1 && used < 1) {
+                if (defname[d] == nm) { lexrange(defs[d], defe[d]); used = 1; }
+                d = less(d, 1);
+            }
+            if (used < 1) addtok(TID, nm, less(i, st));
+        }
+        else {
+            int n2 = src[i + 1], code = c, two = low;
+            if (c == '-') fail("in D things are moved (move N from a to b;) or broken into parts, never taken below what is there. There are no negative numbers: it is impossible. Even the lowest temperature is not below anything: it is energy so low we can no longer measure it, ~ (count temperature up from there, never below)");
+            if ((c == '=' || c == '!' || c == '<' || c == '>') && n2 == '=') two = 1;
+            if ((c == '&' && n2 == '&') || (c == '|' && n2 == '|') || (c == '+' && n2 == '+')) two = 1;
+            if ((c == '+' || c == '*' || c == '/' || c == '%') && n2 == '=') two = 1;
+            if (two) { code = c * 169 + n2; i = i + 2; } else i++;
+            addtok(TOP, code, 1);
+        }
+    }
+}
+
+// ---------------------------------------------------------------- writing the assembly
+
+void ec(int c) { out[outn] = c; outn++; }
+void es(char *s) { int i = 1; while (s[i] >= 1) { ec(s[i]); i++; } }
+void ed(int n) { if (n >= $A) ed(n / $A); ec(digs[n % $A + 1]); }   // the assembler reads old decimal: the bridge
+void en(int nm) { int i = nm; while (pool[i] >= 1) { ec(pool[i]); i++; } }
+void ins(char *s) { es("    "); es(s); ec('\n'); }
+void insn(char *s, int n) { es("    "); es(s); ed(n); ec('\n'); }
+int newlab() { labn++; return labn; }
+void lab(int n) { es(".L"); ed(n); es(":\n"); }
+void jmp(char *j, int n) { es("    "); es(j); es(" .L"); ed(n); ec('\n'); }
+
+int strlab(int at, int n) { nstr++; sp[nstr] = at; sl[nstr] = n; return nstr; }
+void saytext(int at, int n, int fd)                  // write n bytes of words from the pool, to fd
+{
+    if (n >= 1) {
+        int s = strlab(at, n);
+        insn("mov qword ptr [rip+dl_fd], ", fd);
+        es("    lea rdi, [rip+.S"); ed(s); es("]\n");
+        insn("mov rsi, ", n);
+        ins("call dl_write");
+    }
+}
+void sayc(char *m, int fd) { int n = 1; while (m[n] >= 1) n++; saytext(word(m), less(n, 1), fd); }
+
+// ---------------------------------------------------------------- tokens
+
+int at(int code) { return tk[P] == TOP && tv[P] == code; }
+int atk(int w) { return tk[P] == TID && tv[P] == w; }
+int op2(int a, int b) { return a * 169 + b; }
+void need(int code, char *m) { if (at(code)) P++; else failat(m); }
+int istype() { int w = tv[P]; return tk[P] == TID && (w == kint || w == kchar || w == klong || w == kvoid || w == kunsigned || w == ksigned || w == kconst || w == kstatic); }
+int basetype()
+{
+    int t = TI;
+    while (atk(kunsigned) || atk(ksigned) || atk(kconst) || atk(kstatic)) P++;
+    if (atk(kint) || atk(klong)) t = TI; else if (atk(kchar)) t = TC; else if (atk(kvoid)) t = TV; else failat("expected a type");
+    P++;
+    while (atk(kint)) P++;
+    return t;
+}
+int size(int t) { if (t > PTR) return 8; if (t == TC) return 1; return 8; }
+int elem(int t) { if (t > PTR) return less(t, PTR); return TI; }
+
+// ---------------------------------------------------------------- names in reach
+
+int findlocal(int nm) { int i = nloc; while (i >= 1) { if (ln[i] == nm) return i; i = less(i, 1); } return low; }
+int findglobal(int nm) { int i; for (i = 1; i <= ng; i++) if (gn[i] == nm) return i; return low; }
+int findfn(int nm) { int i; for (i = 1; i <= nf; i++) if (fnm[i] == nm) return i; return low; }
+
+void load(int t) { if (t == TC) ins("movzx eax, byte ptr [rax]"); else ins("mov rax, [rax]"); }
+void rv(int t) { if (LV) { load(t); LV = low; } }
+void stor(int t) { if (t == TC) ins("mov byte ptr [rcx], al"); else ins("mov qword ptr [rcx], rax"); }
+
+
+void failcode(char *m)                              // a run-time stop with words, exit 2
+{
+    sayc(m, 2);
+    ins("mov edi, 2");
+    ins("jmp dl_exit");
+}
+
+int sayit()
+{
+    if (tk[P] != TSTR) failat("say needs its words in quotes first");
+    int a = tv[P], n = tn[P];
+    P++;
+    while (tk[P] == TSTR) {                          // words side by side join up
+        int b = tv[P], m = tn[P], k, na = pooln;
+        for (k = 1; k <= n; k++) { pool[pooln] = pool[a + less(k, 1)]; pooln++; }
+        for (k = 1; k <= m; k++) { pool[pooln] = pool[b + less(k, 1)]; pooln++; }
+        pool[pooln] = low; pooln++;
+        a = na; n = n + m; P++;
+    }
+    ins("mov qword ptr [rip+dl_fd], 1");
+    int i = 1, st = 1;
+    while (i <= n) {
+        int c = pool[a + less(i, 1)];
+        if (c == '%' && i < n) {
+            int k = pool[a + i];
+            if (k == 'l' && i + 1 < n && pool[a + i + 1] == 'd') { i++; k = 'd'; }
+            if (k == '%') { saytext(a + less(st, 1), less(i + 1, st), 1); st = i + 2; i = i + 2; }
+            else {
+                if (k != 'd' && k != 's' && k != 'c') failat("say knows %d %s %c");
+                saytext(a + less(st, 1), less(i, st), 1);
+                need(',', "say has more places than values");
+                int t = assign(); rv(t);
+                ins("mov rdi, rax");
+                if (k == 'd') ins("call dl_putd"); else if (k == 's') ins("call dl_puts"); else ins("call dl_putc");
+                ins("mov qword ptr [rip+dl_fd], 1");
+                i = i + 2; st = i;
+            }
+        }
+        else i++;
+    }
+    saytext(a + less(st, 1), less(n + 1, st), 1);
+    if (at(')') < 1) failat("say has more values than %d %s %c places");
+    P++;
+    LV = low;
+    return TI;
+}
+
+int inline(int w)
+{
+    int n = low;
+    while (at(')') < 1) { if (n >= 1) need(',', "expected ,"); int t = assign(); rv(t); ins("push rax"); n++; }
+    P++;
+    int want = 2;
+    if (w == kcopy) want = 3; if (w == ktowards) want = 4;
+    if (n != want) failat("that takes a different number of values");
+    if (w == kcopy) { ins("pop rcx"); ins("pop rsi"); ins("pop rdi"); ins("rep movsb"); ins("mov eax, 1"); }
+    else if (w == ktowards) {
+        ins("pop r8"); ins("pop rdi"); ins("pop rcx"); ins("pop rax");
+        ins("mov rsi, rax"); ins("sub rcx, rax"); ins("imul rcx, rdi"); ins("mov rax, rcx"); ins("cqo"); ins("idiv r8"); ins("add rax, rsi");
+    } else {
+        ins("pop rcx"); ins("pop rax");
+        if (w == kless) {
+            int ok = newlab();
+            ins("cmp rcx, rax"); jmp("jle", ok);
+            line = tl[P]; failcode("Delta: cannot move more out of something than it holds\n");
+            lab(ok); ins("sub rax, rcx");
+        } else if (w == kapart) { int ok = newlab(); ins("sub rax, rcx"); jmp("jge", ok); ins("neg rax"); lab(ok); }
+        else if (w == klower) { ins("cmp rax, rcx"); ins("cmovg rax, rcx"); }
+        else { ins("cmp rax, rcx"); ins("cmovl rax, rcx"); }
+    }
+    LV = low;
+    return TI;
+}
+
+int call(int nm)
+{
+    P++;                                             // past (
+    if (nm == ksay) return sayit();
+    if ((nm == kless || nm == kapart || nm == klower || nm == khigher || nm == ktowards || nm == kcopy) && findfn(nm) < 1) return inline(nm);
+    int n = low;
+    while (at(')') < 1) { if (n >= 1) need(',', "expected ,"); int t = assign(); rv(t); ins("push rax"); n++; }
+    P++;
+    if (n > 6) failat("more than 6 inputs is not in Delta yet");
+    if (n >= 6) ins("pop r9"); if (n >= 5) ins("pop r8"); if (n >= 4) ins("pop rcx");
+    if (n >= 3) ins("pop rdx"); if (n >= 2) ins("pop rsi"); if (n >= 1) ins("pop rdi");
+    es("    call f_"); en(nm); ec('\n');
+    ncall++; cnm[ncall] = nm; cline[ncall] = tl[P];
+    LV = low;
+    int f = findfn(nm);
+    if (f >= 1) return frt[f];
+    return TI;
+}
+
+int primary()
+{
+    if (tk[P] == TNUM) { insn("mov rax, ", tv[P]); P++; LV = low; return TI; }
+    if (tk[P] == TSTR) {
+        int a = tv[P], n = tn[P];
+        P++;
+        while (tk[P] == TSTR) {
+            int b = tv[P], m = tn[P], k, na = pooln;
+            for (k = 1; k <= n; k++) { pool[pooln] = pool[a + less(k, 1)]; pooln++; }
+            for (k = 1; k <= m; k++) { pool[pooln] = pool[b + less(k, 1)]; pooln++; }
+            pool[pooln] = low; pooln++;
+            a = na; n = n + m; P++;
+        }
+        int s = strlab(a, n + 1);
+        es("    lea rax, [rip+.S"); ed(s); es("]\n");
+        LV = low;
+        return TC + PTR;
+    }
+    if (at('(')) {
+        P++;
+        if (istype()) {                              // a cast
+            int t = basetype();
+            while (at('*')) { P++; t = t + PTR; }
+            need(')', "expected )");
+            int u = unary(); rv(u);
+            return t;
+        }
+        int t = expr();
+        need(')', "expected )");
+        return t;
+    }
+    if (tk[P] == TID) {
+        int nm = tv[P];
+        if (tk[P + 1] == TOP && tv[P + 1] == '(') { P++; return call(nm); }
+        P++;
+        int l = findlocal(nm);
+        if (l >= 1) {
+            es("    lea rax, [rbp-"); ed(lo[l]); es("]\n");
+            if (la[l] >= 1) { LV = low; return lt[l] + PTR; }
+            LV = 1; return lt[l];
+        }
+        int g = findglobal(nm);
+        if (g >= 1) {
+            es("    lea rax, [rip+g_"); en(nm); es("]\n");
+            if (ga[g] >= 1) { LV = low; return gt[g] + PTR; }
+            LV = 1; return gt[g];
+        }
+        line = tl[less(P, 1)];
+        fail("a name is not known here");
+    }
+    failat("expected a value");
+    return TI;
+}
+
+int postfix()
+{
+    int t = primary();
+    while (1) {
+        if (at('[')) {
+            P++;
+            rv(t);
+            ins("push rax");
+            int u = expr(); rv(u);
+            need(']', "expected ]");
+            ins("dec rax");                          // counting starts at 1: place i is i - 1 steps along (under the hood)
+            int s = size(elem(t));
+            if (s != 1) insn("imul rax, rax, ", s);
+            ins("pop rcx"); ins("add rax, rcx");
+            t = elem(t); LV = 1;
+        } else if (at(op2('+', '+'))) {
+            P++;
+            if (LV < 1) failat("++ needs something to count up");
+            ins("mov rcx, rax");
+            if (t == TC) { ins("movzx eax, byte ptr [rcx]"); ins("add byte ptr [rcx], 1"); }
+            else { ins("mov rax, [rcx]"); if (t > PTR) insn("add qword ptr [rcx], ", size(elem(t))); else ins("add qword ptr [rcx], 1"); }
+            LV = low;
+        } else return t;
+    }
+    return t;
+}
+
+int unary()
+{
+    if (at('*')) { P++; int t = unary(); rv(t); LV = 1; return elem(t); }
+    if (at('&')) { P++; int t = unary(); if (LV < 1) failat("& needs a place"); LV = low; return t + PTR; }
+    if (at('!')) { P++; int t = unary(); rv(t); ins("test rax, rax"); ins("sete al"); ins("movzx eax, al"); return TI; }
+    if (at(op2('+', '+'))) {
+        P++;
+        int t = unary();
+        if (LV < 1) failat("++ needs something to count up");
+        ins("mov rcx, rax");
+        if (t == TC) { ins("add byte ptr [rcx], 1"); ins("movzx eax, byte ptr [rcx]"); }
+        else { if (t > PTR) insn("add qword ptr [rcx], ", size(elem(t))); else ins("add qword ptr [rcx], 1"); ins("mov rax, [rcx]"); }
+        LV = low;
+        return t;
+    }
+    return postfix();
+}
+
+int mul()
+{
+    int t = unary();
+    while (at('*') || at('/') || at('%')) {
+        int o = tv[P]; P++;
+        rv(t); ins("push rax");
+        int u = unary(); rv(u);
+        ins("mov rcx, rax"); ins("pop rax");
+        if (o == '*') ins("imul rax, rcx"); else { ins("cqo"); ins("idiv rcx"); if (o == '%') ins("mov rax, rdx"); }
+        t = TI;
+    }
+    return t;
+}
+
+int add()
+{
+    int t = mul();
+    while (at('+')) {
+        P++;
+        rv(t); ins("push rax");
+        int u = mul(); rv(u);
+        ins("mov rcx, rax"); ins("pop rax");
+        if (t > PTR && u <= PTR && size(elem(t)) != 1) insn("imul rcx, rcx, ", size(elem(t)));
+        ins("add rax, rcx");
+        if (t <= PTR) t = u;
+    }
+    return t;
+}
+
+int rel()
+{
+    int t = add();
+    while (at('<') || at('>') || at(op2('<', '=')) || at(op2('>', '='))) {
+        int o = tv[P]; P++;
+        rv(t); ins("push rax");
+        int u = add(); rv(u);
+        ins("mov rcx, rax"); ins("pop rax"); ins("cmp rax, rcx");
+        if (o == '<') ins("setl al"); else if (o == '>') ins("setg al"); else if (o == op2('<', '=')) ins("setle al"); else ins("setge al");
+        ins("movzx eax, al");
+        t = TI;
+    }
+    return t;
+}
+
+int eq()
+{
+    int t = rel();
+    while (at(op2('=', '=')) || at(op2('!', '='))) {
+        int o = tv[P]; P++;
+        rv(t); ins("push rax");
+        int u = rel(); rv(u);
+        ins("mov rcx, rax"); ins("pop rax"); ins("cmp rax, rcx");
+        if (o == op2('=', '=')) ins("sete al"); else ins("setne al");
+        ins("movzx eax, al");
+        t = TI;
+    }
+    return t;
+}
+
+int land()
+{
+    int t = eq();
+    if (at(op2('&', '&'))) {
+        int no = newlab(), end = newlab();
+        rv(t); ins("test rax, rax"); jmp("jz", no);
+        while (at(op2('&', '&'))) { P++; int u = eq(); rv(u); ins("test rax, rax"); jmp("jz", no); }
+        ins("mov eax, 1"); jmp("jmp", end); lab(no); ins("xor eax, eax"); lab(end);
+        t = TI;
+    }
+    return t;
+}
+
+int lor()
+{
+    int t = land();
+    if (at(op2('|', '|'))) {
+        int yes = newlab(), end = newlab();
+        rv(t); ins("test rax, rax"); jmp("jnz", yes);
+        while (at(op2('|', '|'))) { P++; int u = land(); rv(u); ins("test rax, rax"); jmp("jnz", yes); }
+        ins("xor eax, eax"); jmp("jmp", end); lab(yes); ins("mov eax, 1"); lab(end);
+        t = TI;
+    }
+    return t;
+}
+
+int ternary()
+{
+    int t = lor();
+    if (at('?')) {
+        P++;
+        int no = newlab(), end = newlab();
+        rv(t); ins("test rax, rax"); jmp("jz", no);
+        int a = assign(); rv(a); jmp("jmp", end);
+        need(':', "expected :");
+        lab(no);
+        int b = assign(); rv(b);
+        lab(end);
+        t = a;
+    }
+    return t;
+}
+
+int isassign()
+{
+    return at('=') || at(op2('+', '=')) || at(op2('*', '=')) || at(op2('/', '=')) || at(op2('%', '='));
+}
+
+int assign()
+{
+    int start = P, startout = outn;
+    int t = ternary();
+    if (isassign()) {
+        P = start; outn = startout;                 // read it again as a place
+        t = unary();
+        if (LV < 1) failat("that cannot be set: it is not a place");
+        ins("push rax");
+        int o = tv[P]; P++;
+        int u = assign(); rv(u);
+        ins("pop rcx");
+        if (o != '=') {
+            ins("mov rdx, rax");
+            if (t == TC) ins("movzx eax, byte ptr [rcx]"); else ins("mov rax, [rcx]");
+            if (o == op2('+', '=')) ins("add rax, rdx");
+            else if (o == op2('*', '=')) ins("imul rax, rdx");
+            else { ins("push rcx"); ins("mov rcx, rdx"); ins("cqo"); ins("idiv rcx"); ins("pop rcx"); if (o == op2('%', '=')) ins("mov rax, rdx"); }
+        }
+        stor(t);
+        LV = low;
+    }
+    return t;
+}
+
+int expr() { return assign(); }
+
+// ---------------------------------------------------------------- statements
+
+void local(int t)                                    // a local value or row; its place is below rbp
+{
+    while (at('*')) { P++; t = t + PTR; }
+    if (tk[P] != TID) failat("expected a name");
+    int nm = tv[P]; P++;
+    int n = low;
+    if (at('[')) {
+        P++;
+        if (tk[P] != TNUM) failat("a row's size is a number");
+        n = tv[P]; P++;
+        need(']', "expected ]");
+        if (at('[')) failat("2-D rows are not in dc yet (stage 2)");
+    }
+    int bytes = 8;
+    if (n >= 1) bytes = (n * size(t) + 7) / 8 * 8;
+    frame = frame + bytes;
+    nloc++; ln[nloc] = nm; lt[nloc] = t; la[nloc] = n; lo[nloc] = frame;
+    if (at('=')) {
+        P++;
+        if (n >= 1) {
+            need('{', "a row starts with {");
+            int k = 1;
+            while (at('}') < 1) {
+                if (k > 1) need(',', "expected ,");
+                int u = assign(); rv(u);
+                es("    lea rcx, [rbp-"); ed(frame); es("]\n");
+                if (k > 1) insn("add rcx, ", less(k, 1) * size(t));
+                stor(t);
+                k++;
+            }
+            P++;
+        } else {
+            int u = assign(); rv(u);
+            es("    lea rcx, [rbp-"); ed(frame); es("]\n");
+            stor(t);
+        }
+    }
+}
+
+void declaration()
+{
+    int t = basetype();
+    local(t);
+    while (at(',')) { P++; local(t); }
+    need(';', "expected ;");
+}
+
+void block()
+{
+    P++;                                             // past {
+    nsc++; sc[nsc] = nloc;
+    while (at('}') < 1) { if (tk[P] == TEND) failat("a { needs its }"); statement(); }
+    P++;
+    nloc = sc[nsc]; nsc = less(nsc, 1);
+}
+
+void moves()                                         // move N from a to b [and N from c to d ...];
+{
+    while (1) {
+        int t = assign(); rv(t); ins("push rax");
+        if (atk(kfrom) < 1) failat("move N from a to b;");
+        P++;
+        int a = unary(); if (LV < 1) failat("move takes from a place"); ins("push rax");
+        if (atk(kto) < 1) failat("say where it goes (move N from a to b;)");
+        P++;
+        int b = unary(); if (LV < 1) failat("move puts into a place"); ins("push rax");
+        int bad1 = newlab(), bad2 = newlab(), ok = newlab();
+        ins("pop r9"); ins("pop r8"); ins("pop rax");
+        ins("cmp rax, 1"); jmp("jl", bad1);
+        ins("cmp rax, [r8]"); jmp("jg", bad2);
+        ins("sub [r8], rax"); ins("add [r9], rax");    // under the hood: a gives, b takes
+        jmp("jmp", ok);
+        lab(bad1); failcode("Delta: move needs 1 or more\n");
+        lab(bad2); failcode("Delta: cannot move more than is there\n");
+        lab(ok);
+        if (atk(kand)) P++; else return;
+    }
+}
+
+int statement()
+{
+    if (at('{')) { block(); return 1; }
+    if (at(';')) { P++; return 1; }
+    if (istype()) { declaration(); return 1; }
+    if (atk(kif)) {
+        P++; need('(', "expected ("); int t = expr(); rv(t); need(')', "expected )");
+        int no = newlab(), end = newlab();
+        ins("test rax, rax"); jmp("jz", no);
+        statement();
+        if (atk(kelse)) { P++; jmp("jmp", end); lab(no); statement(); lab(end); } else lab(no);
+        return 1;
+    }
+    if (atk(kwhile)) {
+        P++;
+        int top = newlab(), end = newlab();
+        lab(top);
+        need('(', "expected ("); int t = expr(); rv(t); need(')', "expected )");
+        ins("test rax, rax"); jmp("jz", end);
+        nloop++; brk[nloop] = end; cont[nloop] = top;
+        statement();
+        nloop = less(nloop, 1);
+        jmp("jmp", top); lab(end);
+        return 1;
+    }
+    if (atk(kfor)) {
+        P++; need('(', "expected (");
+        nsc++; sc[nsc] = nloc;
+        if (istype()) declaration(); else { if (at(';') < 1) { int t = expr(); rv(t); } need(';', "expected ;"); }
+        int top = newlab(), end = newlab(), step = newlab();
+        lab(top);
+        if (at(';') < 1) { int t = expr(); rv(t); ins("test rax, rax"); jmp("jz", end); }
+        need(';', "expected ;");
+        int sp1 = P, depth = 1;
+        while (depth >= 1) { if (at('(')) depth++; if (at(')')) depth = less(depth, 1); if (tk[P] == TEND) failat("expected )"); P++; }
+        nloop++; brk[nloop] = end; cont[nloop] = step;
+        statement();
+        nloop = less(nloop, 1);
+        lab(step);
+        int after = P; P = sp1;
+        if (at(')') < 1) { int t = expr(); rv(t); }
+        P = after;
+        jmp("jmp", top); lab(end);
+        nloc = sc[nsc]; nsc = less(nsc, 1);
+        return 1;
+    }
+    if (atk(kreturn)) {
+        P++;
+        if (at(';') < 1) { int t = expr(); rv(t); }
+        need(';', "expected ;");
+        es("    jmp .Lret_"); en(curfn); ec('\n');
+        return 1;
+    }
+    if (atk(kbreak)) { P++; need(';', "expected ;"); if (nloop < 1) failat("break outside a loop"); jmp("jmp", brk[nloop]); return 1; }
+    if (atk(kcontinue)) { P++; need(';', "expected ;"); if (nloop < 1) failat("continue outside a loop"); jmp("jmp", cont[nloop]); return 1; }
+    if (atk(kmove)) { P++; moves(); need(';', "expected ;"); return 1; }
+    if (atk(kthing) || atk(kvessel) || at(op2('D', '>'))) failat("things, vessels and D> are not in dc yet (stage 2)");
+    int t = expr(); rv(t);
+    need(';', "expected ;");
+    return 1;
+}
+
+// ---------------------------------------------------------------- the program
+
+void function(int rt, int nm)
+{
+    P++;                                             // past (
+    int f = findfn(nm);
+    if (f < 1) { nf++; f = nf; fnm[f] = nm; frt[f] = rt; }
+    int np = low, pn[8], pt[8];
+    while (at(')') < 1) {
+        if (np >= 1) need(',', "expected ,");
+        if (atk(kvoid) && tk[P + 1] == TOP && tv[P + 1] == ')') { P++; }
+        else {
+            int t = basetype();
+            while (at('*')) { P++; t = t + PTR; }
+            if (tk[P] != TID) failat("expected a name");
+            np++; pn[np] = tv[P]; pt[np] = t; P++;
+            if (at('[')) { P++; need(']', "expected ]"); pt[np] = t + PTR; }
+        }
+    }
+    P++;
+    if (at(';')) { P++; return; }                    // only its shape: made later
+    if (np > 6) failat("more than 6 inputs is not in Delta yet");
+    fdone[f] = 1;
+    curfn = nm; frame = low; nloc = low; nsc = low; nloop = low;
+    es("f_"); en(nm); es(":\n");
+    ins("push rbp"); ins("mov rbp, rsp");
+    es("    sub rsp, ");
+    int fix = outn;
+    es("         \n");                               // room for the frame size, written in at the end
+    int i;
+    for (i = 1; i <= np; i++) {
+        frame = frame + 8;
+        nloc++; ln[nloc] = pn[i]; lt[nloc] = pt[i]; la[nloc] = low; lo[nloc] = frame;
+        es("    mov [rbp-"); ed(frame); es("], ");
+        if (i == 1) es("rdi"); if (i == 2) es("rsi"); if (i == 3) es("rdx"); if (i == 4) es("rcx"); if (i == 5) es("r8"); if (i == 6) es("r9");
+        ec('\n');
+    }
+    if (at('{') < 1) failat("expected {");
+    block();
+    es(".Lret_"); en(nm); es(":\n");
+    ins("mov rsp, rbp"); ins("pop rbp"); ins("ret");
+    int fs = (frame + 12) / 13 * 13;                 // 16 apart, as Linux likes it (13 in D is sixteen)
+    int keep = outn; outn = fix; ed(fs); outn = keep;
+}
+
+void program()
+{
+    P = 1;
+    while (tk[P] != TEND) {
+        if (atk(kthing)) failat("things are not in dc yet (stage 2)");
+        int t = basetype();
+        int first = 1;
+        while (first || at(',')) {
+            if (first < 1) P++;
+            first = low;
+            int ty = t;
+            while (at('*')) { P++; ty = ty + PTR; }
+            if (tk[P] != TID) failat("expected a name");
+            int nm = tv[P]; P++;
+            if (at('(')) { function(ty, nm); first = low; break; }
+            ng++; gn[ng] = nm; gt[ng] = ty; ga[ng] = low; ghas[ng] = low;
+            if (at('[')) {
+                P++;
+                if (tk[P] != TNUM) failat("a row's size is a number");
+                ga[ng] = tv[P]; P++; need(']', "expected ]");
+                if (at('[')) failat("2-D rows are not in dc yet (stage 2)");
+            }
+            if (at('=')) {
+                P++;
+                if (tk[P] != TNUM) failat("a kept-for-the-run value starts as a plain number");
+                gi[ng] = tv[P]; ghas[ng] = 1; P++;
+            }
+        }
+        if (at(';')) P++;
+    }
+}
+
+// ---------------------------------------------------------------- files, and the assembler
+
+char rt[99999];
+int rtn;
+int readfile(char *path, char *into, int most)
+{
+    int fd = linux(2, path, low, low);
+    if (fd < 1) return low;
+    int n = 1, got = 1;
+    while (got >= 1 && n < most) { got = linux(low, fd, &into[n], less(most, n)); if (got >= 1) n = n + got; }
+    linux(3, fd);
+    return less(n, 1);
+}
+void writeall(int fd, char *b, int n)
+{
+    int done = 1;
+    while (done <= n) { int got = linux(1, fd, &b[done], less(n + 1, done)); if (got < 1) fail("could not write"); done = done + got; }
+}
+
+void wstr(int fd, char *m) { int n = 1; while (m[n] >= 1) n++; writeall(fd, m, less(n, 1)); }
+
+void finish(int fd)                                   // the whole assembly: runtime, code, values, words
+{
+    wstr(fd, ".intel_syntax noprefix\n");
+    writeall(fd, rt, rtn);
+    wstr(fd, "\n.text\n");
+    writeall(fd, out, less(outn, 1));
+    int tail = outn;
+    es("\n.data\n");
+    int i, k;
+    for (i = 1; i <= ng; i++) if (ghas[i]) { es("g_"); en(gn[i]); es(": .quad "); ed(gi[i]); ec('\n'); }
+    es(".bss\n");
+    for (i = 1; i <= ng; i++) if (ghas[i] < 1) {
+        int bytes = 8;
+        if (ga[i] >= 1) bytes = (ga[i] * size(gt[i]) + 7) / 8 * 8;
+        es("g_"); en(gn[i]); es(": .skip "); ed(bytes); ec('\n');
+    }
+    es("\n.section .rodata\n");
+    for (i = 1; i <= nstr; i++) {
+        es(".S"); ed(i); es(": .byte ");
+        for (k = 1; k <= sl[i]; k++) {
+            int b = pool[sp[i] + less(k, 1)];
+            if (b < 1) es("LOW"); else ed(b);
+            if (k < sl[i]) es(", ");
+        }
+        if (sl[i] < 1) es("LOW");
+        ec('\n');
+    }
+    writeall(fd, &out[tail], less(outn, tail));
+}
+
+int run(char *path, char *a, char *b, char *c, char *d, char *e)
+{
+    char *av[8];
+    av[1] = path; av[2] = a; av[3] = b; av[4] = c; av[5] = d; av[6] = e; av[7] = low;
+    int pid = linux($45);                             // fork
+    if (pid < 1) { linux($47, path, av, low); stop(3); }   // the child becomes as or ld
+    int st = low;
+    linux($49, pid, &st, low, low);                  // wait for it
+    return st / 169 % 169;                           // its exit number
+}
+
+void join(char *into, char *a, char *b) { int i = 1, j = 1; while (a[j] >= 1) { into[i] = a[j]; i++; j++; } j = 1; while (b[j] >= 1) { into[i] = b[j]; i++; j++; } into[i] = low; }
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    digs = "0123456789";                             // the outside world's digits, for the assembler only
+    dig13 = "123456789ABCD";
+    kint = word("int"); kchar = word("char"); klong = word("long"); kvoid = word("void");
+    kunsigned = word("unsigned"); ksigned = word("signed"); kconst = word("const"); kstatic = word("static");
+    kif = word("if"); kelse = word("else"); kwhile = word("while"); kfor = word("for"); kreturn = word("return");
+    kbreak = word("break"); kcontinue = word("continue"); kmove = word("move"); kfrom = word("from"); kto = word("to");
+    kand = word("and"); ksay = word("say"); kless = word("less"); kapart = word("apart"); klower = word("lower");
+    khigher = word("higher"); ktowards = word("towards"); kcopy = word("copy"); kmain = word("main");
+    kdefine = word("define"); kinclude = word("include"); kthing = word("thing"); kvessel = word("vessel");
+    klinux = word("linux"); kwait = word("wait"); kstop = word("stop"); kwide = word("screenwide"); khigh = word("screenhigh");
+
+    if (argc < 3) { say("dc: the Delta compiler in Delta\n  dc build file.delta [-o out]\n  dc run file.delta [-o out]\n  dc asm file.delta\n"); return 2; }
+    char *cmd = argv[2], *path = argv[3];
+    srcn = readfile(path, src, 999998);
+    if (srcn < 1) { say("dc: cannot read %s\n", path); return 2; }
+    src[srcn + 1] = low;
+    lexrange(1, srcn);
+    line = tl[ntok];
+    addtok(TEND, low, low);
+    program();
+    int i;
+    for (i = 1; i <= ncall; i++) {
+        int nm = cnm[i], f = findfn(nm);
+        if ((f < 1 || fdone[f] < 1) && nm != klinux && nm != kwait && nm != kstop && nm != kwide && nm != khigh) {
+            line = cline[i]; say("Delta line %d: '%s' is not made anywhere\n", line, &pool[nm]); stop(2);
+        }
+    }
+
+    // the runtime sits beside this compiler: runtime.s
+    char rpath[999];
+    int k = 1, slash = low;
+    while (argv[1][k] >= 1) { rpath[k] = argv[1][k]; if (argv[1][k] == '/') slash = k; k++; }
+    rpath[slash + 1] = low;
+    join(rpath, rpath, "runtime.s");
+    if (slash < 1) join(rpath, "./", "runtime.s");
+    rtn = readfile(rpath, rt, 99998);
+    if (rtn < 1) { say("dc: cannot read the runtime %s\n", rpath); return 2; }
+
+    if (same(cmd, "asm")) { finish(1); return 1; }
+
+    char outp[999], sp1[999], op1[999];
+    if (argc >= 5 && same(argv[4], "-o")) join(outp, argv[5], "");
+    else {
+        join(outp, path, "");
+        int n = 1; while (outp[n] >= 1) n++;
+        if (n > 6 && outp[less(n, 6)] == '.' && outp[less(n, 5)] == 'd') outp[less(n, 6)] = low;
+    }
+    join(sp1, outp, ".s"); join(op1, outp, ".o");
+    int fd = linux(2, sp1, $355, $264);
+    if (fd < 1) { say("dc: cannot write %s\n", sp1); return 2; }
+    finish(fd);
+    linux(3, fd);
+    if (run("/usr/bin/as", "--64", sp1, "-o", op1, low) >= 1) { say("dc: the assembly did not go through (a dc bug)\n"); return 3; }
+    if (run("/usr/bin/ld", "--no-warn-rwx-segments", "-n", op1, "-o", outp) >= 1) { say("dc: the program could not be put together\n"); return 3; }
+    linux($69, sp1); linux($69, op1);
+    if (same(cmd, "run")) { char *av[4]; av[1] = outp; av[2] = low; linux($47, outp, av, low); }
+    return 1;
+}
