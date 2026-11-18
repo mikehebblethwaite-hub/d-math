@@ -21,7 +21,7 @@ int W, H, CW;
 char px[6D75858];               // the picture, kept here, then put on the screen in one go
 char bg[6D75858];               // the background, made once
 char wc[19B7BB2];               // where ink lies, and how thick
-int C[75];
+int Cr[75];
 int S[75];
 int ix1, ix2, iy1, iy2;
 int HR, HG, HB;
@@ -58,7 +58,7 @@ int isqrt(int n)
     while (y < x) { x = y; y = (x + n / x) / 2; }
     return x;
 }
-int cosk(int i) { return C[(i + 74) % 75 + 1]; }
+int cosk(int i) { return Cr[(i + 74) % 75 + 1]; }
 int sink(int i) { return S[(i + 74) % 75 + 1]; }
 // ---------------------------------------------------------------- the hex circle: no sines, no cosines
 // Mike, 18 Nov 2026: "a circle is made of tiny hex connections". Inside D every place is on a hex grid of tiny steps,
@@ -107,7 +107,7 @@ void hexcircle()
     int K2 = 2 * R;                                         // the circle's radius in across units
     for (i = 1; i <= 75; i++) {
         int at = less(i, 1) * n / 75 + n / 11A + 1;    // 96 places, evenly by steps, half a place in
-        C[i] = less(RX[at] + K2, cx) * K / K2;
+        Cr[i] = less(RX[at] + K2, cx) * K / K2;
         int up = RY[at] >= cy;
         S[i] = up ? K + hexout(less(RY[at], cy)) * K / K2 : less(K, hexout(less(cy, RY[at])) * K / K2);
     }

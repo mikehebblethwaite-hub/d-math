@@ -51,7 +51,10 @@ honest "words one by one"  'char *w = "hen"; for (int i = 1; w[i]; i++) say("%c.
 honest "char row"          'char b[4] = "ab"; b[3] = (char)78; say("%s\n", b);' 'abc'
 refuse "struct (not yet)"  'struct p { int a; } s; say("%d\n", s.a);'   'struct'
 honest "move keeps total"  'int a = 4, b = 1; move 4 from a to b; say("%d %d\n", a, b);' '~ 5'
-honest "letters in names"  'int Bob = 2, ABCD = 3; say("%d\n", Bob + ABCD);'    '5'
+honest "letters in names"  'int Bob = 2, Ann = 3; say("%d\n", Bob + Ann);'    '5'
+refuse "a numeral as a name"  'int ABCD = 3;'  'not a name'
+honest "letter numerals need no \$"  'int c = C + 1; say("%d\n", c + DD);'  '11D'
+
 honest "index by sum"      'int r[4] = {1,2,3,4}; int k = 2; say("%d\n", r[k + 1]);' '3'
 honest "2D row"            'int g[2][3] = {{1,2,3},{4,5,6}}; say("%d\n", g[2][3]);' '6'
 refuse "D> without ~"      'int a = 7, p = 1, q = 1; a D> p + q;'                 'ends with ~'
@@ -65,7 +68,7 @@ honest "D> even"            'int a = $C, x = 1, y = 1, z = 1; a D> x + y + z ~; 
 honest "D> amounts"        'int a = $A, s = 1, h = 1; a D> 3 s + 2 h ~; say("%d %d %d %d\n", s, h, ~, a);' '4 3 5 ~'
 honest "D> rest to ~"       'int a = 7, p = 1, q = 1; a D> p + q ~; say("%d %d %d\n", p, q, ~);' '4 4 1'
 honest "D> keeps the total" 'int a = $D, p = 1, q = 1; a D> 4 p + 3 q ~; say("%d\n", p + q + ~);' '12'
-honest "D > is still compare" 'int D = 2; if (D > 1) say("yes\n");'               'yes'
+honest "D > is still compare" 'if (D > 1) say("yes\n");'               'yes'
 
 # spent energy goes to neighbours; the total always stays the same
 last() {  # name, code, expected last line

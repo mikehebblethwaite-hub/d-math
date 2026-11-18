@@ -245,6 +245,14 @@ void lexrange(int i, int e)
             while (isaln(src[i])) i++;
             int k;
             for (k = st; k < i; k++) if (src[k] == '0') fail("in D every name and number is always something (no 0 in it)");
+            int alld = 1;                            // a word made only of D digits is a numeral, never a name
+            for (k = st; k < i; k++) if ((src[k] < '1' || src[k] > '9') && (src[k] < 'A' || src[k] > 'D')) alld = low;
+            if (alld) {
+                int v = low;
+                for (k = st; k < i; k++) { int d = src[k]; if (d <= '9') v = v * $D + less(d, '0'); else v = v * $D + less(d, 'A') + $A; }
+                addtok(TNUM, v, less(i, st));
+                continue;
+            }
             int nm = intern(&src[st], less(i, st));
             if (same(&pool[nm], "NULL") || same(&pool[nm], "nullptr")) fail("NULL is a make-believe zero: a pointer always points at something");
             if (same(&pool[nm], "false")) fail("false is a make-believe zero: say what is true instead");
@@ -343,6 +351,7 @@ int iskeyword(int w)
 }
 int name()
 {
+    if (tk[P] == TNUM) failat("expected a name: a word made only of D digits (1-9, A-D) is a numeral, not a name");
     if (tk[P] != TID || iskeyword(tv[P])) failat("expected a name");
     P++;
     return tv[less(P, 1)];

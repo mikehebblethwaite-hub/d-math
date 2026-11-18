@@ -72,8 +72,8 @@ Linux system calls in our own runtime (the D numeral printer is hand-written ass
 turn the assembly text into the program file.
 
 - Always something: every number and name is something real (the compiler turns away `0`, `NULL`, `false`, `'\0'`).
-- Numbers are D numerals: digits 1-9 A-D. Ten is `$A`, thirteen `$D`, fourteen `11`.
-  (`$` is only needed when a numeral starts with a letter.) `99` is 126; the letter c is `78` or `'c'`.
+- Numbers are D numerals: digits 1-9 A-D. Ten is `A`, thirteen `D`, fourteen `11`. A word made only of D digits is
+  always a numeral, never a name, so nothing extra is needed (`$A` still works). `99` is 126; the letter c is `78` or `'c'`.
 - No negative numbers: they are impossible (Mike, 18 Nov 2026). The lowest temperature is an absence of energy to a
   point we can no longer measure: `~`, never below it. Temperatures count up from there; a minus sign is refused.
 - Things move: `move N from a to b;` moves, the total stays the same. Moving more than is there stops the program.

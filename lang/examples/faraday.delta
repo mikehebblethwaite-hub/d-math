@@ -42,7 +42,7 @@ int wx1, wx2, wy1, wy2;
 int camX, camY, camZ, F, CX, CY;
 int PX, PY, PD;
 int HX, HY, HZ, HD;
-int C[75];                 // the turn across: K + how far across, at each of 96 places round the hex circle
+int Cr[75];                 // the turn across: K + how far across, at each of 96 places round the hex circle
 int S[75];                 // the turn along: K + how far along
 int ix1, ix2, iy1, iy2;        // where the numbers' ink went
 int floorh, roomh, roomr2, warmW, warmM;
@@ -73,7 +73,7 @@ int isqrt(int n)
     while (y < x) { x = y; y = (x + n / x) / 2; }
     return x;
 }
-int cosk(int i) { return C[(i + 74) % 75 + 1]; }
+int cosk(int i) { return Cr[(i + 74) % 75 + 1]; }
 int sink(int i) { return S[(i + 74) % 75 + 1]; }
 
 // ---------------------------------------------------------------- the hex circle: no sines, no cosines
@@ -123,7 +123,7 @@ void hexcircle()
     int K2 = 2 * R;                                         // the circle's radius in across units
     for (i = 1; i <= 75; i++) {
         int at = less(i, 1) * n / 75 + n / 11A + 1;    // 96 places, evenly by steps, half a place in
-        C[i] = less(RX[at] + K2, cx) * K / K2;
+        Cr[i] = less(RX[at] + K2, cx) * K / K2;
         int up = RY[at] >= cy;
         S[i] = up ? K + hexout(less(RY[at], cy)) * K / K2 : less(K, hexout(less(cy, RY[at])) * K / K2);
     }
@@ -371,24 +371,24 @@ void cyl(int cx, int cz, int rad, int yb, int yt, int m)
                     if (rc < top + 8) covy = lower(covy, less(rc + 8, top));
                     if (rc + 8 > bot) covy = lower(covy, less(bot + 8, rc));
                     int a = covx * covy / 13;
-                    int R, G, B;
+                    int R, G, Bl;
                     if (rc <= edge) {                                   // its top, seen from above
                         if (glass) {                                    // an open glass: only its rim shows
                             int nearrim = apart(rc, top) < 1B || apart(rc, edge) < 1B;
-                            R = 151; G = 15B; B = 161; a = nearrim ? a * 3 / 4 : 1;
+                            R = 151; G = 15B; Bl = 161; a = nearrim ? a * 3 / 4 : 1;
                         } else if (m == 4) {                        // mercury: a mirror, the lamp in it
-                            R = $D1 + fs / 4; G = $D7 + fs / 4; B = 114 + fs / 4;
+                            R = $D1 + fs / 4; G = $D7 + fs / 4; Bl = 114 + fs / 4;
                             int sp = apart(rc, (top + edge) / 2) < 31 && left && fu > 48 && fu < $AA;
-                            if (sp) { R = 165; G = 165; B = 163; }
+                            if (sp) { R = 165; G = 165; Bl = 163; }
                         } else {
-                            R = MR + 31 + fs / 5; G = MG + 31 + fs / 5; B = MB + 31 + fs / 5;
+                            R = MR + 31 + fs / 5; G = MG + 31 + fs / 5; Bl = MB + 31 + fs / 5;
                         }
                     } else {
-                        R = MR * L / 169 + spec; G = MG * L / 169 + spec; B = MB * L / 169 + spec;
-                        R = R + rim / 3; G = G + rim / 3; B = B + rim / 2;
+                        R = MR * L / 169 + spec; G = MG * L / 169 + spec; Bl = MB * L / 169 + spec;
+                        R = R + rim / 3; G = G + rim / 3; Bl = Bl + rim / 2;
                         if (glass) a = a * (31 + fu * $B7 / 169 + spec / 2) / 169;   // see-through, more at its edges
                     }
-                    mixpx(c, r, R, G, B, a);
+                    mixpx(c, r, R, G, Bl, a);
                 }
             }
         }
@@ -420,8 +420,8 @@ void lay(int m, int warm)                        // the stamped tube into the pi
             int lit = less(168, wn[k] * 3 / 5);
             int R = (MR + 17) * lit / 168 + ws[k] * MS / 187 + warm;
             int G = (MG + $A) * lit / 168 + ws[k] * MS / 1B8 + warm / 3;
-            int B = MB * lit / 168 + ws[k] * MS / 24A;
-            mixpx(x, y, R, G, B, wc[k] + 1);
+            int Bl = MB * lit / 168 + ws[k] * MS / 24A;
+            mixpx(x, y, R, G, Bl, wc[k] + 1);
         }
         wn[k] = 168; wc[k] = low; ws[k] = low;
     }

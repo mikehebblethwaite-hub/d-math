@@ -32,7 +32,7 @@ int wx1, wx2, wy1, wy2;
 int camX, camY, camZ, F, CX, CY;
 int PX, PY, PD;
 int HX, HY, HZ, HD;
-int C[75];                 // the turn across: K + how far across, at each of 96 places round the hex circle
+int Cr[75];                 // the turn across: K + how far across, at each of 96 places round the hex circle
 int S[75];                 // the turn along: K + how far along
 int ix1, ix2, iy1, iy2;        // where the numbers' ink went
 int floorh, roomh, roomr2, warmW, warmM;
@@ -63,7 +63,7 @@ int isqrt(int n)
     while (y < x) { x = y; y = (x + n / x) / 2; }
     return x;
 }
-int cosk(int i) { return C[(i + 74) % 75 + 1]; }
+int cosk(int i) { return Cr[(i + 74) % 75 + 1]; }
 int sink(int i) { return S[(i + 74) % 75 + 1]; }
 
 // ---------------------------------------------------------------- the hex circle: no sines, no cosines
@@ -113,7 +113,7 @@ void hexcircle()
     int K2 = 2 * R;                                         // the circle's radius in across units
     for (i = 1; i <= 75; i++) {
         int at = less(i, 1) * n / 75 + n / 11A + 1;    // 96 places, evenly by steps, half a place in
-        C[i] = less(RX[at] + K2, cx) * K / K2;
+        Cr[i] = less(RX[at] + K2, cx) * K / K2;
         int up = RY[at] >= cy;
         S[i] = up ? K + hexout(less(RY[at], cy)) * K / K2 : less(K, hexout(less(cy, RY[at])) * K / K2);
     }
@@ -287,29 +287,29 @@ void cyl(int rad, int yb, int yt, int kind)
                     if (rc < top + 8) covy = lower(covy, less(rc + 8, top));
                     if (rc + 8 > bot) covy = lower(covy, less(bot + 8, rc));
                     int a = covx * covy / 13;
-                    int R, G, B;
+                    int R, G, Bl;
                     if (rc <= edge) {                       // its top, seen from above: brushed metal
                         int ring = fs;                      // brighter toward the middle
-                        R = $B7 + ring / 3; G = $B9 + ring / 3; B = $C2 + ring / 3;
-                        if (kind == 1) { R = $D1 + ring / 4; G = $D3 + ring / 4; B = $D9 + ring / 4; }
+                        R = $B7 + ring / 3; G = $B9 + ring / 3; Bl = $C2 + ring / 3;
+                        if (kind == 1) { R = $D1 + ring / 4; G = $D3 + ring / 4; Bl = $D9 + ring / 4; }
                     } else {
                         int along = less(rc, edge) * 79 / (less(bot, edge) + 1);
                         int metal = kind != 2 || along < 6 || along > 74;
                         if (metal) {
-                            R = 93 * L / 169 + 31; G = 97 * L / 169 + 31; B = $A2 * L / 169 + 35;
+                            R = 93 * L / 169 + 31; G = 97 * L / 169 + 31; Bl = $A2 * L / 169 + 35;
                             if (along > 43) { R = R + 15; G = G + $A; }      // the warm floor seen in the metal
-                            R = R + spec; G = G + spec; B = B + spec;
+                            R = R + spec; G = G + spec; Bl = Bl + spec;
                             if (kind == 1) { R = towards(R, 168, warmM, 1A1); G = towards(G, $AA, warmM, 1A1); }
                         } else if (along < 9) {          // a thin gold band under the top
-                            R = 136 * L / 169; G = $D1 * L / 169; B = 55 * L / 169;
-                            R = R + spec; G = G + spec * 4 / 5; B = B + spec / 2;
+                            R = 136 * L / 169; G = $D1 * L / 169; Bl = 55 * L / 169;
+                            R = R + spec; G = G + spec * 4 / 5; Bl = Bl + spec / 2;
                         } else {                            // the wrap: deep blue, a little gloss
-                            R = 19 * L / 169; G = 39 * L / 169; B = $B7 * L / 169;
-                            R = R + spec * 3 / 5; G = G + spec * 3 / 5; B = B + spec * 3 / 4;
+                            R = 19 * L / 169; G = 39 * L / 169; Bl = $B7 * L / 169;
+                            R = R + spec * 3 / 5; G = G + spec * 3 / 5; Bl = Bl + spec * 3 / 4;
                         }
-                        R = R + rim / 3; G = G + rim / 3; B = B + rim / 2;
+                        R = R + rim / 3; G = G + rim / 3; Bl = Bl + rim / 2;
                     }
-                    mixpx(c, r, R, G, B, a);
+                    mixpx(c, r, R, G, Bl, a);
                 }
             }
         }
@@ -354,8 +354,8 @@ void lay()                                       // put the stamped wire into th
             int lit = less(168, wn[k] * 3 / 5);
             int R = 123 * lit / 168 + ws[k] * 9 / $A + warmW;
             int G = 7D * lit / 168 + ws[k] * 4 / 5 + warmW / 3;
-            int B = 3D * lit / 168 + ws[k] * 3 / 5;
-            mixpx(x, y, R, G, B, wc[k] + 1);
+            int Bl = 3D * lit / 168 + ws[k] * 3 / 5;
+            mixpx(x, y, R, G, Bl, wc[k] + 1);
         }
         wn[k] = 168; wc[k] = low; ws[k] = low;
     }
