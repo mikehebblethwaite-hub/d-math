@@ -57,7 +57,7 @@ The shapes for each digit are still to be drawn.
 ## Delta: C with D rules, straight to assembly (lang/)
 
 `lang/delta run file.delta` | `delta build file.delta -o out` | `delta asm file.delta` (shows the assembly it writes).
-Delta 0.16 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+Delta 0.17 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
 turn the assembly text into the program file.
 
@@ -93,12 +93,18 @@ turn the assembly text into the program file.
     `Shrug 2 ¯\\_(ツ)_/¯ where did that go? Investigate to bring the Shrug down.` `shrug()` reads it.
     An engineer aims for the smallest Shrug possible (Mike, 18 Nov 2026).
     As an engineer would say: "I built a new motor. It has losses, but at this point I have to shrug them off."
-    In Delta: `shrug 2 from core;` (a loss not traced yet). See `lang/examples/motor.delta`: the first build shrugs
-    off the core's heat; the second gives the core its neighbours (casing, then air) and adds nothing to the Shrug. `~` is different: the unknown energy
+    In Delta: `shrug 2 from core;` (a loss not traced yet). `~` is different: the unknown energy
     left inside a thing, whose place is known.
   - Heat cascades, as in the real world: using a thing turns it into heat, the heat vibrates its neighbours,
-    and they warm theirs. A store that takes spent energy or heat keeps half; its vibration passes the other
-    half on to its other neighbours, and so on, until the pieces are less than 1.
+    and they warm theirs. Whatever heat reaches keeps half; its vibration passes the other half on to its other
+    neighbours, and so on, until the pieces are less than 1. Power that reaches a store is kept there.
+  - Splits: `neighbours coil: rotor 76, core 3;` power goes by weight (76 parts to 3); `neighbours cell: air heat;`
+    touches it for heat only. `conduct coil loss 1 per 17;` loses a share (1 of every 20), never less than 1.
+  - Example, standing on Faraday's shoulders: `lang/examples/motor.delta`, the classic simple motor (a 1.5 V
+    battery on a magnet, a copper wire touching both: Faraday's homopolar motor, 1821). The current's energy splits
+    by resistance (battery about 58%, sliding contact 38%, wire 3.4%, magnet 0.4%); only the push on the wire,
+    F = B I L, turns it, about 1 part in 400. The warmth spreads to the air, the air slows the wire, and the
+    total at the end is what was spent plus what the parts started with.
   - Everything always adds up to what there was; the tests check it.
   - Energy still going round conductors after DD steps stops the program and says where.
   - The flow engine is written in Delta (`lang/flow.delta`), so it keeps D's rules too.

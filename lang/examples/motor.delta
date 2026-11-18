@@ -1,48 +1,44 @@
-// A motor and its losses.
-// "I built a new motor. It has losses, but at this point I have to shrug them off."
-// The first build shrugs off the losses not traced yet. The second traces them to where they go.
-// An engineer aims for the smallest Shrug.
-
-thing motor { int wire, coil, core, rotor, bearings; };
+// The classic simple motor, standing on Faraday's shoulders (Michael Faraday, 1821: the first
+// electric motor was a homopolar motor like this). A 1.5 V AA battery stands on a neodymium magnet;
+// a bent copper wire touches the battery's top and the magnet's side.
+//
+// Current runs battery -> wire -> sliding contact -> magnet -> battery. Each part it passes through
+// turns a share into heat in proportion to its resistance (typical values):
+//   battery's own resistance 0.15 ohm, sliding contact 0.1 ohm, copper wire (10 cm, 0.5 mm) 0.009 ohm,
+//   magnet 0.001 ohm: about 0.26 ohm in all, so about 5.8 A and 8.7 W.
+// Only the push on the wire, F = B I L (B about 0.3 T, I 5.8 A, L 2 cm: 0.035 N), turns it:
+//   at 1 cm and about 10 turns a second that is about 22 mW, roughly 1 part in 400.
+// So the shares, as weights: battery 232 (14B), contact 152 (B9), wire 14 (11), magnet 2, spin 1.
 
 int main(int argc, char **argv)
 {
-    // ---------------- first build ----------------
-    int battery = $DD, load = 1, air = 1;
-    thing motor m = {1, 1, 1, 1, 1};
-    store battery, load, air, m.core;
-    conduct m.wire loss 1, m.coil loss 2, m.rotor loss 1, m.bearings loss 1;
-    neighbours battery: m.wire;
-    neighbours m.wire: m.coil;
-    neighbours m.coil: m.rotor, m.core;      // the iron core sits in the coil
-    neighbours m.rotor: m.bearings;
-    neighbours m.bearings: load;
-    neighbours load: air;
+    int chemistry = $DDDD;                   // the energy the battery holds
+    int current = 1;                         // the current, passing through
+    int cell = 1, contact = 1, wire = 1, magnet = 1, spin = 1, air = 1, drag = 3;
 
-    say("== first build: power in, the rotor turns the load\n");
-    spend $C from battery;
-    say("== the core runs warm; we have not found where that heat goes yet\n");
-    shrug 2 from m.core;
-    int first = shrug();
-    say("first build: load got %d of C spent, Shrug %d\n\n", load, first);
+    store chemistry, cell, contact, wire, magnet, spin, air;
+    conduct current loss 1 per $DDD;         // even the current's path loses a little: there is always some
 
-    // ---------------- second build: losses traced ----------------
-    int battery2 = $DD, load2 = 1, air2 = 1, casing = 1;
-    thing motor n = {1, 1, 1, 1, 1};
-    store battery2, load2, air2, casing, n.core;
-    conduct n.wire loss 1, n.coil loss 2, n.rotor loss 1, n.bearings loss 1;
-    neighbours battery2: n.wire;
-    neighbours n.wire: n.coil;
-    neighbours n.coil: n.rotor, n.core;
-    neighbours n.rotor: n.bearings;
-    neighbours n.bearings: load2;
-    neighbours load2: air2;
-    neighbours n.core: casing;               // traced: the core warms the casing
-    neighbours casing: air2;                 // and the casing warms the air
+    neighbours chemistry: current;
+    neighbours current: cell $14B, contact $B9, wire 11, magnet 2, spin 1;
+    store cell leak 9, contact leak 9, wire leak 9, magnet leak 9;
+    neighbours cell: air heat;               // the warm parts warm the air, from more to less
+    neighbours contact: air heat;
+    neighbours wire: air heat;
+    neighbours magnet: air heat;
+    wear spin by drag D> air ~;              // air drag slows the wire: its spin becomes warm air
 
-    say("== second build: same motor, the core's heat traced\n");
-    spend $C from battery2;
-    say("second build: load got %d of C spent, the core warmed the casing (%d) and the air (%d)\n", load2, casing, air2);
-    if (shrug() == first) say("second build added nothing to the Shrug: every loss traced\n");
+    int start = cell + contact + wire + magnet + spin + air + current;
+    say("== a moment of current: DDD units of the battery's energy\n");
+    spend $DDD from chemistry;
+    say("   in each part: battery %d, contact %d, wire %d, magnet %d, spin %d\n", cell, contact, wire, magnet, spin);
+
+    say("== then the warmth spreads to the air and the air slows the wire\n");
+    tick 3;
+
+    say("\nof DDD spent: spin %d; still warm: battery %d, contact %d, wire %d, magnet %d; air %d\n",
+        spin, cell, contact, wire, magnet, air);
+    say("all together: %d = DDD spent + the %d the parts started with: nothing vanished\n",
+        cell + contact + wire + magnet + spin + air + current, start);
     return 1;
 }

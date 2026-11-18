@@ -1,8 +1,8 @@
 // Delta flow: spent energy goes to its neighbours. Written in Delta, so it keeps D's rules.
-// store     = a neighbour that absorbs what it gets
-// conductor = passes energy on to its other neighbours, less its loss; the loss is heat,
-//             and heat goes to all its neighbours, and so on.
-// A share less than 1 is ~ (unknown energy). Every step is shown.
+// store     = a neighbour that keeps what it gets
+// conductor = passes energy on to its other neighbours (by their weights), less its loss; the loss is heat.
+// heat      = warms whatever it reaches, which keeps half and passes half on to its other neighbours (cascade).
+// Every step is shown.
 
 int *dl_val[$DDD];
 char *dl_name[$DDD];
@@ -45,26 +45,44 @@ void dl_link2(int a, int b) { dl_link[a][b] = (char)1; dl_link[b][a] = (char)1; 
 
 void dl_pad(int depth) { for (int i = 1; i <= depth; i++) say("  "); }
 
-void dl_flow(int id, int came, int a, int depth)
+int dl_per[$DDD];              // conduct x loss N per M: loses N of every M (a share); LOW = a fixed N
+
+void dl_setper(int id, int per) { dl_per[id] = per; }
+
+// neighbours x: a 9, b 1;  x sends a 9 parts of its power for every 1 to b (heat still spreads evenly)
+void dl_weight(int a, int b, int w)
+{
+    if (w > $168) { say("Delta: a weight is at most 168\n"); stop(2); }
+    dl_link[a][b] = (char)w;
+}
+
+char dl_heatonly[$DDD][$DDD];  // neighbours x: air heat;  touches it for heat only (no power goes that way)
+
+void dl_setheatonly(int a, int b) { dl_heatonly[a][b] = (char)1; }
+
+int dl_isheat(char *what) { return what[1] == 'h' && what[2] == 'e'; }
+
+void dl_flow(int id, int came, int a, int depth, int isheat)
 {
     dl_pad(depth);
     if (depth > $DD) {                    // safety: energy circling round conductors
         say("energy is still going round at %s: stopped here\n", dl_name[id]); stop(2);
     }
-    if (dl_kind[id] == 1) {
+    if (dl_kind[id] == 1 || isheat) {
         int room = dl_room(dl_val[id]), take = a, back = a, sink;
         if (take > room) take = room;
         int others;
         for (int j = 1; j < dl_next; j++) if (dl_link[id][j] && j != came) others++;
-        if (take >= 2 && others >= 1) {          // it warms: its vibration passes half on to its other neighbours
+        if (isheat && take >= 2 && others >= 1) {   // heat warms it: its vibration passes half on to its other neighbours
             int pass = take / 2, keep = take;
             move pass from keep to sink;
             *dl_val[id] += keep; move take from back to sink;
-            say("%s takes %d (store, now %d): its vibration passes %d on\n", dl_name[id], keep, *dl_val[id], pass);
+            say("%s warms by %d (now %d): its vibration passes %d on\n", dl_name[id], keep, *dl_val[id], pass);
             dl_share(id, came, pass, depth + 1, "heat");
         } else if (take >= 1) {
             *dl_val[id] += take; move take from back to sink;
-            say("%s takes %d (store, now %d)\n", dl_name[id], take, *dl_val[id]);
+            if (isheat) say("%s warms by %d (now %d)\n", dl_name[id], take, *dl_val[id]);
+            else say("%s takes %d (store, now %d)\n", dl_name[id], take, *dl_val[id]);
         }
         if (back >= 1) {                     // it is full: the rest goes back where it came from
             if (take >= 1) dl_pad(depth);
@@ -73,8 +91,13 @@ void dl_flow(int id, int came, int a, int depth)
         }
         return;
     }
+    int loss = dl_loss[id];
+    if (dl_per[id] >= 1) {                    // a share of what goes through; never less than 1: there is always some
+        loss = a * dl_loss[id] / dl_per[id];
+        if (loss < 1) loss = 1;
+    }
     int on = a; int heat;
-    if (a > dl_loss[id]) move dl_loss[id] from on to heat;
+    if (a > loss) move loss from on to heat;
     else move a from on to heat;
     say("%s gets %d: passes %d on, %d to heat\n", dl_name[id], a, on, heat);
     if (on >= 1) dl_share(id, came, on, depth + 1, "on");
@@ -83,13 +106,19 @@ void dl_flow(int id, int came, int a, int depth)
 
 void dl_share(int id, int skip, int amount, int depth, char *what)
 {
-    int k;
-    for (int j = 1; j < dl_next; j++) if (dl_link[id][j] && j != skip) k++;
-    if (k < 1) { dl_hand(id, amount, skip, depth, what); return; }
-    int share = amount / k, rest = amount % k;
-    if (share < 1) { dl_hand(id, amount, skip, depth, what); return; }
-    for (int j = 1; j < dl_next; j++) if (dl_link[id][j] && j != skip) dl_flow(j, id, share, depth);
-    if (rest >= 1) dl_hand(id, rest, skip, depth, what);     // what does not share evenly: 1 at a time
+    int isheat = dl_isheat(what), total;
+    for (int j = 1; j < dl_next; j++)
+        if (dl_link[id][j] && j != skip && (isheat || !dl_heatonly[id][j])) total += isheat ? 1 : dl_link[id][j];
+    if (total < 1) { dl_hand(id, amount, skip, depth, what); return; }
+    int left = amount, given;
+    for (int j = 1; j < dl_next; j++) {
+        if (!dl_link[id][j] || j == skip || (!isheat && dl_heatonly[id][j])) continue;
+        int g = amount * (isheat ? 1 : dl_link[id][j]) / total;
+        if (g < 1) continue;
+        move g from left to given;
+        dl_flow(j, id, g, depth, isheat);
+    }
+    if (left >= 1) dl_hand(id, left, skip, depth, what);     // what does not share evenly: 1 at a time
 }
 
 // The base rule: 1 less in a thing is 1 more in its lowest neighbour. Nothing disappears.
@@ -241,12 +270,12 @@ void dl_tick1(int t)
     for (int i = 1; i < dl_next; i++) {
         if (dl_leak[i] < 1 || *dl_val[i] < 1) continue;
         int lower;
-        for (int j = 1; j < dl_next; j++) if (dl_link[i][j] && dl_more(*dl_val[i], *dl_val[j]) >= 2) lower++;
+        for (int j = 1; j < dl_next; j++) if (dl_link[i][j] && dl_kind[j] == 1 && dl_more(*dl_val[i], *dl_val[j]) >= 2) lower++;
         if (lower < 1) { dl_pad(1); say("%s holds: no neighbour holds less\n", dl_name[i]); continue; }
         int budget = dl_leak[i], per = dl_leak[i] / lower, given;
         if (per < 1) per = 1;
         for (int j = 1; j < dl_next && budget >= 1; j++) {
-            if (!dl_link[i][j]) continue;
+            if (!dl_link[i][j] || dl_kind[j] != 1) continue;   // leaks go to things that hold, not through a current
             int half = dl_more(*dl_val[i], *dl_val[j]) / 2;
             if (half < 1) continue;
             int g = per, room = dl_room(dl_val[j]);

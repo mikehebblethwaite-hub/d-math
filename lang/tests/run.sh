@@ -73,7 +73,7 @@ last "flow: lone store, Shrug"    'int s = 3; store s; spend 1 from s; say("%d %
 honest "Shrug: reads it"         'int s = 3; store s; spend 2 from s; say("%d %d\n", s, shrug()); return 1;' "$(printf 'spend 2 from s (now 1)\n  2 spent goes to the Shrug: s has no neighbours given, where it goes is not known yet\n1 2\nShrug 2 ¯\\_(ツ)_/¯ where did that go? Investigate to bring the Shrug down.')"
 last "Shrug: none when all known" 'int a = 3, b = 1; store a, b; neighbours a: b; spend 2 from a; say("%d %d\n", b, shrug());' '3 ~'
 refuse "flow: spend too much" "$NET conduct wire loss 1; spend $(printf '$')CD from battery;" 'cannot move'
-refuse "flow: going round"    'int a = 5, b = 1; conduct a loss 1, b loss 1; neighbours a: b; spend 2 from a;' 'going round'
+last "flow: ring comes to rest" 'int s = $D, a = 1, b = 1, c = 1; store s; conduct a loss 1, b loss 1, c loss 1; neighbours s: a; neighbours a: b; neighbours b: c; neighbours c: a; spend 9 from s; say("%d\n", s + a + b + c + shrug());' '13'
 refuse "flow: bad words"      'int a = 5; conduct a 1;' 'loss'
 
 # things: parts, its own ~, its own functions
@@ -155,14 +155,14 @@ last "lowest: move with no to"  "$LOW move 2 from tank; say(\"%d %d\\n\", tank, 
 last "lowest: set lower"        "$LOW tank = 3; say(\"%d %d %d %d\\n\", tank, sky, ground, pipe);" '3 5 5 5'
 last "lowest: total kept"       "$LOW move 2 from tank; tank /= 2; say(\"%d\\n\", tank + sky + ground + pipe);" '15'
 refuse "lowest: no neighbours"  'int a = 5; move 2 from a;' 'say where it goes'
-CAS='int battery = $D, wire = 1, lamp = 1, air = 1, wall = 1, ground = 1; store battery, lamp, air, wall, ground; conduct wire loss 1; neighbours battery: wire; neighbours wire: lamp; neighbours lamp: air; neighbours air: wall, ground; spend 8 from battery;'
-last "heat cascades"            "$CAS say(\"%d %d %d %d\\n\", lamp, air, wall, ground);" '5 3 2 1'
+CAS='int battery = $D, wire = 1, lamp = 1, air = 1, wall = 1, ground = 1; store battery, lamp, air, wall, ground; conduct wire loss 8; neighbours battery: wire; neighbours wire: lamp; neighbours lamp: air; neighbours air: wall, ground; spend 8 from battery;'
+last "heat cascades"            "$CAS say(\"%d %d %d %d\\n\", lamp, air, wall, ground);" '3 2 2 1'
 last "cascade: total kept"      "$CAS say(\"%d\\n\", battery + wire + lamp + air + wall + ground + ~);" '15'
 
 # shrug N from x;  a loss not traced yet
 last "shrug off a loss"      'int core = 5, coil = 1; store core, coil; neighbours core: coil; shrug 2 from core; say("%d %d\n", core, shrug());' 'Shrug 2 ¯\_(ツ)_/¯ where did that go? Investigate to bring the Shrug down.'
 got=$(timeout 20 $DELTA run ../examples/motor.delta 2>&1); rm -f ../examples/motor
-if grep -q "first build: load got 2 of C spent, Shrug 2" <<<"$got" && grep -q "second build added nothing to the Shrug" <<<"$got"; then echo "ok honest: motor: first shrugs 2, second traces all"; pass=$((pass+1)); else echo "FAIL honest: motor example: [$got]"; bad=$((bad+1)); fi
+if grep -q "all together: 1117 = DDD spent + the 7 the parts started with: nothing vanished" <<<"$got" && grep -q "spin takes 5" <<<"$got"; then echo "ok honest: Faraday motor: all accounted for"; pass=$((pass+1)); else echo "FAIL honest: motor example: [$got]"; bad=$((bad+1)); fi
 
 # functions and recursion: a whole program
 cat > "$T/f.delta" <<'DC'
