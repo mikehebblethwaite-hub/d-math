@@ -7,6 +7,7 @@ char *dl_vname[$DDD];
 int dl_vslots[$DDD];
 int dl_vfull[$DDD];            // what it holds when full
 int dl_vnext = 1;
+int dl_vdead[$DDD];            // ruptured: no longer a closed vessel
 
 int dl_vsum(int *at, int slots)
 {
@@ -26,6 +27,7 @@ void dl_vessel(int *at, char *nm, int slots)
 void dl_vcheck()
 {
     for (int v = 1; v < dl_vnext; v++) {
+        if (dl_vdead[v]) continue;
         int now = dl_vsum(dl_vat[v], dl_vslots[v]);
         if (now < dl_vfull[v]) {
             int gone = dl_vfull[v], sink;
@@ -34,11 +36,11 @@ void dl_vcheck()
             say("Something must always go in to let something out.\n");
             stop(2);
         }
-        if (now > dl_vfull[v]) {
-            int more = now, sink;
-            move dl_vfull[v] from more to sink;
-            say("%s is full: %d more cannot go in. Something must come out to let something in.\n", dl_vname[v], more);
-            stop(2);
+        if (now > dl_vfull[v]) {              // more in than it holds: it ruptures
+            say("BANG! %s ruptured: more went in than it holds\n", dl_vname[v]);
+            int *slots = dl_vat[v];
+            for (int k = 1; k <= dl_vslots[v]; k++) if (slots[k] >= 1) dl_release(&slots[k], dl_vname[v]);
+            dl_vdead[v] = 1;
         }
     }
 }

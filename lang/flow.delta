@@ -174,3 +174,38 @@ void dl_tick1(int t)
     }
     dl_wear1();
 }
+
+// Rupture: push 1 into a full tank and it bursts. What it held goes out to its neighbours that hold less,
+// one at a time to the lowest, until it is level with them (if the atmosphere holds more, it holds).
+void dl_release(int *at, char *nm)
+{
+    int id;
+    for (int i = 1; i < dl_next; i++) if (dl_val[i] == at) id = i;
+    if (id < 1) {
+        dl_pad(1); say("no neighbours given: %d goes out to the unknown world: ~\n", *at);
+        if (*at >= 1) move *at from *at to ~;
+        return;
+    }
+    int got[$DDD];
+    while (*at >= 1) {
+        int best;
+        for (int j = 1; j < dl_next; j++)
+            if (dl_link[id][j] && dl_more(*at, *dl_val[j]) >= 2 && dl_room(dl_val[j]) >= 1)
+                if (best < 1 || *dl_val[j] < *dl_val[best]) best = j;
+        if (best < 1) break;
+        move 1 from *at to *dl_val[best];
+        got[best]++;
+    }
+    int any;
+    for (int j = 1; j < dl_next; j++)
+        if (got[j] >= 1) { dl_pad(1); say("%s takes %d (now %d)\n", dl_name[j], got[j], *dl_val[j]); any++; }
+    if (any < 1) { dl_pad(1); say("no neighbour holds less: %s holds %d (its neighbours push back)\n", nm, *at); }
+    else { dl_pad(1); say("%s now holds %d\n", nm, *at); }
+}
+
+void dl_rupture(int *at, char *nm)
+{
+    say("BANG! %s ruptured: pushed past full\n", nm);
+    dl_unfit(at);
+    dl_release(at, nm);
+}

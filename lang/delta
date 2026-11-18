@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""delta: the Delta compiler 0.11. Delta is C with D rules: always something.
+"""delta: the Delta compiler 0.12. Delta is C with D rules: always something.
 Things count from 1 and move or change form; numbers are D numerals (digits 1-9 A-D).
 Delta -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -581,6 +581,13 @@ class Compiler:
             self.emit("cmp rax, rcx"); self.emit("jg " + full)
         self.emit("sub [r8], rax")                # under the hood: a gives, b takes
         self.emit("add [r9], rax"); self.emit("jmp " + ok)
+        if full:                                  # pushed into a full thing: it goes in, and it ruptures
+            self.label(full)
+            self.emit("sub [r8], rax"); self.emit("add [r9], rax")
+            lab = self.string(list(bn.encode()) + ["LOW"])
+            self.emit("mov rdi, r9"); self.emit("lea rsi, [rip+%s]" % lab)
+            self.emit("call f_dl_rupture"); self.calls.append(("dl_rupture", line))
+            self.emit("jmp " + ok)
         self.label(less)
         self.say_text("Delta line %s: move needs 1 or more\n" % to_d(line), fd=2)
         self.emit("mov edi, 2"); self.emit("jmp dl_exit")
@@ -592,15 +599,6 @@ class Compiler:
         self.emit("pop rdi"); self.emit("call dl_putd")
         self.say_text("\n", fd=2)
         self.emit("mov edi, 2"); self.emit("jmp dl_exit")
-        if full:
-            self.label(full)
-            self.emit("push rcx"); self.emit("push rax")
-            self.say_text("Delta line %s: %s is full: it cannot take " % (to_d(line), bn), fd=2)
-            self.emit("pop rdi"); self.emit("call dl_putd")
-            self.say_text(" (room for ", fd=2)
-            self.emit("pop rdi"); self.emit("call dl_putd")
-            self.say_text(")\n", fd=2)
-            self.emit("mov edi, 2"); self.emit("jmp dl_exit")
         self.label(ok)
 
     def flow_words(self):
@@ -1051,7 +1049,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Delta runtime 0.11: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Delta runtime 0.12: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text
@@ -1133,6 +1131,7 @@ def compile_dc(src):
     uses_flow = any(t[0] == "id" and t[1] in FLOW_WORDS for t in toks)
     uses_vessel = any(t[0] == "id" and t[1] == "vessel" for t in toks)
     uses_room = uses_flow or uses_vessel or any(t[0] == "id" and t[1] == "fits" for t in toks)
+    uses_flow = uses_flow or uses_room            # a rupture empties to the neighbours
     here = os.path.dirname(os.path.abspath(__file__))
     for used, f in ((uses_vessel, "vessel.delta"), (uses_flow, "flow.delta"), (uses_room, "room.delta")):
         if used:

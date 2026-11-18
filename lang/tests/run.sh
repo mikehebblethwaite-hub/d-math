@@ -134,12 +134,14 @@ prog "mix: nothing shared" "thing p { int x; }; thing q { int y; }; $M { thing p
 
 # room: a move needs somewhere to go
 honest "room: fits in"       'int tank = 9, pump = $D; fits tank $D; move 4 from pump to tank; say("%d %d\n", tank, pump);' 'D 9'
-refuse "room: full tank"     'int tank = $D, pump = 5; fits tank $D; move 1 from pump to tank;' 'is full'
-refuse "room: too much"      'int tank = 9, pump = $D; fits tank $D; move 5 from pump to tank;' 'room for 4'
+last "rupture: levels out"   'int tank = 9, pump = $D, sky = 1, ground = 4; fits tank $D; store tank, sky, ground; neighbours tank: sky, ground; move 5 from pump to tank; say("%d %d %d %d\n", tank, sky, ground, tank + sky + ground);' '7 6 6 16'
+last "rupture: air pushes back" 'int tank = $D, pump = 5, sky = $DD; fits tank $D; store tank, sky; neighbours tank: sky; move 1 from pump to tank; say("%d %d\n", tank, sky);' '11 DD'
+last "rupture: no neighbours" 'int tank = $D, pump = 5; fits tank $D; move 1 from pump to tank; say("%d %d\n", tank, ~);' '~ 11'
+last "rupture: open after"  'int tank = $D, pump = 5, sky = 1; fits tank $D; store tank, sky; neighbours tank: sky; move 1 from pump to tank; move 3 from pump to tank; say("%d\n", tank);' 'B'
 last "room: store full, back" 'int cell = 9, lamp = 1; fits lamp 3; store cell, lamp; neighbours cell: lamp; spend 5 from cell; say("%d %d\n", cell, lamp);' '7 3'
 last "room: leak to full"    'int s = 9, air = 2; fits air 2; store s leak 3; store air; neighbours s: air; tick; say("%d %d\n", s, air);' '9 2'
 last "room: wear part full"  'int r = 9, d = 1, sun = 2; fits d 2; wear r by sun D> d ~; tick; say("%d %d\n", r, d);' '8 2'
-prog "room: vessel full"     "thing tank { int gas, air; }; $M { thing tank t = {9}; vessel t; int sky = 9; move 1 from sky to t.air; return 1; }" '' 'is full'
+prog "rupture: vessel"       "thing tank { int gas, air; }; $M { thing tank t = {9}; vessel t; int sky = 9; move 1 from sky to t.air; say(\"%d %d\\n\", t.gas, t.air); return 1; }" "$(printf 'BANG! t ruptured: more went in than it holds\n  no neighbours given: 9 goes out to the unknown world: ~\n  no neighbours given: 1 goes out to the unknown world: ~\n~ ~')"
 refuse "room: fits on words" 'char *w = "x"; fits w 3;' 'whole number'
 
 # functions and recursion: a whole program

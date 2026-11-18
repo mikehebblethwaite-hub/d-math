@@ -1,10 +1,14 @@
-// A move needs somewhere to go: a tank at full pressure cannot take 1 more.
+// A tank at full pressure: push 1 more in and it ruptures.
+// The gas goes out to the neighbours that hold less (the atmosphere), until level.
 int main(int argc, char **argv)
 {
-    int tank = 9, pump = $D;
-    fits tank $D;                     // the tank holds up to 13
+    int tank = 9, pump = $D, sky = 1, ground = 4;
+    fits tank $D;                     // full at 13
+    store tank, sky, ground;
+    neighbours tank: sky, ground;
     move 4 from pump to tank;         // room for 4: fine
     say("tank %d  pump %d\n", tank, pump);
-    move 1 from pump to tank;         // full: nowhere for it to go
+    move 1 from pump to tank;         // one more than full
+    say("tank %d  sky %d  ground %d  pump %d\n", tank, sky, ground, pump);
     return 1;
 }
