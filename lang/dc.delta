@@ -1577,7 +1577,7 @@ int main(int argc, char **argv)
     program();
     for (i = 1; i <= ncall; i++) {
         int nm = cnm[i];
-        int fw = same(cmd, "efi") && (same(&pool[nm], "memmap") || same(&pool[nm], "memmapstep") || same(&pool[nm], "screen") || same(&pool[nm], "screenx") || same(&pool[nm], "screeny") || same(&pool[nm], "screenrow") || same(&pool[nm], "key") || same(&pool[nm], "off") || same(&pool[nm], "mouse") || same(&pool[nm], "mousex") || same(&pool[nm], "mousey") || same(&pool[nm], "connectall") || same(&pool[nm], "mousefound") || same(&pool[nm], "mousereads") || same(&pool[nm], "mousemisses"));   // the firmware's own
+        int fw = same(cmd, "efi") && (same(&pool[nm], "memmap") || same(&pool[nm], "memmapstep") || same(&pool[nm], "screen") || same(&pool[nm], "screenx") || same(&pool[nm], "screeny") || same(&pool[nm], "screenrow") || same(&pool[nm], "key") || same(&pool[nm], "off") || same(&pool[nm], "connectall") || same(&pool[nm], "systemtable") || same(&pool[nm], "fwcall"));   // the firmware's own
         if (findfn(nm, low) < 1 && nm != klinux && nm != kwait && nm != kstop && nm != kwide && nm != khigh && fw < 1) {
             line = cline[i]; failname("'", nm, "' is not made anywhere");
         }

@@ -381,6 +381,7 @@ void encode(char *m)
     if (setcc(m) >= 1) { ob("0F"); b(setcc(m)); modrm(low, 1); return; }
     if (jcc(m) >= 1) { ob("0F"); b(jcc(m)); rel32(lsym[1]); return; }
     if (is(m, "jmp")) { ob("E9"); rel32(lsym[1]); return; }
+    if (is(m, "call") && a == 1) { rex(low, low, 1); ob("FF"); modrm(2, 1); return; }   // call what a register holds
     if (is(m, "call") && a == 2) { rex(low, low, 1); ob("FF"); modrm(2, 1); return; }   // call what a place holds
     if (is(m, "call")) { ob("E8"); rel32(lsym[1]); return; }
     if (is(m, "hlt")) { ob("F4"); return; }

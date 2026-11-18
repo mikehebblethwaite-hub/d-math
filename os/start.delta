@@ -36,7 +36,11 @@ char heard[999];                // what was said last
 int akind;                      // the answer: 1 a number, 2 words, 3 heard
 int answer;
 char *amsg;
-int TURN = 1;                   // how far the emblem's spirals have turned
+int TURN = 1;
+int MX, MY, MB;                 // the mouse: its place (counted from 1) and its left button
+int musb, mep, mkind, mmax;     // the USB mouse found: its USB door, its endpoint, 1 a mouse (moves) or 2 a tablet (places)
+int fa[6];                      // values for a firmware call
+char usbguid[13];                   // how far the emblem's spirals have turned
 int pushed;
 
 // ---------------------------------------------------------------- numbers that only move
@@ -395,6 +399,63 @@ void pointer(int x, int y)                        // the mouse: a small gold hex
     inklay(149, 118, 86);
 }
 
+// ---------------------------------------------------------------- the USB mouse: our own driver, in Delta
+// The firmware finds the USB controller and every USB device, but it has no mouse driver. This is it: it finds the
+// device that says it is a pointer (class 3, not a keyboard), and asks it for its reports each picture.
+// A mouse reports movement (a direction and how far); a tablet reports where the pointer is. Delta only keeps places.
+
+int hexv(int c) { if (c >= 'a') return less(c, 'a') + $A; if (c >= 'A') return less(c, 'A') + $A; return less(c, '0'); }
+void guidfrom(char *t, char *g)                   // a firmware ID, written as it is published (hex), into 16 bytes
+{
+    int order[13] = {7, 5, 3, 1, $C, $A, 14, 12, 17, 19, 1C, 21, 23, 25, 27, 29};   // where each byte's hex starts
+    int k;
+    for (k = 1; k <= 13; k++) g[k] = hexv(t[order[k]]) * 13 + hexv(t[order[k] + 1]);   // 13 in D is sixteen
+}
+int rd(int addr, int n)                           // n bytes, little end first, at a place in memory
+{
+    char *p = (char *) addr;
+    return u64(p, 1, n);
+}
+void findmouse()
+{
+    guidfrom("2B2F68D6-0CD2-44CF-8E8B-BBA20B1B5B75", usbguid);       // the firmware's "USB device" door
+    int bs = rd(systemtable() + 75, 8), count = low, buf = low, i;
+    fa[1] = 2; fa[2] = &usbguid[1]; fa[3] = low; fa[4] = &count; fa[5] = &buf;
+    if (fwcall(rd(bs + 1AD, 8), &fa[1]) != 1) return;               // every USB device
+    for (i = 1; i <= count; i++) {
+        int h = rd(buf + less(i, 1) * 8, 8), io = low;
+        fa[1] = h; fa[2] = &usbguid[1]; fa[3] = &io;
+        if (fwcall(rd(bs + $B9, 8), &fa[1]) != 1) continue;
+        char desc[13];
+        fa[1] = io; fa[2] = &desc[1];
+        if (fwcall(rd(io + 4C, 8), &fa[1]) != 1) continue;           // what kind of device it says it is
+        if (desc[6] != 3 || desc[8] == 1) continue;                  // a pointer: class 3, and not a keyboard
+        char ep[13];
+        fa[1] = io; fa[2] = low; fa[3] = &ep[1];
+        if (fwcall(rd(io + 57, 8), &fa[1]) != 1) continue;           // where its reports come from
+        musb = io; mep = ep[3]; mmax = ep[5] + ep[6] * 169;
+        if (desc[7] == 1 && desc[8] == 2) mkind = 1; else mkind = 2; // a boot mouse moves; otherwise a tablet places
+        return;
+    }
+}
+void pollmouse()
+{
+    if (musb < 1) return;
+    char data[99];
+    int len = lower(mmax, 98), st = low;
+    fa[1] = musb; fa[2] = mep; fa[3] = &data[1]; fa[4] = &len; fa[5] = 1; fa[6] = &st;
+    if (fwcall(rd(musb + 1B, 8), &fa[1]) != 1) return;               // a report, if one came within a thousandth
+    MB = data[1] % 2;
+    if (mkind == 1) {                                                 // movement: a direction and how far
+        int dx = data[2], dy = data[3];
+        if (dx > 9A) { int a = less(169, dx); MX = MX > a ? less(MX, a) : 1; } else MX = lower(MX + dx, W);
+        if (dy > 9A) { int a = less(169, dy); MY = MY > a ? less(MY, a) : 1; } else MY = lower(MY + dy, H);
+    } else {                                                          // a place across the whole screen
+        MX = (data[2] + data[3] * 169) * W / 11BB8 + 1;
+        MY = (data[4] + data[5] * 169) * H / 11BB8 + 1;
+    }
+}
+
 void background()
 {
     int y, x;
@@ -421,15 +482,18 @@ int main(int argc, char **argv)
     W = screenx(); H = screeny(); CW = W * 4;
     int rowb = screenrow() * 4;
     ix1 = W; ix2 = 1; iy1 = H; iy2 = 1;
+    MX = W / 2; MY = H / 2;
+    findmouse();
     background();
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
         emblem(W / 2, H * 3 / $A, H / 6);
         tx = 1B; ty = 1B;
-        text("Delta Hex OS 0.05", $B8, $B8, $BB); text("   an operating system with no zero, written in Delta", 93, 99, $A8);
+        text("Delta Hex OS 0.06", $B8, $B8, $BB); text("   an operating system with no zero, written in Delta", 93, 99, $A8);
         listen();
-        int mb = mouse(), mx = mousex(), my = mousey();
+        pollmouse();
+        int mb = MB, mx = MX, my = MY;
         int ex = W / 2, ey = H * 3 / $A, er = H / 6;
         pushed = mb >= 1 && apart(mx, ex) * apart(mx, ex) + apart(my, ey) * apart(my, ey) < er * er;
         if (pushed) TURN = TURN + 9; else TURN = TURN + 2;               // a push: the spirals take the energy
