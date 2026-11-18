@@ -629,7 +629,8 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Dc runtime 0.02: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label).
+# Dc runtime 0.02: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# never nothing: it carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text
 .globl _start

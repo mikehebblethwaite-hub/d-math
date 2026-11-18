@@ -66,3 +66,11 @@ turn the assembly text into the program file.
 Mike, 18 Nov 2026: "a transistor is never zero, it is lower than 1, but is mass and has effects within from its atoms".
 An "off" bit is a LOW: a voltage lower than 1, still current leaking, still atoms with mass. A bit is HIGH (1) or LOW
 (lower than 1), never nothing. So D runs all the way down: the "0" in machine code is only an old label for LOW.
+
+Mike, 18 Nov 2026: "a transistor or IC has no zero ever: it has effect on it and in it from static and radiation in it
+and around it, also from external forces in the atmosphere or in space; it is still affected by radiation and other yet
+not known forces and energy we cannot yet detect until D is completed to detect these."
+
+So a LOW bit is: lower than 1, plus `~` (static, radiation, forces from the atmosphere and space, and forces not yet
+known). Every reading carries its `~`. Part of D's job is to detect what that `~` holds, one part at a time,
+naming each part as it is found (the same as `apple D> sugar + heat + poo ~`).
