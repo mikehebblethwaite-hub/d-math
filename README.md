@@ -196,6 +196,19 @@ turn the assembly text into the program file.
 - Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come).
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 
+## Delta Hex OS (os/)
+
+The no-zero operating system, written in Delta. Its first step, 0.01: `os/start.delta` is started by the machine's own
+firmware (UEFI) in 64-bit mode, with nothing underneath it: no Linux, no C library. It greets, asks the firmware for the
+machine's memory map and counts it from 1 in D numerals: ready to hold, this system, the firmware's own, held back,
+and the places kept back for devices (not memory). Every page holds something: HIGH and LOW bits, never nothing.
+
+    lang/delta efi os/start.delta -o os/esp/EFI/BOOT/BOOTX64.EFI
+    qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -drive format=raw,file=fat:rw:os/esp -m 256 -net none
+
+`lang/delta efi` builds with `lang/runtime-efi.s` (words to the firmware's screen; the firmware spoken to in its own
+way) and `da` writes the UEFI program file (PE) itself. Try it in a virtual machine only.
+
 ## The machine is always something too
 
 Mike, 18 Nov 2026: "a transistor is never zero, it is lower than 1, but is mass and has effects within from its atoms".

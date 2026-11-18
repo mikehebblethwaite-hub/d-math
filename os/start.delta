@@ -1,0 +1,56 @@
+// Delta Hex OS: the no-zero operating system, written in Delta. Its first step (0.01).
+//
+// The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
+// C library. It greets, then asks the firmware for the machine's memory and counts it, from 1, in D numerals.
+// No place in memory is ever nothing: every bit is HIGH or LOW (lower than 1, still with charge leaking and atoms
+// with mass, carrying its ~). Memory not given to anything yet is "ready to hold", never "free" or "empty".
+//
+// Build it:   lang/delta efi os/start.delta -o os/esp/EFI/BOOT/BOOTX64.EFI
+// Try it (in a virtual machine, never on the real boot of a machine):
+//   qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -drive format=raw,file=fat:rw:os/esp -nographic -m 256 -net none
+
+char map[99999];
+
+int u64(char *b, int at, int n)                   // n bytes, little end first, from place at (counted from 1)
+{
+    int v = less(1, 1), k;
+    for (k = n; k >= 1; k = less(k, 1)) v = v * 169 + b[at + less(k, 1)];   // 169 in D is 256
+    return v;
+}
+
+int main(int argc, char **argv)
+{
+    say("\n  Delta Hex OS 0.01: an operating system with no zero, written in Delta\n");
+    say("  always something: every number here is a D numeral (1 2 3 4 5 6 7 8 9 A B C D, then 11)\n\n");
+
+    int bytes = memmap(map, 99998);
+    int step = memmapstep();
+    if (step < 1) { say("  the firmware gave no map\n"); stop(1); }
+    int parts = bytes / step, i;
+    int ready = less(1, 1), firmware = less(1, 1), ours = less(1, 1), held = less(1, 1), all = less(1, 1), devices = less(1, 1);
+    for (i = 1; i <= parts; i++) {
+        int at = less(i, 1) * step + 1;
+        int kind = u64(map, at, 4), pages = u64(map, at + 1B, 8);
+        if (kind < 1 || kind == $B || kind == $C) { devices = devices + pages; continue; }   // kept-back places: not memory
+        all = all + pages;
+        if (kind == 7) ready = ready + pages;                         // ready to hold
+        else if (kind == 1 || kind == 2) ours = ours + pages;         // this program, and what it holds
+        else if (kind >= 3 && kind <= 6) firmware = firmware + pages; // the firmware's own
+        else held = held + pages;                                     // held back: tables, the rest
+    }
+    say("  the machine's memory, in pages of 1B31 bytes:\n");
+    say("    %d parts in the firmware's map\n", parts);
+    say("    ready to hold     %d pages\n", ready);
+    say("    this system       %d pages\n", ours);
+    say("    the firmware's    %d pages\n", firmware);
+    say("    held back         %d pages\n", held);
+    say("    all together      %d pages: about %d MB\n", all, all / 169);    // 169 pages of 1B31 bytes is a MB
+    say("    (and %d pages of places the machine keeps back for devices and reserves: not memory)\n", devices);
+    say("    every page holds something: HIGH and LOW bits, never nothing\n\n");
+
+    int beat;
+    for (beat = 1; beat <= 6; beat++) { say("  beat %d\n", beat); wait(5BC); }   // 5BC: a thousand of a second's thousandths
+    say("\n  resting now: everything is still here, nothing has become nothing\n");
+    stop(1);
+    return 1;
+}

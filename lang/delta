@@ -9,5 +9,5 @@
 here=$(dirname "$(readlink -f "$0")")
 [ -x "$here/dc" ] || cp "$here/seed/dc" "$here/dc"
 [ -x "$here/da" ] || cp "$here/seed/da" "$here/da"
-case "$1" in run|build|asm) ;; *) "$here/dc"; exit 2;; esac
+case "$1" in run|build|asm|efi) ;; *) "$here/dc"; exit 2;; esac
 exec "$here/dc" "$@"

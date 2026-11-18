@@ -1,6 +1,7 @@
 // da: Delta's own assembler and linker, written in Delta.
 //
 //   da file.s out        reads the assembly dc writes, and writes out, a Linux program file (ELF, x86-64)
+//   da file.s out efi    the same, as a program the machine's own firmware starts (UEFI, the PE format): no Linux
 //
 // It reads the instructions dc and Delta's runtime use, turns each one into the machine's own bytes, lays the code,
 // the words, the kept values and the room for kept rows one after another in memory, joins every name to its place,
@@ -378,7 +379,9 @@ void encode(char *m)
     if (setcc(m) >= 1) { ob("0F"); b(setcc(m)); modrm(low, 1); return; }
     if (jcc(m) >= 1) { ob("0F"); b(jcc(m)); rel32(lsym[1]); return; }
     if (is(m, "jmp")) { ob("E9"); rel32(lsym[1]); return; }
+    if (is(m, "call") && a == 2) { rex(low, low, 1); ob("FF"); modrm(2, 1); return; }   // call what a place holds
     if (is(m, "call")) { ob("E8"); rel32(lsym[1]); return; }
+    if (is(m, "hlt")) { ob("F4"); return; }
     if (is(m, "cqo")) { ob("48 99"); return; }
     if (is(m, "ret")) { ob("C3"); return; }
     if (is(m, "syscall")) { ob("0F 05"); return; }
@@ -527,9 +530,11 @@ int main(int argc, char **argv)
     if (srcn < 1) { say("da: cannot read %s\n", argv[2]); return 2; }
     src[srcn + 1] = low;
 
+    int efi = argc >= 4 && same(argv[4], "efi");
     pass = 1; assemble();                         // where everything goes
     int head = hx("78");                          // the file header (40 hex) and one program header (38 hex)
     int base = hx("400000");
+    if (efi) head = hx("1000");                   // UEFI: the headers, then the one section a page on
     secbase[1] = base + head;
     secbase[2] = secbase[1] + secn[1];
     secbase[3] = (secbase[2] + secn[2] + 7) / 8 * 8;
@@ -540,6 +545,36 @@ int main(int argc, char **argv)
 
     int filesz = less(secbase[3] + secn[3], base), memsz = less(secbase[4] + secn[4], base);
     outn = low;
+    if (efi) {
+        int raw = (less(filesz, head) + hx("1FF")) / hx("200") * hx("200");      // the section's bytes in the file
+        int vsize = less(memsz, head);
+        int image = (memsz + hx("FFF")) / hx("1000") * hx("1000");
+        o('M'); o('Z');
+        while (outn < hx("3C")) o(low);
+        ol(hx("40"), 4);                          // the PE header is at 40 hex
+        o('P'); o('E'); o(low); o(low);
+        ol(hx("8664"), 2); ol(1, 2); ol(low, 4); ol(low, 4); ol(low, 4); ol(hx("F0"), 2); ol(hx("22"), 2);
+        ol(hx("20B"), 2); o(low); o(low);         // PE32+
+        ol(raw, 4); ol(low, 4); ol(low, 4);
+        ol(hx("1000") + symoff[start], 4);        // where it starts
+        ol(hx("1000"), 4); ol(base, 8); ol(hx("1000"), 4); ol(hx("200"), 4);
+        ol(low, 2); ol(low, 2); ol(low, 2); ol(low, 2); ol(low, 2); ol(low, 2); ol(low, 4);
+        ol(image, 4); ol(hx("200"), 4); ol(low, 4);
+        ol($A, 2); ol(low, 2);                    // a UEFI program (subsystem ten)
+        ol(hx("100000"), 8); ol(hx("1000"), 8); ol(hx("100000"), 8); ol(hx("1000"), 8);
+        ol(low, 4); ol(13, 4);                    // sixteen tables of where-things-are, all empty
+        int q; for (q = 1; q <= 13; q++) ol(low, 8);
+        o('.'); o('t'); o('e'); o('x'); o('t'); o(low); o(low); o(low);
+        ol(vsize, 4); ol(hx("1000"), 4); ol(raw, 4); ol(hx("200"), 4); ol(low, 4); ol(low, 4); ol(low, 2); ol(low, 2);
+        ol(hx("E0000060"), 4);                    // code and values: read, write, run
+        while (outn < hx("200")) o(low);
+        int s2, k2;
+        for (s2 = 1; s2 <= 3; s2++) {
+            while (outn < hx("200") + less(secbase[s2], base + head)) o(low);
+            for (k2 = 1; k2 <= secn[s2]; k2++) o(sect[s2][k2]);
+        }
+        while (outn < hx("200") + raw) o(low);
+    } else {
     ol(hx("464C457F"), 4);                        // 7F E L F
     o(2); o(1); o(1); ol(low, 9);                 // 64-bit, little end first, version 1
     ol(2, 2); ol(hx("3E"), 2); ol(1, 4);          // a program to run, for x86-64
@@ -553,6 +588,7 @@ int main(int argc, char **argv)
     for (s = 1; s <= 3; s++) {
         while (outn < less(secbase[s], base)) o(low);
         for (k = 1; k <= secn[s]; k++) o(sect[s][k]);
+    }
     }
     int fd = linux(2, argv[3], $355, hx("1ED"));
     if (fd < 1) { say("da: cannot write %s\n", argv[3]); return 2; }

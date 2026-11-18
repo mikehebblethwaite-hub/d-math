@@ -65,3 +65,14 @@ pentacene molecule with an atomic force microscope (Gross et al., Science 325, 1
 seen directly. Graphene, one atom thick, shows its carbon atoms in a hexagonal lattice under the electron microscope.
 
 Mike: "DNA memory is a thing."
+
+## Delta builds itself, then an operating system (14:01 to 14:43)
+
+Mike: "write the delta compiler in delta" (14:01); "do stage 2 so python can retire" (14:14); "write our own
+assembler and linker in delta: this is going well because it is correct" (14:27); "start the no-zero operating
+system in Delta" (14:36). By 14:43 Delta compiled itself, assembled and linked itself (dc and da, byte for byte the
+same when rebuilt by themselves), and the first step of the operating system booted on a machine's own firmware.
+Mike named it: Delta Hex OS.
+
+Mike's challenge (14:32): "Any peer wanting to disprove D math please give one example in the known universe where
+there is nothing, as D math cannot have a zero because it is not possible."

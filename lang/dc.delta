@@ -3,6 +3,7 @@
 //   dc build file.delta [-o out]     build a program
 //   dc run file.delta [-o out]       build it and run it
 //   dc asm file.delta                show the assembly it writes
+//   dc efi file.delta -o out.efi     build it for the machine itself: a UEFI program, no Linux underneath
 //
 // Delta -> our own x86-64 assembly (the runtime is runtime.s, beside this compiler) -> da, Delta's own assembler and
 // linker, turns the text into the program file. The flow engine (flow.delta, room.delta, vessel.delta) and Delta's own window
@@ -1576,13 +1577,15 @@ int main(int argc, char **argv)
     program();
     for (i = 1; i <= ncall; i++) {
         int nm = cnm[i];
-        if (findfn(nm, low) < 1 && nm != klinux && nm != kwait && nm != kstop && nm != kwide && nm != khigh) {
+        int fw = same(cmd, "efi") && (same(&pool[nm], "memmap") || same(&pool[nm], "memmapstep"));   // the firmware's own
+        if (findfn(nm, low) < 1 && nm != klinux && nm != kwait && nm != kstop && nm != kwide && nm != khigh && fw < 1) {
             line = cline[i]; failname("'", nm, "' is not made anywhere");
         }
     }
 
     char rpath[999];
-    join(rpath, here, "runtime.s");
+    int efi = same(cmd, "efi");                       // for the machine itself: the firmware's runtime, a UEFI program
+    if (efi) join(rpath, here, "runtime-efi.s"); else join(rpath, here, "runtime.s");
     rtn = readfile(rpath, rt, 999998);
     if (rtn < 1) { say("dc: cannot read the runtime %s\n", rpath); return 2; }
 
@@ -1603,7 +1606,9 @@ int main(int argc, char **argv)
     linux(3, fd);
     char dap[999];
     join(dap, here, "da");                            // Delta's own assembler and linker: no GNU as or ld
-    if (run(dap, sp1, outp, low, low, low) >= 1) { say("dc: the program could not be put together (a dc or da bug)\n"); return 3; }
+    char *kind = low;
+    if (efi) kind = "efi";
+    if (run(dap, sp1, outp, kind, low, low) >= 1) { say("dc: the program could not be put together (a dc or da bug)\n"); return 3; }
     linux($69, sp1);
     if (same(cmd, "run")) {                          // the program takes over, with the words given after the file
         char *av[999];
