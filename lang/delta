@@ -16,7 +16,7 @@ BANNED = {"NULL": "NULL is a make-believe zero: a pointer always points at somet
           "EXIT_SUCCESS": "EXIT_SUCCESS is a make-believe zero: main ends with return 1 (all good)",
           "nullptr": "nullptr is a make-believe zero"}
 TYPES = {"int", "long", "char", "void"}
-FLOW_WORDS = {"store", "conduct", "neighbours", "spend", "tick", "wear", "mix", "shrug"}
+FLOW_WORDS = {"store", "conduct", "neighbours", "spend", "tick", "wear", "mix", "shrug", "quiet"}
 KEYWORDS = TYPES | FLOW_WORDS | {"thing", "vessel", "and", "fits", "if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
 
 
@@ -688,6 +688,8 @@ class Compiler:
                    + thing(by, 3, [T("num", 1)]) + [T("op", ",")] + per + [T("op", ")"), T("op", ";")]
             for pt in parts:
                 new += [T("id", "dl_wear_part"), T("op", "(")] + thing(pt, 3, [T("num", 1)]) + [T("op", ")"), T("op", ";")]
+        elif word == "quiet":                           # quiet;  the flow's step lines stay off the screen
+            new += [T("id", "dl_quietset"), T("op", "("), T("op", ")"), T("op", ";")]
         elif word == "shrug":                           # shrug N from x;  a loss not traced yet
             k = next((i for i, x in enumerate(body) if x[1] == "from"), None)
             if not k or k + 1 >= len(body): raise DeltaError(line, "shrug N from x;")
@@ -1067,6 +1069,9 @@ class Compiler:
         if tok[0] != "str": raise DeltaError(line, "say needs its words in quotes first")
         fmt = [b for b in tok[1] if b != "LOW"]
         while self.peek()[0] == "str": fmt = fmt + self.take()[1]
+        hush = None
+        if self.fname.startswith("dl_") and self.fname != "dl_report" and "dl_quiet" in self.globals:
+            hush = self.new(); self.emit("cmp qword ptr [rip+g_dl_quiet], 1"); self.emit("jge " + hush)
         self.emit("mov qword ptr [rip+dl_fd], 1")
         piece, i = [], 0
         while i < len(fmt):
@@ -1084,6 +1089,7 @@ class Compiler:
         self.say_text(piece)
         if not self.at(")"): raise DeltaError(line, "say has more values than %d %s %c places")
         self.take(")")
+        if hush: self.label(hush)
         return INT
 
 
@@ -1128,6 +1134,30 @@ f_wait:                         # wait(ms): time runs on while the program rests
     add rsp, 16
     mov eax, 1
     ret
+f_screenwide:                   # screenwide(): letters across the terminal (Linux ioctl TIOCGWINSZ)
+    mov r8, 2
+    jmp 1f
+f_screenhigh:                   # screenhigh(): lines down the terminal
+    mov r8, LOW
+1:  sub rsp, 16
+    mov edi, 1
+    mov esi, 0x5413
+    mov rdx, rsp
+    mov eax, 16
+    syscall
+    test rax, rax
+    jnz 2f
+    movzx eax, word ptr [rsp+r8]
+    add rsp, 16
+    cmp rax, 1
+    jl 3f
+    ret
+2:  add rsp, 16
+3:  mov eax, 80                 # not a terminal: the old standard 80 across
+    test r8, r8
+    jnz 4f
+    mov eax, 24                 # and 24 down
+4:  ret
 dl_write:                       # rdi = where, rsi = how many bytes
     mov rdx, rsi
     mov rsi, rdi
@@ -1203,7 +1233,7 @@ def compile_dc(src):
     c.uses_vessel = uses_vessel; c.uses_room = uses_room; c.fname = ""
     c.program()
     for fname, line in c.calls:
-        if fname not in c.funcs and fname not in ("stop", "wait"): raise DeltaError(line, "'%s' is not made anywhere" % fname)
+        if fname not in c.funcs and fname not in ("stop", "wait", "screenwide", "screenhigh"): raise DeltaError(line, "'%s' is not made anywhere" % fname)
     asm = [".intel_syntax noprefix", RUNTIME, ".text"] + c.out + ["", ".data"]
     for nm, (t, v) in c.globals.items():
         if v is not None: asm.append("g_%s: .quad %d" % (nm, v))

@@ -30,6 +30,9 @@ refuse "0 in a name"    'int x0 = 1;' 'always something'
 refuse "#define 20"   '#define N 20' 'digits 1-9 A-D'
 refuse "move too many"     'int a = 2, b = 1; move 3 from a to b;' 'cannot move'
 
+honest "screen size"  'say("%d %d\n", screenwide(), screenhigh());'  '62 1B'
+honest "quiet shrug"  'int core = 9; quiet; shrug 2 from core; say("%d %d\n", core, shrug());'  '7 2
+Shrug 2 ¯\_(ツ)_/¯ where did that go? Investigate to bring the Shrug down.'
 honest "wait"  'wait(1); say("%d\n", 2);'  '2'
 honest "D numerals"        'say("%d %d %d\n", $A, $D, 11);'                     'A D 11'
 honest "ten is A, 14 is 11" 'int x = 9 + 1; say("%d %d\n", x, x + 4);'          'A 11'

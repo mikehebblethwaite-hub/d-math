@@ -9,10 +9,8 @@
 // top and bottom halves of a ▀). The terminal speaks old decimal for its colours, so putn() writes that;
 // every number for people is a D numeral (putD()).
 //
-//   delta run examples/world.delta       (a terminal 120 letters wide or more, true colour)
+//   delta run examples/world.delta       (a true colour terminal; the picture fills it)
 
-#define W 93
-#define H 53
 #define BIG 28D221
 #define INCH 4C
 #define FOOT 471
@@ -22,10 +20,11 @@
 #define FRAMES 8B5
 #define FLY $B7
 
-int R[53][93];
-int G[53][93];
-int B[53][93];
-char frame[17D13B];
+int W, H;                      // the picture fills the terminal: screenwide() x screenhigh()
+int R[1A1][341];
+int G[1A1][341];
+int B[1A1][341];
+char frame[1B31659];
 int fn = 1;
 int low;                       // lower than 1: the end of the words for say (the old "0" byte)
 char *digs;
@@ -34,6 +33,17 @@ int camX, camY, camZ, F, CXb, CYb;
 int PX, PY, PD;
 int HX, HY, HZ, HD;
 int C[75];                 // K + K cos: the turn, always something (a half step off, never at nothing)
+int floorh, roomh;             // heat taken by the floor and by the room (walls, ceiling), for the picture
+int warmB, warmW, warmM;       // how warm the battery, wire and magnet look
+// heat packets: each is 20 mJ of heat leaving a part, rising in the warm air
+// and fading as it passes its heat to the air around it. 2600 places to keep them (the memory, not a cap
+// on the heat: the book below counts every bit of it).
+int qr[124D];
+int qy[124D];
+int qj[124D];
+int qh[124D];
+int qn = 1;
+int qk = 1;
 
 // ---------------------------------------------------------------- numbers that only move
 
@@ -104,6 +114,21 @@ int lightat(int nrm)                         // the ceiling lamp, over the middl
 // far lines fade into their wall, as they do to an eye
 int fadeto(int base, int ln) { return blend(base, ln, 149A, HD + 149A); }
 
+int lo(int a, int b) { return a < b ? a : b; }
+
+// light gathers less into corners: how near the place is to the next plane (floor, walls, ceiling)
+int corner(int surf)
+{
+    int d = 8B5;
+    if (surf != 1) d = lo(gap(HZ, 1), gap(ROOM, HZ));       // front and back walls
+    if (surf != 4) d = lo(d, lo(gap(HX, 1), gap(ROOM, HX)));   // side walls
+    if (surf != 2) d = lo(d, gap(HY, 1));                // the floor
+    if (surf != 3) d = lo(d, gap(ROOM, HY));             // the ceiling
+    if (surf == 4) d = lo(d, lo(gap(HZ, 1), gap(ROOM, HZ)));
+    if (d > 8B5) d = 8B5;
+    return 8B5 + d * 3;                              // 1500 at the corner, 6000 open: share of 6000
+}
+
 void shade(int px, int py, int surf)
 {
     int lw = HD / F + 6;                  // a grid line is about one pixel wide at any distance
@@ -111,10 +136,15 @@ void shade(int px, int py, int surf)
     if (surf == 2) {                       // the floor: oak boards, a line every foot
         line = HX % FOOT < lw || HZ % FOOT < lw;
         L = lightat(gap(less(ROOM, INCH * 6), HY));
+        int board = HX / 169;                             // oak boards 4 inches wide, running away from us
+        int tone = (board * 7) % 5 + 1;
         int m2 = gap(HX, MID) * gap(HX, MID) + gap(HZ, MID) * gap(HZ, MID);
         if (m2 < 22CC) L = L * (m2 + 839) / 2B38;     // the motor's shadow under the lamp
-        r = $C2; g = 88; b = 53;
-        if (line) { r = fadeto(r, 75); g = fadeto(g, 51); b = fadeto(b, 31); }
+        r = $AA + tone * 7; g = 77 + tone * 5; b = 46 + tone * 3;
+        if (HX % 169 < lw / 2 + 3 || (HZ + board * 6D4) % 1524 < lw / 2 + 3) {
+            r = fadeto(r, 7D); g = fadeto(g, 57); b = fadeto(b, 35);   // the gaps between boards
+        }
+        if (line) { r = fadeto(r, 86); g = fadeto(g, 5D); b = fadeto(b, 39); }
     } else if (surf == 3) {                // the ceiling
         line = HX % FOOT < lw || HZ % FOOT < lw;
         L = $B7;
@@ -124,14 +154,26 @@ void shade(int px, int py, int surf)
         line = HZ % FOOT < lw || HY % FOOT < lw;
         L = lightat(gap(HX, MID));
         r = $D7; g = 114; b = 129;
-        if (line) { r = fadeto(r, $B7); g = fadeto(g, $C4); b = fadeto(b, $DB); }
+        if (line) { r = fadeto(r, $C2); g = fadeto(g, $CC); b = fadeto(b, 116); }
+        if (HY < 1B8) { r = 152; g = 14D; b = 147; if (HY > 1A1) { r = 125; g = 123; b = 11A; } }   // skirting
     } else {                                   // the back wall
         line = HX % FOOT < lw || HY % FOOT < lw;
         L = lightat(gap(HZ, MID));
         r = 129; g = 118; b = $D1;
-        if (line) { r = fadeto(r, $D9); g = fadeto(g, $C8); b = fadeto(b, $B3); }
+        if (line) { r = fadeto(r, 112); g = fadeto(g, $D1); b = fadeto(b, $B9); }
+        if (HY < 1B8) { r = 152; g = 14D; b = 147; if (HY > 1A1) { r = 125; g = 123; b = 11A; } }
     }
-    pixb(BIG + px, BIG + py, r * L / 169, g * L / 169, b * L / 169);
+    L = L * corner(surf) / 2967;
+    int heat = 1;                              // the heat it has taken, shown far stronger than it feels
+    if (surf == 2) {                       // the floor under the magnet
+        int f2 = gap(HX, MID) * gap(HX, MID) + gap(HZ, MID) * gap(HZ, MID);
+        if (f2 < 1528C) { heat = floorh / 55D1; if (heat > 3B) heat = 3B; heat = heat * less(1528C, f2) / 1528C; }
+    } else {                                   // walls and ceiling: spreading out from above the motor
+        int a = gap(HX, MID), c = gap(HY, ROOM), e = gap(HZ, MID);
+        int d = isqrt(a * a + c * c + e * e), rad = isqrt(roomh) / 2 + 1;
+        if (d < rad) { heat = roomh / 6CD58; if (heat > 9D) heat = 9D; heat = heat * less(rad, d) / rad; }
+    }
+    pixb(BIG + px, BIG + py, r * L / 169 + heat, g * L / 169 + heat * 2 / 5, b * L / 169);
 }
 
 void room()
@@ -191,6 +233,7 @@ void cyl(int rad, int yb, int yt, int kind)
                 else if (along < 7 || along > 75) { r = $D7; g = $D9; b = 112; }
                 else if (along < $B) { r = 14B; g = 14B; b = 152; }
                 else { r = 2C; g = 57; b = $CC; }
+                if (kind == 1) { r = blend(r, 168, warmM, 1A1); g = blend(g, 93, warmM, 1A1); b = blend(b, 48, warmM, 1A1); }
                 r = r * face / 169; g = g * face / 169; b = b * face / 169;
                 if (shine) { r = (r + 168) / 2; g = (g + 168) / 2; b = (b + 168) / 2; }
             }
@@ -205,7 +248,12 @@ void seg(int x1, int y1, int z1, int x2, int y2, int z2)
     proj(x2, y2, z2); int bx = PX, by = PY;
     int n = gap(ax, bx); if (gap(ay, by) > n) n = gap(ay, by); n++;
     int t;
-    for (t = 1; t <= n; t++) pixb(blend(ax, bx, t, n), blend(ay, by, t, n), 136, 95, 4C);
+    int thick = F / PD;                                   // copper 0.5 mm: a pixel or more when close
+    for (t = 1; t <= n; t++) {
+        int x = blend(ax, bx, t, n), y = blend(ay, by, t, n);
+        pixb(x, y, 136 + warmW, 95 + warmW / 2, 4C);
+        if (thick >= 1) { pixb(x + 1, y, $B7 + warmW, 5D + warmW / 3, 31); pixb(x, less(y, 1), 163, 118 + warmW / 3, 9D); }
+    }
 }
 
 // the wire: from the + nub over the top and down both sides to the magnet's edge, turned to step i.
@@ -232,6 +280,54 @@ void wire(int i, int pass, int fr)
     }
 }
 
+// the current: from the battery's + top, down each arm of the wire, into the magnet's edge
+void current(int i, int pass, int fr)
+{
+    int arm, u;
+    for (arm = 1; arm <= 2; arm++) {
+        int j = arm == 1 ? i : (i + 38) % 75 + 1;
+        for (u = (fr * 3) % 1C + 1; u <= 1A1; u = u + 1C) {
+            int k = (u + 78) / 79, t = (u + 78) % 79 + 1;
+            int r = blend(WR[k], WR[k + 1], t, 79), y = blend(WY[k], WY[k + 1], t, 79);
+            int x = turnx(r, j), z = turnz(r, j);
+            int behind = z > MID;
+            if ((pass == 1 && behind) || (pass == 2 && behind < 1)) { proj(x, y, z); pixb(PX, PY, 118, 144, 168); }
+        }
+    }
+}
+
+// ---------------------------------------------------------------- heat on the move
+
+void glow(int xb, int yb, int h)
+{
+    if (xb > BIG && xb <= BIG + W && yb > BIG && yb <= BIG + H) {
+        int x = less(xb, BIG), y = less(yb, BIG);
+        R[y][x] = clampc(R[y][x] + h); G[y][x] = clampc(G[y][x] + h * 2 / 5); B[y][x] = clampc(B[y][x] + h / $A);
+    }
+}
+
+void spawn(int r, int y, int j, int h) { qr[qn] = r; qy[qn] = y; qj[qn] = j; qh[qn] = h; qn = qn % 124D + 1; qk++; }
+
+void packets(int pass)
+{
+    int i;
+    for (i = 1; i <= 124D; i++) if (qh[i] >= 1) {
+        int x = turnx(qr[i], qj[i]), z = turnz(qr[i], qj[i]);
+        int behind = z > MID;
+        if ((pass == 1 && behind) || (pass == 2 && behind < 1)) { proj(x, qy[i], z); glow(PX, PY, qh[i]); }
+    }
+}
+
+void drift(int f)                     // warm air rises and spreads; each packet gives its heat to the air
+{
+    int i;
+    for (i = 1; i <= 124D; i++) if (qh[i] >= 1) {
+        qy[i] = qy[i] + 2;
+        if (f % 2) qr[i]++;
+        if (qh[i] > 3) qh[i] = less(qh[i], 3); else qh[i] = less(qh[i], qh[i]);
+    }
+}
+
 // ---------------------------------------------------------------- the screen
 
 void emit()
@@ -242,10 +338,15 @@ void emit()
     for (row = 1; row <= H / 2; row++) {
         int t = less(row * 2, 1), b = row * 2;
         for (x = 1; x <= W; x++) {
-            if (R[t][x] != pr || G[t][x] != pg || B[t][x] != pb || R[b][x] != qr || G[b][x] != qg || B[b][x] != qb) {
-                put("\e[38;2;"); putn(R[t][x]); putc(';'); putn(G[t][x]); putc(';'); putn(B[t][x]);
-                put(";48;2;"); putn(R[b][x]); putc(';'); putn(G[b][x]); putc(';'); putn(B[b][x]); putc('m');
-                pr = R[t][x]; pg = G[t][x]; pb = B[t][x]; qr = R[b][x]; qg = G[b][x]; qb = B[b][x];
+            int r1 = R[t][x] / 3 * 3 + 1, g1 = G[t][x] / 3 * 3 + 1, b1 = B[t][x] / 3 * 3 + 1;
+            int r2 = R[b][x] / 3 * 3 + 1, g2 = G[b][x] / 3 * 3 + 1, b2 = B[b][x] / 3 * 3 + 1;
+            if (r1 != pr || g1 != pg || b1 != pb) {
+                put("\e[38;2;"); putn(r1); putc(';'); putn(g1); putc(';'); putn(b1); putc('m');
+                pr = r1; pg = g1; pb = b1;
+            }
+            if (r2 != qr || g2 != qg || b2 != qb) {
+                put("\e[48;2;"); putn(r2); putc(';'); putn(g2); putc(';'); putn(b2); putc('m');
+                qr = r2; qg = g2; qb = b2;
             }
             put("▀");
         }
@@ -258,6 +359,9 @@ int main(int argc, char **argv)
     digs = "0123456789";                // the terminal's own old decimal, for its colour codes only
     dd = "123456789ABCD";
     low = less(1, 1);
+    W = screenwide(); if (W > 341) W = 341;
+    H = less(screenhigh(), 6) * 2; if (H > 1A1) H = 1A1;       // 6 lines kept for the words
+    if (H < 17) H = 17;
     int c[75] = {395D, 3948, 391C, 38AC, 3858, 37BC, 3741, 367C, 35A8, 34C2, 33C8, 32C1, 31A6, 2D7C, 2C48, 2AD6, 2988, 2831, 26A1, 2537, 2398, 2225, 1D7C, 1BD5, 1A5A, 18B3, 173A, 1597, 1428, 1291, 1131, $CA7, $B59, $A17, 8B3, 789, 671, 567, 46D, 387, 2B3, 221, 173, $D7, 83, 43, 17, 2, 2, 17, 43, 83, $D7, 173, 221, 2B3, 387, 46D, 567, 671, 789, 8B3, $A17, $B59, $CA7, 1131, 1291, 1428, 1597, 173A, 18B3, 1A5A, 1BD5, 1D7C, 2225, 2398, 2537, 26A1, 2831, 2988, 2AD6, 2C48, 2D7C, 31A6, 32C1, 33C8, 34C2, 35A8, 367C, 3741, 37BC, 3858, 38AC, 391C, 3948, 395D};
     int i;
     for (i = 1; i <= 75; i++) C[i] = c[i];
@@ -268,30 +372,44 @@ int main(int argc, char **argv)
 
     // the energy, as in motor.delta, in microjoules: 8.7 W for 1/25 s is 348000 each frame
     int chemistry = $C349BA483;        // an AA holds about 10 kJ
-    int cell = 1, contact = 1, wirew = 1, magnet = 1, spin = 1, air = 1;
-    int start = chemistry + cell + contact + wirew + magnet + spin + air;
+    int cell = 1, contact = 1, wirew = 1, magnet = 1, spin = 1, air = 1, floorw = 1, roomw = 1;
+    int start = chemistry + cell + contact + wirew + magnet + spin + air + floorw + roomw;
+    quiet;                                       // the picture shows the flow, so its step lines stay off the screen
+    int currentw = 1, drag = 3;             // the current passes through (holds 1); drag: the air on the wire
+    int pc = 1, pk = 1, pw = 1;                // heat waiting to make a packet (pictures only)
     int each = $C2523, weights = 24B;
 
     put("\e[2J\e[?25l"); putc(low); say("%s", frame);
     int f;
     for (f = 1; f <= FRAMES; f++) {
-        int t = f > FLY ? FLY : f;
-        int e = ease(t, FLY);
+        int step = (f * 4) % 75 + 1;               // 4 steps of 96 a frame: 1/10 of its real 10 turns a second
+        int e, fy = MID, fa = 4A;                       // in: from 10 feet up by the front wall
+        if (f <= FLY) e = ease(f, FLY);
+        else if (f <= 543) e = FLY;                    // close to the motor, watching the heat leave it
+        else {                                           // out again, 5 feet up, to see the room take the heat
+            fy = ROOM / 4; fa = 48;
+            int back = less(f, 543); if (back > FLY) back = FLY;
+            e = ease(less(FLY + 1, back), FLY);
+            if (back >= FLY) e = less(e, e);
+        }
         camX = MID;
-        camY = blend(MID, 143, e, FLY);                  // from 10 feet up to 3.5 inches
-        camZ = blend(FOOT + 1, less(MID, INCH * 7), e, FLY);  // from 1 foot off the front wall to 7 inches away
-        F = blend(39, $DB, e, FLY);
-        int aim = blend(4A, 28, e, FLY);             // where the motor sits on the screen
+        camY = blend(fy, 143, e, FLY);
+        camZ = blend(FOOT + 1, less(MID, INCH * 7), e, FLY);  // 1 foot off the front wall; 7 inches from the motor
+        F = blend(f > FLY ? 2A : 39, $DB, e, FLY) * H / 53;   // the lens, sized to the picture
+        int aim = blend(fa, 28, e, FLY) * H / 53;      // where the motor sits on the screen
         CXb = BIG + W / 2;
         CYb = less(BIG + aim, less(camY, 55) * F / less(MID, camZ));
 
         room();
-        int step = (f * 4) % 75 + 1;               // 4 steps of 96 a frame: 1/10 of its real 10 turns a second
+        packets(1);
         wire(step, 1, f);
+        current(step, 1, f);
         cyl(1B, 1, 9, 1);                        // the magnet: 3/4 inch across, 1/8 inch thick
         cyl(15, 9, $A6, 2);              // the battery: AA, 14.5 mm by 50.5 mm
         cyl(7, $A6, $A9, 3);             // its + nub
         wire(step, 2, f);
+        current(step, 2, f);
+        packets(2);
 
         // a frame of energy: shares by resistance; what does not share evenly goes to the lowest (spin)
         int s1 = each * 14B / weights, s2 = each * $B9 / weights, s3 = each * 11 / weights,
@@ -301,20 +419,42 @@ int main(int argc, char **argv)
         int rest = less(less(less(less(less(each, s1), s2), s3), s4), s5);
         if (rest >= 1) move rest from chemistry to spin;
         int all = spin; if (all > 1) move less(all, 1) from spin to air;     // air drag: the turn becomes warm air
-        if (cell / 31 >= 1) move cell / 31 from cell to air;           // the warm parts warm the air
-        if (contact / 31 >= 1) move contact / 31 from contact to air;
-        if (wirew / 31 >= 1) move wirew / 31 from wirew to air;
-        if (magnet / 31 >= 1) move magnet / 31 from magnet to air;
+        int mc = cell / 31, mk = contact / 31, mw = wirew / 31, mm = magnet / 31;
+        if (mc >= 1) move mc from cell to air;            // the warm parts warm the air
+        if (mk >= 1) move mk from contact to air;
+        if (mw >= 1) move mw from wirew to air;
+        if (mm >= 1) move mm from magnet to floorw;       // the magnet sits on the floor: its heat goes down
+        int ma = air / 125;
+        if (ma >= 1) move ma from air to roomw;           // the air warms the ceiling, then the walls
+        int mo = roomw / 1A1;
+        if (mo >= 1) shrug mo from roomw;                 // the box's border is the Shrug: what passes out through
+                                                          // the walls goes we do not know where, until investigated
+        floorh = floorw; roomh = roomw;
+        warmB = cell / 213D5; if (warmB > 86) warmB = 86;
+        warmW = wirew / 1A89; if (warmW > 93) warmW = 93;
+        warmM = magnet / 372; if (warmM > 6C) warmM = 6C;
+        int n;
+        pc = pc + mc; for (n = pc / 9146; n >= 1; n = less(n, 1)) spawn(18, 9 + (qk * 41) % 9A, (qk * 2B) % 75 + 1, 9D);
+        pc = pc % 9146;
+        pk = pk + mk; for (n = pk / 9146; n >= 1; n = less(n, 1)) spawn(1D, 4 + qk % 5, qk % 2 ? step : (step + 38) % 75 + 1, 168);
+        pk = pk % 9146;
+        pw = pw + mw; for (n = pw / 9146; n >= 1; n = less(n, 1)) spawn(33, 3B + (qk * 23) % 68, qk % 2 ? step : (step + 38) % 75 + 1, 149);
+        pw = pw % 9146;
+        drift(f);
 
         emit();
-        put(" Faraday's motor (year AA1) on the floor of a room 17 x 17 x 17 feet (D numerals), lines every foot\e[K\n");
+        put(" Faraday's motor (year AA1) on the floor of a room 17 x 17 x 17 feet (D numerals), lines every foot.  blue dots: the current   orange: heat leaving\e[K\n");
+        put(" every value, mJ:  chemistry "); putD(chemistry / 5BC); put("  current "); putD(currentw); put(" (passing)  cell "); putD(cell / 5BC);
+        put("  contact "); putD(contact / 5BC); put("  wire "); putD(wirew / 5BC); put("  magnet "); putD(magnet / 5BC);
+        put("  spin "); putD(spin); put(" uJ  drag "); putD(drag); put("  air "); putD(air / 5BC); put("  floor "); putD(floorw / 5BC);
+        put("  room "); putD(roomw / 5BC); put("  Shrug "); putD(shrug() / 5BC); put("\e[K\n");
         put(" of every "); putD(weights); put(" parts spent: battery warms 14B, contact B9, wire 11, magnet 2, the turn 1\e[K\n");
-        put(" battery holds "); putD(chemistry / 5BC); put(" mJ   warm: battery "); putD(cell / 5BC);
-        put(" contact "); putD(contact / 5BC); put(" wire "); putD(wirew / 5BC); put(" magnet "); putD(magnet / 5BC);
-        put(" mJ   air "); putD(air / 5BC); put(" mJ\e[K\n");
+        put(" heat moving this frame, uJ: battery > air "); putD(mc); put(", contact > air "); putD(mk);
+        put(", wire > air "); putD(mw); put(", magnet > floor "); putD(mm); put(", air > room "); putD(ma); put(", room > Shrug (the border) "); putD(mo); put("\e[K\n");
+
         put(" the turn: "); putD(s5 + rest); put(" uJ each 1/1C s (about 19 mW), shown at 1/A speed   all together ");
-        int total = chemistry + cell + contact + wirew + magnet + spin + air;
-        putD(total); if (total == start) put(" = the start: nothing vanished"); else put(" NOT the start");
+        int total = chemistry + cell + contact + wirew + magnet + spin + air + floorw + roomw + shrug();
+        putD(total); if (total == start) put(" = the start: nothing vanished (heat shown far stronger than it feels)"); else put(" NOT the start");
         put("\e[K\n");
         putc(low);
         say("%s", frame);

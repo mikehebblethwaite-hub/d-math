@@ -13,6 +13,8 @@ int dl_next = 1;               // the next thing's number
 int dl_shrug;                  // the Shrug ¯\_(ツ)_/¯ : gone where we have not looked yet. Investigate to bring it down.
 
 int dl_shrugread() { return dl_shrug; }
+int dl_quiet;                   // quiet;  the step lines stay off the screen (a picture shows the flow instead)
+void dl_quietset() { dl_quiet = 1; }
 
 // shrug N from x;  "it has losses, but at this point I have to shrug them off": x lost N, not traced yet
 void dl_shrugoff(int *at, int n, char *nm)

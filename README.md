@@ -149,17 +149,24 @@ turn the assembly text into the program file.
     Flow into a full store goes back where it came from; leaks and wear go only where there is room; a full
     vessel pushed past full ruptures the same way.
   - `tick;` / `tick 5;` time passes (it only runs on) and every leak, wear and mix is shown.
-- Kept-for-the-run values (globals), `stop(n)`, `wait(ms)` (time runs on while the program rests). A value not set yet holds `~`.
+- Kept-for-the-run values (globals), `stop(n)`, `wait(ms)` (time runs on while the program rests),
+  `screenwide()` / `screenhigh()` (the terminal's size, so a picture can fill it). A value not set yet holds `~`.
+- `quiet;` keeps the flow's step lines off the screen when a picture shows the flow instead; the Shrug report at
+  the end still prints.
 - Hello world: `lang/examples/hello.delta`. Nerds will try a zero ("I have 0 apples"): Delta answers that there are
   never zero apples. The seeds, water, sunlight and the nitrogen the fungi in the soil take up make the tree that
   gives the apples (Mike, 18 Nov 2026).
-- A 3-D world: `lang/examples/world.delta` (`lang/delta run lang/examples/world.delta`, a true-colour terminal 120
-  letters wide). A box room 20 feet each way (17 in D) with Faraday's motor standing on the middle of the floor at its
-  real size (AA battery, neodymium magnet, copper wire). Each pixel looks out until it meets the floor, a wall or the
-  ceiling; the motor is drawn round, lit by a ceiling lamp, with its shadow. The camera flies in from high by the
-  front wall to the motor; the wire turns at 1/10 speed. Its energy book runs every frame by moves only (no minus in
-  Delta: a number comes down only by moving something out of it), and the total is checked each frame:
-  nothing vanished.
+- A 3-D world: `lang/examples/world.delta` (`lang/delta run lang/examples/world.delta`, a true-colour terminal; the
+  picture fills it). A box room 20 feet each way (17 in D) with Faraday's motor standing on the middle of the floor at
+  its real size (AA battery, neodymium magnet, copper wire). Each pixel looks out until it meets the floor (oak
+  boards), a wall (skirting) or the ceiling; light gathers less into corners; the motor is drawn round, lit by a
+  ceiling lamp, with its shadow. Blue dots are the current running down the wire; orange packets are heat leaving the
+  battery, contact and wire, rising and giving their heat to the air. The magnet warms the floor, the air warms the
+  ceiling and walls, and the box's border is the Shrug (Mike, 18 Nov 2026: by default things move to neighbours or
+  end up in the Shrug; the border is the Shrug): what passes out through the walls goes to the Shrug, where it is not
+  known yet. The camera flies in from high by the front wall, watches the heat leave the motor, then pulls back to
+  show the room taking it. Every value is shown, and the book runs by moves only (no minus in Delta) and is checked
+  each frame: nothing vanished.
 - Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come).
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 
