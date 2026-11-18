@@ -52,3 +52,16 @@ spectrum, and look exactly as you just put in the demo." 13:35: "We have the thi
 
 So D's numbers became what Mike sees: spirals that move, coloured by the spectrum their energy is in, the shade shifting
 by how much there is. Mike, 13:37: no sines or cosines: "a circle is made of tiny hex connections".
+
+## Hex all the way down (13:37 to 13:40)
+
+Mike: inside D every place, step and turn is hex, down to the smallest step. Compatibility with the outside world
+(square screen pixels, memory addresses, other people's sines and cosines) goes through one bridge at the smallest
+point, and nowhere else. In the world, a circle is a walk of tiny hex steps round a middle, checked with whole
+numbers only (across² + 3 x down²); the bridge to square pixels uses 26/15 for root 3.
+
+For doubters, Mike: look at a molecule under a microscope, it is hex. In 2009 IBM Research in Zurich imaged a single
+pentacene molecule with an atomic force microscope (Gross et al., Science 325, 1110): five hexagonal rings of carbon,
+seen directly. Graphene, one atom thick, shows its carbon atoms in a hexagonal lattice under the electron microscope.
+
+Mike: "DNA memory is a thing."
