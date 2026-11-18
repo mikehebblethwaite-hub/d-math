@@ -1,0 +1,87 @@
+// efi.delta: the machine's firmware (UEFI), spoken to in Delta. Read in for every program built with `delta efi`.
+//
+// The only bridge left in assembly (runtime-efi.s) is fwcall(fn, args): it calls a firmware function in the
+// firmware's own way. Everything here is Delta: where each service sits in the firmware's tables, what to give it,
+// and what to make of its answer. Numbers are D numerals; the firmware's IDs are written as it publishes them (hex)
+// and read by ef_guid, the bridge for names.
+
+int ef_a[6];
+int ef_mapsize, ef_mapkey, ef_descsize, ef_descver, ef_key, ef_count, ef_buf;
+int ef_gop, ef_fb, ef_gw, ef_gh, ef_gs;
+char ef_gopid[13];
+
+int ef_rd(int addr, int n)                         // n bytes, little end first, at a place in memory
+{
+    char *p = (char *) addr;
+    int v = less(1, 1), k;
+    for (k = n; k >= 1; k = less(k, 1)) v = v * 169 + p[k];      // 169 in D is 256
+    return v;
+}
+int ef_hex(int c) { if (c >= 'a') return less(c, 'a') + A; if (c >= 'A') return less(c, 'A') + A; return less(c, '0'); }
+void ef_guid(char *t, char *g)                     // a firmware ID, as published (hex), into its 16 bytes
+{
+    int order[13] = {7, 5, 3, 1, C, A, 14, 12, 17, 19, 1C, 21, 23, 25, 27, 29};   // where each byte's hex starts
+    int k;
+    for (k = 1; k <= 13; k++) g[k] = ef_hex(t[order[k]]) * 13 + ef_hex(t[order[k] + 1]);
+}
+int ef_boot() { return ef_rd(systemtable() + 75, 8); }            // the boot services (at 75)
+int ef_call(int table, int place) { return fwcall(ef_rd(table + place, 8), &ef_a[1]); }
+
+int memmap(char *row, int bytes)                   // the firmware's memory map into the row; gives back its size
+{
+    ef_mapsize = bytes;
+    ef_a[1] = &ef_mapsize; ef_a[2] = row; ef_a[3] = &ef_mapkey; ef_a[4] = &ef_descsize; ef_a[5] = &ef_descver;
+    ef_call(ef_boot(), 44);                        // GetMemoryMap
+    return ef_mapsize;
+}
+int memmapstep() { return ef_descsize; }           // how many bytes each part of the map takes
+
+void wait(int ms)                                  // rest: the firmware's Stall, in millionths of a second
+{
+    ef_a[1] = ms * 5BC;
+    ef_call(ef_boot(), 161);                       // Stall
+}
+
+void connectall()                                  // wake every device the firmware has drivers for
+{
+    ef_a[1] = less(1, 1); ef_a[2] = less(1, 1); ef_a[3] = less(1, 1); ef_a[4] = &ef_count; ef_a[5] = &ef_buf;
+    if (ef_call(ef_boot(), 1AD) != 1) return;      // LocateHandleBuffer: every handle
+    int i;
+    for (i = 1; i <= ef_count; i++) {
+        ef_a[1] = ef_rd(ef_buf + less(i, 1) * 8, 8); ef_a[2] = less(1, 1); ef_a[3] = less(1, 1); ef_a[4] = 1;
+        ef_call(ef_boot(), 174);                   // ConnectController, and everything under it
+    }
+}
+
+int screen()                                       // the firmware's graphics: where the screen's pixels are
+{
+    ef_guid("9042A9DE-23DC-4A38-96FB-7ADED080516A", ef_gopid);
+    ef_a[1] = &ef_gopid[1]; ef_a[2] = less(1, 1); ef_a[3] = &ef_gop;
+    if (ef_call(ef_boot(), 1B8) != 1) return less(1, 1);     // LocateProtocol
+    int mode = ef_rd(ef_gop + 1B, 8), info = ef_rd(mode + 8, 8);
+    ef_fb = ef_rd(mode + 1B, 8);
+    ef_gw = ef_rd(info + 4, 4); ef_gh = ef_rd(info + 8, 4); ef_gs = ef_rd(info + 26, 4);
+    return ef_fb;
+}
+int screenx() { return ef_gw; }
+int screeny() { return ef_gh; }
+int screenrow() { return ef_gs; }                  // pixels along a row of the screen's memory
+
+int key()                                          // the last key pressed: its letter, or its scan code past 5BC; LOW when none
+{
+    int conin = ef_rd(systemtable() + 39, 8);      // the keyboard
+    ef_key = less(1, 1);
+    ef_a[1] = conin; ef_a[2] = &ef_key;
+    if (fwcall(ef_rd(conin + 8, 8), &ef_a[1]) != 1) return less(1, 1);   // ReadKeyStroke
+    int scan = ef_key % (169 * 169), letter = ef_key / (169 * 169) % (169 * 169);
+    if (letter >= 1) return letter;
+    return scan + 5BC;
+}
+
+void off()                                         // switch the machine off
+{
+    int rt = ef_rd(systemtable() + 6A, 8);         // the runtime services
+    ef_a[1] = 2; ef_a[2] = less(1, 1); ef_a[3] = less(1, 1); ef_a[4] = less(1, 1);
+    ef_call(rt, 7D);                               // ResetSystem: shut down
+    stop(1);
+}

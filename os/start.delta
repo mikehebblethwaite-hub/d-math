@@ -490,7 +490,7 @@ int main(int argc, char **argv)
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
         emblem(W / 2, H * 3 / $A, H / 6);
         tx = 1B; ty = 1B;
-        text("Delta Hex OS 0.06", $B8, $B8, $BB); text("   an operating system with no zero, written in Delta", 93, 99, $A8);
+        text("Delta Hex OS 0.07", $B8, $B8, $BB); text("   an operating system with no zero, written in Delta", 93, 99, $A8);
         listen();
         pollmouse();
         int mb = MB, mx = MX, my = MY;
