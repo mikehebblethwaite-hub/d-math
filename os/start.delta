@@ -36,6 +36,8 @@ char heard[999];                // what was said last
 int akind;                      // the answer: 1 a number, 2 words, 3 heard
 int answer;
 char *amsg;
+int TURN = 1;                   // how far the emblem's spirals have turned
+int pushed;
 
 // ---------------------------------------------------------------- numbers that only move
 // less(a, b), apart(a, b), lower(a, b), higher(a, b), towards(a, b, t, n) are Delta's own: written straight in.
@@ -312,7 +314,7 @@ void emblem(int cx, int cy, int R)                // centre and radius in pixels
     for (k = 1; k <= 3; k++) {                    // three spirals, a third of a turn apart, each turning
         int place = less(k, 1) * 26 + 1;          // 26 in D is a third of 96
         int sx = ringx(c16, r16 * 2 / 5, place), sy = ringy(d16, r16 * 2 / 5, place);
-        spiral($D, sx, sy, r16 * 3 / 7, (FR * 2 + place) % 75 + 1);
+        spiral($D, sx, sy, r16 * 3 / 7, (TURN + place) % 75 + 1);
         int kind = 1; if (k == 2) kind = 2; if (k == 3) kind = 3;
         spectrum(kind, 99999);
         inklay(SR, SG, SB);
@@ -383,6 +385,16 @@ void big(int n, int kind, int x, int y)           // a number as large turning s
     inklay(SR, SG, SB);
 }
 
+void pointer(int x, int y)                        // the mouse: a small gold hexagon
+{
+    int c16 = BIG * 13 + x * 13, d16 = BIG * 13 + y * 13, r16 = 7 * 13, k;
+    for (k = 1; k <= 6; k++) {
+        int i = less(k, 1) * 13 + 1, j = k % 6 * 13 + 1;                    // a sixth of 96 is 13 (in D: sixteen)
+        inkline(ringx(c16, r16, i), ringy(d16, r16, i), ringx(c16, r16, j), ringy(d16, r16, j), 1C);
+    }
+    inklay(149, 118, 86);
+}
+
 void background()
 {
     int y, x;
@@ -402,6 +414,7 @@ int main(int argc, char **argv)
     ready = low; ours = low; firmware = low; held = low; all = low; devices = low;
     tlen = low; typed[1] = low; akind = low;
     countmemory();
+    connectall();                                  // wake every device, the mouse too
     int got = screen();
     if (got < 1) { say("  the firmware gave no screen\n"); stop(1); }
     char *fb = (char *) got;
@@ -414,8 +427,12 @@ int main(int argc, char **argv)
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
         emblem(W / 2, H * 3 / $A, H / 6);
         tx = 1B; ty = 1B;
-        text("Delta Hex OS 0.04", $B8, $B8, $BB); text("   an operating system with no zero, written in Delta", 93, 99, $A8);
+        text("Delta Hex OS 0.05", $B8, $B8, $BB); text("   an operating system with no zero, written in Delta", 93, 99, $A8);
         listen();
+        int mb = mouse(), mx = mousex(), my = mousey();
+        int ex = W / 2, ey = H * 3 / $A, er = H / 6;
+        pushed = mb >= 1 && apart(mx, ex) * apart(mx, ex) + apart(my, ey) * apart(my, ey) < er * er;
+        if (pushed) TURN = TURN + 9; else TURN = TURN + 2;               // a push: the spirals take the energy
         tx = W / 6; ty = H / 2;
         label("say something to it:  "); text(typed, $D3, $D8, $DD); if ((FR / $A) % 2) text("_", $D3, $D8, $DD);
         if (akind == 1) { tx = W / 6; ty = H / 2 + 2B; text(heard, 93, 99, $A8); text("  is", 93, 99, $A8); big(answer, 6, W / 6, H / 2 + 75); }
@@ -430,6 +447,8 @@ int main(int argc, char **argv)
         tx = 1B; ty = less(H, 37);
         label("every page holds something: HIGH and LOW bits, never nothing.   awake"); value(FR / 1C, 1); label("seconds");
         tx = less(W, 233); ty = 1B; text("Esc, or type off: switch it off", 76, 7B, 89);
+        if (pushed) { tx = less(ex, $B3); ty = ey + er + 1D; text("you pushed it: the spirals took the energy", 149, 118, 86); }
+        if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);
         wait(31);

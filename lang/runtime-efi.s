@@ -130,6 +130,113 @@ f_off:                          # off(): switch the machine off (the firmware's 
     sub rsp, 32
     call qword ptr [rax+104]    # ResetSystem
     jmp dl_exit
+f_connectall:                   # connectall(): ask the firmware to wake every device it has drivers for (the mouse too)
+    push rbp
+    mov rbp, rsp
+    push r12
+    push r13
+    push r14
+    mov rax, [rip+dl_system]
+    mov r14, [rax+96]
+    .byte 72, 131, 228, 240
+    sub rsp, 48
+    xor ecx, ecx                # all handles (the firmware's own label for that is LOW)
+    xor edx, edx
+    xor r8, r8
+    lea r9, [rip+dl_hcount]
+    lea rax, [rip+dl_hbuf]
+    mov [rsp+32], rax
+    call qword ptr [r14+312]    # LocateHandleBuffer
+    test rax, rax
+    jnz 9f
+    mov r12, [rip+dl_hbuf]
+    mov r13, [rip+dl_hcount]
+1:  test r13, r13
+    jz 9f
+    mov rcx, [r12]
+    xor edx, edx
+    xor r8, r8
+    mov r9, 1                   # and everything under it
+    call qword ptr [r14+264]    # ConnectController
+    add r12, 8
+    dec r13
+    jmp 1b
+9:  lea rsp, [rbp-24]
+    pop r14
+    pop r13
+    pop r12
+    pop rbp
+    ret
+f_mouse:                        # mouse(): reads the pointer; keeps its place on the screen (counted from 1);
+    push rbp                    # gives back 1 while its left button is down, else LOW. Movement left or up is a
+    mov rbp, rsp                # direction, worked out here under the hood; Delta only sees places.
+    mov rax, [rip+dl_mx]
+    test rax, rax
+    jnz 1f
+    mov rax, [rip+dl_gw]        # first time: the middle of the screen
+    shr rax, 1
+    mov [rip+dl_mx], rax
+    mov rax, [rip+dl_gh]
+    shr rax, 1
+    mov [rip+dl_my], rax
+1:  mov rax, [rip+dl_ptr]
+    test rax, rax
+    jnz 2f
+    mov rax, [rip+dl_system]    # find the pointer once
+    mov rax, [rax+96]
+    lea rcx, [rip+dl_ptrguid]
+    xor edx, edx
+    lea r8, [rip+dl_ptr]
+    .byte 72, 131, 228, 240
+    sub rsp, 32
+    call qword ptr [rax+320]    # LocateProtocol
+    mov rsp, rbp
+    mov rax, [rip+dl_ptr]
+    test rax, rax
+    jz 9f
+2:  mov rcx, rax
+    lea rdx, [rip+dl_pstate]
+    .byte 72, 131, 228, 240
+    sub rsp, 32
+    call qword ptr [rcx+8]      # GetState
+    mov rsp, rbp
+    test rax, rax
+    jnz 8f
+    movsxd rax, dword ptr [rip+dl_pstate]
+    add rax, [rip+dl_mx]
+    cmp rax, 1
+    jge 3f
+    mov rax, 1
+3:  cmp rax, [rip+dl_gw]
+    jle 4f
+    mov rax, [rip+dl_gw]
+4:  mov [rip+dl_mx], rax
+    movsxd rax, dword ptr [rip+dl_pstate+4]
+    add rax, [rip+dl_my]
+    cmp rax, 1
+    jge 5f
+    mov rax, 1
+5:  cmp rax, [rip+dl_gh]
+    jle 6f
+    mov rax, [rip+dl_gh]
+6:  mov [rip+dl_my], rax
+    movzx eax, byte ptr [rip+dl_pstate+12]
+    mov [rip+dl_mb], rax
+8:  mov rax, [rip+dl_mb]
+9:  pop rbp
+    ret
+f_mousefound:                   # mousefound(): 1 when the firmware gave a pointer, else LOW
+    mov rax, [rip+dl_ptr]
+    test rax, rax
+    jz 1f
+    mov eax, 1
+1:  ret
+f_mousex:
+    mov rax, [rip+dl_mx]
+    ret
+f_mousey:
+    mov rax, [rip+dl_my]
+    ret
 f_memmapstep:                   # how many bytes each part of the map takes
     mov rax, [rip+dl_descsize]
     ret
@@ -223,6 +330,14 @@ dl_mapkey: .quad LOW
 dl_descsize: .quad LOW
 dl_descver: .quad LOW
 dl_key:    .quad LOW
+dl_ptr:    .quad LOW
+dl_hcount: .quad LOW
+dl_hbuf:   .quad LOW
+dl_mx:     .quad LOW
+dl_my:     .quad LOW
+dl_mb:     .quad LOW
+dl_pstate: .quad LOW, LOW
+dl_ptrguid: .byte 0x87, 0x8C, 0x87, 0x31, 0x75, 0x0B, 0xD5, 0x11, 0x9A, 0x4F, 0x00, 0x90, 0x27, 0x3F, 0xC1, 0x4D
 dl_gop:    .quad LOW
 dl_fb:     .quad LOW
 dl_gw:     .quad LOW

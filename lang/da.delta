@@ -354,6 +354,8 @@ void encode(char *m)
         if (v <= hx("7F")) { ob("6B"); modrm(r3(oreg[1]), src); b(v); } else { ob("69"); modrm(r3(oreg[1]), src); le(v, 4); }
         return;
     }
+    if (is(m, "movsxd")) { rex(1, oreg[1], 2); ob("63"); modrm(r3(oreg[1]), 2); return; }     // a 4-byte direction, widened
+    if (is(m, "shr")) { rex(1, low, 1); ob("D1"); modrm(5, 1); return; }                        // halve (shr r, 1)
     if (is(m, "cmovg")) { rex(1, oreg[1], 2); ob("0F 4F"); modrm(r3(oreg[1]), 2); return; }
     if (is(m, "cmovl")) { rex(1, oreg[1], 2); ob("0F 4C"); modrm(r3(oreg[1]), 2); return; }
     if (is(m, "movzx")) {
@@ -434,10 +436,14 @@ void directive(char *m)
         symdef[k] = 1; symsec[k] = 5; symoff[k] = v;
         return;
     }
-    if (is(m, ".quad")) {
-        int v;
-        if (isdig(L[LP])) v = number(); else v = constval(symname());
-        int k; for (k = 1; k <= 8; k++) { put(v % 169); v = v / 169; }
+    if (is(m, ".quad")) {                         // one or more 8-byte values
+        while (L[LP] >= 1 && L[LP] != '#') {
+            sp();
+            int v;
+            if (isdig(L[LP])) v = number(); else v = constval(symname());
+            int k; for (k = 1; k <= 8; k++) { put(v % 169); v = v / 169; }
+            sp(); if (L[LP] == ',') LP++;
+        }
         return;
     }
     if (is(m, ".skip")) { int n = number(), k; if (cur == 4) { secn[4] = secn[4] + n; return; } for (k = 1; k <= n; k++) put(low); return; }
