@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boot Delta Hex OS: Delta help</title>
+<meta name="description" content="How to run Delta, write your first program, read D numerals and boot Delta Hex OS.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <nav><a href="index.html">Back to D</a></nav>
+  <section id="os">
+    <h1>Boot Delta Hex OS</h1>
+    <p>Try it in a virtual machine first. With QEMU and the OVMF firmware installed:</p>
+    <ol class="steps">
+      <li>Make a folder for its drive: <code>mkdir -p esp/EFI/BOOT</code></li>
+      <li>Put <a href="files/BOOTX64.EFI">BOOTX64.EFI</a> in <code>esp/EFI/BOOT/</code></li>
+      <li>Start it: <code>qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -drive format=raw,file=fat:rw:esp -m 256 -net none</code></li>
+      <li>Type to it: a D numeral, or a sum like <code>7 + 6</code>, then Enter.</li>
+      <li>Switch it off with Esc, or by typing <code>off</code>. If the window keeps hold of your mouse, Ctrl+Alt+G lets it go.</li>
+    </ol>
+    <p>To build it yourself from the source: <code>lang/delta efi os/start.delta -o esp/EFI/BOOT/BOOTX64.EFI</code>.
+      Delta Hex OS is early: it reads the machine&rsquo;s memory map and draws on the screen, and it does not write
+      to any drive.</p>
+  </section>
+  <nav class="pager"><a href="help.html">All help</a> <a href="help-numerals.html" rel="prev">Back: Reading D numerals</a></nav>
+</div>
+<footer class="site"><p>D and Delta &copy; Mike J Hebblethwaite. <a href="index.html">Back to D</a></p></footer>
+</body>
+</html>

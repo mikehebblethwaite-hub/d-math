@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Run your first program: Delta help</title>
+<meta name="description" content="How to run Delta, write your first program, read D numerals and boot Delta Hex OS.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <nav><a href="index.html">Back to D</a></nav>
+  <section id="run">
+    <h1>Run your first program</h1>
+    <p>You need Linux on an x86-64 machine, and nothing else.</p>
+    <ol class="steps">
+      <li><a href="files/delta.tar.gz">Download Delta</a> and unpack it: <code>tar xzf delta.tar.gz</code></li>
+      <li>Go into it: <code>cd d-math</code></li>
+      <li>Run hello world: <code>lang/delta run lang/examples/hello.delta</code>. The first time, Delta puts its own
+        compiler and assembler together from their seeds, then builds and runs the program.</li>
+      <li>Run the tests: <code>lang/tests/run.sh</code>. Every trick should be refused and every honest program
+        should give the right answer.</li>
+    </ol>
+  </section>
+  <nav class="pager"><a href="help.html">All help</a> <a href="help-write.html" rel="next">Next: Write your own</a></nav>
+</div>
+<footer class="site"><p>D and Delta &copy; Mike J Hebblethwaite. <a href="index.html">Back to D</a></p></footer>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>D: always something</title>
+<meta name="description" content="D is a maths of the physical world where nothing is ever nothing. Delta is its programming language. Delta Hex OS is an operating system built on it, with no zero anywhere.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hero">
+  <canvas id="emblem" aria-label="Three spirals in a circle, turning: the emblem of Delta Hex OS" role="img"></canvas>
+  <div class="hero-words">
+    <h1>Always something.</h1>
+    <p class="lede">D is a maths of the physical world in which nothing is ever nothing. Things move, or break into
+      their parts, and every part arrives somewhere. Delta is its programming language, and Delta Hex OS is an
+      operating system written in it. There is no zero anywhere, from the first rule to the machine's own boot.</p>
+    <p class="go"><a href="#download">Download Delta</a> <a href="help.html">Start here</a></p>
+  </div>
+</header>
+
+<main>
+
+<section id="rules">
+  <h2>The rules</h2>
+  <p>D has very few rules. Each is about what physically happens.</p>
+  <dl class="rules">
+    <dt><span class="sym">&gt;</span> move</dt>
+    <dd>A thing goes somewhere whole. <code>plum &gt; Bob</code>: the plum is at Bob. The old sum 1 &minus; 1 = 0 hides
+      where it went; here it is always said.</dd>
+    <dt><span class="sym">D&gt;</span> decompose</dt>
+    <dd>A thing breaks into its parts. <code>plum D&gt; sugar + energy + heat + poo ~</code>. Every breakdown ends
+      with <code>~</code>: the parts not known yet.</dd>
+    <dt><span class="sym">~</span> the unknown</dt>
+    <dd>Something is there, but its count is not known yet. It has no angles, so it cannot be counted. When a part is
+      found, it gets a name and takes the place of <code>~</code>.</dd>
+    <dt><span class="sym">&#x2194;</span> neighbours</dt>
+    <dd>Energy that leaves a thing goes to its neighbours. One less in a thing is one more in its lowest neighbour.
+      Everything&rsquo;s amount depends on its neighbours.</dd>
+    <dt><span class="sym">&macr;\_(&#x30C4;)_/&macr;</span> the Shrug</dt>
+    <dd>Waste: where it went we have no clue yet. It is investigated by following the energy&rsquo;s path back. An
+      engineer aims for the smallest Shrug possible.</dd>
+  </dl>
+  <p>There are no negative numbers: they are impossible. Even the lowest temperature is not below anything; it is
+    energy so low we can no longer measure it. A transistor does not switch between 1 and 0: it goes high or low,
+    and a low still holds charge and atoms with mass.</p>
+</section>
+
+<section id="count">
+  <h2>Counting from 1</h2>
+  <p>D counts with thirteen digits, 1 to D, and has no zero digit. Ten is A, thirteen is D, and the next number is 11.
+    Each digit is drawn with as many angles as the number it stands for, as a hex spiral turning a sixth of a turn
+    at each corner.</p>
+  <div class="digits" aria-label="The D digits 1 to D, drawn as spirals">
+    <figure><span class="dn">1</span><figcaption>1</figcaption></figure>
+    <figure><span class="dn">2</span><figcaption>2</figcaption></figure>
+    <figure><span class="dn">3</span><figcaption>3</figcaption></figure>
+    <figure><span class="dn">4</span><figcaption>4</figcaption></figure>
+    <figure><span class="dn">5</span><figcaption>5</figcaption></figure>
+    <figure><span class="dn">6</span><figcaption>6</figcaption></figure>
+    <figure><span class="dn">7</span><figcaption>7</figcaption></figure>
+    <figure><span class="dn">8</span><figcaption>8</figcaption></figure>
+    <figure><span class="dn">9</span><figcaption>9</figcaption></figure>
+    <figure><span class="dn">A</span><figcaption>A</figcaption></figure>
+    <figure><span class="dn">B</span><figcaption>B</figcaption></figure>
+    <figure><span class="dn">C</span><figcaption>C</figcaption></figure>
+    <figure><span class="dn">D</span><figcaption>D</figcaption></figure>
+    <figure><span class="dn">~</span><figcaption>unknown</figcaption></figure>
+  </div>
+  <p>A cake cut in three never leaves 0.3333&hellip; on each plate. A cake is a whole number of crumbs: each plate
+    takes its share, and the one or two crumbs that will not share evenly stay on the knife.</p>
+  <pre class="out"><code>a cake of 999A crumbs, cut in three:
+  plate one 3333, plate two 3333, plate three 3333 crumbs; on the knife 1
+  all together 999A = the cake: nothing went on for ever, nothing vanished</code></pre>
+</section>
+
+<section id="delta">
+  <h2>Delta, the language</h2>
+  <p>Delta is the C language with D&rsquo;s rules. The compiler refuses the digit zero, <code>NULL</code>,
+    <code>false</code> and every minus sign. Numbers come down only when something is moved out of them, and every
+    program keeps a book that must add up to what it started with.</p>
+  <pre class="code"><code>int main(int argc, char **argv)
+{
+    int apples = 1;
+    say("Hello, world\n");
+    say("I have %d apple, and the seeds, water, sunlight and soil that make more\n", apples);
+    return 1;
+}</code></pre>
+  <p>Write <code>int apples = 0;</code> and Delta answers: <em>zero apples? There are never zero apples. The seeds,
+    water, sunlight and the nitrogen the fungi in the soil take up make the tree that gives the apples. Say what is
+    there.</em></p>
+  <p>Delta builds itself. Its compiler and its own assembler and linker are written in Delta, and when they rebuild
+    themselves they come out the same, byte for byte. You need nothing but Linux on an x86-64 machine: no Python,
+    no C compiler, no GNU tools.</p>
+  <div class="shots">
+    <figure><img src="images/faraday.jpg" alt="Faraday's 1821 electro-magnetic rotations drawn by Delta: two glasses of mercury, a brass stand, a voltaic pile" loading="lazy" width="960" height="540"><figcaption>Faraday&rsquo;s first electric motor (year <span class="dn">AA1</span>) as he set it out, with every part of its energy accounted for.</figcaption></figure>
+    <figure><img src="images/causeway.jpg" alt="The Giant's Causeway drawn by Delta: grey basalt columns, mostly six-sided" loading="lazy" width="960" height="540"><figcaption>The Giant&rsquo;s Causeway: lava cooling, each column sharing its pull evenly. No hexagon is drawn; they form.</figcaption></figure>
+  </div>
+</section>
+
+<section id="os">
+  <h2>Delta Hex OS</h2>
+  <p>An operating system with no zero, written in Delta. The machine&rsquo;s own firmware starts it in 64-bit mode
+    with nothing underneath: no Linux and no C. It counts the machine&rsquo;s memory from 1, calls memory that holds
+    nothing in particular yet &ldquo;ready to hold&rdquo; (every bit is high or low, never empty), draws every pixel
+    itself, and answers what you type in D.</p>
+  <figure class="wide"><img src="images/hex-os.jpg" alt="The Delta Hex OS screen: a gold ring with three turning spirals, a typed sum answered as spirals, and the memory counted in D" loading="lazy" width="1280" height="800"><figcaption>Delta Hex OS <span class="dn">3</span>: typed <code>12 * 3</code>, it answers in spirals.</figcaption></figure>
+  <p>The emblem is three spirals in a circle. The author drew it again and again as a child, long before he knew it
+    is cut in stone thousands of years old.</p>
+</section>
+
+<section id="download">
+  <h2>Download</h2>
+  <ul class="files">
+    <li><a href="files/delta.tar.gz">Delta, everything</a>: the language, its compiler and assembler (ready to run
+      from their seeds), the examples, Delta Hex OS and the paper. For Linux on x86-64.</li>
+    <li><a href="files/BOOTX64.EFI">Delta Hex OS, ready to boot</a>: a UEFI program. Put it at
+      <code>EFI/BOOT/BOOTX64.EFI</code> on a FAT drive, or try it in a virtual machine first (see <a href="help.html#os">help</a>).</li>
+    <li><a href="files/hex-at-the-root.md">The paper: Hex at the root</a>: D&rsquo;s claim that hex is what equal
+      neighbours make, with the Delta models that test it.</li>
+    <li>The source is open: <a href="https://github.com/mikehebblethwaite-hub/d-math">github.com/mikehebblethwaite-hub/d-math</a>.</li>
+  </ul>
+</section>
+
+<section id="challenge">
+  <h2>The challenge</h2>
+  <blockquote>
+    <p>Any peer wanting to disprove D: give one example, anywhere in the known universe, where there is nothing.
+      D cannot have a zero, because a zero is not possible.</p>
+    <footer>Mike J Hebblethwaite</footer>
+  </blockquote>
+</section>
+
+</main>
+
+<footer class="site">
+  <p>D and Delta &copy; Mike J Hebblethwaite. Free under the GNU AGPL, or a paid licence for closed products.
+    <a href="help.html">Help</a></p>
+</footer>
+
+<script src="emblem.js"></script>
+</body>
+</html>

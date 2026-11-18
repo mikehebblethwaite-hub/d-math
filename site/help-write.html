@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Write your own: Delta help</title>
+<meta name="description" content="How to run Delta, write your first program, read D numerals and boot Delta Hex OS.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <nav><a href="index.html">Back to D</a></nav>
+  <section id="write">
+    <h1>Write your own</h1>
+    <p>Delta reads like C, with D&rsquo;s rules:</p>
+    <ul>
+      <li>Numbers are D numerals. Ten is <code>$A</code>, thirteen <code>$D</code>, fourteen <code>11</code>. A
+        numeral that starts with a letter takes a <code>$</code>.</li>
+      <li>Rows count from 1: <code>row[1]</code> is the first place. <code>main</code> ends with <code>return 1</code>.</li>
+      <li>There is no minus. Move instead: <code>move 3 from a to b;</code> or <code>less(a, b)</code> for a with b
+        moved out. Moving more than is there stops the program and says so.</li>
+      <li>Break a thing into parts with <code>D&gt;</code>; the rest stays as its unknown energy, <code>~</code>.</li>
+      <li>Dividing by something lower than 1 stops with words, never a crash: there is nothing to share it with.</li>
+    </ul>
+    <pre class="code"><code>int main(int argc, char **argv)
+{
+    int plum = 9, sugar = 1, heat = 1;
+    plum D&gt; sugar + heat ~;
+    say("sugar %d, heat %d, unknown %d\n", sugar, heat, ~);
+    return 1;
+}</code></pre>
+    <p>Build it with <code>lang/delta build plum.delta</code>, or build and run in one go with <code>lang/delta run plum.delta</code>.</p>
+  </section>
+  <nav class="pager"><a href="help.html">All help</a> <a href="help-run.html" rel="prev">Back: Run your first program</a> <a href="help-numerals.html" rel="next">Next: Reading D numerals</a></nav>
+</div>
+<footer class="site"><p>D and Delta &copy; Mike J Hebblethwaite. <a href="index.html">Back to D</a></p></footer>
+</body>
+</html>
