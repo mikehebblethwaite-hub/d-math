@@ -49,13 +49,16 @@ def wave(c):
                     c["y"] + c["amp"] * math.sin(t * c["waves"] * 2 * math.pi)))
     return pts
 
-def draw(polys, adv, pad=60):
+def circle(cx, cy, r, n=72):
+    return [(cx + r * math.cos(2 * math.pi * i / n), cy + r * math.sin(2 * math.pi * i / n)) for i in range(n)]
+
+def draw(polys, adv, pad=60, holes=()):
     pen = TTGlyphPen(None)
-    for poly in polys:
+    for k, poly in enumerate(polys):
         poly = [(round(x + pad), round(y)) for x, y in poly]
-        # clockwise for TrueType
+        # clockwise for TrueType; holes the other way
         area = sum(a[0]*b[1]-b[0]*a[1] for a, b in zip(poly, poly[1:] + poly[:1]))
-        if area > 0: poly = poly[::-1]
+        if (area > 0) != (k in holes): poly = poly[::-1]
         pen.moveTo(poly[0])
         for p in poly[1:]: pen.lineTo(p)
         pen.closePath()
@@ -72,9 +75,16 @@ for g in SRC["glyphs"]:
     elif "curve" in g:
         polys, adv, pad = [outline(wave(g["curve"]), W)], g["width"], 0
     else:
-        polys = [outline(s, W) for s in g["strokes"] if len(s) > 1]
+        polys = [outline(s, W) for s in g.get("strokes", []) if len(s) > 1]
         adv, pad = g["width"], 0
-    glyphs[name] = draw(polys, adv, pad); metrics[name] = (adv, 0)
+    holes = set()
+    for c in g.get("circles", []):           # {"x","y","r","ring": true} ring = outline, else a filled dot
+        if c.get("ring"):
+            polys.append(circle(c["x"], c["y"], c["r"] + W / 2))
+            holes.add(len(polys)); polys.append(circle(c["x"], c["y"], c["r"] - W / 2))
+        else:
+            polys.append(circle(c["x"], c["y"], c["r"]))
+    glyphs[name] = draw(polys, adv, pad, holes); metrics[name] = (adv, 0)
     for ch in [g.get("char"), g.get("also")]:
         if ch: cmap[ord(ch)] = name
     if "liga" in g: ligas.append((g["liga"], name))

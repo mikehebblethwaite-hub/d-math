@@ -40,6 +40,8 @@ The shapes for each digit are still to be drawn.
   Operators are lines of [x,y] points; add a new operator by adding an entry.
   `"liga": "D>"` makes typed keys join into one symbol.
 - `python3 font/build.py` builds `font/d-angle.ttf`; `python3 font/preview.py` draws `font/preview.png`.
+- Our 0 (the 0 key): a circle holding 3 dots, the unknown things left in it, like 3 ping pong balls.
+  Never nothing: it shows what was called zero is still full (Mike, 18 Nov 2026).
 - Use the font only on D maths: in it, A B C D are the digits 10 to 13.
 
 ## Dc: C with D rules, straight to assembly (lang/)

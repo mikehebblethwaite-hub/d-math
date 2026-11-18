@@ -1,40 +1,274 @@
 {
-  "_how": "Edit this file, then run: python3 build.py. Units: 1000 per em, baseline y=0, top ~700. 'angles' glyphs are drawn by rule (a hex spiral with n corners). 'strokes' glyphs are lists of lines, each a list of [x,y] points. 'liga' turns typed keys into one glyph.",
-  "stroke": 56,
-  "glyphs": [
-    {"name": "one",   "char": "1", "angles": 1},
-    {"name": "two",   "char": "2", "angles": 2},
-    {"name": "three", "char": "3", "angles": 3},
-    {"name": "four",  "char": "4", "angles": 4},
-    {"name": "five",  "char": "5", "angles": 5},
-    {"name": "six",   "char": "6", "angles": 6},
-    {"name": "seven", "char": "7", "angles": 7},
-    {"name": "eight", "char": "8", "angles": 8},
-    {"name": "nine",  "char": "9", "angles": 9},
-    {"name": "ten",      "char": "A", "also": "a", "angles": 10},
-    {"name": "eleven",   "char": "B", "also": "b", "angles": 11},
-    {"name": "twelve",   "char": "C", "also": "c", "angles": 12},
-    {"name": "thirteen", "char": "D", "also": "d", "angles": 13},
-
-    {"name": "move", "char": ">", "width": 700, "note": "move: whole thing goes somewhere else",
-     "strokes": [[[60,350],[600,350]], [[440,500],[620,350],[440,200]]]},
-
-    {"name": "decompose", "liga": "D>", "width": 900, "note": "D> decompose: whole breaks into parts",
-     "strokes": [[[60,350],[330,350]],
-                 [[400,350],[500,350]],
-                 [[400,430],[480,470]],
-                 [[400,270],[480,230]],
-                 [[560,350],[620,350]],
-                 [[540,500],[600,530]],
-                 [[540,200],[600,170]],
-                 [[700,500],[860,350],[700,200]]]},
-
-    {"name": "unknown", "char": "~", "width": 700, "note": "unknown parts: no angles, count not known yet",
-     "curve": {"x0": 70, "x1": 630, "y": 350, "amp": 90, "waves": 1.5}},
-
-    {"name": "plus", "char": "+", "width": 600,
-     "strokes": [[[100,350],[500,350]], [[300,150],[300,550]]]},
-
-    {"name": "space", "char": " ", "width": 350, "strokes": []}
-  ]
+ "_how": "Edit this file, then run: python3 build.py. Units: 1000 per em, baseline y=0, top ~700. 'angles' glyphs are drawn by rule (a hex spiral with n corners). 'strokes' glyphs are lists of lines, each a list of [x,y] points. 'liga' turns typed keys into one glyph. 'circles' are rings (ring: true) or filled dots.",
+ "stroke": 56,
+ "glyphs": [
+  {
+   "name": "one",
+   "char": "1",
+   "angles": 1
+  },
+  {
+   "name": "two",
+   "char": "2",
+   "angles": 2
+  },
+  {
+   "name": "three",
+   "char": "3",
+   "angles": 3
+  },
+  {
+   "name": "four",
+   "char": "4",
+   "angles": 4
+  },
+  {
+   "name": "five",
+   "char": "5",
+   "angles": 5
+  },
+  {
+   "name": "six",
+   "char": "6",
+   "angles": 6
+  },
+  {
+   "name": "seven",
+   "char": "7",
+   "angles": 7
+  },
+  {
+   "name": "eight",
+   "char": "8",
+   "angles": 8
+  },
+  {
+   "name": "nine",
+   "char": "9",
+   "angles": 9
+  },
+  {
+   "name": "ten",
+   "char": "A",
+   "also": "a",
+   "angles": 10
+  },
+  {
+   "name": "eleven",
+   "char": "B",
+   "also": "b",
+   "angles": 11
+  },
+  {
+   "name": "twelve",
+   "char": "C",
+   "also": "c",
+   "angles": 12
+  },
+  {
+   "name": "thirteen",
+   "char": "D",
+   "also": "d",
+   "angles": 13
+  },
+  {
+   "name": "held",
+   "char": "0",
+   "width": 720,
+   "note": "our 0: never nothing. A circle holding 3 dots, the unknown things left in it (like 3 ping pong balls)",
+   "circles": [
+    {
+     "x": 360,
+     "y": 350,
+     "r": 290,
+     "ring": true
+    },
+    {
+     "x": 360,
+     "y": 431,
+     "r": 64
+    },
+    {
+     "x": 290,
+     "y": 310,
+     "r": 64
+    },
+    {
+     "x": 430,
+     "y": 310,
+     "r": 64
+    }
+   ]
+  },
+  {
+   "name": "move",
+   "char": ">",
+   "width": 700,
+   "note": "move: whole thing goes somewhere else",
+   "strokes": [
+    [
+     [
+      60,
+      350
+     ],
+     [
+      600,
+      350
+     ]
+    ],
+    [
+     [
+      440,
+      500
+     ],
+     [
+      620,
+      350
+     ],
+     [
+      440,
+      200
+     ]
+    ]
+   ]
+  },
+  {
+   "name": "decompose",
+   "liga": "D>",
+   "width": 900,
+   "note": "D> decompose: whole breaks into parts",
+   "strokes": [
+    [
+     [
+      60,
+      350
+     ],
+     [
+      330,
+      350
+     ]
+    ],
+    [
+     [
+      400,
+      350
+     ],
+     [
+      500,
+      350
+     ]
+    ],
+    [
+     [
+      400,
+      430
+     ],
+     [
+      480,
+      470
+     ]
+    ],
+    [
+     [
+      400,
+      270
+     ],
+     [
+      480,
+      230
+     ]
+    ],
+    [
+     [
+      560,
+      350
+     ],
+     [
+      620,
+      350
+     ]
+    ],
+    [
+     [
+      540,
+      500
+     ],
+     [
+      600,
+      530
+     ]
+    ],
+    [
+     [
+      540,
+      200
+     ],
+     [
+      600,
+      170
+     ]
+    ],
+    [
+     [
+      700,
+      500
+     ],
+     [
+      860,
+      350
+     ],
+     [
+      700,
+      200
+     ]
+    ]
+   ]
+  },
+  {
+   "name": "unknown",
+   "char": "~",
+   "width": 700,
+   "note": "unknown parts: no angles, count not known yet",
+   "curve": {
+    "x0": 70,
+    "x1": 630,
+    "y": 350,
+    "amp": 90,
+    "waves": 1.5
+   }
+  },
+  {
+   "name": "plus",
+   "char": "+",
+   "width": 600,
+   "strokes": [
+    [
+     [
+      100,
+      350
+     ],
+     [
+      500,
+      350
+     ]
+    ],
+    [
+     [
+      300,
+      150
+     ],
+     [
+      300,
+      550
+     ]
+    ]
+   ]
+  },
+  {
+   "name": "space",
+   "char": " ",
+   "width": 350,
+   "strokes": []
+  }
+ ]
 }
