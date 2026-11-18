@@ -1,0 +1,150 @@
+// The counter-example search: does "share the pull evenly with your neighbours" settle into hexagons from ANY start?
+//
+// Grok's review asked for it. The Giant's Causeway model (causeway.delta) settles one sheet of lava, from one scatter.
+// This runs the same rule on many sheets: different sizes, different numbers of columns, different starting scatters
+// (each scatter is i x A mod the sheet, i x B / 7 mod the sheet, for the A and B listed; repeatable, written down, not
+// random). Each sheet settles for 11B steps; then the sides of every column away from the border are counted.
+// It says, for every sheet, how many columns have five, six, seven and other numbers of sides, and the share of six.
+// A sheet where six-sided columns are not the most would be a counter-example, and it says so.
+//
+//   delta run examples/causeway-search.delta
+
+int nc;
+int low;
+int isqrt(int n)
+{
+    if (n < 2) return n;
+    int y = 1; while (y * y < n) y = y * 2;
+    int x = y; y = (x + n / x) / 2;
+    while (y < x) { x = y; y = (x + n / x) / 2; }
+    return x;
+}
+int cxp[24A];                 // each column's centre, in sixteenths of a half-pixel
+int cyp[24A];
+int lab[5BD49A];             // which column each half-pixel belongs to
+int gapv[5BD49A];            // how near it is to a crack
+int sumx[24A];
+int sumy[24A];
+int cnt[24A];
+int edgec[24A];               // touches the border
+char adj[57A99];
+int sides[24A];
+int bhead[149A];
+int bnext[24A];
+int HW, HH, BS, BW, BH;           // the half-size sheet, its buckets
+
+void scatter()
+{
+    int i;
+    for (i = 1; i <= nc; i++) {
+        cxp[i] = ((i * 37B2) % (HW * 13)) + 8;
+        cyp[i] = ((i * 38891 / 7) % (HH * 13)) + 8;
+    }
+}
+
+void buckets()
+{
+    int i, k;
+    for (k = 1; k <= BW * BH; k++) bhead[k] = low;
+    for (i = 1; i <= nc; i++) {
+        int bx = lower(cxp[i] / 13 / BS + 1, BW), by = lower(cyp[i] / 13 / BS + 1, BH);
+        k = less(by, 1) * BW + bx;
+        bnext[i] = bhead[k]; bhead[k] = i;
+    }
+}
+
+// every half-pixel: its nearest centre, and how near the next one is (the crack lies between)
+void shares()
+{
+    int x, y, i;
+    for (i = 1; i <= nc; i++) { sumx[i] = low; sumy[i] = low; cnt[i] = low; edgec[i] = low; }
+    for (y = 1; y <= HH; y++) for (x = 1; x <= HW; x++) {
+        int px16 = x * 13, py16 = y * 13;
+        int bx = lower(x / BS + 1, BW), by = lower(y / BS + 1, BH);
+        int best = 12C23A19B, next = 12C23A19B, who = 1, dbx, dby;
+        for (dby = 1; dby <= 3; dby++) for (dbx = 1; dbx <= 3; dbx++) {
+            int qx = less(bx + dbx, 1), qy = less(by + dby, 1);  // buckets bx-1 .. bx+1, counted from 2
+            if (qx >= 2 && qx <= BW + 1 && qy >= 2 && qy <= BH + 1) {
+                int c = bhead[less(less(qy, 2) * BW + qx, 1)];
+                while (c >= 1) {
+                    int dx = apart(px16, cxp[c]), dy = apart(py16, cyp[c]);
+                    int d = (dx * dx + dy * dy) / 13;
+                    if (d < best) { next = best; best = d; who = c; } else if (d < next) next = d;
+                    c = bnext[c];
+                }
+            }
+        }
+        int k = less(y, 1) * HW + x;
+        lab[k] = who; gapv[k] = less(next, best) / (BS * 2);
+        sumx[who] = sumx[who] + px16; sumy[who] = sumy[who] + py16; cnt[who]++;
+        if (x == 1 || y == 1 || x == HW || y == HH) edgec[who] = 1;
+    }
+}
+
+// the D rule: each centre moves toward the middle of its own share (its pull shared evenly with its neighbours)
+void settle()
+{
+    int i;
+    for (i = 1; i <= nc; i++) if (cnt[i] >= 1) {
+        cxp[i] = towards(cxp[i], sumx[i] / cnt[i], 1, 2);
+        cyp[i] = towards(cyp[i], sumy[i] / cnt[i], 1, 2);
+    }
+}
+
+int S5, S6, S7, SO;
+void count()                       // how many sides each column has: its neighbours across the cracks
+{
+    int i, x, y;
+    for (i = 1; i <= nc * nc; i++) adj[i] = low;
+    for (y = 1; y < HH; y++) for (x = 1; x < HW; x++) {
+        int k = less(y, 1) * HW + x, a = lab[k], b = lab[k + 1], c = lab[k + HW];
+        if (a != b) { adj[less(a, 1) * nc + b] = 1; adj[less(b, 1) * nc + a] = 1; }
+        if (a != c) { adj[less(a, 1) * nc + c] = 1; adj[less(c, 1) * nc + a] = 1; }
+    }
+    S5 = low; S6 = low; S7 = low; SO = low;
+    for (i = 1; i <= nc; i++) if (edgec[i] < 1 && cnt[i] >= 1) {
+        int j, n = low;
+        for (j = 1; j <= nc; j++) if (adj[less(i, 1) * nc + j]) n++;
+        sides[i] = n;
+        if (n == 5) S5++; else if (n == 6) S6++; else if (n == 7) S7++; else SO++;
+    }
+}
+
+// the picture: basalt tops, each a little higher or lower, lit from the low sun; cracks dark, glowing while hot
+
+int ma, mb;
+void scatter2()
+{
+    int i;
+    for (i = 1; i <= nc; i++) {
+        cxp[i] = ((i * ma) % (HW * 13)) + 8;
+        cyp[i] = ((i * mb / 7) % (HH * 13)) + 8;
+    }
+}
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    int as[7] = {37B2, 2B4B, 5C27, 8A1, 3C6D, 1D3B, 4B1};       // the scatters: multipliers across
+    int bs[7] = {38891, 2A5B7, 4C9A3, 1B6B9, 3D4C1, 5A2B3, 2C8D5}; // and down
+    int sizes[3] = {$A1, 15A, 1D2};                               // sheet widths (half-pixels); heights two thirds
+    int counts[3] = {4C, 93, 125};                               // columns in a sheet
+    int z, q, k, runs = low, against = low;
+    say("sheet    columns  scatter   five  six  seven  other   six of every 79 (79 is a hundred; all in D numerals)\n");
+    for (z = 1; z <= 3; z++) for (q = 1; q <= 3; q++) for (k = 1; k <= 7; k++) {
+        HW = sizes[z]; HH = sizes[z] * 2 / 3; nc = counts[q]; ma = as[k]; mb = bs[k];
+        BS = isqrt(HW * HH / nc) + 1; BW = HW / BS + 1; BH = HH / BS + 1;
+        scatter2();
+        int s;
+        for (s = 1; s <= 11B; s++) { buckets(); shares(); settle(); }
+        buckets(); shares(); count();
+        int all = S5 + S6 + S7 + SO;
+        if (all < 1) all = 1;
+        runs++;
+        say("%dx%d   %d       %d         %d   %d   %d     %d       %d", HW, HH, nc, k, S5, S6, S7, SO, S6 * 79 / all);
+        if (S6 < S5 || S6 < S7 || S6 < SO) { say("   six is not the most: a counter-example"); against++; }
+        say("\n");
+    }
+    say("\n%d sheets settled; %d where six-sided columns were not the most\n", runs, against);
+    return 1;
+}
