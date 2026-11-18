@@ -207,6 +207,21 @@ and the places kept back for devices (not memory). Every page holds something: H
     lang/delta efi os/start.delta -o os/esp/EFI/BOOT/BOOTX64.EFI
     qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -drive format=raw,file=fat:rw:os/esp -m 256 -net none
 
+**0.08: the hex desktop and Dragonfly.** The screen is a flower of seven hex tiles: the emblem in the middle, and round
+it Dragonfly, Say, Memory, Off and two tiles "ready to hold" (not empty: ready for what comes next). Arrows or Tab move
+between tiles, Enter or a click opens one, Esc comes back (on the desktop Esc switches off). The tiles' corners are whole
+hex steps, root 3 only as the bridge 1D/12. The mouse is our own USB driver in Delta: it finds the pointer device and
+reads its reports (a tablet in QEMU: `-device qemu-xhci -device usb-tablet`).
+
+**Dragonfly, the engineer's assistant** (Mike, 18 Nov 2026: "Dragonflys need building in Delta Hex OS"). Type two of
+volts, amps, ohms and watts, in D numerals with their units (`C v 4 ohm`, `5 amp B ohm`, `2B w 7 v`; add `6 s` for heat
+over time): it works out the rest with whole numbers. D writes no fraction of a whole, so when a whole does not come
+out even it counts in thousandths (millivolts, milliamps ...), and what still does not share evenly stays on the knife,
+and it says so. A third value is checked against the book: volts x amps = watts. No language model: plain rules, the
+book checked; our own model comes later.
+
+    qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -drive format=raw,file=fat:rw:os/esp -m 256 -net none -device qemu-xhci -device usb-tablet
+
 `lang/delta efi` builds with `lang/runtime-efi.s` (words to the firmware's screen; the firmware spoken to in its own
 way) and `da` writes the UEFI program file (PE) itself. Try it in a virtual machine only.
 

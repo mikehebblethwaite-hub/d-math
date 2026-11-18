@@ -78,3 +78,11 @@ Mike's challenge (14:32): "Any peer wanting to disprove D math please give one e
 there is nothing, as D math cannot have a zero because it is not possible."
 
 Mike, 14:46: the three spirals in a circle are "6000 years old, in mini me as a child's imagination".
+
+## The hex desktop and Dragonfly (Delta Hex OS 0.08, 18 Nov, 23:40 onwards)
+
+Mike, 19:06: "Dragonflys need building in Delta Hex OS": an engineer's assistant inside the OS, written in Delta. The
+desktop became a flower of seven hex tiles (the emblem in the middle; Dragonfly, Say, Memory, Off and two tiles ready to
+hold). Dragonfly works volts, amps, ohms, watts and heat in D numerals; where a whole does not come out even it counts in
+thousandths, and the crumb that does not share stays on the knife (the cake rule, paper 5.6). The mouse had been left open
+at 0.07: it turned out to work all along; the test had sent relative moves, which a tablet does not take.
