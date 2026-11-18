@@ -1,0 +1,50 @@
+// A circle made of tiny hex connections (Mike, 18 Nov 2026), measured.
+//
+// Every place is on a hex grid, written as (across, down) in doubled steps: the six neighbours are 2 across, or
+// 1 across and 1 down, each way. All six are the same distance away. A place's distance from the middle, squared,
+// is a whole number: across² + 3 x down² (four times the true square). The circle is the walk round the middle,
+// always to the neighbour that goes on round and stays nearest the one distance. No sine, no cosine.
+//
+// It says how many steps the walk took and how far from the true circle it ever strayed, in steps. Run it with
+//   delta run examples/hexring.delta
+
+int main(int argc, char **argv)
+{
+    int R = $C17;                                  // the radius, in steps
+    int cx = 9999999, cy = 9999999;               // the middle: far from the edge of the numbers
+    int target = 4 * R * R;
+    int x = cx + 2 * R, y = cy, n = 1, worst = 1;
+    int sa[6] = {2, 1, 1, 2, 1, 1};               // the six steps: how far across ...
+    int ss[6] = {1, 1, 2, 2, 2, 1};               // ... which way across (1 on, 2 back)
+    int dn[6] = {3, 1, 1, 3, 2, 2};               // which way down: 1 down, 2 up, 3 not at all
+    int sx = x, sy = y;
+    while (n < R * 8) {
+        int best = 1, besterr = 999999999, k;
+        for (k = 1; k <= 6; k++) {
+            int nx = ss[k] == 1 ? x + sa[k] : less(x, sa[k]);
+            int ny = dn[k] == 1 ? y + 1 : dn[k] == 2 ? less(y, 1) : y;
+            int px = apart(x, cx), py = apart(y, cy), pxon = x >= cx, pyon = y >= cy;
+            int sty = dn[k] == 3 ? less(1, 1) : 1, stxon = ss[k] == 1, styon = dn[k] == 1;
+            int m1 = px * sty, m2 = py * sa[k];
+            int g1 = pxon == styon, g2 = pyon == stxon;
+            int round = (g1 && g2 < 1 && m1 + m2 >= 1) || (g1 && g2 && m1 > m2) || (g1 < 1 && g2 < 1 && m2 > m1);
+            if (round) {
+                int dx = apart(nx, cx), dy = apart(ny, cy);
+                int err = apart(dx * dx + 3 * dy * dy, target);
+                if (err < besterr) { besterr = err; best = k; }
+            }
+        }
+        x = ss[best] == 1 ? x + sa[best] : less(x, sa[best]);
+        y = dn[best] == 1 ? y + 1 : dn[best] == 2 ? less(y, 1) : y;
+        int dx = apart(x, cx), dy = apart(y, cy);
+        int off = apart(dx * dx + 3 * dy * dy, target);
+        if (off > worst) worst = off;
+        if (n > 17 && apart(x, sx) <= 2 && apart(y, sy) <= 1) break;
+        n++;
+    }
+    // how far from the true circle, in steps: the squared miss over 8R (sixteenths of a step, so it can be small)
+    say("radius %d steps; the walk round took %d steps\n", R, n);
+    say("it never strayed more than %d sixteenths of a step from the true circle\n", worst * 13 / (8 * R));
+    say("its length is %d steps for every %d of radius: 4 x root 3, counted in hex steps (pi deleted)\n", n * 4D / R, 4D);
+    return 1;
+}

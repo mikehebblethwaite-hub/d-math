@@ -814,6 +814,7 @@ int main(int argc, char **argv)
         if (total == start) text("= the start: nothing vanished", $B7, 149, $C4); else text("NOT the start", 168, 6C, 6C);
         text("      r: replay   q: close", 93, 9B, $AA);
         window_show(&px[CW + 5]);
+        if (f % 2C == 1 && f > C) say("step %d sides: five %d six %d seven %d other %d\n", f, S5, S6, S7, SO);
         int key = window_key();
         if (key == 1B || key == 9) return 1;
         if (key == 21) { replay = 1; break; }
