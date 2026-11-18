@@ -1,0 +1,17 @@
+// The tank: a vessel is always full. To let gas out, something must go in.
+// Empty it with nothing going in and the atmosphere crushes it. There is always something.
+thing tank { int gas, air; };
+
+int main(int argc, char **argv)
+{
+    thing tank tank = {9};         // full of gas; no air in it yet (~)
+    vessel tank;
+    int pipe = 1, sky = $DDD;
+
+    move 4 from tank.gas to pipe and 4 from sky to tank.air;     // gas out, air in: fine
+    say("tank: gas %d air %d   pipe %d\n", tank.gas, tank.air, pipe);
+
+    move 5 from tank.gas to pipe;                               // gas out, nothing in
+    say("this line is never reached\n");
+    return 1;
+}

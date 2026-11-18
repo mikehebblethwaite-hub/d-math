@@ -1,0 +1,38 @@
+// Delta vessels: a vessel is always full. Something must go in to let something out.
+// Take something out with nothing going in and the atmosphere crushes it: BLAM.
+// Written in Delta, so it keeps D's rules.
+
+int *dl_vat[$DDD];             // where each vessel starts
+char *dl_vname[$DDD];
+int dl_vslots[$DDD];
+int dl_vfull[$DDD];            // what it holds when full
+int dl_vnext = 1;
+
+int dl_vsum(int *at, int slots)
+{
+    int sum;
+    for (int i = 1; i <= slots; i++) if (at[i] >= 1) sum += at[i];
+    return sum;
+}
+
+void dl_vessel(int *at, char *nm, int slots)
+{
+    int v = dl_vnext;
+    dl_vat[v] = at; dl_vname[v] = nm; dl_vslots[v] = slots;
+    dl_vfull[v] = dl_vsum(at, slots);
+    dl_vnext++;
+}
+
+void dl_vcheck()
+{
+    for (int v = 1; v < dl_vnext; v++) {
+        int now = dl_vsum(dl_vat[v], dl_vslots[v]);
+        if (now < dl_vfull[v]) {
+            int gone = dl_vfull[v], sink;
+            if (now >= 1) move now from gone to sink;
+            say("BLAM! %s was crushed: %d came out and nothing went in.\n", dl_vname[v], gone);
+            say("Something must always go in to let something out.\n");
+            stop(2);
+        }
+    }
+}

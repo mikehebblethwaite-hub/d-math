@@ -57,7 +57,7 @@ The shapes for each digit are still to be drawn.
 ## Delta: C with D rules, straight to assembly (lang/)
 
 `lang/delta run file.delta` | `delta build file.delta -o out` | `delta asm file.delta` (shows the assembly it writes).
-Delta 0.05 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+Delta 0.07 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
 turn the assembly text into the program file.
 
@@ -87,8 +87,31 @@ turn the assembly text into the program file.
   - A share less than 1 is `~` (unknown energy); stores + conductors + `~` always add up to what there was.
   - Energy still going round conductors after DD steps stops the program and says where.
   - The flow engine is written in Delta (`lang/flow.delta`), so it keeps D's rules too.
+- Things: a thing holds named parts and its own `~`, and can act by itself.
+  ```
+  thing plum {
+      int flesh, sugar, heat, poo;
+      char *name;
+      void eat() { flesh D> sugar + heat + poo ~; }   // what is left stays in the plum as its own ~
+  };
+  thing plum p = {$A, 1, 1, 1, "plum"};   p.eat();   say("%d", p.~);
+  ```
+  Parts: `p.sugar`, through a place `q->sugar`, its unknown energy `p.~`. Rows of things, things in things,
+  copying a whole thing, and parts as neighbours (`store p.sugar;`) all work. A thing is given to a function
+  by its place (`thing plum *p`).
+- Vessels: stuff is stored in things: batteries, bricks holding heat, containers holding water, tanks holding gas.
+  To take something out, something must go in to let it out (Mike, 18 Nov 2026).
+  ```
+  thing tank { int gas, air; };
+  thing tank tank = {9};  vessel tank;
+  move 4 from tank.gas to pipe and 4 from sky to tank.air;   // gas out, air in: fine
+  move 5 from tank.gas to pipe;                              // gas out, nothing in:
+  // BLAM! tank was crushed: 5 came out and nothing went in.
+  ```
+  A tank emptied of gas with nothing going in is crushed by the atmosphere: there is always something.
+  `move ... and ...;` makes several moves in one step. The vessel engine is written in Delta (`lang/vessel.delta`).
 - Kept-for-the-run values (globals), `stop(n)`. A value not set yet holds `~`.
-- Not yet: structs, fractions (heat smaller than 1 per neighbour is `~` until fractions come).
+- Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come).
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 
 ## The machine is always something too

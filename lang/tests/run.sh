@@ -97,6 +97,16 @@ prog "thing given whole"  "thing pt { int a; }; void f(thing pt p) { } $M { retu
 prog "thing holds itself" "thing pt { thing pt inner; };  $M { return 1; }" '' 'cannot hold itself'
 prog "thing not made"     "$M { thing ghost g; return 1; }" '' 'not made'
 
+# vessels: always full; something must go in to let something out
+V="thing tank { int gas, air, heat; };"
+prog "vessel: swap in and out"  "$V $M { thing tank t = {9}; vessel t; int sky = 99; move 4 from t.gas to sky and 4 from sky to t.air; say(\"%d %d\\n\", t.gas, t.air); return 1; }" '5 4'
+prog "vessel: emptied, crushed" "$V $M { thing tank t = {9}; vessel t; int pipe = 1; move 5 from t.gas to pipe; return 1; }" '' 'BLAM'
+prog "vessel: set lower, crushed" "$V $M { thing tank t = {9}; vessel t; t.gas = 2; return 1; }" '' 'crushed'
+prog "vessel: D> inside stays full" "$V $M { thing tank t = {9}; vessel t; t.gas D> t.air + t.heat ~; say(\"%d %d %d\\n\", t.air, t.heat, t.~); return 1; }" '4 4 1'
+prog "vessel: words part"   "thing jar { int gas; char *label; }; $M { thing jar j; vessel j; return 1; }" '' 'whole number'
+prog "vessel: not a thing"  "$M { int n = 3; vessel n; return 1; }" '' 'thing with parts'
+honest "move and move"      'int a = 5, b = 1, c = 2; move 2 from a to b and 1 from c to a; say("%d %d %d\n", a, b, c);' '4 3 1'
+
 # functions and recursion: a whole program
 cat > "$T/f.delta" <<'DC'
 int twice(int x) { return x * 2; }
