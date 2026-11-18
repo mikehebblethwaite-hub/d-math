@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""delta: the Delta compiler 0.07. Delta is C with D rules: always something.
+"""delta: the Delta compiler 0.08. Delta is C with D rules: always something.
 Things count from 1 and move or change form; numbers are D numerals (digits 1-9 A-D).
 Delta -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
@@ -16,7 +16,7 @@ BANNED = {"NULL": "NULL is a make-believe zero: a pointer always points at somet
           "EXIT_SUCCESS": "EXIT_SUCCESS is a make-believe zero: main ends with return 1 (all good)",
           "nullptr": "nullptr is a make-believe zero"}
 TYPES = {"int", "long", "char", "void"}
-FLOW_WORDS = {"store", "conduct", "neighbours", "spend"}
+FLOW_WORDS = {"store", "conduct", "neighbours", "spend", "tick"}
 KEYWORDS = TYPES | FLOW_WORDS | {"thing", "vessel", "and", "if", "else", "while", "for", "return", "break", "continue", "move", "from", "to", "unsigned", "signed", "const", "static"}
 
 
@@ -602,7 +602,19 @@ class Compiler:
         new = []
         if word == "store":
             for part in split(body):
-                new += thing(part, 1, [T("num", 1)]) + [T("op", ";")]
+                k = next((i for i, x in enumerate(part) if x[1] == "leak"), None)
+                if k is None:
+                    new += thing(part, 1, [T("num", 1)]) + [T("op", ";")]
+                else:                                   # store x leak N;  it loses N a tick through its wall
+                    if not k or k + 1 >= len(part): raise DeltaError(line, "store x leak N;")
+                    new += [T("id", "dl_setleak"), T("op", "(")] + thing(part[:k], 1, [T("num", 1)]) \
+                           + [T("op", ",")] + part[k + 1:] + [T("op", ")"), T("op", ";")]
+        elif word == "tick":                            # tick;  tick N;  time passes, every leak shown
+            n = body if body else [T("num", 1)]
+            new += [T("id", "for"), T("op", "("), T("id", "int"), T("id", "dl_t"), T("op", "="), T("num", 1), T("op", ";"),
+                    T("id", "dl_t"), T("op", "<="), T("op", "(")] + n + [T("op", ")"), T("op", ";"),
+                    T("id", "dl_t"), T("op", "++"), T("op", ")"), T("op", "{"),
+                    T("id", "dl_tick1"), T("op", "("), T("id", "dl_t"), T("op", ")"), T("op", ";"), T("op", "}")]
         elif word == "conduct":
             for part in split(body):
                 k = next((i for i, x in enumerate(part) if x[1] == "loss"), None)
@@ -970,7 +982,7 @@ class Compiler:
 
 
 RUNTIME = r'''
-# Delta runtime 0.07: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Delta runtime 0.08: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text

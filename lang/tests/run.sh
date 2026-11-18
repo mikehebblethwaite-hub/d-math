@@ -107,6 +107,13 @@ prog "vessel: words part"   "thing jar { int gas; char *label; }; $M { thing jar
 prog "vessel: not a thing"  "$M { int n = 3; vessel n; return 1; }" '' 'thing with parts'
 honest "move and move"      'int a = 5, b = 1, c = 2; move 2 from a to b and 1 from c to a; say("%d %d %d\n", a, b, c);' '4 3 1'
 
+# leaks: no store is solid
+last "leak: total kept"     'int h = $D, sky = 1, brick = 9, room = 1, ground = 1; store h leak 3, brick leak 2; store sky, room, ground; neighbours h: sky; neighbours brick: room, ground; tick 3; say("%d\n", h + sky + brick + room + ground + ~);' '1C'
+last "leak: runs out"       'int s = 3, air = 1; store s leak 5; store air; neighbours s: air; tick 2; say("%d %d\n", s, air);' '~ 4'
+last "leak: no neighbours"  'int s = 3; store s leak 1; tick; say("%d\n", s);' '3'
+prog "leak: vessel crushed" "thing tank { int gas, air; }; $M { thing tank t = {9}; vessel t; int sky = 1; store t.gas leak 2; store sky; neighbours t.gas: sky; tick; return 1; }" '' 'BLAM'
+refuse "leak: no amount"    'int s = 3; store s leak;' 'leak N'
+
 # functions and recursion: a whole program
 cat > "$T/f.delta" <<'DC'
 int twice(int x) { return x * 2; }

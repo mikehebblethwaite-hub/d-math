@@ -1,0 +1,20 @@
+// No store is solid. Hydrogen is so small it slips through the tank wall;
+// a hot brick leaks its heat. Time passes and every leak is shown.
+thing tank { int hydrogen, air; };
+
+int main(int argc, char **argv)
+{
+    thing tank tank = {$D};
+    int sky = 1, brick = 9, room = 1, ground = 1;
+
+    store tank.hydrogen leak 3;      // tiny: leaks fast
+    store brick leak 2;              // heat leaks slowly
+    store sky, room, ground;
+    neighbours tank.hydrogen: sky;
+    neighbours brick: room, ground;
+
+    tick 3;
+    say("hydrogen %d  sky %d  brick %d  room %d  ground %d  ~ %d\n",
+        tank.hydrogen, sky, brick, room, ground, ~);
+    return 1;
+}

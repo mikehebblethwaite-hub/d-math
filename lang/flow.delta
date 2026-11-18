@@ -76,3 +76,25 @@ void dl_spend(int id, int n)
     say("spend %d from %s (now %d)\n", n, dl_name[id], *dl_val[id]);
     dl_share(id, id, out, 1, "spent");
 }
+
+// Leaks: no store is solid. Each tick a leaking store loses up to its leak, through its wall,
+// to its neighbours (small things like hydrogen slip through fastest: give them a bigger leak).
+int dl_leak[$DDD];
+
+void dl_setleak(int id, int n) { dl_leak[id] = n; }
+
+void dl_tick1(int t)
+{
+    say("tick %d\n", t);
+    for (int i = 1; i < dl_next; i++) {
+        if (dl_leak[i] < 1 || *dl_val[i] < 1) continue;
+        int k;
+        for (int j = 1; j < dl_next; j++) if (dl_link[i][j]) k++;
+        if (k < 1) { dl_pad(1); say("%s has no neighbours to leak to\n", dl_name[i]); continue; }
+        int amount = dl_leak[i], out;
+        if (amount > *dl_val[i]) amount = *dl_val[i];
+        move amount from *dl_val[i] to out;
+        dl_pad(1); say("%s leaks %d (now %d)\n", dl_name[i], out, *dl_val[i]);
+        dl_share(i, i, out, 2, "leak");
+    }
+}
