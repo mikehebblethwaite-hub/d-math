@@ -10,6 +10,14 @@ int dl_kind[$DDD];             // 1 store, 2 conductor
 int dl_loss[$DDD];
 char dl_link[$DDD][$DDD];      // 1 = neighbours
 int dl_next = 1;               // the next thing's number
+int dl_shrug;                  // the Shrug ¯\_(ツ)_/¯ : gone where we have not looked yet. Investigate to bring it down.
+
+int shrug() { return dl_shrug; }
+
+void dl_report()               // at the end of a run: how much is still in the Shrug
+{
+    if (dl_shrug >= 1) say("Shrug %d ¯\\_(ツ)_/¯ where did that go? Investigate to bring the Shrug down.\n", dl_shrug);
+}
 
 int dl_thing(int *v, char *nm, int kind, int loss)
 {
@@ -79,7 +87,9 @@ void dl_share(int id, int skip, int amount, int depth, char *what)
 
 // The base rule: 1 less in a thing is 1 more in its lowest neighbour. Nothing disappears.
 // n has already left id; it goes 1 at a time to the lowest neighbour (not skip) that has room.
-// No neighbour has room: to the lowest one, which passes it on. No neighbours at all: the unknown world, ~.
+// No neighbour has room: to the lowest one, which passes it on. No neighbours at all: where it goes is not
+// known yet, so it goes to the Shrug, ¯\_(ツ)_/¯ "where did that go?", until investigated.
+// An engineer aims for the smallest Shrug possible.
 void dl_hand(int id, int n, int skip, int depth, char *what)
 {
     int got[$DDD], last, sink;
@@ -99,8 +109,8 @@ void dl_hand(int id, int n, int skip, int depth, char *what)
             break;
         }
         if (best < 1) {
-            dl_pad(depth); say("%d %s%s: %s has no neighbours: it goes out to the unknown world, ~\n", n, what, what[1] ? " " : "", dl_name[id]);
-            move n from n to ~;
+            dl_pad(depth); say("%d %s%sgoes to the Shrug: %s has no neighbours given, where it goes is not known yet\n", n, what, what[1] ? " " : "", dl_name[id]);
+            move n from n to dl_shrug;
             break;
         }
         move 1 from n to *dl_val[best];
@@ -251,8 +261,8 @@ void dl_release(int *at, char *nm)
     int id;
     for (int i = 1; i < dl_next; i++) if (dl_val[i] == at) id = i;
     if (id < 1) {
-        dl_pad(1); say("no neighbours given: %d goes out to the unknown world: ~\n", *at);
-        if (*at >= 1) move *at from *at to ~;
+        dl_pad(1); say("%d goes to the Shrug: no neighbours given, where it goes is not known yet\n", *at);
+        if (*at >= 1) move *at from *at to dl_shrug;
         return;
     }
     int got[$DDD];

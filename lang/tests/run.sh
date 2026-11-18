@@ -69,7 +69,9 @@ last "flow: wire loses heat"  "$NET conduct wire loss 1; spend 5 from battery; s
 last "flow: total kept"       "$NET conduct wire loss 1; spend 5 from battery; say(\"%d\\n\", battery + wire + lamp + air + ~);" '13'
 last "flow: heat to all"      "$NET conduct wire loss 6; spend 9 from battery; say(\"%d %d %d %d\\n\", battery, lamp, air, ~);" '6 5 4 ~'
 last "flow: heat total kept"  "$NET conduct wire loss 6; spend 9 from battery; say(\"%d\\n\", battery + wire + lamp + air + ~);" '13'
-last "flow: lone store"       'int s = 3; store s; spend 1 from s; say("%d %d\n", s, ~);' '2 1'
+last "flow: lone store, Shrug"    'int s = 3; store s; spend 1 from s; say("%d %d\n", s, shrug());' 'Shrug 1 ¯\_(ツ)_/¯ where did that go? Investigate to bring the Shrug down.'
+honest "Shrug: reads it"         'int s = 3; store s; spend 2 from s; say("%d %d\n", s, shrug()); return 1;' "$(printf 'spend 2 from s (now 1)\n  2 spent goes to the Shrug: s has no neighbours given, where it goes is not known yet\n1 2\nShrug 2 ¯\\_(ツ)_/¯ where did that go? Investigate to bring the Shrug down.')"
+last "Shrug: none when all known" 'int a = 3, b = 1; store a, b; neighbours a: b; spend 2 from a; say("%d %d\n", b, shrug());' '3 ~'
 refuse "flow: spend too much" "$NET conduct wire loss 1; spend $(printf '$')CD from battery;" 'cannot move'
 refuse "flow: going round"    'int a = 5, b = 1; conduct a loss 1, b loss 1; neighbours a: b; spend 2 from a;' 'going round'
 refuse "flow: bad words"      'int a = 5; conduct a 1;' 'loss'
@@ -140,11 +142,11 @@ last "overflow: passes on"   "$TV move 3 from pump to tank; move 2 from pump to 
 last "overflow: total kept"  "$TV move 3 from pump to tank; move 2 from pump to tank; say(\"%d\\n\", tank + valve + pipe + sky + pump);" '23'
 last "overflow: to the air"  'int tank = $D, pump = 5, sky = $DD; fits tank $D; store tank, sky; neighbours tank: sky; move 1 from pump to tank; say("%d %d\n", tank, sky);' 'D 111'
 last "rupture: dead end"     'int tank = $D, pump = 5, pipe = 2; fits tank $D, pipe 2; store tank, pipe; neighbours tank: pipe; move 1 from pump to tank; say("%d %d %d\n", tank, pipe, tank + pipe + pump);' '11 2 17'
-last "rupture: no neighbours" 'int tank = $D, pump = 5; fits tank $D; move 1 from pump to tank; say("%d %d\n", tank, ~);' '~ 11'
+last "rupture: no neighbours" 'int tank = $D, pump = 5; fits tank $D; move 1 from pump to tank; say("%d %d\n", tank, shrug());' 'Shrug 11 ¯\_(ツ)_/¯ where did that go? Investigate to bring the Shrug down.'
 last "room: store full, back" 'int cell = 9, lamp = 1; fits lamp 3; store cell, lamp; neighbours cell: lamp; spend 5 from cell; say("%d %d\n", cell, lamp);' '7 3'
 last "room: leak to full"    'int s = 9, air = 2; fits air 2; store s leak 3; store air; neighbours s: air; tick; say("%d %d\n", s, air);' '9 2'
 last "room: wear part full"  'int r = 9, d = 1, sun = 2; fits d 2; wear r by sun D> d ~; tick; say("%d %d\n", r, d);' '8 2'
-prog "rupture: vessel"       "thing tank { int gas, air; }; $M { thing tank t = {9}; vessel t; int sky = 9; move 1 from sky to t.air; say(\"%d %d\\n\", t.gas, t.air); return 1; }" "$(printf 'BANG! t ruptured: more went in than it holds\n  no neighbours given: 9 goes out to the unknown world: ~\n  no neighbours given: 1 goes out to the unknown world: ~\n~ ~')"
+prog "rupture: vessel"       "thing tank { int gas, air; }; $M { thing tank t = {9}; vessel t; int sky = 9; move 1 from sky to t.air; say(\"%d %d\\n\", t.gas, t.air); return 1; }" "$(printf 'BANG! t ruptured: more went in than it holds\n  9 goes to the Shrug: no neighbours given, where it goes is not known yet\n  1 goes to the Shrug: no neighbours given, where it goes is not known yet\n~ ~\nShrug A ¯\\_(ツ)_/¯ where did that go? Investigate to bring the Shrug down.')"
 refuse "room: fits on words" 'char *w = "x"; fits w 3;' 'whole number'
 
 # the base rule: 1 less in a thing is 1 more in its lowest neighbour; heat cascades
