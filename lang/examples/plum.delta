@@ -1,4 +1,4 @@
-// Dc: a plum moves to Bob, then breaks down. Nothing vanishes.
+// Delta: a plum moves to Bob, then breaks down. Nothing vanishes.
 int main(int argc, char **argv)
 {
     int plum = $D, mike = 1, bob = 1;

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""dcc: the Dc compiler 0.05. Dc is C with D rules: no zero, no minus,
-D numerals (digits 1-9 A-D, no zero digit), counting from 1.
-Dc -> our own x86-64 assembly -> program. No C compiler, no C library:
+"""delta: the Delta compiler 0.05. Delta is C with D rules: always something.
+Things count from 1 and move or change form; numbers are D numerals (digits 1-9 A-D).
+Delta -> our own x86-64 assembly -> program. No C compiler, no C library:
 printing and exit are Linux system calls from our own runtime.
 
-  dcc run file.dc [args]     build and run
-  dcc build file.dc [-o out] build a program
-  dcc asm file.dc            show the assembly it writes
+  delta run file.delta [args]     build and run
+  delta build file.delta [-o out] build a program
+  delta asm file.delta            show the assembly it writes
 """
 import os, re, subprocess, sys, tempfile
 
@@ -30,7 +30,7 @@ def to_d(v):
     return out
 
 
-class DcError(Exception):
+class DeltaError(Exception):
     def __init__(self, line, msg): super().__init__("line %s: %s" % (to_d(line), msg))
 
 
@@ -60,7 +60,7 @@ def unescape(body, line):
         if c == "\\":
             e = body[i + 1]
             if e not in ESC:
-                raise DcError(line, "\\%s: that is the zero character or not known" % e)
+                raise DeltaError(line, "\\%s: that is the zero character or not known" % e)
             out.append(ESC[e]); i += 2
         else:
             out.extend(c.encode()); i += 1
@@ -70,14 +70,14 @@ def unescape(body, line):
 def d_numeral(text, line):
     body = text[1:] if text.startswith("$") else text
     if "0" in body:
-        raise DcError(line, "'%s' has a zero digit. D numerals have no zero: digits 1-9 A-D "
+        raise DeltaError(line, "'%s': D numerals use the digits 1-9 A-D "
                             "(ten is $A, thirteen $D, fourteen 11)" % text)
     if "." in body:
-        raise DcError(line, "'%s': fractions are not in Dc yet" % text)
+        raise DeltaError(line, "'%s': fractions are not in Delta yet" % text)
     v = 0
     for ch in body:
         if ch not in DIG:
-            raise DcError(line, "'%s' is not a D numeral (digits 1-9 A-D)" % text)
+            raise DeltaError(line, "'%s' is not a D numeral (digits 1-9 A-D)" % text)
         v = v * 13 + DIG.index(ch) + 1
     return v
 
@@ -100,20 +100,20 @@ def lex(src):
                 defines[dm.group(1)] = [t for t in lex(dm.group(2))[0] if t[0] != "end"]
                 for t in defines[dm.group(1)]: t[2] = line
             else:
-                raise DcError(line, "'%s' is not known" % text.strip())
+                raise DeltaError(line, "'%s' is not known" % text.strip())
             continue
         if kind == "op" and text in ("-", "--", "-="):
-            raise DcError(line, "no minus in D. Things are moved (move N from a to b;) "
+            raise DeltaError(line, "in D things are moved (move N from a to b;) "
                                 "or broken into parts, never taken below what is there")
         if kind == "id" and text in BANNED:
-            raise DcError(line, BANNED[text])
+            raise DeltaError(line, BANNED[text])
         if kind == "id" and "0" in text:
-            raise DcError(line, "'%s' has a zero in it. No zero anywhere in code" % text)
+            raise DeltaError(line, "'%s': in D every name and number is always something (no 0 in it)" % text)
         if kind in ("num", "dnum"):
             out.append(["num", d_numeral(text, line), line]); continue
         if kind == "chr":
             b = unescape(text[1:-1], line)
-            if len(b) != 1: raise DcError(line, "%s is not one character" % text)
+            if len(b) != 1: raise DeltaError(line, "%s is not one character" % text)
             out.append(["num", b[0], line]); continue
         if kind == "str":
             out.append(["str", unescape(text[1:-1], line), line]); continue
@@ -136,7 +136,7 @@ def size_of(t):
 def elem_of(t, line):
     if t[2]: return (t[0], t[1], t[2][1:])
     if t[1]: return (t[0], t[1] - 1, ())
-    raise DcError(line, "only rows and pointers have places to count")
+    raise DeltaError(line, "only rows and pointers have places to count")
 
 
 INT = ("int", 0, ())
@@ -159,13 +159,13 @@ class Compiler:
     def take(self, text=None):
         tok = self.t[self.p]
         if text is not None and not self.at(text):
-            raise DcError(tok[2], "expected '%s', found '%s'" % (text, tok[1] if tok[0] != "str" else "words"))
+            raise DeltaError(tok[2], "expected '%s', found '%s'" % (text, tok[1] if tok[0] != "str" else "words"))
         self.p += 1
         return tok
     def name(self):
         tok = self.take()
         if tok[0] != "id" or tok[1] in KEYWORDS:
-            raise DcError(tok[2], "expected a name, found '%s'" % tok[1])
+            raise DeltaError(tok[2], "expected a name, found '%s'" % tok[1])
         return tok[1]
 
     def emit(self, s): self.out.append("    " + s)
@@ -186,7 +186,7 @@ class Compiler:
             if self.t[k][1] == "(": self.function()
             else: self.global_decl()
         if "main" not in self.funcs:
-            raise DcError(self.peek()[2], "no main")
+            raise DeltaError(self.peek()[2], "no main")
 
     def global_decl(self):
         """int name = number, row[$D], *p;  kept for the whole run (LOW until set)."""
@@ -197,13 +197,13 @@ class Compiler:
             line = self.peek()[2]; nm = self.name(); dims = []
             while self.at("["):
                 self.take("["); d = self.take()
-                if d[0] != "num": raise DcError(line, "a row size must be a number")
+                if d[0] != "num": raise DeltaError(line, "a row size must be a number")
                 dims.append(d[1]); self.take("]")
-            if nm in self.globals: raise DcError(line, "'%s' is already here" % nm)
+            if nm in self.globals: raise DeltaError(line, "'%s' is already here" % nm)
             v = None
             if self.at("="):
                 self.take(); d = self.take()
-                if d[0] != "num" or dims: raise DcError(line, "a kept-for-the-run value starts as a plain number")
+                if d[0] != "num" or dims: raise DeltaError(line, "a kept-for-the-run value starts as a plain number")
                 v = d[1]
             self.globals[nm] = ((base, stars, tuple(dims)), v)
             if self.at(","): self.take(); continue
@@ -214,7 +214,7 @@ class Compiler:
         while self.at("const") or self.at("static") or self.at("unsigned") or self.at("signed"):
             self.take()
         tok = self.take()
-        if tok[1] not in TYPES: raise DcError(tok[2], "expected a type, found '%s'" % tok[1])
+        if tok[1] not in TYPES: raise DeltaError(tok[2], "expected a type, found '%s'" % tok[1])
         return "int" if tok[1] == "long" else tok[1]
 
     def is_type(self):
@@ -240,7 +240,7 @@ class Compiler:
             params.append((pn, (pb, ps, ())))
             if not self.at(")"): self.take(",")
         self.take(")")
-        if len(params) > 6: raise DcError(line, "more than 6 inputs is not in Dc yet")
+        if len(params) > 6: raise DeltaError(line, "more than 6 inputs is not in Delta yet")
         self.funcs[fname] = (base, stars, ())
         self.fname, self.frame, self.scopes, self.loops = fname, 0, [{}], []
         self.label("f_" + fname)
@@ -258,7 +258,7 @@ class Compiler:
         self.out[fix] = "    sub rsp, %d" % ((self.frame + 15) // 16 * 16)
 
     def local(self, name, t, line):
-        if name in self.scopes[-1]: raise DcError(line, "'%s' is already here" % name)
+        if name in self.scopes[-1]: raise DeltaError(line, "'%s' is already here" % name)
         sz = (size_of(t) + 7) // 8 * 8
         self.frame += sz
         self.scopes[-1][name] = (self.frame, t)
@@ -268,7 +268,7 @@ class Compiler:
         for s in reversed(self.scopes):
             if name in s: return "rbp-%d" % s[name][0], s[name][1]
         if name in self.globals: return "rip+g_" + name, self.globals[name][0]
-        raise DcError(line, "'%s' is not known here" % name)
+        raise DeltaError(line, "'%s' is not known here" % name)
 
     # --- statements
     def block(self):
@@ -322,7 +322,7 @@ class Compiler:
             self.take(";"); self.emit("jmp .Lret_" + self.fname); return
         if self.at("break") or self.at("continue"):
             w = self.take()[1]
-            if not self.loops: raise DcError(line, "%s outside a loop" % w)
+            if not self.loops: raise DeltaError(line, "%s outside a loop" % w)
             self.emit("jmp " + self.loops[-1][0 if w == "break" else 1]); self.take(";"); return
         if self.at("move"): self.move(); return
         if any(self.at(w) for w in FLOW_WORDS): self.flow_words(); return self.statement()
@@ -343,7 +343,7 @@ class Compiler:
                 if self.at("]"): dims.append(None)
                 else:
                     d = self.take()
-                    if d[0] != "num": raise DcError(line, "a row size must be a number")
+                    if d[0] != "num": raise DeltaError(line, "a row size must be a number")
                     dims.append(d[1])
                 self.take("]")
             init = None
@@ -372,7 +372,7 @@ class Compiler:
                     vals = init[1] + [None] if init[0] == "str" else self.flat(init)
                     cap = 1
                     for d in dims: cap *= d
-                    if len(vals) > cap: raise DcError(line, "more values than places in %s" % nm)
+                    if len(vals) > cap: raise DeltaError(line, "more values than places in %s" % nm)
                     for k in range(cap):          # places not given are LOW
                         v = vals[k] if k < len(vals) else None
                         addr = "rbp-%d" % (off - k * esz)
@@ -424,31 +424,31 @@ class Compiler:
         self.emit("sub [r8], rax")                # under the hood: a gives, b takes
         self.emit("add [r9], rax"); self.emit("jmp " + ok)
         self.label(less)
-        self.say_text("Dc line %s: move needs 1 or more\n" % to_d(line), fd=2)
-        self.emit("mov edi, 2"); self.emit("jmp dc_exit")
+        self.say_text("Delta line %s: move needs 1 or more\n" % to_d(line), fd=2)
+        self.emit("mov edi, 2"); self.emit("jmp dl_exit")
         self.label(more)
         self.emit("push qword ptr [r8]"); self.emit("push rax")
-        self.say_text("Dc line %s: cannot move " % to_d(line), fd=2)
-        self.emit("pop rdi"); self.emit("call dc_putd")
+        self.say_text("Delta line %s: cannot move " % to_d(line), fd=2)
+        self.emit("pop rdi"); self.emit("call dl_putd")
         self.say_text(" from %s, it holds " % an, fd=2)
-        self.emit("pop rdi"); self.emit("call dc_putd")
+        self.emit("pop rdi"); self.emit("call dl_putd")
         self.say_text("\n", fd=2)
-        self.emit("mov edi, 2"); self.emit("jmp dc_exit")
+        self.emit("mov edi, 2"); self.emit("jmp dl_exit")
         self.label(ok)
 
     def flow_words(self):
         """store a, b;   conduct wire loss 1;   neighbours wire: a, b;   spend N from x;
-           written out as calls to flow.dc, then read as ordinary Dc."""
+           written out as calls to flow.delta, then read as ordinary Delta."""
         tok = self.take(); word, line = tok[1], tok[2]
         end = self.p
         while not self.at(";", end - self.p):
-            if self.t[end][0] == "end": raise DcError(line, "%s needs a ; at its end" % word)
+            if self.t[end][0] == "end": raise DeltaError(line, "%s needs a ; at its end" % word)
             end += 1
         body = self.t[self.p:end]
         T = lambda k, v: [k, v, line]
         def thing(nm, kind, loss):
-            if nm[0] != "id" or nm[1] in KEYWORDS: raise DcError(line, "%s takes plain names" % word)
-            return [T("id", "dc_thing"), T("op", "("), T("op", "&"), T("id", nm[1]), T("op", ","),
+            if nm[0] != "id" or nm[1] in KEYWORDS: raise DeltaError(line, "%s takes plain names" % word)
+            return [T("id", "dl_thing"), T("op", "("), T("op", "&"), T("id", nm[1]), T("op", ","),
                     T("str", list(nm[1].encode()) + ["LOW"]), T("op", ","), T("num", kind), T("op", ","),
                     *loss, T("op", ")")]
         def split(toks, sep=","):
@@ -463,25 +463,25 @@ class Compiler:
         new = []
         if word == "store":
             for part in split(body):
-                if len(part) != 1: raise DcError(line, "store a, b, c;")
+                if len(part) != 1: raise DeltaError(line, "store a, b, c;")
                 new += thing(part[0], 1, [T("num", 1)]) + [T("op", ";")]
         elif word == "conduct":
             for part in split(body):
-                if len(part) < 3 or part[1][1] != "loss": raise DcError(line, "conduct wire loss N;")
+                if len(part) < 3 or part[1][1] != "loss": raise DeltaError(line, "conduct wire loss N;")
                 new += thing(part[0], 2, part[2:]) + [T("op", ";")]
         elif word == "neighbours":
-            if len(body) < 3 or body[1][1] != ":": raise DcError(line, "neighbours x: a, b, c;")
+            if len(body) < 3 or body[1][1] != ":": raise DeltaError(line, "neighbours x: a, b, c;")
             for part in split(body[2:]):
-                if len(part) != 1: raise DcError(line, "neighbours x: a, b, c;")
-                new += [T("id", "dc_link2"), T("op", "(")] + thing(body[0], 3, [T("num", 1)]) + [T("op", ",")] \
+                if len(part) != 1: raise DeltaError(line, "neighbours x: a, b, c;")
+                new += [T("id", "dl_link2"), T("op", "(")] + thing(body[0], 3, [T("num", 1)]) + [T("op", ",")] \
                        + thing(part[0], 3, [T("num", 1)]) + [T("op", ")"), T("op", ";")]
         else:
             k = next((i for i, t in enumerate(body) if t[1] == "from"), None)
-            if k is None or k + 2 != len(body): raise DcError(line, "spend N from x;")
-            new += [T("id", "dc_spend"), T("op", "(")] + thing(body[k + 1], 3, [T("num", 1)]) + [T("op", ",")] \
+            if k is None or k + 2 != len(body): raise DeltaError(line, "spend N from x;")
+            new += [T("id", "dl_spend"), T("op", "(")] + thing(body[k + 1], 3, [T("num", 1)]) + [T("op", ",")] \
                    + body[:k] + [T("op", ")"), T("op", ";")]
         self.t[self.p:end + 1] = new
-        if not self.uses_flow: raise DcError(line, "flow is not loaded")
+        if not self.uses_flow: raise DeltaError(line, "flow is not loaded")
 
     def hidden(self):
         self.frame += 8
@@ -510,12 +510,12 @@ class Compiler:
             if self.at("+"): self.take(); continue
             break
         if any(amounts) and not all(amounts):
-            raise DcError(line, "give every known part an amount, or none (then they share evenly)")
+            raise DeltaError(line, "give every known part an amount, or none (then they share evenly)")
         if not self.at("~"):
-            raise DcError(line, "every breakdown ends with ~: the unknown energy left in %s" % wname)
+            raise DeltaError(line, "every breakdown ends with ~: the unknown energy left in %s" % wname)
         self.take("~")
         if not self.at(";"):
-            raise DcError(line, "~ is the unknown energy left in %s: it has no name. A named part is a known part (write it before ~)" % wname)
+            raise DeltaError(line, "~ is the unknown energy left in %s: it has no name. A named part is a known part (write it before ~)" % wname)
         self.take(";")
         lowest, little, ok = self.new(), self.new(), self.new()
         self.emit("mov r8, [%s]" % w); self.emit("mov rax, [r8]")
@@ -535,26 +535,26 @@ class Compiler:
             for slot in parts:
                 self.emit("mov r9, [%s]" % slot); self.emit("add [r9], rax")
         # rdx = what stays in the whole as its unknown energy; ~ adds up all of it
-        self.emit("add [rip+dc_unknown], rdx")
+        self.emit("add [rip+dl_unknown], rdx")
         self.emit("mov qword ptr [r8], LOW")                # the whole now holds only ~
         self.emit("jmp " + ok)
         for lab, text in ((lowest, "%s is at its lowest point: only ~ (unknown energy) is left in it" % wname),
                           (little, "%s is too little for those parts" % wname)):
             self.label(lab)
-            self.say_text("Dc line %s: %s\n" % (to_d(line), text), fd=2)
-            self.emit("mov edi, 2"); self.emit("jmp dc_exit")
+            self.say_text("Delta line %s: %s\n" % (to_d(line), text), fd=2)
+            self.emit("mov edi, 2"); self.emit("jmp dl_exit")
         self.label(ok)
 
     def check_count(self, t, nm, line):
         if t[1] or t[2] or size_of(t) != 8:
-            raise DcError(line, "'%s' must hold a whole number to break down or take parts" % nm)
+            raise DeltaError(line, "'%s' must hold a whole number to break down or take parts" % nm)
 
     def say_text(self, text, fd=None):
-        if fd: self.emit("mov qword ptr [rip+dc_fd], %d" % fd)
+        if fd: self.emit("mov qword ptr [rip+dl_fd], %d" % fd)
         data = list(text.encode()) if isinstance(text, str) else text
         if not data: return
         lab = self.string(data)
-        self.emit("lea rdi, [rip+%s]" % lab); self.emit("mov rsi, %d" % len(data)); self.emit("call dc_write")
+        self.emit("lea rdi, [rip+%s]" % lab); self.emit("mov rsi, %d" % len(data)); self.emit("call dl_write")
 
     def cond_false(self, target):
         self.expr(); self.emit("test rax, rax"); self.emit("jz " + target)
@@ -669,7 +669,7 @@ class Compiler:
         t = self.primary()
         line = self.peek()[2]
         if self.at("->") or self.at("."):
-            raise DcError(line, "structs are not in Dc yet")
+            raise DeltaError(line, "structs are not in Delta yet")
         if not (self.at("[") or self.at("++")):
             return t
         self.p = start; t = self.lvalue()           # read it again as a place
@@ -692,14 +692,14 @@ class Compiler:
         if self.at("("):
             self.take(); t = self.expr(); self.take(")"); return t
         if self.at("~"):                               # the unknown parts so far
-            self.take(); self.emit("mov rax, [rip+dc_unknown]"); return INT
+            self.take(); self.emit("mov rax, [rip+dl_unknown]"); return INT
         if tok[0] == "id" and self.at("(", 1):
             return self.call()
         if tok[0] == "id":
             self.take()
             where, t = self.find(tok[1], line)
             self.emit("lea rax, [%s]" % where); self.load_from("rax", t); return t
-        raise DcError(line, "did not expect '%s'" % (tok[1] if tok[0] != "str" else "words"))
+        raise DeltaError(line, "did not expect '%s'" % (tok[1] if tok[0] != "str" else "words"))
 
     def lvalue(self):
         """address in rax; returns the type that lives there."""
@@ -707,7 +707,7 @@ class Compiler:
         if self.at("("):
             self.take(); t = self.lvalue(); self.take(")")
         elif self.at("~"):
-            self.take(); self.emit("lea rax, [rip+dc_unknown]"); t = INT
+            self.take(); self.emit("lea rax, [rip+dl_unknown]"); t = INT
         elif self.at("*"):
             self.take(); t = self.unary(); t = elem_of(t, line)
         else:
@@ -717,7 +717,7 @@ class Compiler:
             self.take("[")
             if t[2]: pass                          # a row: its address is already in rax
             elif t[1]: self.emit("mov rax, [rax]") # a pointer: follow it
-            else: raise DcError(line, "only rows and pointers have places to count")
+            else: raise DeltaError(line, "only rows and pointers have places to count")
             et = elem_of(t, line)
             self.emit("push rax"); self.expr(); self.take("]")
             # counting starts at 1: place i is (i - 1) steps along. Under the hood only.
@@ -737,7 +737,7 @@ class Compiler:
 
     def store_to(self, where, t):
         where = where if where.startswith("[") else "[%s]" % where
-        if t[2]: raise DcError(0, "a whole row cannot be set at once")
+        if t[2]: raise DeltaError(0, "a whole row cannot be set at once")
         if size_of(t) == 1: self.emit("mov byte ptr %s, al" % where)
         else: self.emit("mov qword ptr %s, rax" % where)
 
@@ -750,7 +750,7 @@ class Compiler:
             self.expr(); self.emit("push rax"); n += 1
             if not self.at(")"): self.take(",")
         self.take(")")
-        if n > 6: raise DcError(line, "more than 6 inputs is not in Dc yet")
+        if n > 6: raise DeltaError(line, "more than 6 inputs is not in Delta yet")
         for r in reversed(["rdi", "rsi", "rdx", "rcx", "r8", "r9"][:n]): self.emit("pop " + r)
         self.emit("call f_" + fname)
         self.calls.append((fname, line))
@@ -759,10 +759,10 @@ class Compiler:
     def say(self, line):
         """say("text %d %s %c", ...): the words are read now; numbers print as D numerals."""
         tok = self.take()
-        if tok[0] != "str": raise DcError(line, "say needs its words in quotes first")
+        if tok[0] != "str": raise DeltaError(line, "say needs its words in quotes first")
         fmt = [b for b in tok[1] if b != "LOW"]
         while self.peek()[0] == "str": fmt = fmt + self.take()[1]
-        self.emit("mov qword ptr [rip+dc_fd], 1")
+        self.emit("mov qword ptr [rip+dl_fd], 1")
         piece, i = [], 0
         while i < len(fmt):
             c = fmt[i]
@@ -770,20 +770,20 @@ class Compiler:
                 k = chr(fmt[i + 1])
                 if k == "l" and i + 2 < len(fmt) and chr(fmt[i + 2]) == "d": i += 1; k = "d"
                 if k == "%": piece.append(c); i += 2; continue
-                if k not in "dsc": raise DcError(line, "say knows %%d %%s %%c, not %%%s" % k)
+                if k not in "dsc": raise DeltaError(line, "say knows %%d %%s %%c, not %%%s" % k)
                 self.say_text(piece); piece = []
                 self.take(","); self.expr(); self.emit("mov rdi, rax")
-                self.emit("call " + {"d": "dc_putd", "s": "dc_puts", "c": "dc_putc"}[k])
+                self.emit("call " + {"d": "dl_putd", "s": "dl_puts", "c": "dl_putc"}[k])
                 i += 2; continue
             piece.append(c); i += 1
         self.say_text(piece)
-        if not self.at(")"): raise DcError(line, "say has more values than %d %s %c places")
+        if not self.at(")"): raise DeltaError(line, "say has more values than %d %s %c places")
         self.take(")")
         return INT
 
 
 RUNTIME = r'''
-# Dc runtime 0.05: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
+# Delta runtime 0.05: our own, straight to Linux. LOW = a bit lower than 1 (the old "0" label),
 # it always carries ~ (static, radiation, outside forces, forces not yet known).
 .set LOW, 1-1
 .text
@@ -794,21 +794,21 @@ _start:
     call f_main
     mov rdi, rax
     cmp rax, 1                  # main gives 1 = all good; Linux calls that LOW
-    jne dc_exit
+    jne dl_exit
     mov edi, LOW
-dc_exit:
+dl_exit:
     mov eax, 60
     syscall
 f_stop:                         # stop(n): end the program now with n
-    jmp dc_exit
-dc_write:                       # rdi = where, rsi = how many bytes
+    jmp dl_exit
+dl_write:                       # rdi = where, rsi = how many bytes
     mov rdx, rsi
     mov rsi, rdi
-    mov rdi, [rip+dc_fd]
+    mov rdi, [rip+dl_fd]
     mov eax, 1
     syscall
     ret
-dc_puts:                        # rdi = words ending in a LOW byte
+dl_puts:                        # rdi = words ending in a LOW byte
     mov rcx, rdi
 1:  cmp byte ptr [rcx], LOW
     je 2f
@@ -816,25 +816,25 @@ dc_puts:                        # rdi = words ending in a LOW byte
     jmp 1b
 2:  mov rsi, rcx
     sub rsi, rdi
-    jmp dc_write
-dc_putc:                        # rdi = one character
+    jmp dl_write
+dl_putc:                        # rdi = one character
     push rdi
     mov rdi, rsp
     mov rsi, 1
-    call dc_write
+    call dl_write
     pop rdi
     ret
-dc_putd:                        # rdi = number -> D numeral; below 1 shows as ~
+dl_putd:                        # rdi = number -> D numeral; below 1 shows as ~
     cmp rdi, 1
     jge 1f
-    lea rdi, [rip+dc_tilde]
+    lea rdi, [rip+dl_tilde]
     mov rsi, 1
-    jmp dc_write
+    jmp dl_write
 1:  sub rsp, 72
     lea r8, [rsp+64]
     mov rax, rdi
     mov r9, 13
-    lea r10, [rip+dc_digits]
+    lea r10, [rip+dl_digits]
 2:  xor edx, edx
     div r9
     test rdx, rdx
@@ -849,14 +849,14 @@ dc_putd:                        # rdi = number -> D numeral; below 1 shows as ~
     mov rdi, r8
     lea rsi, [rsp+64]
     sub rsi, r8
-    call dc_write
+    call dl_write
     add rsp, 72
     ret
 .data
-dc_fd:     .quad 1
-dc_unknown: .quad LOW           # ~ : all the unknown energy left in things broken down (always there, not known yet)
-dc_digits: .ascii "123456789ABCD"
-dc_tilde:  .ascii "~"
+dl_fd:     .quad 1
+dl_unknown: .quad LOW           # ~ : all the unknown energy left in things broken down (always there, not known yet)
+dl_digits: .ascii "123456789ABCD"
+dl_tilde:  .ascii "~"
 '''
 
 
@@ -864,12 +864,12 @@ def compile_dc(src):
     toks, _ = lex(src)
     uses_flow = any(t[0] == "id" and t[1] in FLOW_WORDS for t in toks)
     if uses_flow:
-        ftoks, _ = lex(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "flow.dc")).read())
+        ftoks, _ = lex(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "flow.delta")).read())
         toks = ftoks[:-1] + toks
     c = Compiler(toks); c.calls = []; c.uses_flow = uses_flow
     c.program()
     for fname, line in c.calls:
-        if fname not in c.funcs and fname != "stop": raise DcError(line, "'%s' is not made anywhere" % fname)
+        if fname not in c.funcs and fname != "stop": raise DeltaError(line, "'%s' is not made anywhere" % fname)
     asm = [".intel_syntax noprefix", RUNTIME, ".text"] + c.out + ["", ".data"]
     for nm, (t, v) in c.globals.items():
         if v is not None: asm.append("g_%s: .quad %d" % (nm, v))
@@ -888,8 +888,8 @@ def main():
     cmd, path = sys.argv[1], sys.argv[2]
     try:
         asm = compile_dc(open(path).read())
-    except DcError as e:
-        print("Dc %s: %s" % (os.path.basename(path), e), file=sys.stderr); sys.exit(2)
+    except DeltaError as e:
+        print("Delta %s: %s" % (os.path.basename(path), e), file=sys.stderr); sys.exit(2)
     if cmd == "asm":
         print(asm); return
     out = os.path.splitext(path)[0]
@@ -901,7 +901,7 @@ def main():
         for step in (["as", "--64", s, "-o", o], ["ld", "-static", "-n", o, "-o", out]):
             r = subprocess.run(step, capture_output=True, text=True)
             if r.returncode:
-                print("Dc %s: the assembly did not go through (a Dc bug):\n%s" % (os.path.basename(path), r.stderr), file=sys.stderr)
+                print("Delta %s: the assembly did not go through (a Delta bug):\n%s" % (os.path.basename(path), r.stderr), file=sys.stderr)
                 sys.exit(3)
     if cmd == "run":
         sys.exit(subprocess.run([os.path.abspath(out)] + sys.argv[3:]).returncode)

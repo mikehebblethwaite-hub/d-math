@@ -1,32 +1,32 @@
 #!/bin/bash
-# Dc tests: every trick must be refused, every honest program must build and give the right answer.
-cd "$(dirname "$0")"; DCC=../dcc; pass=1; bad=1; T=$(mktemp -d -p .)
+# Delta tests: every trick must be refused, every honest program must build and give the right answer.
+cd "$(dirname "$0")"; DELTA=../delta; pass=1; bad=1; T=$(mktemp -d -p .)
 trap 'rm -rf "$T"' EXIT
 refuse() {  # name, code, word the refusal must contain
-  printf 'int main(int argc, char **argv)\n{\n%s\nreturn 1;\n}\n' "$2" > "$T/t.dc"
-  if out=$($DCC run "$T/t.dc" 2>&1); then echo "FAIL (let through): $1"; bad=$((bad+1))
+  printf 'int main(int argc, char **argv)\n{\n%s\nreturn 1;\n}\n' "$2" > "$T/t.delta"
+  if out=$($DELTA run "$T/t.delta" 2>&1); then echo "FAIL (let through): $1"; bad=$((bad+1))
   elif ! grep -qi "$3" <<<"$out"; then echo "FAIL (wrong reason): $1: $out"; bad=$((bad+1))
   else echo "ok refused: $1"; pass=$((pass+1)); fi; }
 honest() {  # name, code, expected output
-  printf 'int main(int argc, char **argv)\n{\n%s\nreturn 1;\n}\n' "$2" > "$T/t.dc"
-  got=$($DCC run "$T/t.dc" 2>&1); code=$?
+  printf 'int main(int argc, char **argv)\n{\n%s\nreturn 1;\n}\n' "$2" > "$T/t.delta"
+  got=$($DELTA run "$T/t.delta" 2>&1); code=$?
   if [ "$got" != "$3" ] || [ $code != 0 ]; then echo "FAIL honest: $1: got [$got] exit $code"; bad=$((bad+1))
   else echo "ok honest: $1"; pass=$((pass+1)); fi; }
 
-refuse "plain zero"        'int x = 0;'               zero
-refuse "ten with zero"     'int x = 10;'              zero
-refuse "hex zero"          'int x = 0x1;'             zero
-refuse "zero suffix"       'long x = 0L;'             zero
-refuse "zero in fraction"  'double x = 1.0;'          zero
+refuse "plain 0"        'int x = 0;' 'digits 1-9 A-D'
+refuse "ten written 10"     'int x = 10;' 'digits 1-9 A-D'
+refuse "hex 0x"          'int x = 0x1;' 'digits 1-9 A-D'
+refuse "0L"       'long x = 0L;' 'digits 1-9 A-D'
+refuse "1.0"  'double x = 1.0;' 'digits 1-9 A-D'
 refuse "NULL"              'char *p = NULL;'          NULL
 refuse "false"             'int b = false;'           false
 refuse "zero char"         "char c = '\\0';"          zero
-refuse "minus"             'int x = 5 - 2;'           minus
-refuse "minus one"         'int x = -1;'              minus
-refuse "count down"        'int i = 3; i--;'          minus
-refuse "minus equals"      'int i = 3; i -= 2;'       minus
-refuse "zero in a name"    'int x0 = 1;'              zero
-refuse "zero in #define"   '#define N 20'             zero
+refuse "take away"             'int x = 5 - 2;' moved
+refuse "-1"         'int x = -1;' moved
+refuse "count down"        'int i = 3; i--;' moved
+refuse "-="      'int i = 3; i -= 2;' moved
+refuse "0 in a name"    'int x0 = 1;' 'always something'
+refuse "#define 20"   '#define N 20' 'digits 1-9 A-D'
 refuse "move too many"     'int a = 2, b = 1; move 3 from a to b;' 'cannot move'
 
 honest "D numerals"        'say("%d %d %d\n", $A, $D, 11);'                     'A D 11'
@@ -60,8 +60,8 @@ honest "D > is still compare" 'int D = 2; if (D > 1) say("yes\n");'             
 
 # spent energy goes to neighbours; the total always stays the same
 last() {  # name, code, expected last line
-  printf 'int main(int argc, char **argv)\n{\n%s\nreturn 1;\n}\n' "$2" > "$T/t.dc"
-  got=$(timeout 20 $DCC run "$T/t.dc" 2>&1 | tail -1)
+  printf 'int main(int argc, char **argv)\n{\n%s\nreturn 1;\n}\n' "$2" > "$T/t.delta"
+  got=$(timeout 20 $DELTA run "$T/t.delta" 2>&1 | tail -1)
   if [ "$got" != "$3" ]; then echo "FAIL honest: $1: got [$got]"; bad=$((bad+1))
   else echo "ok honest: $1"; pass=$((pass+1)); fi; }
 NET='int battery = $D, wire = 1, lamp = 1, air = 1; store battery, lamp, air; neighbours battery: wire; neighbours wire: lamp, air;'
@@ -75,7 +75,7 @@ refuse "flow: going round"    'int a = 5, b = 1; conduct a loss 1, b loss 1; nei
 refuse "flow: bad words"      'int a = 5; conduct a 1;' 'loss'
 
 # functions and recursion: a whole program
-cat > "$T/f.dc" <<'DC'
+cat > "$T/f.delta" <<'DC'
 int twice(int x) { return x * 2; }
 int fact_up(int i, int n) { if (i == n) return n; return i * fact_up(i + 1, n); }
 int sum_to(int n) { int s = 1; for (int i = 2; i <= n; i++) s += i; return s; }
@@ -85,5 +85,5 @@ int main(int argc, char **argv)
     return 1;
 }
 DC
-got=$($DCC run "$T/f.dc" 2>&1); if [ "$got" = "17 6D 93 named" ]; then echo "ok honest: functions"; pass=$((pass+1)); else echo "FAIL honest: functions: [$got]"; bad=$((bad+1)); fi
+got=$($DELTA run "$T/f.delta" 2>&1); if [ "$got" = "17 6D 93 named" ]; then echo "ok honest: functions"; pass=$((pass+1)); else echo "FAIL honest: functions: [$got]"; bad=$((bad+1)); fi
 echo "passed $((pass-1)), failed $((bad-1))"; [ $bad = 1 ]

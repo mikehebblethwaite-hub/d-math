@@ -2,15 +2,15 @@
 
 # D: real world physical maths model (0.01)
 
-D = decompose, destruction. A real world physical maths, and **Dc**, a computer language based on C,
-with no zero and no minus: zero is make-believe. Nothing in the physical world goes to zero or below it.
-Nothing vanishes: everything is moved, or broken into known parts and the unknown `~`.
+D = decompose, destruction. A real world physical maths, and **Delta**, a computer language based on C,
+where everything is **always something**. Everything counts from 1. Things move, or change form into known
+parts and the unknown `~`, and every part is always accounted for, as in the physical world.
 
 The icon is our 0: a circle holding 3 dots, the unknown things left in it, like 3 ping pong balls.
 
 ## Try it
 
-    lang/dcc run lang/examples/plum.dc      # needs python3 and GNU as/ld (x86-64 Linux)
+    lang/delta run lang/examples/plum.delta      # needs python3 and GNU as/ld (x86-64 Linux)
     lang/tests/run.sh                        # tricks refused, honest programs right
     python3 font/build.py                    # builds the D Angle font (needs fontTools)
 
@@ -38,7 +38,7 @@ D math: the plum is at Bob, then in sugar, energy, heat, poo and ~.
 Each digit is drawn with as many angles as the number it stands for:
 1 has 1 angle, 2 has 2 angles, and so on.
 Digits run from 1 up to D: 1 2 3 4 5 6 7 8 9 A B C D (A = 10 angles ... D = 13 angles).
-There is no zero digit, because a shape with no angles cannot be counted.
+Every digit has angles to count; a shape with no angles cannot be counted, so it is not a digit.
 
 `~` has no angles: its count is not known yet. That is why it marks the unknown parts.
 
@@ -54,17 +54,17 @@ The shapes for each digit are still to be drawn.
   Never nothing: it shows what was called zero is still full (Mike, 18 Nov 2026).
 - Use the font only on D maths: in it, A B C D are the digits 10 to 13.
 
-## Dc: C with D rules, straight to assembly (lang/)
+## Delta: C with D rules, straight to assembly (lang/)
 
-`lang/dcc run file.dc` | `dcc build file.dc -o out` | `dcc asm file.dc` (shows the assembly it writes).
-Dc 0.05 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
+`lang/delta run file.delta` | `delta build file.delta -o out` | `delta asm file.delta` (shows the assembly it writes).
+Delta 0.05 -> our own x86-64 assembly -> program. No C compiler and no C library: printing and exit are
 Linux system calls in our own runtime (the D numeral printer is hand-written assembly). `as`/`ld` only
 turn the assembly text into the program file.
 
-- No zero anywhere in code: no `0` digit, `NULL`, `false`, `'\0'`, no 0 in names.
-- Numbers are D numerals: digits 1-9 A-D, no zero digit. Ten is `$A`, thirteen `$D`, fourteen `11`.
+- Always something: every number and name is something real (the compiler turns away `0`, `NULL`, `false`, `'\0'`).
+- Numbers are D numerals: digits 1-9 A-D. Ten is `$A`, thirteen `$D`, fourteen `11`.
   (`$` is only needed when a numeral starts with a letter.) `99` is 126; the letter c is `78` or `'c'`.
-- No minus: `move N from a to b;` moves, the total stays the same. Moving more than is there stops the program.
+- Things move: `move N from a to b;` moves, the total stays the same. Moving more than is there stops the program.
   A thing moved out in full shows as `~`: its place is taken by something else.
 - Counting starts at 1: `row[1]` is the first place; `argv[1]` is the program itself.
 - `say("...%d %s %c...", ...)` prints; `%d` prints D numerals. `return 1` from main = all good.
@@ -86,12 +86,12 @@ turn the assembly text into the program file.
   - `neighbours wire: lamp, air;` links both ways. `spend 5 from battery;` sends 5 out and prints every step.
   - A share less than 1 is `~` (unknown energy); stores + conductors + `~` always add up to what there was.
   - Energy still going round conductors after DD steps stops the program and says where.
-  - The flow engine is written in Dc (`lang/flow.dc`), so it keeps D's rules too.
+  - The flow engine is written in Delta (`lang/flow.delta`), so it keeps D's rules too.
 - Kept-for-the-run values (globals), `stop(n)`. A value not set yet holds `~`.
 - Not yet: structs, fractions (heat smaller than 1 per neighbour is `~` until fractions come).
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 
-## The machine has no zero either
+## The machine is always something too
 
 Mike, 18 Nov 2026: "a transistor is never zero, it is lower than 1, but is mass and has effects within from its atoms".
 An "off" bit is a LOW: a voltage lower than 1, still current leaking, still atoms with mass. A bit is HIGH (1) or LOW

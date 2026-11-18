@@ -1,4 +1,4 @@
-// Dc: count from 1 to D and fill a row that starts at 1.
+// Delta: count from 1 to D and fill a row that starts at 1.
 int main(int argc, char **argv)
 {
     int row[$D];                    // thirteen places: row[1] .. row[D]
