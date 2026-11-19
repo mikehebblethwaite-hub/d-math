@@ -380,7 +380,7 @@ void panelwords(int sel)
     LINE = low;
     lab_line("Delta lab room   (D numerals; 1/64 inch to the unit)");
     tx = 2A; ty = 31 + LINE * 1D;
-    words("W A S D walk   Q E down up   arrows turn   drag: look   wheel: nearer   wheel held: tilt   T: heat view   H: hide   Esc: close", 91, 97, $AA);
+    words("W A S D walk   Q E down up   arrows turn   drag: look   wheel: nearer   wheel held: tilt and turn   T: heat view   H: hide   Esc: close", 91, 97, $AA);
     LINE = LINE + 2;
     scene_panel(sel);
 }
@@ -461,9 +461,11 @@ int main(int argc, char **argv)
                 if (d < best) { best = d; sel = id; }
             }
         }
-        int mid = window_buttons() / 2 % 2;                          // the wheel pressed down: drag up or down to tilt
-        if (mid && midheld < 1) lastmy = my;
-        if (mid && midheld) {
+        int mid = window_buttons() / 2 % 2;                          // the wheel pressed down: drag to tilt and look round
+        if (mid && midheld < 1) { lastmy = my; lastmx = mx; }
+        if (mid && midheld) {                                         // and left or right to look round
+            while (mx >= lastmx + $A) { YAW = turnon(YAW); lastmx = lastmx + $A; moved = 1; }
+            while (lastmx >= mx + $A) { YAW = turnback(YAW); lastmx = less(lastmx, $A); moved = 1; }
             while (my >= lastmy + $A) { PIT = pitchdown(PIT); lastmy = lastmy + $A; moved = 1; }
             while (lastmy >= my + $A) { PIT = pitchup(PIT); lastmy = less(lastmy, $A); moved = 1; }
         }
