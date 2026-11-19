@@ -77,3 +77,17 @@ Last daily review: 19 Nov 2026 (the first).
 - Fix: places held up from MHELD before the shift; a cube off the field is skipped.
 - Lesson: a place on the picture worked out from a far-off thing must be held up (or use sterm/lo); test every view
   with things outside it, not only inside.
+
+## 2026-11-19: Delta Hex OS reset itself every 5 minutes (since it began)
+- Cause: UEFI arms a 5-minute watchdog when it starts a program; the OS never switched it off, so the machine reset
+  whatever was on screen. Found while testing accounts (it looked like a crash after a second sign-in).
+- Fix: watchdog_off() (SetWatchdogTimer, time LOW) at the OS's start and in window_open for programs it runs (lab.efi).
+- Lesson: a reset with no Delta message is the firmware, not a refusal (Delta's refusals halt, they never reset); time
+  how long after boot it happens before hunting in new code.
+
+## 2026-11-19: first accounts draft let a name reach outside its folder (caught before testing)
+- Cause: uread fell back to the drive's top for any name, and names could hold \ or ..: `show ..\tester\hello.txt`,
+  `show accounts.txt` (salts and checks for offline guessing) would have read across.
+- Fix: plainname() refuses folder signs, : and a leading dot; only .efi programs come from the top. Tested as a second
+  person: every trick refused.
+- Lesson: for anything security, write the tricks list before the code and test each one, as a different user.
