@@ -1,4 +1,4 @@
-// Delta Hex OS: the no-zero operating system, written in Delta. 0.15: the honeycomb grows (19 tiles), the Lab room tile; runs programs.
+// Delta Hex OS: the no-zero operating system, written in Delta. 0.16: Notepad has tabs (6 files open at once); the honeycomb; runs programs.
 //
 // The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
 // C library. It asks the firmware for the machine's memory and counts it, from 1, in D numerals; then the firmware
@@ -60,6 +60,10 @@ int EFQN, ERPN, EFIND, EFOUND;      // EFIND: 1 finding, 2 the words to replace,
 char *EMSG;
 char RUNBUF[54D442];                     // a program read from the drive, to be run (up to 54D442 bytes)
 int DESKFOR;                                        // which tile was picked when the desktop layer was drawn
+char DOC[$D868D];               // 6 places of 2377D letters
+char DNAME[23D];                // their names, 4D letters each
+int DOCN[6], DCUR[6], DTOP[6], DSAVED[6];
+int NDOC, ACTIVE;
 char TL[55D1];                 // the lines shown: 93 lines of 79 letters, the newest at the bottom
 int TLN;                            // how many lines are held
 int TCOL;                           // letters on the line being written
@@ -834,7 +838,7 @@ void edload(char *name)             // Notepad on that file (a new name starts e
         ED[EDN + 1] = low;
     }
 }
-void edstart() { edload("notes.txt"); }
+void edstart() { tabopen("notes.txt"); }
 int matchat(int p)                  // does the word being found sit at place p?
 {
     int k;
@@ -869,6 +873,7 @@ void findkey(int k)                 // typing in the find bar
 {
     if (k == 5D9) { EFIND = low; EFOUND = low; EDGEN++; return; }                          // Esc: the bar goes
     if (k == $D) {
+        if (EFIND == 4) { EFIND = low; if (EFQN >= 1) tabopen(EFQ); EDGEN++; return; }
         if (EFIND == 1) findnext();
         else if (EFIND == 2) { EFIND = 3; EDGEN++; }                                         // now the new words
         else { replaceall(); EFIND = low; EMSG = "replaced:"; EDGEN++; }
@@ -887,10 +892,76 @@ void findkey(int k)                 // typing in the find bar
     }
 }
 
+// ---------------------------------------------------------------- Notepad's tabs: up to 6 files open at once
+// The open file is always the one in ED; the others wait in their own places here, with where their cursor was.
+int dat(int d) { return less(d, 1) * 2377D; }
+int nat(int d) { return less(d, 1) * 4D; }
+void tabkeep()                      // the open file back into its place
+{
+    if (ACTIVE < 1) return;
+    int k, b = dat(ACTIVE);
+    for (k = 1; k <= EDN; k++) DOC[b + k] = ED[k];
+    DOCN[ACTIVE] = EDN; DCUR[ACTIVE] = ECUR; DTOP[ACTIVE] = ETOP; DSAVED[ACTIVE] = ESAVED;
+    for (k = 1; k <= 4C; k++) DNAME[nat(ACTIVE) + k] = ENAME[k];
+}
+void tabshow(int d)                 // that file into ED, to be written in
+{
+    int k, b = dat(d);
+    EDN = DOCN[d];
+    for (k = 1; k <= EDN; k++) ED[k] = DOC[b + k];
+    ED[EDN + 1] = low;
+    ECUR = DCUR[d]; ETOP = DTOP[d]; ESAVED = DSAVED[d];
+    for (k = 1; k <= 4C; k++) ENAME[k] = DNAME[nat(d) + k];
+    ACTIVE = d; EFIND = low; EFOUND = low; EMSG = ""; EDGEN++;
+}
+int samename(char *a, int d) { int k = 1; while (a[k] >= 1) { if (a[k] != DNAME[nat(d) + k]) return low; k++; } return DNAME[nat(d) + k] < 1; }
+void tabopen(char *name)            // a file in a tab of its own (or the tab it already has)
+{
+    int d;
+    tabkeep();
+    for (d = 1; d <= NDOC; d++) if (samename(name, d)) { tabshow(d); return; }
+    if (NDOC >= 6) { EMSG = "six files are open: close one first (Ctrl+W)"; EDGEN++; return; }
+    NDOC++;
+    edload(name);                   // reads it into ED
+    ACTIVE = NDOC;
+    tabkeep();
+}
+void tabclose()
+{
+    int d, k;
+    if (NDOC <= 1) { EMSG = "the last tab stays open"; EDGEN++; return; }
+    for (d = ACTIVE; d < NDOC; d++) {                         // the tabs after it move along one place
+        for (k = 1; k <= DOCN[d + 1]; k++) DOC[dat(d) + k] = DOC[dat(d + 1) + k];
+        for (k = 1; k <= 4C; k++) DNAME[nat(d) + k] = DNAME[nat(d + 1) + k];
+        DOCN[d] = DOCN[d + 1]; DCUR[d] = DCUR[d + 1]; DTOP[d] = DTOP[d + 1]; DSAVED[d] = DSAVED[d + 1];
+    }
+    NDOC = less(NDOC, 1);
+    tabshow(lower(ACTIVE, NDOC));
+}
+void tabnext() { if (NDOC >= 2) { tabkeep(); tabshow(ACTIVE >= NDOC ? 1 : ACTIVE + 1); } }
+void tabprev() { if (NDOC >= 2) { tabkeep(); tabshow(ACTIVE <= 1 ? NDOC : less(ACTIVE, 1)); } }
+void tabbar()                       // the tab names under the title
+{
+    int d;
+    tx = 86; ty = 68;
+    for (d = 1; d <= NDOC; d++) {
+        int on = d == ACTIVE, saved = on ? ESAVED : DSAVED[d];
+        if (on) text("[", 156, 125, 86); else text(" ", 1, 1, 1);
+        if (on) text(ENAME, 156, 125, 86); else text(&DNAME[nat(d) + 1], $B7, $BD, $D1);
+        if (saved < 1) text("*", 156, $B7, 86);
+        if (on) text("]", 156, 125, 86); else text(" ", 1, 1, 1);
+        text("  ", 1, 1, 1);
+    }
+    text("   F5 F6: tabs   Ctrl+O: open   Ctrl+W: close", 91, 97, $AA);
+}
+
 void edkey(int k)
 {
     if (EFIND >= 1) { findkey(k); return; }
     if (k == 6) { EFIND = 1; EFQN = low; EFQ[1] = low; EMSG = ""; EDGEN++; return; }                    // Ctrl+F: find, a clean bar
+    if (k == 12) { EFIND = 4; EFQN = low; EFQ[1] = low; EMSG = ""; EDGEN++; return; }   // Ctrl+O: open a file by its name
+    if (k == 1A) { tabclose(); return; }                                                    // Ctrl+W: close this tab
+    if (k == 5D1) { tabprev(); return; } if (k == 5D2) { tabnext(); return; }               // F5 F6: the tabs
     if (k == 15) { EFIND = 2; EFQN = low; EFQ[1] = low; ERPN = low; ERP[1] = low; EMSG = ""; EDGEN++; return; }   // Ctrl+R: find and replace
     int line = lineat(ECUR), col = less(ECUR, linestart(line));
     if (k >= 26 && k < 9A) edput(k);
@@ -945,6 +1016,7 @@ void edpage()                       // the whole page: the bar, line numbers, th
     copy(&px[1], &bg[1], (W * H + W + 2) * 4);
     backbutton();
     tx = 86; ty = 46; text("Notepad", 149, 13C, $D1); text("   ", 1, 1, 1); text(ENAME, 156, 125, 86);
+    tabbar();
     text("   writing, in Delta Hex OS        Esc: back", $B7, $BD, $D1);
     int rows = erows(), row, p = linestart(ETOP), line = ETOP;
     for (row = 1; row <= rows && p <= EDN + 1; row++) {
@@ -982,9 +1054,10 @@ void edpage()                       // the whole page: the bar, line numbers, th
     if (EMSG[1] >= 1) { text("   ", 1, 1, 1); text(EMSG, 156, 125, 86); if (EMSG[1] == 'r' && EMSG[3] == 'p') { text(" ", 1, 1, 1); dstr(ERCOUNT); text(nb, 156, 125, 86); } }
     if (EFIND >= 1) {                                             // the find bar, above the status line
         tx = 2A; ty = less(H, 5C);
-        if (EFIND == 1) text("find (Enter: the next one, Esc: done):  ", $B7, $BD, $D1);
+        if (EFIND == 4) text("open the file called (Enter: open, Esc: no):  ", $B7, $BD, $D1);
+        else if (EFIND == 1) text("find (Enter: the next one, Esc: done):  ", $B7, $BD, $D1);
         else text("find and replace: find  ", $B7, $BD, $D1);
-        text(EFQ, 156, 125, 86); if (EFIND == 1 || EFIND == 2) text("_", 156, 125, 86);
+        text(EFQ, 156, 125, 86); if (EFIND == 1 || EFIND == 2 || EFIND == 4) text("_", 156, 125, 86);
         if (EFIND >= 2) { text("   with  ", $B7, $BD, $D1); text(ERP, 156, 125, 86); if (EFIND == 3) text("_   (Enter: replace them all)", 156, 125, 86); }
     }
     if (EFOUND >= 1) {                                            // the words found: a gold box round them
@@ -1112,7 +1185,7 @@ void trun()                                                                // En
         ts("time        the machine's clock      del NAME    takes a file away      write NAME WORDS   a file in one line\n");
         ts("clear       a clean screen      notepad     opens Notepad      off     switches the machine off\n");
     }
-    else if (tword("version")) ts("Delta Hex OS 0.15: no zero, written in Delta\n");
+    else if (tword("version")) ts("Delta Hex OS 0.16: no zero, written in Delta\n");
     else if (tword("mem")) {
         ts("ready to hold "); tn(ready); ts("   this system "); tn(ours); ts("   the firmware's "); tn(firmware);
         ts("   held back "); tn(held); ts("   all together "); tn(all); ts("\n");
@@ -1168,7 +1241,7 @@ void trun()                                                                // En
             if (run_program(RUNBUF, n)) ts("it has ended; back in Delta Hex OS\n"); else { ts("the firmware would not run it: its answer "); tn(run_why()); ts("\n"); }
             DESKFOR = low; EDGEN++; }
     }
-    else if (tword("edit")) { if (TPART <= TINN) { edload(&TIN[TPART]); MODE = 5; } else ts("edit which file? (edit notes.txt)\n"); }
+    else if (tword("edit")) { if (TPART <= TINN) { tabopen(&TIN[TPART]); MODE = 5; } else ts("edit which file? (edit notes.txt)\n"); }
     else if (tword("off")) off();
     else { ts("I do not know "); ts(TIN); ts(" yet (help lists what I know)\n"); }
     TINN = low; TIN[1] = low;
@@ -1259,7 +1332,7 @@ int main(int argc, char **argv)
     layout();
     edstart();
     serfind();
-    ts("Delta Hex OS 0.15: the terminal. help lists the commands.\n"); tprompt();
+    ts("Delta Hex OS 0.16: the terminal. help lists the commands.\n"); tprompt();
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
@@ -1276,7 +1349,7 @@ int main(int argc, char **argv)
         if (MODE == 4) memorypanel();
         if (MODE == 5) notepad();
         if (MODE == 6) terminal();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.15", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.16", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);
