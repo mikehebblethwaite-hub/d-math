@@ -1521,6 +1521,18 @@ void pputs(char *s) { int i = 1; while (s[i] >= 1) { pput(s[i]); i++; } }
 void pcopy(int a, int b) { int k; for (k = a; k < b; k++) pput(out[k]); }   // out[a..b) as it is (b not taken)
 int prax(int p) { return pstarts(p, "    mov rax, ") || pstarts(p, "    lea rax, "); }
 int pcc(int p, char *cc, int n) { return pstarts(p + 7, cc) && out[p + 7 + n] == ' '; }
+int pnumber(int p, int skip)                           // the rest of the line is a plain whole number (up to 9 digits)
+{
+    int k = p + less(skip, 1), n = low;
+    while (out[k] != $A) { if (out[k] < '0' || out[k] > '9') return low; k++; n++; }
+    return n >= 1 && n <= 9;
+}
+int pop2(int p)                                        // "    OP rax, rcx" with OP add sub cmp imul: which (LOW: none)
+{
+    if (pis(p, "    add rax, rcx")) return 1; if (pis(p, "    sub rax, rcx")) return 2;
+    if (pis(p, "    cmp rax, rcx")) return 3; if (pis(p, "    imul rax, rcx")) return 4;
+    return low;
+}
 int peepone(int start, int end)                        // one pass from start to end; gives back the new end
 {
     int r = start, changed = low;
@@ -1534,6 +1546,14 @@ int peepone(int start, int end)                        // one pass from start to
         if (pis(a, "    push rax") && c < end && pstarts(b, "    mov rax, ") && pnorax(b, $D)) {
             if (d < end && pis(c, "    mov rcx, rax") && pis(d, "    pop rax")) { pputs("    mov rcx, "); pcopy(b + $D, c); r = pnext(d); changed++; continue; }
             if (pis(c, "    pop rcx")) { pputs("    mov rcx, rax\n"); pcopy(b, c); r = d; changed++; continue; }
+        }
+        if (pstarts(a, "    mov rcx, ") && b < end && pnumber(a, $D) && pop2(b) >= 1) {      // a number straight into the sum
+            int o = pop2(b);
+            if (o == 1) pputs("    add rax, "); if (o == 2) pputs("    sub rax, "); if (o == 3) pputs("    cmp rax, "); if (o == 4) pputs("    imul rax, ");
+            pcopy(a + $D, b); r = c; changed++; continue;
+        }
+        if (pstarts(a, "    lea rax, [") && c < end && pis(b, "    mov rcx, rax") && prax(c) && pnorax(c, $D)) {   // the address straight to rcx
+            pputs("    lea rcx, "); pcopy(a + $D, b); r = c; changed++; continue;
         }
         if (pis(a, "    mov rcx, rbp") && c < end && pstarts(b, "    sub rcx, ") && pis(c, "    mov qword ptr [rcx], rax")) {
             pputs("    mov qword ptr [rbp-"); int k = b + $D; while (out[k] != $A && out[k] != ' ') { pput(out[k]); k++; }
