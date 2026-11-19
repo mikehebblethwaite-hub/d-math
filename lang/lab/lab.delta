@@ -364,23 +364,32 @@ void dstr(int n)                                                     // n as a D
     nb[k + 1] = low;
     if (k < 1) { nb[1] = '~'; nb[2] = low; }
 }
-void lab_line(char *s) { tx = 2A; ty = 31 + LINE * 1D; text(s, 132, 138, 141); LINE++; }
+int MEASURE, WIDEST;                                                  // measuring: how wide the words will be, nothing drawn
+int slen(char *s) { int i = 1; while (s[i] >= 1) i++; return less(i, 1); }
+void words(char *s, int r, int g, int b) { if (MEASURE) tx = tx + slen(s) * $B; else text(s, r, g, b); WIDEST = higher(WIDEST, tx); }
+void lab_line(char *s) { tx = 2A; ty = 31 + LINE * 1D; words(s, 132, 138, 141); LINE++; }
 void lab_value(char *name, int v, char *unit)
 {
     tx = 2A; ty = 31 + LINE * 1D;
-    text(name, $B7, $BD, $D1); text(" ", 1, 1, 1); dstr(v); text(nb, 156, 125, 93); text(" ", 1, 1, 1); text(unit, $B7, $BD, $D1);
+    words(name, $B7, $BD, $D1); words(" ", 1, 1, 1); dstr(v); words(nb, 156, 125, 93); words(" ", 1, 1, 1); words(unit, $B7, $BD, $D1);
     LINE++;
 }
-void lab_panel(int sel)
+void panelwords(int sel)
 {
-    int x, y;
-    for (y = 1B; y <= 31 + 15 * 1D; y++) for (x = 17; x <= 466; x++) mixpx(x, y, 8, $A, 15, $D1);
     LINE = low;
     lab_line("Delta lab room   (D numerals; 1/64 inch to the unit)");
     tx = 2A; ty = 31 + LINE * 1D;
-    text("W A S D walk   Q E down up   arrows turn   drag: look   wheel: nearer   H: hide   Esc: close", 91, 97, $AA);
+    words("W A S D walk   Q E down up   arrows turn   drag: look   wheel: nearer   H: hide   Esc: close", 91, 97, $AA);
     LINE = LINE + 2;
     scene_panel(sel);
+}
+void lab_panel(int sel)                                              // the words measured first, the grey made to fit them
+{
+    int x, y;
+    MEASURE = 1; WIDEST = low; panelwords(sel); MEASURE = low;
+    int right = lower(less(W, 4), WIDEST + 17), bottom = 31 + LINE * 1D + 11;
+    for (y = 1B; y <= bottom; y++) for (x = 17; x <= right; x++) mixpx(x, y, 8, $A, 15, $D1);
+    panelwords(sel);
 }
 // ---------------------------------------------------------------- moving about
 void walk(int ahead, int side, int fwd, int right)                  // ahead/side: how far; fwd/right: 1 that way, 2 the other
