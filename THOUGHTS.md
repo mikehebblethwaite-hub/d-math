@@ -18,3 +18,10 @@ for inside our own systems only, or sit inside a standard wrapper that still ope
 - Try: numbers in fewer letters (D digits as 4 bits each, packed, for sending; the words stay words).
 - Try: our own zip (deflate) against plain zip, and against a hex-shaped dictionary of common runs.
 - Measure each on the same recordings (calm room, door open, candle near): size, time to write, time to read.
+
+## Our own formats as standards, maybe
+
+Mike, 19 Nov 2026: "people may or may not adopt it as a standard, who knows, so future us will see the notes". If .hexi
+(or our own compression) is taken up by others, it becomes something other systems already read, and can travel without
+the standard wrapper. Until then it travels wrapped. Future us: look at who reads .hexi before dropping the wrapper; keep
+HEXI.md complete and plain, so anyone can build a reader from it alone.
