@@ -43,10 +43,11 @@ void place_read()
     s[n + 1] = low;
     int k = 1;
     while (k <= n) {
-        if (s[k] == 'n' || s[k] == 's' || s[k] == 'e' || s[k] == 'w') {
+        if (s[k] == 'n' || s[k] == 's' || s[k] == 'e' || s[k] == 'w' || s[k] == 't') {
             int w = s[k], at = k; while (at <= n && s[at] != 26) at++;
             int v = pnum(s, &at);
-            if (v >= 1) { if (w == 'n' || w == 's') { PLAT = lower(v, 6B); PSOUTH = w == 's'; } else { PLON = lower(v, $DB); PWEST = w == 'w'; } }
+            if (w == 't' && v >= 1B) TALL = lower(v, 75) * INCH;   // tall N: the person's height in inches
+            if (v >= 1 && w != 't') { if (w == 'n' || w == 's') { PLAT = lower(v, 6B); PSOUTH = w == 's'; } else { PLON = lower(v, $DB); PWEST = w == 'w'; } }
             k = at;
         }
         k++;
