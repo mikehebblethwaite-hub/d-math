@@ -19,12 +19,21 @@ void scene_start()
     tank1.x = MID; tank1.z = MID + FOOT * 4; tank1.start();          // ... four feet behind the candle
 }
 void scene_step() { candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
-void scene_draw()
+void scene_draw()                         // farthest first, the painter's way, so near things cover far ones
 {
-    candle1.draw(); lab_mark(1, candle1.x, 1C1, candle1.z);
-    faraday1.draw(); lab_mark(2, faraday1.x, 1C1, faraday1.z);
-    tank1.draw(); lab_mark(4, tank1.x, 1C1, tank1.z);
-    tunnel1.draw(); lab_mark(3, tunnel1.x, 1C1, tunnel1.z);
+    int far[5], i, k, done[5];
+    far[1] = lab_far(candle1.x, candle1.z); far[2] = lab_far(faraday1.x, faraday1.z);
+    far[3] = lab_far(tunnel1.x, tunnel1.z); far[4] = lab_far(tank1.x, tank1.z);
+    for (i = 1; i <= 4; i++) done[i] = low;
+    for (k = 1; k <= 4; k++) {
+        int pick = low, most = low;
+        for (i = 1; i <= 4; i++) if (done[i] < 1 && far[i] >= most) { most = far[i]; pick = i; }
+        done[pick] = 1;
+        if (pick == 1) { candle1.draw(); lab_mark(1, candle1.x, 1C1, candle1.z); }
+        if (pick == 2) { faraday1.draw(); lab_mark(2, faraday1.x, 1C1, faraday1.z); }
+        if (pick == 3) { tunnel1.draw(); lab_mark(3, tunnel1.x, 1C1, tunnel1.z); }
+        if (pick == 4) { tank1.draw(); lab_mark(4, tank1.x, 1C1, tank1.z); }
+    }
 }
 void scene_panel(int sel)
 {

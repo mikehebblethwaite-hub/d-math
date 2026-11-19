@@ -50,32 +50,27 @@ void faraday_draw(int x, int z)
     int top = FBT + 261, base = FBT + 1, mtop = base + FMERC;
     lab_alpha(156);
     lab_colour(86, 3D, 28); lab_box(less(x, 1B8), less(z, 9B), x + 24A, z + 143, 1, FBT);   // the mahogany board
-    // the mercury in each glass, then the glass round it (see-through)
-    lab_colour(125, 129, 134); lab_column(lc, z, less(FGR, 4), base, mtop); lab_column(rc, z, less(FGR, 4), base, mtop);
-    // the left glass: a magnet fixed upright, its north end red; the wire hangs from the arm and circles it
-    lab_colour($B7, $B7, $C4); lab_column(lc, z, 8, base, mtop + 31);
-    lab_colour(125, 31, 2A); lab_column(lc, z, 8, mtop + 17, mtop + 31);
-    int tipx = term(lc, 2A, 1, cosk(FTURN), K), tipz = term(z, 2A, 1, sink(FTURN), K);   // the wire's foot, in the mercury
-    TUBER = 2; lab_colour(13C, 93, 48); lab_tube(lc, top, z, tipx, mtop + 4, tipz);
-    // the right glass: a copper rod fixed in the middle; a magnet tied at its foot leans out and circles it
-    lab_tube(rc, top, z, rc, mtop + 8, z);
-    int mx = term(rc, 24, 1, cosk(FTURN2), K), mz = term(z, 24, 1, sink(FTURN2), K);
-    TUBER = 6; lab_colour($B7, $B7, $C4); lab_tube(rc, base + 6, z, mx, mtop + 31, mz);
-    lab_colour(125, 31, 2A); lab_tube(term(rc, 1B, 1, cosk(FTURN2), K), mtop + 24, term(z, 1B, 1, sink(FTURN2), K), mx, mtop + 31, mz);
-    // the brass stand and its arm over both glasses
-    TUBER = 4; lab_colour(125, $C4, 55); lab_tube(sx, FBT, sz, sx, top, sz); lab_tube(lc, top, z, rc, top, z); lab_tube(sx, top, sz, sx, top, z);
-    // the pile: copper and zinc in turn, and its wires to the arm and to the glasses' feet
+    // the pile: copper and zinc in turn
     int d;
-    for (d = 1; d <= $C; d++) {
-        if (d % 2) lab_colour(125, 86, 48); else lab_colour($B7, $B9, $C4);
-        lab_column(pc, pz, 31, FBT + less(d, 1) * $C + 1, FBT + d * $C);
-    }
-    TUBER = 2; lab_colour(13C, 93, 48);
-    lab_tube(pc, FBT + $B1, pz, sx, top, sz); lab_tube(pc, FBT + 2, pz, rc, FBT + 2, z); lab_tube(rc, FBT + 2, z, lc, FBT + 2, z);
-    // the glasses last, so the mercury and the magnets show through
-    lab_alpha($A); lab_colour(125, 144, 151);   // faint: many small panes of it overlap
-    lab_column(lc, z, FGR, base, base + FGH); lab_column(rc, z, FGR, base, base + FGH);
-    lab_alpha(149);
+    for (d = 1; d <= $C; d++) lab_cyl(pc, pz, 31, FBT + less(d, 1) * $C + 1, FBT + d * $C, d % 2 ? 6 : 7);
+    // the left glass: the mercury, a magnet fixed upright (its north end red), the wire circling it
+    lab_cyl(lc, z, less(FGR, 4), base, mtop, 4);
+    lab_cyl(lc, z, 8, base, mtop + 17, 1); lab_cyl(lc, z, 8, mtop + 17, mtop + 31, 2);
+    int tipx = term(lc, 2A, 1, cosk(FTURN), K), tipz = term(z, 2A, 1, sink(FTURN), K);   // the wire's foot, in the mercury
+    WTUBE = 26; lab_wire(lc, top, z, tipx, mtop + 4, tipz); lab_wirelay(6, low);
+    // the right glass: the mercury, a copper rod fixed in the middle, the magnet tied at its foot leaning out round it
+    lab_cyl(rc, z, less(FGR, 4), base, mtop, 4);
+    WTUBE = 31; lab_wire(rc, top, z, rc, mtop + 8, z); lab_wirelay(6, low);
+    int mx = term(rc, 24, 1, cosk(FTURN2), K), mz = term(z, 24, 1, sink(FTURN2), K);
+    int nx = term(rc, 19, 1, cosk(FTURN2), K), nz = term(z, 19, 1, sink(FTURN2), K);
+    WTUBE = 75; lab_wire(rc, base + 6, z, nx, mtop + 22, nz); lab_wirelay(1, low);
+    WTUBE = 75; lab_wire(nx, mtop + 22, nz, mx, mtop + 31, mz); lab_wirelay(2, low);
+    // the brass stand and its arm over both glasses
+    WTUBE = 4C; lab_wire(sx, FBT, sz, sx, top, sz); WTUBE = 4C; lab_wire(sx, top, sz, sx, top, z); WTUBE = 4C; lab_wire(lc, top, z, rc, top, z); lab_wirelay(5, low);
+    // the copper wires from the pile
+    WTUBE = 1B; lab_wire(pc, FBT + $B1, pz, sx, top, sz); WTUBE = 1B; lab_wire(pc, FBT + 2, pz, rc, FBT + 2, z); WTUBE = 1B; lab_wire(rc, FBT + 2, z, lc, FBT + 2, z); lab_wirelay(6, low);
+    // the glasses, last: their rims and their faint walls, the mercury and magnets seen through
+    lab_cyl(lc, z, FGR, base, base + FGH, 3); lab_cyl(rc, z, FGR, base, base + FGH, 3);
     // the current: blue, down the hanging wire and the fixed rod
     int c, ph = FSTEP % $C;
     for (c = 1; c <= 4; c++) {

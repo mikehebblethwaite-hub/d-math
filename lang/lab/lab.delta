@@ -36,6 +36,13 @@ int LA = 149;               // how much a column, block or tube covers what is b
 int TUBER = 2;                  // a tube's radius in 1/64 inch, set before lab_tube
 char *fw;
 char *fd;
+char wn[19B7BB2];               // the wire being drawn: how far from its middle line, how much covered, its shine
+char wc[19B7BB2];
+char ws[19B7BB2];
+int wx1, wx2, wy1, wy2;
+int ix1, ix2, iy1, iy2;          // where the numbers' ink went
+int FR;                         // the picture's count: the spirals turn with it
+int LKIND = 6;                  // the spectrum a value is drawn in (lab_kind): 1 heat, 2 current, 3 chemistry, 6 plain
 #include "fonts.delta"
 
 // ---------------------------------------------------------------- numbers that only move
@@ -271,6 +278,7 @@ int lab_proj(int x, int y, int z)        // where it lands on the screen (PX, PY
     tocam(x, y, z);
     if (ZC <= OFF + 8) return low;
     PD = less(ZC, OFF);
+    if (apart(XC, OFF) * F / PD > W * 4 || apart(YC, OFF) * F / PD > H * 4) return low;   // far off the screen: not placed
     PX = shift(CX16, XC, OFF, F * 13, PD);
     PY = shift(CY16, OFF, YC, F * 13, PD);
     return 1;
@@ -374,7 +382,11 @@ void lab_line(char *s) { tx = 2A; ty = 31 + LINE * 1D; words(s, 132, 138, 141); 
 void lab_value(char *name, int v, char *unit)
 {
     tx = 2A; ty = 31 + LINE * 1D;
-    words(name, $B7, $BD, $D1); words(" ", 1, 1, 1); dstr(v); words(nb, 156, 125, 93); words(" ", 1, 1, 1); words(unit, $B7, $BD, $D1);
+    words(name, $B7, $BD, $D1); words(" ", 1, 1, 1);
+    if (MEASURE) { dstr(v); tx = tx + 4 + slen(nb) * 22 + $A; WIDEST = higher(WIDEST, tx); }   // its glyphs: 28 pixels each
+    else value(v, LKIND);                                             // the number in D glyphs, turning, in its spectrum
+    words(" ", 1, 1, 1); words(unit, $B7, $BD, $D1);
+    LKIND = 6;
     LINE++;
 }
 void panelwords(int sel)
@@ -449,6 +461,245 @@ void lab_box(int x1, int z1, int x2, int z2, int yb, int yt)         // a block:
     if (camX > x2) { QX[1] = x2; QY[1] = yb; QZ[1] = z1; QX[2] = x2; QY[2] = yb; QZ[2] = z2; QX[3] = x2; QY[3] = yt; QZ[3] = z2; QX[4] = x2; QY[4] = yt; QZ[4] = z1; quadfill($C4); }
     if (camY > yt) { QX[1] = x1; QY[1] = yt; QZ[1] = z1; QX[2] = x2; QY[2] = yt; QZ[2] = z1; QX[3] = x2; QY[3] = yt; QZ[3] = z2; QX[4] = x1; QY[4] = yt; QZ[4] = z2; quadfill(163); }
 }
+void lab_kind(int k) { LKIND = k; }                                // the next value's spectrum: 1 heat, 2 current, 3 chemistry
+int lab_far(int x, int z) { return apart(x, camX) * apart(x, camX) + apart(z, camZ) * apart(z, camZ); }   // how far from the camera (squared)
+
+// ---------------------------------------------------------------- the good renderer, carried across from the two-cups program
+// (lang/examples/faraday.delta): materials, smooth lit cylinders (glass seen through, mercury a mirror), the round wire.
+// It speaks through the lab room's turning camera (lab_proj); upright things stay upright as the camera turns.
+void stamp(int cx, int cy, int rr)               // one round slice of the wire, centre and radius in sixteenths
+{
+    int x1 = pix(less(cx, rr + 13)), x2 = pix(cx + rr + 13);
+    int y1 = pix(less(cy, rr + 13)), y2 = pix(cy + rr + 13);
+    if (x1 < wx1) wx1 = x1; if (x2 > wx2) wx2 = x2; if (y1 < wy1) wy1 = y1; if (y2 > wy2) wy2 = y2;
+    int hr = rr * 2 / 5 + 1;
+    int hx = less(cx, hr), hy = less(cy, hr);         // the shine sits up and to the left, toward the lamp
+    int x, y;
+    for (y = y1; y <= y2; y++) for (x = x1; x <= x2; x++) if (x >= 1 && x <= W && y >= 1 && y <= H) {
+        int pxc = BIG * 13 + x * 13 + 8, pyc = BIG * 13 + y * 13 + 8;
+        int dx = apart(pxc, cx), dy = apart(pyc, cy);
+        int d2 = dx * dx + dy * dy, e = rr + 8;
+        if (d2 < e * e) {
+            int k = y * W + x + 1;
+            int n = d2 * 168 / (rr * rr + 1); if (n > 168) n = 168;
+            int cov = 168;
+            if (rr > 8 && d2 > less(rr, 8) * less(rr, 8)) cov = lower(168, less(e, isqrt(d2)) * 13);
+            if (rr <= 8) cov = lower(168, rr * 1B);
+            int h2 = apart(pxc, hx) * apart(pxc, hx) + apart(pyc, hy) * apart(pyc, hy);
+            int sp = h2 < hr * hr ? less(168, h2 * 168 / (hr * hr)) : 1;
+            if (n < wn[k]) wn[k] = n;
+            if (cov > wc[k]) wc[k] = cov;
+            if (sp > ws[k]) ws[k] = sp;
+        }
+    }
+}
+int MR, MG, MB, MS;
+void material(int m)           // 1 steel, 2 red paint (north), 3 glass, 4 mercury, 5 brass, 6 copper, 7 zinc, 8 brine cloth, 9 wax, A wick
+{
+    if (m == 1) { MR = 93; MG = 97; MB = $A2; MS = 149; }
+    else if (m == 2) { MR = $D1; MG = 2A; MB = 24; MS = 93; }
+    else if (m == 3) { MR = 12A; MG = 141; MB = 145; MS = 168; }
+    else if (m == 4) { MR = $B7; MG = $BD; MB = $C8; MS = 168; }
+    else if (m == 5) { MR = $D7; MG = $A6; MB = 44; MS = 13C; }
+    else if (m == 6) { MR = 118; MG = 79; MB = 44; MS = 125; }
+    else if (m == 7) { MR = $B7; MG = $BD; MB = $C4; MS = $AA; }
+    else if (m == 9) { MR = 152; MG = 147; MB = 12A; MS = 31; }      // 9 candle wax
+    else if (m == A) { MR = 31; MG = 28; MB = 24; MS = 14; }         // A the wick
+    else { MR = 93; MG = 75; MB = 55; MS = 17; }
+}
+
+// an upright round thing standing at (cx, cz): smooth edges, lit from the lamp, glass seen through
+void lab_cyl(int cx, int cz, int rad, int yb, int yt, int m)
+{
+    material(m);
+    int glass = m == 3;
+    if (lab_proj(cx, yt, cz) < 1) return; int sx = PX, syt = PY, d = PD;
+    if (lab_proj(cx, yb, cz) < 1) return; int syb = PY;
+    int hw = rad * F * 13 / d; if (hw < 8) hw = 8;
+    int et = hw * apart(camY, yt) / d, eb = hw * apart(camY, yb) / d;
+    int c, c1 = pix(less(sx, hw + 13)), c2 = pix(sx + hw + 13);
+    for (c = c1; c <= c2; c++) {
+        int cc = BIG * 13 + c * 13 + 8;
+        int u = apart(cc, sx);
+        if (u < hw + 8) {
+            int covx = lower(13, less(hw + 8, u)) * 13;
+            int uu = lower(u, hw);
+            int s = isqrt(less(hw * hw, uu * uu));
+            int fs = s * 169 / hw, fu = uu * 169 / hw;
+            int left = cc < sx;
+            int top = less(syt, et * s / hw), edge = syt + et * s / hw, bot = syb + eb * s / hw;
+            int diff = left ? (fs * 62 + fu * 36) / 79 : under(fs * 62 / 79, fu * 31 / 79);
+            int L = 3B + lower(diff, 169) * 12B / 169;
+            int spec = 1;
+            if (left) { int t = apart(fu, 75); if (t < 35) spec = less(35, t) * less(35, t) * MS / $B5C; }
+            int rim = 1; if (left < 1 && fu > 132) rim = less(fu, 132) * 2;
+            int r1 = pix(top), r2 = pix(bot + 13), r;
+            for (r = r1; r <= r2; r++) {
+                int rc = BIG * 13 + r * 13 + 8;
+                if (rc + 8 > top && rc < bot + 8) {
+                    int covy = 13;
+                    if (rc < top + 8) covy = lower(covy, less(rc + 8, top));
+                    if (rc + 8 > bot) covy = lower(covy, less(bot + 8, rc));
+                    int a = covx * covy / 13;
+                    int R, G, Bl;
+                    if (rc <= edge) {                                   // its top, seen from above
+                        if (glass) {                                    // an open glass: only its rim shows
+                            int nearrim = apart(rc, top) < 1B || apart(rc, edge) < 1B;
+                            R = 151; G = 15B; Bl = 161; a = nearrim ? a * 3 / 4 : 1;
+                        } else if (m == 4) {                        // mercury: a mirror, the lamp in it
+                            R = $D1 + fs / 4; G = $D7 + fs / 4; Bl = 114 + fs / 4;
+                            int sp = apart(rc, (top + edge) / 2) < 31 && left && fu > 48 && fu < $AA;
+                            if (sp) { R = 165; G = 165; Bl = 163; }
+                        } else {
+                            R = MR + 31 + fs / 5; G = MG + 31 + fs / 5; Bl = MB + 31 + fs / 5;
+                        }
+                    } else {
+                        R = MR * L / 169 + spec; G = MG * L / 169 + spec; Bl = MB * L / 169 + spec;
+                        R = R + rim / 3; G = G + rim / 3; Bl = Bl + rim / 2;
+                        if (glass) a = a * (31 + fu * $B7 / 169 + spec / 2) / 169;   // see-through, more at its edges
+                    }
+                    mixpx(c, r, R, G, Bl, a);
+                }
+            }
+        }
+    }
+}
+
+// a round rod or wire from one place to another (any slant), stamped slice by slice
+int WTUBE;                                       // the tube's radius, in sixteenths of a unit
+void lab_wire(int x1, int y1, int z1, int x2, int y2, int z2)
+{
+    int rad16 = WTUBE;
+    if (lab_proj(x1, y1, z1) < 1) return; int ax = PX, ay = PY, ad = PD;
+    if (lab_proj(x2, y2, z2) < 1) return; int bx = PX, by = PY, bd = PD;
+    int n = higher(apart(ax, bx), apart(ay, by)) / higher(rad16 * F / lower(ad, bd) / 2, 6) + 1;
+    int t;
+    for (t = 1; t <= n; t++) {
+        int rr = rad16 * F / towards(ad, bd, t, n); if (rr < 6) rr = 6;
+        stamp(towards(ax, bx, t, n), towards(ay, by, t, n), rr);
+    }
+}
+void lab_wirelay(int m, int warm)                        // the stamped tube into the picture in its metal, then cleared
+{
+    material(m);
+    int x, y;
+    for (y = wy1; y <= wy2; y++) for (x = wx1; x <= wx2; x++) if (x >= 1 && x <= W && y >= 1 && y <= H) {
+        int k = y * W + x + 1;
+        if (wc[k] >= 1) {
+            int lit = less(168, wn[k] * 3 / 5);
+            int R = (MR + 17) * lit / 168 + ws[k] * MS / 187 + warm;
+            int G = (MG + $A) * lit / 168 + ws[k] * MS / 1B8 + warm / 3;
+            int Bl = MB * lit / 168 + ws[k] * MS / 24A;
+            mixpx(x, y, R, G, Bl, wc[k] + 1);
+        }
+        wn[k] = 168; wc[k] = low; ws[k] = low;
+    }
+    wx1 = W; wx2 = 1; wy1 = H; wy2 = 1;
+}
+
+
+// ---------------------------------------------------------------- numbers in D glyphs: spirals that turn, in their spectrum's colour
+void ink(int cx, int cy, int rr)                     // a round dab of ink, smooth edged (sixteenths)
+{
+    int x1 = pix(less(cx, rr + 13)), x2 = pix(cx + rr + 13), y1 = pix(less(cy, rr + 13)), y2 = pix(cy + rr + 13);
+    ix1 = lower(ix1, x1); ix2 = higher(ix2, x2); iy1 = lower(iy1, y1); iy2 = higher(iy2, y2);
+    int x, y, e = rr + 8;
+    for (y = y1; y <= y2; y++) for (x = x1; x <= x2; x++) if (x >= 1 && x <= W && y >= 1 && y <= H) {
+        int dx = apart(BIG * 13 + x * 13 + 8, cx), dy = apart(BIG * 13 + y * 13 + 8, cy);
+        int d2 = dx * dx + dy * dy;
+        if (d2 < e * e) {
+            int k = y * W + x + 1;
+            int cov = 168;
+            if (d2 > less(rr, 8) * less(rr, 8)) cov = lower(168, less(e, isqrt(d2)) * 13);
+            if (cov > wc[k]) wc[k] = cov;
+        }
+    }
+}
+void inkline(int ax, int ay, int bx, int by, int rr)
+{
+    int n = higher(apart(ax, bx), apart(ay, by)) / $A + 1, t;
+    for (t = 1; t <= n; t++) ink(towards(ax, bx, t, n), towards(ay, by, t, n), rr);
+}
+void inklay(int r, int g, int b)                     // the ink into the picture, in one colour, then cleared
+{
+    int x, y;
+    for (y = iy1; y <= iy2; y++) for (x = ix1; x <= ix2; x++) if (x >= 1 && x <= W && y >= 1 && y <= H) {
+        int k = y * W + x + 1;
+        if (wc[k] >= 1) { mixpx(x, y, r, g, b, wc[k] + 1); wc[k] = low; }
+    }
+    ix1 = W; ix2 = 1; iy1 = H; iy2 = 1;
+}
+
+int SPX[13];
+int SPY[13];
+void spiral(int n, int cx, int cy, int size, int turn)   // digit n (1..13) about (cx, cy), all in sixteenths
+{
+    int u = size * 2 / (n + 2);                 // small numbers stay small, big ones fit
+    int x = BIG * 13, y = BIG * 13, a = turn, i, sx = 1, sy = 1;
+    SPX[1] = x; SPY[1] = y;
+    for (i = 1; i <= n + 1; i++) {
+        int L = (1 + less(i, 1) / 2) * u;
+        x = less(x + L * cosk(a) / K, L); y = less(y + L * sink(a) / K, L);
+        SPX[i + 1] = x; SPY[i + 1] = y;
+        a = (a + 12) % 75 + 1;                   // a sixth of a turn: hex
+    }
+    for (i = 1; i <= n + 2; i++) { sx = sx + SPX[i]; sy = sy + SPY[i]; }
+    sx = sx / (n + 2); sy = sy / (n + 2);      // its middle: it turns about that
+    for (i = 1; i <= n + 1; i++) {
+        int ax = SPX[i] >= sx ? cx + less(SPX[i], sx) : less(cx, less(sx, SPX[i]));
+        int ay = SPY[i] >= sy ? cy + less(SPY[i], sy) : less(cy, less(sy, SPY[i]));
+        int bx = SPX[i + 1] >= sx ? cx + less(SPX[i + 1], sx) : less(cx, less(sx, SPX[i + 1]));
+        int by = SPY[i + 1] >= sy ? cy + less(SPY[i + 1], sy) : less(cy, less(sy, SPY[i + 1]));
+        inkline(ax, ay, bx, by, 16);
+    }
+}
+void unknownmark(int cx, int cy, int size, int turn)  // ~ : a wave, its count not known
+{
+    int i, pxa = less(cx, size), pya = cy;
+    for (i = 1; i <= $C; i++) {
+        int x = less(cx, size) + size * 2 * i / $C;
+        int y = less(cy + size * sink((turn + i * 8) % 75 + 1) / K / 3, size / 3);
+        inkline(pxa, pya, x, y, 16);
+        pxa = x; pya = y;
+    }
+}
+
+int SR, SG, SB;
+int amount(int n) { int d = 1; while (n >= $D) { n = n / $D; d++; } return lower(168, d * 1D + n * 2); }
+void spectrum(int kind, int n)                       // kind 1 heat, 2 current, 3 chemistry, 4 the turn, 5 Shrug, 6 plain
+{
+    int h = amount(n);
+    if (kind == 1) { heatcolour(h); SR = HR; SG = HG; SB = HB; }
+    else if (kind == 2) { SR = towards(31, 125, h, 168); SG = towards(86, 152, h, 168); SB = 168; }
+    else if (kind == 3) { SR = towards(86, 145, h, 168); SG = towards(31, $D7, h, 168); SB = towards(118, 168, h, 168); }
+    else if (kind == 4) { SR = towards(24, 118, h, 168); SG = towards($B7, 168, h, 168); SB = towards(55, $B7, h, 168); }
+    else if (kind == 5) { SR = 93; SG = 95; SB = 9D; }
+    else { SR = 152; SG = 154; SB = 15C; }
+}
+
+int DPOS;
+void dspin(int n, int kind, int speed)
+{
+    if (n < 1) { unknownmark(BIG * 13 + (tx + $D) * 13, BIG * 13 + (ty + $C) * 13, $B7, FR * speed % 75 + 1); tx = tx + 22; }
+    else {
+        int q = n / $D, d = n % $D;
+        if (d < 1) { d = $D; q = less(q, 1); }
+        if (q >= 1) dspin(q, kind, speed);
+        DPOS++;
+        spiral(d, BIG * 13 + (tx + $D) * 13, BIG * 13 + (ty + $C) * 13, $D1, (FR * speed + DPOS * $B) % 75 + 1);
+        tx = tx + 22;
+    }
+}
+void dnum(int n, int kind)                           // a number in D: its spirals, turning, in its spectrum
+{
+    spectrum(kind, n);
+    int r = SR, g = SG, b = SB, speed = amount(n) / 4C + 1;
+    DPOS = low;
+    dspin(n, kind, speed);
+    inklay(r, g, b);
+}
+void label(char *s) { text(s, $D1, $D9, 118); }
+void value(int n, int kind) { tx = tx + 4; dnum(n, kind); tx = tx + $A; }
 // ---------------------------------------------------------------- moving about
 void walk(int ahead, int side, int fwd, int right)                  // ahead/side: how far; fwd/right: 1 that way, 2 the other
 {
@@ -479,12 +730,15 @@ int main(int argc, char **argv)
     F = H;                                                          // the lens: about as wide as a person sees easily
     CX16 = BIG * 13 + W * 8; CY16 = BIG * 13 + H * 8;
     floorh = 1; roomh = 1; roomr2 = 1;
+    int wi; for (wi = 1; wi <= W * H + W + 2; wi++) wn[wi] = 168;   // the wire buffers start clear
+    wx1 = W; wx2 = 1; wy1 = H; wy2 = 1; ix1 = W; ix2 = 1; iy1 = H; iy2 = 1;
     camX = MID; camZ = less(MID, FOOT); camY = INCH * 4; YAW = 1; PIT = 1;     // a foot from the candle, at its flame
     scene_start();
     int sharp = low, moved = 1, showpanel = 1, sel = 1, frame = low;
     int lastmx = low, lastmy = low, held = low, pressx = low, pressy = low, midheld = low;
     while (1) {
         frame++;
+        FR = frame;
         int key = window_key();
         if (key == 9) return 1;                                       // Esc
         if (key == 34) showpanel = showpanel ? low : 1;           // H

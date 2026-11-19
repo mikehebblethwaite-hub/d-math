@@ -266,10 +266,8 @@ void candle_steps(int n)
 #define WAXH 11A                        // the candle stands 3 inches tall
 void candle_draw(int x, int z)
 {
-    lab_colour(152, 147, 12A);
-    lab_column(x, z, 1B, 1, WAXH);                                // the wax: 3/4 inch across
-    lab_colour(31, 28, 24);
-    lab_column(x, z, 1, WAXH, WAXH + $A);                          // the wick
+    lab_cyl(x, z, 1B, 1, WAXH, 9);                                // the wax: 3/4 inch across
+    lab_cyl(x, z, 1, WAXH, WAXH + $A, $A);                     // the wick
     int row, col, mid = CGW / 2 + 2;
     for (row = 1; row <= less(CGH, 2); row++) for (col = 1; col <= CGW; col++) {
         int i = cell(col, row), h = hot[i], s = smoke[i];
@@ -301,9 +299,9 @@ void candle_panel()
     lab_line("A candle: hex cells of air, moves only (lang/lab/objects/candle.delta)");
     lab_value("steps run", CSTEP, "");
     lab_value("wax still solid", wax, "units of fuel");
-    lab_value("burned", burned, "units of vapour");
+    lab_kind(3); lab_value("burned", burned, "units of vapour");
     lab_value("left as soot", sooted, "units");
-    lab_value("given to the room as light", shine, "units of heat");
+    lab_kind(1); lab_value("given to the room as light", shine, "units of heat");
     if (CWRONG < 1) lab_line("the energy book balances every step: nothing vanished, nothing from nowhere");
     else lab_value("the energy book went out at step", CWRONG, "");
 }
