@@ -42,6 +42,7 @@ char ws[19B7BB2];
 int wx1, wx2, wy1, wy2;
 int ix1, ix2, iy1, iy2;          // where the numbers' ink went
 int FR;                         // the picture's count: the spirals turn with it
+int FPS, FCOUNT2, FLAST;        // pictures a second, counted against the clock
 int LKIND = 6;                  // the spectrum a value is drawn in (lab_kind): 1 heat, 2 current, 3 chemistry, 6 plain
 #include "fonts.delta"
 
@@ -320,7 +321,7 @@ void lab_colour(int r, int g, int b) { LR = r; LG = g; LB = b; }
 void lab_glow(int x, int y, int z, int size)                         // light in the colour set, added where it shines
 {
     if (lab_proj(x, y, z) < 1) return;
-    sprite(PX, PY, higher($C, size * F * 13 / PD), LR, LG, LB);
+    sprite(PX, PY, lower(39 * 13, higher($C, size * F * 13 / PD)), LR, LG, LB);   // never wider than 48 pixels: near glows stay cheap
 }
 void lab_haze(int x, int y, int z, int size, int grey, int a)        // smoke: it covers some of what is behind it
 {
@@ -393,6 +394,7 @@ void panelwords(int sel)
 {
     LINE = low;
     lab_line("Delta lab room   (D numerals; 1/64 inch to the unit)");
+    if (FPS >= 1) { LINE = less(LINE, 1); tx = 389; ty = 31 + LINE * 1D; words("pictures a second: ", $B7, $BD, $D1); dstr(FPS); words(nb, 156, 125, 93); LINE++; }
     tx = 2A; ty = 31 + LINE * 1D;
     words("W A S D walk   Q E down, up   arrows turn   drag: look   wheel: nearer", 91, 97, $AA);
     LINE++; tx = 2A; ty = 31 + LINE * 1D;
@@ -453,12 +455,13 @@ void quadfill(int lit)                                                // the fac
     }
 }
 void corners(int ax, int ay, int az, int bx, int by, int bz) { QX[1] = ax; QY[1] = ay; QZ[1] = az; QX[3] = bx; QY[3] = by; QZ[3] = bz; }
+int BOXEND = 1;                                                       // 1: a block draws its left and right ends too (LOW: front, back and top only)
 void lab_box(int x1, int z1, int x2, int z2, int yb, int yt)         // a block: its sides the camera sees, then its top
 {
     if (camZ < z1) { QX[1] = x1; QY[1] = yb; QZ[1] = z1; QX[2] = x2; QY[2] = yb; QZ[2] = z1; QX[3] = x2; QY[3] = yt; QZ[3] = z1; QX[4] = x1; QY[4] = yt; QZ[4] = z1; quadfill(125); }
     if (camZ > z2) { QX[1] = x1; QY[1] = yb; QZ[1] = z2; QX[2] = x2; QY[2] = yb; QZ[2] = z2; QX[3] = x2; QY[3] = yt; QZ[3] = z2; QX[4] = x1; QY[4] = yt; QZ[4] = z2; quadfill($D1); }
-    if (camX < x1) { QX[1] = x1; QY[1] = yb; QZ[1] = z1; QX[2] = x1; QY[2] = yb; QZ[2] = z2; QX[3] = x1; QY[3] = yt; QZ[3] = z2; QX[4] = x1; QY[4] = yt; QZ[4] = z1; quadfill($C4); }
-    if (camX > x2) { QX[1] = x2; QY[1] = yb; QZ[1] = z1; QX[2] = x2; QY[2] = yb; QZ[2] = z2; QX[3] = x2; QY[3] = yt; QZ[3] = z2; QX[4] = x2; QY[4] = yt; QZ[4] = z1; quadfill($C4); }
+    if (BOXEND && camX < x1) { QX[1] = x1; QY[1] = yb; QZ[1] = z1; QX[2] = x1; QY[2] = yb; QZ[2] = z2; QX[3] = x1; QY[3] = yt; QZ[3] = z2; QX[4] = x1; QY[4] = yt; QZ[4] = z1; quadfill($C4); }
+    if (BOXEND && camX > x2) { QX[1] = x2; QY[1] = yb; QZ[1] = z1; QX[2] = x2; QY[2] = yb; QZ[2] = z2; QX[3] = x2; QY[3] = yt; QZ[3] = z2; QX[4] = x2; QY[4] = yt; QZ[4] = z1; quadfill($C4); }
     if (camY > yt) { QX[1] = x1; QY[1] = yt; QZ[1] = z1; QX[2] = x2; QY[2] = yt; QZ[2] = z1; QX[3] = x2; QY[3] = yt; QZ[3] = z2; QX[4] = x1; QY[4] = yt; QZ[4] = z2; quadfill(163); }
 }
 void lab_kind(int k) { LKIND = k; }                                // the next value's spectrum: 1 heat, 2 current, 3 chemistry
@@ -715,6 +718,8 @@ void walk(int ahead, int side, int fwd, int right)                  // ahead/sid
     camZ = higher(INCH, lower(camZ, less(ROOM, INCH)));
     camY = higher(INCH, lower(camY, less(ROOM, INCH)));
 }
+int nowms() { int ts[2]; ts[1] = low; ts[2] = low; if (linux(147, 1, &ts[1]) != low) return low; return ts[1] * 5BC + ts[2] / 28D221; }
+void fpscount() { int t = nowms(); if (t < 1) return; FCOUNT2++; if (FLAST < 1) FLAST = t; if (t >= FLAST + 5BC) { FPS = FCOUNT2 * 5BC / less(t, FLAST); FCOUNT2 = low; FLAST = t; } }
 int turnon(int p) { return p % 75 + 1; }                           // a place further round
 int turnback(int p) { return p <= 1 ? 75 : less(p, 1); }
 int pitchup(int p) { return p == 14 ? p : turnon(p); }             // up to 16 places (60 degrees) and no further
@@ -789,6 +794,7 @@ int main(int argc, char **argv)
         scene_step();
         scene_draw();
         if (showpanel) lab_panel(sel);
+        fpscount();
         window_show(&px[CW + 5]);
     }
     return 1;

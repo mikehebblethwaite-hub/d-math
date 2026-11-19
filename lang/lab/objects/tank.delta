@@ -171,10 +171,12 @@ void tank_draw(int x, int z)
         lab_glow(x1 + col * WCELL, y1 + less(WGH, row) * WCELL * $D / 12, z, WCELL);
     }
     lab_alpha($B7); lab_colour(31, 86, $D1);            // the water: each column up to its surface
+    BOXEND = low;                                                       // the columns' sides are hidden by their neighbours
     for (col = 1; col <= WGW; col = col + 2) {
         int top = y1 + wseatop(col) * WCELL * $D / 12 / 169;
         lab_box(x1 + less(col, 1) * WCELL, less(z, depth), x1 + (col + 1) * WCELL, z + depth, y1, top);
     }
+    BOXEND = 1;
     lab_alpha(6); lab_colour(125, 144, 151);                 // the glass round it
     lab_box(x1, less(z, depth), x1 + WGW * WCELL, z + depth, y1, y1 + WGH * WCELL * $D / 12);
     lab_alpha(149);
