@@ -10,6 +10,10 @@ which wrote the code. Times are UK time. This page keeps who chose what, and why
 - **19 Nov 2026, ~01:00: Delta compiled a new version of Delta.** The compiler, written in Delta, gained `#include` (for
   the lab room's objects); the old Delta built the new one, the new one built itself, and the two were byte for byte the
   same (the fixed point held). The first new version of Delta made by Delta, with all 95 tests passing.
+- **19 Nov 2026, ~04:55: Delta made its own code better and built itself with it.** A peephole pass in the compiler
+  (`peep`) rewrites wasteful machine-code patterns into short ones of the same meaning; the compiler then rebuilt itself
+  with it, byte for byte stable. Programs came out 15 to 20 per cent smaller and the wind tunnel 19 per cent faster,
+  with exactly the same results.
 - **19 Nov 2026, ~04:15: Delta Hex OS ran its first program.** From the terminal, `run lab.efi`: the lab room (the same
   Delta source as in the Linux window, built with `delta efi`), with the candle burning; Esc ended it and the OS carried on.
 - **19 Nov 2026, ~01:48: Claude used Delta Hex OS from outside.** Through the terminal on the machine's serial line,

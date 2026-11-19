@@ -1490,8 +1490,80 @@ void writeall(int fd, char *b, int n)
 }
 void wstr(int fd, char *m) { int n = 1; while (m[n] >= 1) n++; writeall(fd, m, less(n, 1)); }
 
+// ---------------------------------------------------------------- peep: the machine code made shorter, the same meaning
+// The code is made one value at a time through rax, pushed and popped: plain and right, but full of moves. peep reads it
+// line by line and writes back shorter lines for a few exact patterns, in place (every pattern only shortens):
+//   lea rax, [X] / mov rax, [rax]                       ->  mov rax, [X]
+//   a value put in rax, then rax overwritten unread    ->  the first line goes
+//   push rax / mov rax, V / mov rcx, rax / pop rax     ->  mov rcx, V
+//   push rax / mov rax, V / pop rcx                    ->  mov rcx, rax / mov rax, V
+//   mov rcx, rbp / sub rcx, N / mov qword ptr [rcx], rax  ->  mov qword ptr [rbp-N], rax
+//   setCC al / movzx eax, al / test rax, rax / jz L    ->  jNOT-CC L
+int pw;                                                // where peep writes
+int peepchanged;                                       // how many shortenings the last pass made
+int peol(int p) { while (out[p] != $A) p++; return p; }
+int pnext(int p) { return peol(p) + 1; }
+int pis(int p, char *s) { int i = 1; while (s[i] >= 1) { if (out[p + less(i, 1)] != s[i]) return low; i++; } return out[p + less(i, 1)] == $A; }
+int pstarts(int p, char *s) { int i = 1; while (s[i] >= 1) { if (out[p + less(i, 1)] != s[i]) return low; i++; } return 1; }
+int pnorax(int p, int skip)                            // no rax, eax, rsp or rcx in the line from this place on
+{
+    int e = peol(p), k;
+    for (k = p + less(skip, 1); k + 2 <= e; k++) {
+        if (out[k] == 'r' && out[k + 1] == 'a' && out[k + 2] == 'x') return low;
+        if (out[k] == 'e' && out[k + 1] == 'a' && out[k + 2] == 'x') return low;
+        if (out[k] == 'r' && out[k + 1] == 's' && out[k + 2] == 'p') return low;
+        if (out[k] == 'r' && out[k + 1] == 'c' && out[k + 2] == 'x') return low;
+    }
+    return 1;
+}
+void pput(int c) { out[pw] = c; pw++; }
+void pputs(char *s) { int i = 1; while (s[i] >= 1) { pput(s[i]); i++; } }
+void pcopy(int a, int b) { int k; for (k = a; k < b; k++) pput(out[k]); }   // out[a..b) as it is (b not taken)
+int prax(int p) { return pstarts(p, "    mov rax, ") || pstarts(p, "    lea rax, "); }
+int pcc(int p, char *cc, int n) { return pstarts(p + 7, cc) && out[p + 7 + n] == ' '; }
+int peepone(int start, int end)                        // one pass from start to end; gives back the new end
+{
+    int r = start, changed = low;
+    pw = start;
+    while (r < end) {
+        int a = r, b = pnext(a), c = b < end ? pnext(b) : end, d = c < end ? pnext(c) : end;
+        if (pstarts(a, "    lea rax, [") && b < end && pis(b, "    mov rax, [rax]")) {
+            pputs("    mov"); pcopy(a + 7, b); r = pnext(b); changed++; continue;
+        }
+        if (prax(a) && b < end && prax(b) && pnorax(b, $D)) { r = b; changed++; continue; }
+        if (pis(a, "    push rax") && c < end && pstarts(b, "    mov rax, ") && pnorax(b, $D)) {
+            if (d < end && pis(c, "    mov rcx, rax") && pis(d, "    pop rax")) { pputs("    mov rcx, "); pcopy(b + $D, c); r = pnext(d); changed++; continue; }
+            if (pis(c, "    pop rcx")) { pputs("    mov rcx, rax\n"); pcopy(b, c); r = d; changed++; continue; }
+        }
+        if (pis(a, "    mov rcx, rbp") && c < end && pstarts(b, "    sub rcx, ") && pis(c, "    mov qword ptr [rcx], rax")) {
+            pputs("    mov qword ptr [rbp-"); int k = b + $D; while (out[k] != $A && out[k] != ' ') { pput(out[k]); k++; }
+            pputs("], rax\n"); r = d; changed++; continue;
+        }
+        if (pstarts(a, "    set") && d < end && pis(b, "    movzx eax, al") && pis(c, "    test rax, rax") && pstarts(d, "    jz ")) {
+            int jk = low;
+            if (pcc(a, "e", 1)) jk = 1; if (pcc(a, "ne", 2)) jk = 2; if (pcc(a, "l", 1)) jk = 3;
+            if (pcc(a, "le", 2)) jk = 4; if (pcc(a, "g", 1)) jk = 5; if (pcc(a, "ge", 2)) jk = 6;
+            if (jk >= 1) {
+                if (jk == 1) pputs("    jne "); if (jk == 2) pputs("    je "); if (jk == 3) pputs("    jge ");
+                if (jk == 4) pputs("    jg "); if (jk == 5) pputs("    jle "); if (jk == 6) pputs("    jl ");
+                pcopy(d + 7, pnext(d)); r = pnext(d); changed++; continue;
+            }
+        }
+        pcopy(a, b); r = b;
+    }
+    peepchanged = peepchanged + changed;
+    return pw;
+}
+int peep(int start, int end)                           // passes until nothing more shortens; gives back the new end
+{
+    int e = end, k;
+    for (k = 1; k <= 6; k++) { peepchanged = low; e = peepone(start, e); if (peepchanged < 1) break; }
+    return e;
+}
+
 void finish(int fd)                                   // the whole assembly: runtime, code, values, words
 {
+    outn = peep(1, outn);                             // the code made shorter first (the same meaning)
     wstr(fd, ".intel_syntax noprefix\n");
     writeall(fd, rt, rtn);
     wstr(fd, "\n.text\n");

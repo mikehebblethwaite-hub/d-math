@@ -11,6 +11,8 @@ Things Delta does not do yet, found while building with it. Each gets a test in 
 - Error lines name the file: with `#include`, a line number alone does not say which file it is in.
 - Picture buffers sized to the screen in the lab room too (the OS takes its four from the firmware since 0.14; the lab
   room still keeps two fixed 34 MB rows, 6D75858 bytes).
+- Speed, done in part (19 Nov): `peep` folds the commonest waste (programs 15-20% smaller, about 19% faster). Still to do:
+  values kept in registers across statements, and threads.
 - Speed: Delta uses one core and its compiler writes plain machine code (every value through memory, nothing kept in
   registers). The lab room runs about 6 to 7 pictures a second at 1280 x 800 on coop-one. Two ways up, before any new
   hardware: threads (each thing in the room on its own core) and a better code generator (registers, fewer moves).
