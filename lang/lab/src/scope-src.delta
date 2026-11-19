@@ -1,0 +1,150 @@
+// The oscilloscope on the bench (Mike, 19 Nov 2026: Dragonfly's first tool, made properly). Two channels; each probe takes
+// one thing in the room and the screen draws it over time. Click it to see its screen close up on the panel; then Y and U
+// change channel 1's and channel 2's probe, I the time across the screen. What it shows it also says in words, for bots,
+// in /tmp/delta-lab-scope.txt (the latest samples, D numerals, runs as N*v).
+// The probes read the room's own numbers as they are: nothing on the screen is drawn from anywhere else.
+#define SN {{400}}                          // samples across the screen
+int S1[{{401}}], S2[{{401}}];               // the two channels' samples, a ring
+int SAT = 1, SFILL, SRC1 = 1, SRC2 = 2, STB = 1, STICK;   // where the ring writes next, how full, the probes, the time per sample
+int probe(int src)
+{
+    if (src == 1) return wseatop(WGW / 2) * wmpc / {{256}} + 1;                     // the tank's water at its middle
+    if (src == 2) return AT[acell(CANX, {{1536}}, CANZ)];                            // the air 2 ft over the candle
+    if (src == 3) return WATTS + 1;                                                  // Dan's processors (this machine)
+    if (src == 4) return ACO[acell(camX, camY, camZ)];                              // carbon dioxide where your head is
+    if (src == 5) return OUTT;                                                       // the outside
+    if (src == 6) return BOTTOMIN[1] + BOTTOMOUT[1] + 1;                             // air through the outside door, at the floor
+    return AT[tileat(camX, camZ)];                                                   // the air over the tile you stand on
+}
+char *probename(int src)
+{
+    if (src == 1) return "the tank's water at its middle";
+    if (src == 2) return "the air 2 ft over the candle";
+    if (src == 3) return "Dan's processors";
+    if (src == 4) return "carbon dioxide where your head is";
+    if (src == 5) return "the outside's warmth";
+    if (src == 6) return "the outside door's draught, at the floor";
+    return "the air over the tile you stand on";
+}
+char *probeunit(int src)
+{
+    if (src == 1) return "thousandths of a metre (of the sea it models)";
+    if (src == 3) return "thousandths of a watt";
+    if (src == 4) return "parts per million";
+    if (src == 6) return "thousandths of a degree of a cell, a step";
+    return "thousandths of a kelvin";
+}
+int pkind(int src) { if (src == 1 || src == 6) return 6; if (src == 4) return 3; return 1; }   // the spectrum: water plain, CO2 chemistry, the rest heat
+void scope_step()
+{
+    STICK++;
+    if (STICK < STB) return;
+    STICK = low;
+    S1[SAT] = probe(SRC1); S2[SAT] = probe(SRC2);
+    SAT = SAT % SN + 1; SFILL = lower(SN, SFILL + 1);
+}
+int sget(int *ring, int k) { int p = less(SAT + SN * 2 + k, SFILL + 2) % SN + 1; return ring[p]; }   // the k-th oldest
+void sminmax(int *ring, int *lo2, int *hi2)
+{
+    int k, a = sget(ring, 1), b = a;
+    for (k = 2; k <= SFILL; k++) { int v = sget(ring, k); a = lower(a, v); b = higher(b, v); }
+    *lo2 = a; *hi2 = b;
+}
+void pline(int x1, int y1, int x2, int y2)                         // a line in the picture, pixel by pixel, in the colour set
+{
+    int n = higher(apart(x1, x2), apart(y1, y2)) + 1, k;
+    for (k = 1; k <= n; k++) { int x = towards(x1, x2, k, n), y = towards(y1, y2, k, n); mixpx(x, y, LR, LG, LB, {{230}}); mixpx(x, y + 1, LR, LG, LB, {{120}}); }
+}
+void trace(int *ring, int xs, int ys, int w, int h)                // a channel across a screen of w x h pixels, in the colour set
+{
+    if (SFILL < 2) return;
+    int lo2, hi2, k, px2 = low, py2 = low;
+    sminmax(ring, &lo2, &hi2);
+    int span = higher(1, less(hi2, lo2));
+    for (k = 1; k <= SFILL; k++) {
+        int x = xs + less(k, 1) * w / SN, y = less(ys + h, less(sget(ring, k), lo2) * less(h, 8) / span + 4);
+        if (k >= 2) pline(px2, py2, x, y);
+        px2 = x; py2 = y;
+    }
+}
+void screenface(int xs, int ys, int w, int h)                       // the screen: dark green glass, its grid of 10 by 8
+{
+    int x, y;
+    for (y = ys; y <= ys + h; y++) for (x = xs; x <= xs + w; x++) mixpx(x, y, {{10}}, {{34}}, {{20}}, {{235}});
+    for (x = 1; x <= {{9}}; x++) for (y = ys; y <= ys + h; y = y + 2) mixpx(xs + x * w / {{10}}, y, {{40}}, {{90}}, {{50}}, {{160}});
+    for (y = 1; y <= 7; y++) for (x = xs; x <= xs + w; x = x + 2) mixpx(x, ys + y * h / 8, {{40}}, {{90}}, {{50}}, {{160}});
+}
+#define SCX {{14200}}                        // the scope on the bench: its front (the screen faces the room)
+#define SCZ1 {{10400}}
+#define SCZ2 {{11300}}
+void scope_draw()
+{
+    lab_alpha({{250}});
+    lab_colour({{60}}, {{62}}, {{66}}); lab_box(SCX, SCZ1, {{15100}}, SCZ2, BTOP, BTOP + {{560}});          // its case
+    lab_colour({{40}}, {{42}}, {{46}}); lab_box(less(SCX, 8), SCZ1 + {{560}}, SCX, SCZ2, BTOP + {{60}}, BTOP + {{500}});   // the knobs' panel
+    int k; for (k = 1; k <= 3; k++) lab_cyl(less(SCX, {{30}}), SCZ1 + {{560}} + k * {{90}}, {{30}}, BTOP + {{200}}, BTOP + {{260}}, 1);
+    // the screen: its four corners on the case's front, projected; the traces drawn inside them
+    if (lab_proj(less(SCX, 2), BTOP + {{480}}, SCZ1 + {{100}}) < 1) return;
+    int ax = pix(PX), ay = pix(PY);
+    if (lab_proj(less(SCX, 2), BTOP + {{160}}, SCZ1 + {{550}}) < 1) return;
+    int bx = pix(PX), by = pix(PY);
+    int xs = lower(ax, bx), ys = lower(ay, by), w = apart(ax, bx), h = apart(ay, by);
+    if (w < 6 || h < 4) return;
+    screenface(xs, ys, w, h);
+    lab_colour({{250}}, {{230}}, {{80}}); trace(S1, xs, ys, w, h);
+    lab_colour({{90}}, {{220}}, {{250}}); trace(S2, xs, ys, w, h);
+}
+void scope_panel()
+{
+    lab_line("The oscilloscope (lang/lab/objects/scope.delta): Y probe 1, U probe 2, I time across the screen");
+    int lo2, hi2;
+    lab_line("1 (yellow):"); lab_line(probename(SRC1));
+    if (SFILL >= 1) { sminmax(S1, &lo2, &hi2); lab_kind(pkind(SRC1)); lab_value("  now", sget(S1, SFILL), probeunit(SRC1)); lab_kind(pkind(SRC1)); lab_value("  lowest", lo2, ""); lab_kind(pkind(SRC1)); lab_value("  highest", hi2, ""); }
+    lab_line("2 (blue):"); lab_line(probename(SRC2));
+    if (SFILL >= 1) { sminmax(S2, &lo2, &hi2); lab_kind(pkind(SRC2)); lab_value("  now", sget(S2, SFILL), probeunit(SRC2)); lab_kind(pkind(SRC2)); lab_value("  lowest", lo2, ""); lab_kind(pkind(SRC2)); lab_value("  highest", hi2, ""); }
+    lab_value("time across the screen, steps", SN * STB, "(each its own scale: lowest to highest)");
+    int xs = {{42}}, ys = {{49}} + LINE * {{26}}, w = {{600}}, h = {{220}};      // the screen, close up
+    if (MEASURE) WIDEST = higher(WIDEST, xs + w + {{20}});
+    else { screenface(xs, ys, w, h); lab_colour({{250}}, {{230}}, {{80}}); trace(S1, xs, ys, w, h); lab_colour({{90}}, {{220}}, {{250}}); trace(S2, xs, ys, w, h); }
+    LINE = LINE + {{9}};
+}
+void scope_keys(int key, int picked)
+{
+    if (picked != 5) return;
+    if (key == {{29}}) { SRC1 = SRC1 % 7 + 1; SFILL = low; }               // Y
+    if (key == {{30}}) { SRC2 = SRC2 % 7 + 1; SFILL = low; }               // U
+    if (key == {{31}}) { STB = STB >= {{16}} ? 1 : STB * 2; SFILL = low; } // I: 1, 2, 4, 8, 16 steps a sample
+}
+// the scope in words, for bots: each channel's probe, unit, lowest, highest, and its latest 40 samples (runs as N*v)
+char SNOTE[{{2000}}];
+int SNN;
+void sn(char *s) { int i = 1; while (s[i] >= 1) { SNOTE[SNN] = s[i]; SNN++; i++; } }
+void snv(int v) { dstr(v); sn(nb); }
+void schan(int ch, int *ring, int src)
+{
+    int lo2, hi2, k, first = SFILL > {{40}} ? less(SFILL + 1, {{40}}) : 1, rv = low, rn = low;
+    sminmax(ring, &lo2, &hi2);
+    sn("ch "); snv(ch); sn(" '"); sn(probename(src)); sn("' "); sn(probeunit(src)); sn(" low "); snv(lo2); sn(" high "); snv(hi2); sn(" last");
+    for (k = first; k <= SFILL; k++) {
+        int v = sget(ring, k);
+        if (rn >= 1 && v == rv) { rn++; continue; }
+        if (rn >= 1) { sn(" "); if (rn >= 2) { snv(rn); sn("*"); } snv(rv); }
+        rv = v; rn = 1;
+    }
+    if (rn >= 1) { sn(" "); if (rn >= 2) { snv(rn); sn("*"); } snv(rv); }
+    sn("\n");
+}
+void scope_note()
+{
+    if (SFILL < 1) return;
+    SNN = 1; sn("scope steps-a-sample "); snv(STB); sn("\n");
+    schan(1, S1, SRC1); schan(2, S2, SRC2);
+    window_writefile("/tmp/delta-lab-scope.txt", SNOTE, less(SNN, 1));
+}
+thing scope {
+    int x, z;
+    void start() { }
+    void step() { scope_step(); }
+    void draw() { scope_draw(); }
+    void panel() { scope_panel(); }
+};

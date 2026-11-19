@@ -29,10 +29,7 @@ void bench_draw()
     lab_colour({{230}}, {{190}}, {{40}}); lab_box({{14500}}, {{8200}}, {{14900}}, {{8700}}, BTOP, BTOP + {{120}});
     lab_colour({{140}}, {{142}}, {{146}}); lab_box({{14300}}, {{9100}}, {{15100}}, {{10000}}, BTOP, BTOP + {{420}});
     lab_cyl({{14300}}, {{9400}}, {{30}}, BTOP + {{150}}, BTOP + {{210}}, 2); lab_cyl({{14300}}, {{9700}}, {{30}}, BTOP + {{150}}, BTOP + {{210}}, 1);
-    // the oscilloscope: its case, its screen to the room (green, one bright line across)
-    lab_colour({{60}}, {{62}}, {{66}}); lab_box({{14200}}, {{10400}}, {{15100}}, {{11300}}, BTOP, BTOP + {{560}});
-    lab_colour({{20}}, {{60}}, {{30}}); lab_box({{14180}}, {{10500}}, {{14200}}, {{10950}}, BTOP + {{160}}, BTOP + {{480}});
-    lab_colour({{120}}, {{255}}, {{140}}); lab_box({{14170}}, {{10520}}, {{14180}}, {{10930}}, BTOP + {{316}}, BTOP + {{324}});
+    // the oscilloscope is a thing of its own now (objects/scope.delta), standing here
     // the microscope: its foot, its arm, its stage, its tube leaning toward the eye
     lab_colour({{30}}, {{30}}, {{34}}); lab_box({{14500}}, {{11900}}, {{14900}}, {{12300}}, BTOP, BTOP + {{60}});
     WTUBE = {{64}}; lab_wire({{14800}}, BTOP + {{60}}, {{12100}}, {{14800}}, BTOP + {{700}}, {{12100}}); lab_wirelay(1, low);
@@ -50,7 +47,7 @@ void bench_panel()
     if (EWASTE > EMAKE + {{30}}) lab_kind(1); lab_value("  warmth it took out, more than came back in", less(EWASTE, EMAKE) * {{34}} / {{1000}} + 1, "joules (the air went to waste; as much came back round the doors)");
     lab_line("The bench: an oak worktop at desk height down the right wall (lang/lab/objects/bench.delta)");
     lab_line("  a second sink (K beside it washes your hands), test tubes, a beaker, a multimeter, a power supply,");
-    lab_line("  an oscilloscope, a microscope, a Bunsen burner: things to see for now, true tools in their own time");
+    lab_line("  a microscope, a Bunsen burner: things to see for now, true tools in their own time; the oscilloscope works (click it)");
 }
 thing bench {
     int x, z;

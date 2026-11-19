@@ -7,12 +7,14 @@
 #include "objects/tank.delta"
 #include "objects/bench.delta"
 #include "objects/washroom.delta"
+#include "objects/scope.delta"
 #include "objects/dangoes.delta"
 
 thing candle candle1;                       // a candle ...
 thing faraday faraday1;                     // Faraday's two glasses ...
 thing tunnel tunnel1;                       // the wind tunnel ...
 thing bench bench1;                         // the bench down the right wall
+thing scope scope1;                         // the oscilloscope on the bench (it works)
 thing washroom washroom1;                   // the washroom, in the front right corner
 thing tank tank1;                           // the wave tank, in the wave room next door ...
 
@@ -24,11 +26,11 @@ void scene_start()
     washroom1.start();
     tank1.x = MID; tank1.z = ROOM + FOOT * 5; tank1.start();         // ... in the wave room, five feet past the wall between
 }
-void scene_step() { washroom1.step(); candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
+void scene_step() { washroom1.step(); scope1.step(); candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
 void scene_draw()                         // farthest first, the painter's way, so near things cover far ones
 {
     washroom1.draw();
-    bench1.draw(); vent_draw();
+    bench1.draw(); vent_draw(); scope1.draw(); lab_mark(5, SCX, BTOP + 12C, (SCZ1 + SCZ2) / 2);
     int far[5], i, k, done[5];
     far[1] = lab_far(candle1.x, candle1.z); far[2] = lab_far(faraday1.x, faraday1.z);
     far[3] = lab_far(tunnel1.x, tunnel1.z); far[4] = lab_far(tank1.x, tank1.z);
@@ -70,6 +72,7 @@ void scene_panel(int sel)
         if (sel == 2) faraday1.panel();
         if (sel == 3) tunnel1.panel();
         if (sel == 4) tank1.panel();
+        if (sel == 5) scope1.panel();
     }
 }
 void scene_air()                          // what each thing gives the air, and where it fills it

@@ -29,10 +29,7 @@ void bench_draw()
     lab_colour(149, 118, 31); lab_box(67A5, 396A, 6A22, 3C63, BTOP, BTOP + 93);
     lab_colour($AA, $AC, $B3); lab_box(667D, 41AD, 6B47, 4723, BTOP, BTOP + 264);
     lab_cyl(667D, 4381, 24, BTOP + $B7, BTOP + 132, 2); lab_cyl(667D, 4552, 24, BTOP + $B7, BTOP + 132, 1);
-    // the oscilloscope: its case, its screen to the room (green, one bright line across)
-    lab_colour(48, 4A, 51); lab_box(65D4, 496D, 6B47, 51B3, BTOP, BTOP + 341);
-    lab_colour(17, 48, 24); lab_box(65BA, 4A19, 65D4, 4CA4, BTOP + $C4, BTOP + 2AC);
-    lab_colour(93, 168, $AA); lab_box(65AD, 4A33, 65BA, 4C8A, BTOP + 1B4, BTOP + 1BC);
+    // the oscilloscope is a thing of its own now (objects/scope.delta), standing here
     // the microscope: its foot, its arm, its stage, its tube leaning toward the eye
     lab_colour(24, 24, 28); lab_box(67A5, 5555, 6A22, 57A2, BTOP, BTOP + 48);
     WTUBE = 4C; lab_wire(6976, BTOP + 48, 567A, 6976, BTOP + 41B, 567A); lab_wirelay(1, low);
@@ -50,7 +47,7 @@ void bench_panel()
     if (EWASTE > EMAKE + 24) lab_kind(1); lab_value("  warmth it took out, more than came back in", less(EWASTE, EMAKE) * 28 / 5BC + 1, "joules (the air went to waste; as much came back round the doors)");
     lab_line("The bench: an oak worktop at desk height down the right wall (lang/lab/objects/bench.delta)");
     lab_line("  a second sink (K beside it washes your hands), test tubes, a beaker, a multimeter, a power supply,");
-    lab_line("  an oscilloscope, a microscope, a Bunsen burner: things to see for now, true tools in their own time");
+    lab_line("  a microscope, a Bunsen burner: things to see for now, true tools in their own time; the oscilloscope works (click it)");
 }
 thing bench {
     int x, z;

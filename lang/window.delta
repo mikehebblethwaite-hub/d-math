@@ -51,12 +51,15 @@ int dl_xbe2(char *b, int k) { return b[k + 1] * 169 + b[k + 2]; }
 // read the display's answers until the one asked for comes (keys pressed meanwhile are kept)
 char dl_xheld[16A];                           // keys held down now (by the display's key number)
 int dl_xmx, dl_xmy, dl_xbl, dl_xbm, dl_xbr, dl_xup, dl_xdown;  // the mouse: where, its buttons held, wheel turns
+int dl_xclick, dl_xcx, dl_xcy, dl_xpx, dl_xpy;   // a left click (pressed and let go without moving far), kept until read
 void dl_xevent(char *ev)                         // one event from the display: keys, buttons, moves
 {
         int t = ev[1] % 9B, d = ev[2];                 // 9B (128) marks an event another program sent
         if (t == 2) { dl_xkey = d; dl_xheld[d] = 1; }
         if (t == 3) dl_xheld[d] = dl_xlow;
         if (t == 4 || t == 5 || t == 6) { dl_xmx = ev[1C] + ev[1D] * 169 + 1; dl_xmy = ev[21] + ev[22] * 169 + 1; }
+        if (t == 4 && d == 1) { dl_xpx = dl_xmx; dl_xpy = dl_xmy; }
+        if (t == 5 && d == 1 && apart(dl_xmx, dl_xpx) + apart(dl_xmy, dl_xpy) < 6) { dl_xclick = 1; dl_xcx = dl_xmx; dl_xcy = dl_xmy; }
         if (t == 4) { if (d == 1) dl_xbl = 1; if (d == 2) dl_xbm = 1; if (d == 3) dl_xbr = 1;
                       if (d == 4) dl_xup++; if (d == 5) dl_xdown++; }
         if (t == 5) { if (d == 1) dl_xbl = dl_xlow; if (d == 2) dl_xbm = dl_xlow; if (d == 3) dl_xbr = dl_xlow; }
@@ -215,6 +218,9 @@ int window_key() { dl_xpump(); int k = dl_xkey; dl_xkey = dl_xlow; return k; }  
 int window_held(int k) { dl_xpump(); return dl_xheld[k]; }                        // is that key held down now
 int window_mouse_x() { dl_xpump(); return dl_xmx; }
 int window_mouse_y() { dl_xpump(); return dl_xmy; }
+int window_clicked() { dl_xpump(); int c = dl_xclick; dl_xclick = dl_xlow; return c; }   // 1 once for each left click, however quick
+int window_click_x() { return dl_xcx; }
+int window_click_y() { return dl_xcy; }
 int window_buttons() { dl_xpump(); return dl_xbl + dl_xbm * 2 + dl_xbr * 4; }                               // 1 left, 2 middle, 4 right, added
 int window_wheel_up() { dl_xpump(); int n = dl_xup; dl_xup = dl_xlow; return n; }
 int window_wheel_down() { dl_xpump(); int n = dl_xdown; dl_xdown = dl_xlow; return n; }

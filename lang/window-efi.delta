@@ -9,6 +9,7 @@
 int dl_wW, dl_wH, dl_wfb, dl_wrow, dl_wtick, dl_wkey;
 int dl_wseen[16D];               // the picture after which each key no longer counts as held
 int dl_wmx, dl_wmy, dl_wbl, dl_wbm, dl_wbr, dl_wup, dl_wdown;
+int dl_wclick, dl_wcx, dl_wcy, dl_wpx, dl_wpy;   // a left click, kept until read
 int dl_wusb, dl_wep, dl_wmax, dl_wkind;
 char dl_wusbg[13];
 int dl_wa[6];
@@ -43,6 +44,8 @@ void dl_wmouse()
     dl_wa[1] = dl_wusb; dl_wa[2] = dl_wep; dl_wa[3] = &data[1]; dl_wa[4] = &len; dl_wa[5] = 1; dl_wa[6] = &st;
     if (fwcall(ef_rd(dl_wusb + 1B, 8), &dl_wa[1]) != 1) return;       // a report, if one came within a thousandth
     int b = data[1];
+    if (b % 2 && dl_wbl < 1) { dl_wpx = dl_wmx; dl_wpy = dl_wmy; }
+    if (b % 2 < 1 && dl_wbl && apart(dl_wmx, dl_wpx) + apart(dl_wmy, dl_wpy) < 6) { dl_wclick = 1; dl_wcx = dl_wmx; dl_wcy = dl_wmy; }
     dl_wbl = b % 2; dl_wbr = b / 2 % 2; dl_wbm = b / 4 % 2;
     if (dl_wkind == 1) {
         int dx = data[2], dy = data[3];
@@ -102,6 +105,9 @@ int window_key() { dl_wpump(); int k = dl_wkey; dl_wkey = less(1, 1); return k; 
 int window_held(int k) { dl_wpump(); return dl_wseen[k] > dl_wtick; }
 int window_mouse_x() { dl_wpump(); return dl_wmx; }
 int window_mouse_y() { dl_wpump(); return dl_wmy; }
+int window_clicked() { dl_wpump(); int c = dl_wclick; dl_wclick = less(1, 1); return c; }
+int window_click_x() { return dl_wcx; }
+int window_click_y() { return dl_wcy; }
 int window_buttons() { dl_wpump(); return dl_wbl + dl_wbm * 2 + dl_wbr * 4; }
 int window_wheel_up() { int n = dl_wup; dl_wup = less(1, 1); return n; }
 int window_wheel_down() { int n = dl_wdown; dl_wdown = less(1, 1); return n; }
