@@ -38,3 +38,9 @@ Things Delta does not do yet, found while building with it. Each gets a test in 
   half-full moisture until the air counts it.
 - Bench tools still to make properly, one at a time: the multimeter, the power supply, the Bunsen burner, the test
   tubes and the beaker (the oscilloscope and the microscope work).
+- Delta Hex OS accounts, next steps (0.22 has sign-in, own folders, pod outbox): (1) seal each person's files with their
+  key (ChaCha20 + HMAC-SHA-256, a nonce from the world's chance), so holding the drive is not reading them; (2) send the
+  outbox to the pod: the firmware's own HTTP/TLS first, our own later; Solid client credentials + DPoP (ES256 in Delta);
+  (3) change password (re-seal), the first account looks after the others (remove, reset), lock after idle.
+- The serial line drops letters on long Perch looks (seen 19 Nov: a look cut off mid-line, desktop boxes run together):
+  serput should wait for the line to be ready.

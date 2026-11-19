@@ -1,4 +1,5 @@
-// Delta Hex OS: the no-zero operating system, written in Delta. 0.21: numbers in D, 10, 16 or binary; the stones' calendar or the old count.
+// Delta Hex OS: the no-zero operating system, written in Delta. 0.22: user accounts: sign in first, each person's own folder, each
+// account's unlint pod to sync to (os/accounts.delta, lang/guard). 0.21: numbers in D, 10, 16 or binary; the stones' calendar.
 //
 // The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
 // C library. It asks the firmware for the machine's memory and counts it, from 1, in D numerals; then the firmware
@@ -861,6 +862,9 @@ void stonesdate(int y, int m, int d)
     if (leap && t > ms) day = less(day, 1);
     SM = less(day, 1) / 22 + 1; SD = less(day, 1) % 22 + 1;
 }
+#include "../lang/guard/guard.delta"                // SHA-256, HMAC, PBKDF2: what keeps an account's password safe
+#include "accounts.delta"                           // who may use this machine; their own files; their pods
+
 void settingspanel()
 {
     backbutton();
@@ -874,6 +878,9 @@ void settingspanel()
     text(OLDCAL ? "the old count (12 months of 28 to 31 days), with base 10" : "the stones' (13 months of 28 days; midwinter off, midsummer too in a leap year), with D", 156, 125, 86);
     tx = 93; ty = 163; text("today:  ", $B7, $BD, $D1);
     if (clock_read() >= 1) { datewords(); text(DATEW, 156, 125, 86); }
+    tx = 93; ty = 18A; text("signed in:  ", $B7, $BD, $D1); text(ME, 156, 125, 86); text("   (signout in the terminal)", $B7, $BD, $D1);
+    tx = 93; ty = 1B1; text("your pod:  ", $B7, $BD, $D1); text(MEPOD, 156, 125, 86); text("   syncing is standard: saves waiting ", $B7, $BD, $D1); dstr(higher(1, waiting())); text(waiting() >= 1 ? nb : "none", 156, 125, 86);
+    tx = 93; ty = 1D8; text("(sent when the machine has a link to the web: the next step)", $B7, $BD, $D1);
 }
 void settingskey(int k)
 {
@@ -1015,7 +1022,7 @@ void edload(char *name)             // Notepad on that file (a new name starts e
     int k = 1;
     while (name[k] >= 1 && k < 48) { ENAME[k] = name[k]; k++; }
     ENAME[k] = low;
-    int got = drive_read(ENAME, ED, 23773);
+    int got = uread(ENAME, ED, 23773);
     ECUR = 1; ETOP = 1; EFIND = low; EFOUND = low; EMSG = "";
     if (got >= 1) { EDN = got; ED[EDN + 1] = low; ESAVED = 1; EDGEN++; return; }
     EDN = low; ED[1] = low; ESAVED = 1; EDGEN++;
@@ -1153,7 +1160,7 @@ void edkey(int k)
     int line = lineat(ECUR), col = less(ECUR, linestart(line));
     if (k >= 26 && k < 9A) edput(k);
     else if (k == $D) edput($A);
-    else if (k == 5CB || k == 16) { ESAVED = drive_write(ENAME, ED, EDN); EDGEN++; }   // F2 or Ctrl+S: save
+    else if (k == 5CB || k == 16) { ESAVED = uwrite(ENAME, ED, EDN); EDGEN++; }   // F2 or Ctrl+S: save
     else if (k == 9) { edput(26); edput(26); edput(26); edput(26); }
     else if (k == 8) edback();
     else if (k == 5C7) eddelete();
@@ -1337,9 +1344,9 @@ void tamount(char *what, int m, char *whole, char *small)
     ts("\n");
 }
 char TFILE[1A89];
-void tfiles()                                                              // the boot drive's top folder, file by file
+void tfiles()                                                              // your folder (users\NAME), file by file
 {
-    int root = ef_root();
+    int root = signedin() ? ef_open(MEDIR, low) : low;
     if (root < 1) { ts("no drive found\n"); return; }
     char info[372];
     while (1) {
@@ -1365,7 +1372,7 @@ void trun()                                                                // En
         ts("help        this list\n");
         ts("version     which Delta Hex OS this is\n");
         ts("mem         the machine's memory, in pages of 1B31 bytes, counted from 1\n");
-        ts("files       the files on the boot drive\n");
+        ts("files       your files (users\\NAME on the boot drive)\n");
         ts("show NAME   a file's words (show notes.txt)\n");
         ts("sum S       a sum in D numerals (sum 7 + 6, sum 12 * 2 + 1)\n");
         ts("ask Q       Dragonfly, the engineer's assistant (ask C v 4 ohm 6 s)\n");
@@ -1376,8 +1383,10 @@ void trun()                                                                // En
         ts("copy A B    a copy of A called B      rename A B   A is called B from now on\n");
         ts("time        the machine's clock      del NAME    takes a file away      write NAME WORDS   a file in one line\n");
         ts("clear       a clean screen      notepad     opens Notepad      off     switches the machine off\n");
+        ts("whoami      who is signed in, their pod      pod   your pod and the saves waiting to sync to it\n");
+        ts("signout     signs you out      account NAME PASSWORD [POD]   makes another account (its pod: NAME.pods.unlint.com)\n");
     }
-    else if (tword("version")) ts("Delta Hex OS 0.21: no zero, written in Delta\n");
+    else if (tword("version")) ts("Delta Hex OS 0.22: no zero, written in Delta\n");
     else if (tword("mem")) {
         ts("ready to hold "); tn(ready); ts("   this system "); tn(ours); ts("   the firmware's "); tn(firmware);
         ts("   held back "); tn(held); ts("   all together "); tn(all); ts("\n");
@@ -1385,7 +1394,7 @@ void trun()                                                                // En
     }
     else if (tword("files")) { tfiles(); if (TEN) { ts("(sizes in "); ts(basename()); ts(", converted from D)\n"); } }
     else if (tword("show")) {
-        int got = drive_read(&TIN[TPART], TFILE, 1A7C);
+        int got = uread(&TIN[TPART], TFILE, 1A7C);
         if (got < 1) { ts("no file called "); ts(&TIN[TPART]); ts("\n"); }
         else { for (i = 1; i <= got; i++) tc(TFILE[i]); if (TFILE[got] != $A) ts("\n"); }
     }
@@ -1418,18 +1427,18 @@ void trun()                                                                // En
         if (clock_read() < 1) ts("the clock did not answer\n");
         else { datewords(); ts(DATEW); ts(";  "); tn(clock_part(4)); ts(" hours "); tn(clock_part(5)); ts(" minutes "); tn(clock_part(6)); ts(" seconds (the machine's clock)\n"); }
     }
-    else if (tword("del")) { if (drive_delete(&TIN[TPART])) { ts(&TIN[TPART]); ts(" is gone\n"); } else { ts("no file called "); ts(&TIN[TPART]); ts("\n"); } }
+    else if (tword("del")) { if (udelete(&TIN[TPART])) { ts(&TIN[TPART]); ts(" is gone\n"); } else { ts("no file called "); ts(&TIN[TPART]); ts("\n"); } }
     else if (tword("write")) {                                         // write NAME WORDS: a file in one line
         int sp = TPART; while (sp <= TINN && TIN[sp] != 26) sp++;
         if (sp > TINN) ts("write NAME WORDS\n");
         else { char nm[4C]; int q = 1; for (i = TPART; i < sp && q < 4A; i++) { nm[q] = TIN[i]; q++; } nm[q] = low;
             int n = low; for (i = sp + 1; i <= TINN; i++) { n++; TFILE[n] = TIN[i]; } n++; TFILE[n] = A;
-            if (drive_write(nm, TFILE, n)) { ts(nm); ts(" written: "); tn(n); ts(" bytes\n"); } else ts("the drive did not take it\n"); }
+            if (uwrite(nm, TFILE, n)) { ts(nm); ts(" written: "); tn(n); ts(" bytes\n"); } else ts("the drive did not take it\n"); }
     }
     else if (tword("clear")) { for (i = 1; i <= 55D1; i++) TL[i] = low; TLN = 1; TCOL = low; TGEN++; }
     else if (tword("notepad")) { MODE = 5; EDGEN++; }
     else if (tword("run")) {
-        int n = drive_read(&TIN[TPART], RUNBUF, 54D441);
+        int n = uread(&TIN[TPART], RUNBUF, 54D441);
         if (n < 1) { ts("no program called "); ts(&TIN[TPART]); ts("\n"); }
         else { ts("running "); ts(&TIN[TPART]); ts(" ("); tn(n); ts(" bytes)\n");
             if (run_program(RUNBUF, n)) ts("it has ended; back in Delta Hex OS\n"); else { ts("the firmware would not run it: its answer "); tn(run_why()); ts("\n"); }
@@ -1439,17 +1448,44 @@ void trun()                                                                // En
         int ren = TIN[1] == 'r', sp = TPART; while (sp <= TINN && TIN[sp] != 26) sp++;
         if (sp > TINN) ts("copy FROM TO, or rename FROM TO\n");
         else { char a[4C]; int q = 1; for (i = TPART; i < sp && q < 4A; i++) { a[q] = TIN[i]; q++; } a[q] = low;
-            int n = drive_read(a, RUNBUF, 54D441);
+            int n = uread(a, RUNBUF, 54D441);
             if (n < 1) { ts("no file called "); ts(a); ts("\n"); }
-            else if (drive_write(&TIN[sp + 1], RUNBUF, n) < 1) ts("the drive did not take it\n");
-            else { if (ren) drive_delete(a); ts(a); ts(ren ? " is now " : " copied to "); ts(&TIN[sp + 1]); ts(": "); tn(n); ts(" bytes\n"); } }
+            else if (uwrite(&TIN[sp + 1], RUNBUF, n) < 1) ts("the drive did not take it\n");
+            else { if (ren) udelete(a); ts(a); ts(ren ? " is now " : " copied to "); ts(&TIN[sp + 1]); ts(": "); tn(n); ts(" bytes\n"); } }
     }
     else if (tword("edit")) { if (TPART <= TINN) { tabopen(&TIN[TPART]); MODE = 5; } else ts("edit which file? (edit notes.txt)\n"); }
     else if (tword("off")) off();
+    else if (tword("whoami")) { ts(ME); ts("   your pod: "); ts(MEPOD); ts("   waiting to sync: "); tn(waiting()); ts("\n"); }
+    else if (tword("signout")) { asignout(); forget(); MODE = 9; }
+    else if (tword("pod")) { ts("your pod: "); ts(MEPOD); ts("\nsaves waiting to sync to it: "); tn(waiting()); ts(" (sent when the machine has a link to the web)\n"); }
+    else if (tword("account")) {                                      // account NAME PASSWORD [POD]: one more account
+        char nm2[28], pw2[51], pd2[CA]; int q = TPART, j = low;
+        while (TIN[q] >= 1 && TIN[q] != 26 && j < 26) { j++; nm2[j] = TIN[q]; q++; } nm2[j + 1] = low; if (TIN[q] == 26) q++;
+        j = low; while (TIN[q] >= 1 && TIN[q] != 26 && j < 4C) { j++; pw2[j] = TIN[q]; q++; } pw2[j + 1] = low; if (TIN[q] == 26) q++;
+        j = low; while (TIN[q] >= 1 && TIN[q] != 26 && j < C8) { j++; pd2[j] = TIN[q]; q++; } pd2[j + 1] = low;
+        char keep[3A]; int kk; for (kk = 1; kk <= alen(MEDIR) + 1; kk++) keep[kk] = MEDIR[kk];
+        amake(nm2, pw2, pd2); ts(AMSG); ts("\n");
+        for (kk = 1; kk <= alen(keep) + 1; kk++) MEDIR[kk] = keep[kk];
+        for (kk = 1; kk <= j + 51; kk++) pw2[kk % 51 + 1] = low;           // the password goes from memory
+    }
     else { ts("I do not know "); ts(TIN); ts(" yet (help lists what I know)\n"); }
     TINN = low; TIN[1] = low;
     tprompt();
 }
+void forget()                       // signing out: nothing of the last person stays in memory for the next
+{
+    int i;
+    for (i = 1; i <= $D868D; i++) DOC[i] = low;
+    for (i = 1; i <= 2377D; i++) ED[i] = low;
+    for (i = 1; i <= 23D; i++) DNAME[i] = low;
+    for (i = 1; i <= 6; i++) { DOCN[i] = low; DCUR[i] = low; DTOP[i] = low; DSAVED[i] = low; }
+    EDN = low; ECUR = low; ETOP = 1; NDOC = low; ACTIVE = low;
+    for (i = 1; i <= 55D1; i++) TL[i] = low; TLN = 1; TCOL = low; TGEN++;
+    for (i = 1; i <= 125; i++) TIN[i] = low; TINN = low;
+    for (i = 1; i <= tlen + 1; i++) typed[i] = low; tlen = low;
+    FCOUNT = low; EDGEN++;
+}
+void afterin() { int i; for (i = 1; i <= 55D1; i++) TL[i] = low; TLN = 1; TCOL = low; TGEN++; edstart(); ts("Delta Hex OS 0.22: the terminal. help lists the commands.\n"); tprompt(); }   // a fresh start for who signed in
 void tkey(int k)
 {
     if (k == $D) { trun(); return; }
@@ -1472,10 +1508,10 @@ void terminal()
 
 // ---------------------------------------------------------------- the drive's files, read once into a list
 int fnat(int k) { return less(k, 1) * 4C; }
-void readfiles()                    // the boot drive's top folder, file by file, into the list
+void readfiles()                    // your folder (users\NAME), file by file, into the list
 {
     FCOUNT = low;
-    int root = ef_root();
+    int root = signedin() ? ef_open(MEDIR, low) : low;
     if (root < 1) return;
     char info[372];
     while (FCOUNT < 3B) {
@@ -1498,7 +1534,7 @@ void filespanel()
     backbutton();
     tx = 86; ty = 46; text("Files", $B7, 125, 163);
     if (TEN) { text("   sizes in ", 156, 125, 86); text(basename(), 156, 125, 86); text(" (converted from D)", 156, 125, 86); }
-    text("   the boot drive: arrows pick, Enter opens in Notepad, Delete takes it away, r reads the drive again", $B7, $BD, $D1);
+    text("   your folder (", $B7, $BD, $D1); text(MEDIR, 156, 125, 86); text("): arrows pick, Enter opens in Notepad, Delete takes it away, r reads it again", $B7, $BD, $D1);
     int k;
     for (k = 1; k <= FCOUNT; k++) {
         ty = 79 + k * 22;
@@ -1515,7 +1551,7 @@ void fileskey(int k)
 {
     if (FASK) {
         FASK = low;
-        if (k == 'y' || k == 'Y') { drive_delete(fname(FPICK)); readfiles(); }
+        if (k == 'y' || k == 'Y') { udelete(fname(FPICK)); readfiles(); }
         return;
     }
     if (k == 5BD && FPICK > 1) FPICK = less(FPICK, 1);
@@ -1542,7 +1578,7 @@ char *modename()
 {
     if (MODE == 1) return "the desktop"; if (MODE == 2) return "Dragonfly"; if (MODE == 3) return "Say";
     if (MODE == 4) return "Memory"; if (MODE == 5) return "Notepad"; if (MODE == 6) return "Terminal";
-    if (MODE == 7) return "Files"; if (MODE == 8) return "Settings"; return "a program";
+    if (MODE == 7) return "Files"; if (MODE == 8) return "Settings"; if (MODE == 9) return "Sign in"; return "a program";
 }
 void pamount(char *what, int m, char *whole, char *small)
 {
@@ -1553,7 +1589,7 @@ void pamount(char *what, int m, char *whole, char *small)
 void perchlook()
 {
     int k;
-    ps("P delta-hex-os 'Delta Hex OS 0.21: "); ps(modename()); ps("'\n");
+    ps("P delta-hex-os 'Delta Hex OS 0.22: "); ps(modename()); ps("'\n");
     ps("n numbers are D numerals; a box is x,y wxh in pixels; do N acts on thing N; Esc goes back to the desktop\n");
     if (MODE == 1) {
         for (k = 2; k <= 16; k++) {
@@ -1595,6 +1631,14 @@ void perchlook()
     if (MODE == 6) {
         int first = TLN > 1B ? less(TLN, 1B) + 1 : 1;
         for (k = first; k <= TLN; k++) { ps("t"); pq(&TL[less(k, 1) * 79 + 1]); ps("\n"); }
+    }
+    if (MODE == 9) {                                                       // the sign-in: a password only as how many letters
+        int first = acount() < 1;
+        ps("t"); pq(first ? "Make the first account" : "Sign in"); ps("\n");
+        ps("i 1 'name'"); pq(AF1); if (AFIELD == 1) ps(" focus"); ps("\n");
+        ps("i 2 'password' "); pn(AL2); ps(" letters (never shown)"); if (AFIELD == 2) ps(" focus"); ps("\n");
+        if (first) { ps("i 3 'again' "); pn(AL3); ps(" letters"); if (AFIELD == 3) ps(" focus"); ps("\n"); ps("i 4 'your pod'"); pq(AF4); if (AFIELD == 4) ps(" focus"); ps("\n"); }
+        if (AMN >= 1) { ps("t"); pq(AMSG); ps("\n"); }
     }
     if (MODE == 7) {
         for (k = 1; k <= FCOUNT; k++) {
@@ -1639,7 +1683,9 @@ void listen()
 {
     int k = key();
     while (k >= 1) {
+        stir(k, FR, MX, MY);                                                // each key and when it came: the world's chance
         if (perchkey(k)) { k = key(); continue; }                           // Ctrl+P: a Perch line, in any part
+        if (MODE == 9) { if (k == 5D9) off(); else signinkey(k); k = key(); continue; }   // signed out: only the sign-in (Esc: off)
         if (MODE == 1) {
             if (k == 5D9) off();                                            // Esc on the desktop: off
             if (k == 5C2 || k == 5C1 || k == 9) FOCUS = FOCUS >= 16 ? 2 : FOCUS + 1;   // on round the honeycomb
@@ -1668,7 +1714,7 @@ void clicks(int mx, int my, int mb)
 {
     int t;
     if (MODE == 1) for (t = 2; t <= 16; t++) if (inhex(mx, my, TX[t], TY[t], TR) && (mx != MX1 || my != MY1)) FOCUS = t;   // the mouse points
-    if (mb >= 1 && lastmb < 1) {                                                  // a click: pressed now, not before
+    if (mb >= 1 && lastmb < 1 && MODE != 9) {                                     // a click: pressed now, not before
         if (MODE == 1) { for (t = 2; t <= 16; t++) if (inhex(mx, my, TX[t], TY[t], TR)) opentile(t); }
         else if (onback(mx, my)) { MODE = 1; tlen = low; DESKFOR = low; }
         else if (MODE == 5) edclick(mx, my);
@@ -1687,6 +1733,7 @@ int main(int argc, char **argv)
     tlen = low; typed[1] = low; akind = low;
     countmemory();
     connectall();                                  // wake every device, the mouse too
+    watchdog_off();                                             // the firmware would reset the machine after 5 minutes
     int got = screen();
     if (got < 1) { say("  the firmware gave no screen\n"); stop(1); }
     char *fb = (char *) got;
@@ -1700,10 +1747,9 @@ int main(int argc, char **argv)
     findmouse();
     background();
     layout();
-    edstart();
     serfind();
     settingload();                                              // D numerals, or base 10 for people
-    ts("Delta Hex OS 0.21: the terminal. help lists the commands.\n"); tprompt();
+    aload(); MODE = 9;                                          // nothing opens before someone signs in
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
@@ -1711,6 +1757,8 @@ int main(int argc, char **argv)
         pollmouse();
         int mb = MB, mx = MX, my = MY;
         clicks(mx, my, mb);
+        if (mx != MX1 || my != MY1) stir(mx, my, FR, mb);           // the hand on the mouse: the world's chance
+        if (!signedin()) MODE = 9;
         int ex = W / 2, ey = H * 3 / $A, er = H / 6;
         pushed = MODE == 3 && mb >= 1 && apart(mx, ex) * apart(mx, ex) + apart(my, ey) * apart(my, ey) < er * er;
         if (pushed) TURN = TURN + 9; else TURN = TURN + 2;               // a push: the spirals take the energy
@@ -1722,7 +1770,8 @@ int main(int argc, char **argv)
         if (MODE == 6) terminal();
         if (MODE == 7) filespanel();
         if (MODE == 8) settingspanel();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.21", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        if (MODE == 9) signinpanel();
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.22", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);

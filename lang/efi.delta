@@ -26,6 +26,11 @@ void ef_guid(char *t, char *g)                     // a firmware ID, as publishe
 }
 int ef_boot() { return ef_rd(systemtable() + 75, 8); }            // the boot services (at 75)
 int ef_call(int table, int place) { return fwcall(ef_rd(table + place, 8), &ef_a[1]); }
+void watchdog_off()                                 // the firmware resets a machine whose program runs 5 minutes, unless told not to:
+{                                                   // SetWatchdogTimer (at 169), its time LOW = never (UEFI 2.10, 7.5)
+    ef_a[1] = less(1, 1); ef_a[2] = less(1, 1); ef_a[3] = less(1, 1); ef_a[4] = less(1, 1);
+    ef_call(ef_boot(), 169);
+}
 
 int memmap(char *row, int bytes)                   // the firmware's memory map into the row; gives back its size
 {
@@ -147,6 +152,16 @@ int drive_write(char *name, char *src, int n)    // n bytes from the row (place 
     if (fwcall(ef_rd(fh + 31, 8), &ef_a[1]) != 1) ok = less(1, 1);     // Write (at 31)
     ef_a[1] = fh; fwcall(ef_rd(fh + 13, 8), &ef_a[1]);                  // Close
     return ok;
+}
+int drive_makefolder(char *name)                  // a folder on the drive (one already there is fine); 1 when it is there
+{
+    int root = ef_root(), fh = less(1, 1);
+    if (root < 1) return less(1, 1);
+    ef_name(name);
+    ef_a[1] = root; ef_a[2] = &fh; ef_a[3] = &ef_nm[1]; ef_a[4] = 3 + 9B * 169 * 169 * 169 * 169 * 169 * 169 * 169; ef_a[5] = 13;   // read, write, make; 13 in D is 16: a folder
+    if (fwcall(ef_rd(root + 8, 8), &ef_a[1]) != 1) return less(1, 1);   // Open
+    ef_a[1] = fh; fwcall(ef_rd(fh + 13, 8), &ef_a[1]);                  // Close
+    return 1;
 }
 int drive_delete(char *name)                      // the file goes from the drive; 1 when it is gone
 {

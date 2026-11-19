@@ -20,15 +20,17 @@
       <li>Make a folder for its drive: <code>mkdir -p esp/EFI/BOOT</code></li>
       <li>Put <a href="files/BOOTX64.EFI">BOOTX64.EFI</a> in <code>esp/EFI/BOOT/</code></li>
       <li>Start it: <code>qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -drive format=raw,file=fat:rw:esp -m 1024 -net none -device qemu-xhci -device usb-tablet</code></li>
+      <li><strong>Sign in</strong>: the first time, make the first account: a name (a&ndash;z, 1&ndash;9 and -), a password twice (8 letters or more), and your unlint pod (it fills in <code>https://NAME.pods.unlint.com/</code>). The machine never keeps the password, only a check worked out from it (PBKDF2-SHA-256, 100,000 rounds). A wrong password makes the next try wait, longer each time. Your files live in your own folder, <code>users\NAME</code>, and each save waits on your outbox to sync to your pod.</li>
       <li>The desktop is seven hex tiles. Arrows or Tab move, Enter or a click opens a tile, Esc comes back.</li>
       <li><strong>Dragonfly</strong>, the engineer&rsquo;s assistant: type two of volts, amps, ohms and watts, like <code>C v 4 ohm 6 s</code>, then Enter.</li>
       <li><strong>Say</strong>: a D numeral, or a sum like <code>7 + 6</code>, then Enter.</li>
-      <li><strong>Terminal</strong> (the t key): <code>help</code> lists the commands. Put <a href="files/lab.efi">lab.efi</a> next to the EFI folder and <code>run lab.efi</code> opens the lab room.</li>
+      <li><strong>Terminal</strong> (the t key): <code>help</code> lists the commands; <code>whoami</code>, <code>pod</code>, <code>signout</code>, and <code>account NAME PASSWORD</code> for one more person. Put <a href="files/lab.efi">lab.efi</a> next to the EFI folder and <code>run lab.efi</code> opens the lab room.</li>
       <li>Switch it off with the Off tile, or Esc on the desktop. If the window keeps hold of your mouse, Ctrl+Alt+G lets it go.</li>
     </ol>
     <p>To build it yourself from the source: <code>lang/delta efi os/start.delta -o esp/EFI/BOOT/BOOTX64.EFI</code>.
-      Delta Hex OS is early: it reads the machine&rsquo;s memory map and draws on the screen, and it does not write
-      to any drive.</p>
+      Delta Hex OS is early. It keeps accounts and each person&rsquo;s files on its boot drive; the files are not sealed
+      yet (anyone holding the drive can read them: sealing them with each person&rsquo;s key comes next), and the outbox
+      waits for the machine&rsquo;s own link to the web before it reaches the pod.</p>
   </section>
   <nav class="pager"><a href="help.html">All help</a> <a href="help-numerals.html" rel="prev">Back: Reading D numerals</a></nav>
 </div>

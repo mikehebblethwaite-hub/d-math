@@ -86,6 +86,7 @@ void dl_wpump()
 }
 void window_open(char *title)
 {
+    watchdog_off();                          // started by the OS, a program gets 5 minutes from the firmware unless told
     connectall();
     dl_wfb = screen();
     dl_wW = screenx(); dl_wH = screeny(); dl_wrow = screenrow() * 4;

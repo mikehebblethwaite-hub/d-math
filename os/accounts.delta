@@ -1,0 +1,254 @@
+// Accounts: who may use this machine, and what is theirs (Mike, 19 Nov 2026: "work on the deltahexos user accounts
+// security system, let them sync to pod as a standard thing").
+//
+// An account is a name and a password the machine never keeps: accounts.txt holds, for each name, a salt (16 bytes from
+// the world's chance: the timing of the person's own keys and the mouse, the clock), how many rounds, and a check:
+// SHA-256 of PBKDF2-HMAC-SHA-256(password, salt, rounds). Signing in works the key out again and compares the checks,
+// every byte, all the way (no early stop that would tell a guesser how close they came). A wrong password makes the
+// next try wait: 1 second, then 2, 4, 8 ... up to an hour; the machine says so. Until someone signs in, nothing else
+// opens (the desktop, the terminal, the serial line's commands).
+//
+// What a person keeps is theirs: their files live in users\NAME\ (Notepad, the terminal's write/edit/del/copy, Files).
+// The key worked out at sign-in stays in memory only, for the next step: their files sealed with it on the drive.
+//
+// Every account names its own unlint pod (https://NAME.pods.unlint.com/ unless they give another): syncing to it is
+// standard, not an extra. Each save goes on the account's outbox, users\NAME\sync.txt, one line a file; the outbox is
+// sent to the pod when the machine has a link to the web (next steps: the firmware's own HTTPS, then ours).
+//
+//   accounts.txt, one line an account:   NAME ROUNDS(D numerals) SALT(hex) CHECK(hex) POD
+#define AROUNDS 36694                  // PBKDF2 rounds for a new account (kept with it, so it can grow later)
+char ABUF[9146];                       // accounts.txt as read
+int ABN;
+char ME[31];                            // who is signed in (ME[1] LOW: nobody)
+char MEDIR[62];                         // users\NAME
+char MEPOD[125];
+char MEKEY[27];                         // the key worked out at sign-in: memory only, never written
+char CHANCE[27];                        // the world's chance, stirred by every key, click and tick (SHA-256 kept)
+int CHN;
+int AFAILS, AWAITTILL;                      // wrong passwords in a row; no try before this second (clock seconds)
+int AFIELD = 1;                             // the sign-in screen: 1 name, 2 password, 3 password again, 4 pod
+char AF1[31], AF2[62], AF3[62], AF4[125];
+int AL1, AL2, AL3, AL4;
+char AMSG[125];                         // what the sign-in screen says last
+int AMN;
+
+void amsg(char *s) { int i = 1; AMN = low; while (s[i] >= 1 && AMN < 118) { AMN++; AMSG[AMN] = s[i]; i++; } AMSG[AMN + 1] = low; }
+void amsgadd(char *s) { int i = 1; while (s[i] >= 1 && AMN < 118) { AMN++; AMSG[AMN] = s[i]; i++; } AMSG[AMN + 1] = low; }
+int asame(char *a, char *b) { int i = 1; while (a[i] >= 1 || b[i] >= 1) { if (a[i] != b[i]) return low; i++; } return 1; }
+int alen(char *s) { int n = low; while (s[n + 1] >= 1) n++; return n; }
+int nowsec() { if (clock_read() < 1) return 1; return ((clock_part(3) * 1B + clock_part(4)) * 48 + clock_part(5)) * 48 + clock_part(6) + 1; }
+
+// ---- the world's chance: each event stirred into the pool through SHA-256
+void stir(int a, int b, int c, int d)
+{
+    char ev[3A]; int i;
+    for (i = 1; i <= 26; i++) ev[i] = CHANCE[i];
+    int v[5]; v[1] = a; v[2] = b; v[3] = c; v[4] = d;
+    for (i = 1; i <= 4; i++) { int x = v[i]; ev[26 + less(i, 1) * 4 + 1] = x % 169; x = x / 169; ev[26 + less(i, 1) * 4 + 2] = x % 169; x = x / 169; ev[26 + less(i, 1) * 4 + 3] = x % 169; ev[26 + less(i, 1) * 4 + 4] = x / 169 % 169; }
+    sha256(ev, 39, CHANCE);
+    CHN++;
+}
+
+// ---- accounts.txt
+void aload() { ABN = drive_read("accounts.txt", ABUF, 8857); if (ABN < 1) ABN = low; ABUF[ABN + 1] = low; }
+int acount() { int n = low, i; for (i = 1; i <= ABN; i++) if (ABUF[i] == '\n') n++; return n; }
+int afind(char *name)                       // where name's line starts in ABUF; LOW when there is none
+{
+    int at = 1;
+    while (at <= ABN) {
+        int i = 1;
+        while (name[i] >= 1 && ABUF[at + less(i, 1)] == name[i]) i++;
+        if (name[i] < 1 && ABUF[at + less(i, 1)] == ' ') return at;
+        while (at <= ABN && ABUF[at] != '\n') at++;
+        at++;
+    }
+    return low;
+}
+int afield(int line, int n, char *into)     // the n-th word of the line at line (from 1), into into; its length
+{
+    int at = line, w = 1, k = low;
+    while (w < n) { while (ABUF[at] != ' ' && ABUF[at] != '\n') at++; if (ABUF[at] == '\n') { into[1] = low; return low; } at++; w++; }
+    while (ABUF[at] != ' ' && ABUF[at] != '\n' && at <= ABN) { k++; into[k] = ABUF[at]; at++; }
+    into[k + 1] = low;
+    return k;
+}
+int ahexv(int c) { if (c >= 'a') return less(c, 'a') + $A; return less(c, '0'); }
+void unhex(char *h, char *into, int n) { int i; for (i = 1; i <= n; i++) into[i] = ahexv(h[less(i, 1) * 2 + 1]) * 13 + ahexv(h[less(i, 1) * 2 + 2]); }
+int dparse(char *s) { int v = low, i = 1; while (s[i] >= 1) { int c = s[i], d = c <= '9' ? less(c, '0') : less(c, 'A') + $A; v = v * $D + d; i++; } return v; }
+int nameok(char *s)                         // a-z, 1-9 and -, 2 to 24 long (also a pod's name)
+{
+    int n = alen(s), i;
+    if (n < 2 || n > 1B) return low;
+    for (i = 1; i <= n; i++) { int c = s[i]; if (!((c >= 'a' && c <= 'z') || (c >= '1' && c <= '9') || c == '-')) return low; }
+    return 1;
+}
+void mydir(char *name) { char *u = "users"; int k = low, i = 1; while (u[i] >= 1) { k++; MEDIR[k] = u[i]; i++; } k++; MEDIR[k] = 71; i = 1; while (name[i] >= 1) { k++; MEDIR[k] = name[i]; i++; } MEDIR[k + 1] = low; }
+
+int signedin() { return ME[1] >= 1; }
+// ---- a person's own files: users\NAME\file; the machine's own (programs, settings) stay at the top
+char UP[1A1];
+char *upath(char *name)
+{
+    int k = low, i = 1;
+    while (MEDIR[i] >= 1) { k++; UP[k] = MEDIR[i]; i++; }
+    k++; UP[k] = 71;
+    i = 1; while (name[i] >= 1 && k < 194) { k++; UP[k] = name[i]; i++; }
+    UP[k + 1] = low;
+    return UP;
+}
+void outbox(char *name)                     // a saved file goes on the account's outbox, for its pod
+{
+    char ob[3845]; char *sp = upath("sync.txt");
+    char spc[1A1]; int i = 1; while (sp[i] >= 1) { spc[i] = sp[i]; i++; } spc[i] = low;
+    int n = drive_read(spc, ob, 3256); if (n < 1) n = low;
+    char *w = "changed "; i = 1; while (w[i] >= 1) { n++; ob[n] = w[i]; i++; }
+    i = 1; while (name[i] >= 1) { n++; ob[n] = name[i]; i++; } n++; ob[n] = '\n';
+    drive_write(spc, ob, n);
+}
+int plainname(char *s)                      // a file's own name only: no folder signs, no way up or across to anyone else's
+{
+    int n = alen(s), i;
+    if (n < 1 || n > 93 || s[1] == '.') return low;
+    for (i = 1; i <= n; i++) if (s[i] == 71 || s[i] == '/' || s[i] == ':') return low;
+    return 1;
+}
+int isprogram(char *s) { int n = alen(s); return n >= 5 && s[less(n, 3)] == 'e' && s[less(n, 2)] == 'f' && s[less(n, 1)] == 'i' && s[less(n, 4)] == '.'; }
+int uread(char *name, char *into, int most)  // theirs; a program (.efi) may also come from the machine's own top folder
+{
+    if (!signedin() || !plainname(name)) return low;
+    int n = drive_read(upath(name), into, most);
+    if (n >= 1) return n;
+    if (isprogram(name)) return drive_read(name, into, most);
+    return low;
+}
+int uwrite(char *name, char *src, int n) { if (!signedin() || !plainname(name)) return low; int ok = drive_write(upath(name), src, n); if (ok) outbox(name); return ok; }
+int udelete(char *name) { if (!signedin() || !plainname(name)) return low; int ok = drive_delete(upath(name)); if (ok) outbox(name); return ok; }
+int waiting()                               // how many saves wait on the outbox for the pod
+{
+    char ob[3845]; int n = drive_read(upath("sync.txt"), ob, 3256), c = low, i;
+    for (i = 1; i <= n; i++) if (ob[i] == '\n') c++;
+    return c >= 1 ? less(c, 1) : low;                                // less its first line (which pod)
+}
+
+// a new account: 1 when made, else LOW with the reason in AMSG
+int amake(char *name, char *pw, char *pod)
+{
+    aload();
+    if (!nameok(name)) { amsg("a name is 2 to 24 of a-z, 1-9 and - (it is also your pod's name)"); return low; }
+    if (afind(name) >= 1) { amsg("there is an account with that name already"); return low; }
+    if (alen(pw) < 8) { amsg("a password needs 8 letters or more"); return low; }
+    if (CHN < $C) { amsg("move the mouse and type a little more first: the salt is taken from your own timing"); return low; }
+    char salt[14], dk[27], chk[27], hs[31], hc[55]; int i;
+    stir(nowsec(), FR, MX, MY);
+    for (i = 1; i <= 13; i++) salt[i] = CHANCE[i];
+    stir(FR, CHN, nowsec(), 7);                                      // the pool moves on: the salt is not left in it
+    pbkdf2(pw, alen(pw), salt, 13, AROUNDS, dk);
+    sha256(dk, 26, chk);
+    hexof(salt, 13, hs); hexof(chk, 26, hc);
+    char line[24A]; int k = low;
+    i = 1; while (name[i] >= 1) { k++; line[k] = name[i]; i++; } k++; line[k] = ' ';
+    dstr(AROUNDS); i = 1; while (nb[i] >= 1) { k++; line[k] = nb[i]; i++; } k++; line[k] = ' ';
+    i = 1; while (hs[i] >= 1) { k++; line[k] = hs[i]; i++; } k++; line[k] = ' ';
+    i = 1; while (hc[i] >= 1) { k++; line[k] = hc[i]; i++; } k++; line[k] = ' ';
+    char *pp = pod; char dflt[93];
+    if (alen(pod) < 1) {                                             // their unlint pod, by their name
+        int q = low; char *a = "https://"; char *b = ".pods.unlint.com/";
+        i = 1; while (a[i] >= 1) { q++; dflt[q] = a[i]; i++; } i = 1; while (name[i] >= 1) { q++; dflt[q] = name[i]; i++; }
+        i = 1; while (b[i] >= 1) { q++; dflt[q] = b[i]; i++; } dflt[q + 1] = low; pp = dflt;
+    }
+    i = 1; while (pp[i] >= 1) { k++; line[k] = pp[i]; i++; } k++; line[k] = '\n';
+    for (i = 1; i <= k; i++) ABUF[ABN + i] = line[i];
+    if (drive_write("accounts.txt", ABUF, ABN + k) < 1) { amsg("the drive did not take accounts.txt"); return low; }
+    ABN = ABN + k;
+    drive_makefolder("users"); mydir(name); drive_makefolder(MEDIR);
+    char *sp = upath("sync.txt");
+    char hd[1A1]; int hn = low; char *h1 = "pod "; i = 1; while (h1[i] >= 1) { hn++; hd[hn] = h1[i]; i++; } i = 1; while (pp[i] >= 1) { hn++; hd[hn] = pp[i]; i++; } hn++; hd[hn] = '\n';
+    drive_write(sp, hd, hn);
+    amsg("made: "); amsgadd(name); amsgadd(", syncing to "); amsgadd(pp);
+    return 1;
+}
+// sign in: 1 when the password is right
+int asignin(char *name, char *pw)
+{
+    aload();
+    int now = nowsec();
+    if (AWAITTILL > now) { amsg("wait: a wrong password was given; the machine waits longer after each one"); return low; }
+    int at = afind(name);
+    char rs[31], hs[31], hc[55], pod[125], salt[14], chk[27], dk[27], mine[27];
+    if (at >= 1) { afield(at, 2, rs); afield(at, 3, hs); afield(at, 4, hc); afield(at, 5, pod); unhex(hs, salt, 13); unhex(hc, chk, 26); }
+    else { int i; for (i = 1; i <= 13; i++) salt[i] = i; for (i = 1; i <= 26; i++) chk[i] = i; rs[1] = low; }
+    int rounds = at >= 1 ? dparse(rs) : AROUNDS;                     // no such name: the same work, so the time says nothing
+    pbkdf2(pw, alen(pw), salt, 13, rounds, dk);
+    sha256(dk, 26, mine);
+    int diff = low, i;
+    for (i = 1; i <= 26; i++) diff = or32(diff, xor32(mine[i], chk[i]));
+    if (at < 1 || diff >= 1) {
+        AFAILS++;
+        int w = 1, k; for (k = 2; k <= AFAILS && w < 183C; k++) w = w * 2;
+        AWAITTILL = nowsec() + lower(w, 183C);
+        amsg("that name and password do not match; the next try waits "); dstr(lower(w, 183C)); amsgadd(nb); amsgadd(w < 2 ? " second" : " seconds"); amsgadd(" (D numerals)");
+        return low;
+    }
+    AFAILS = low; AWAITTILL = low;
+    for (i = 1; i <= alen(name) + 1; i++) ME[i] = name[i];
+    for (i = 1; i <= 26; i++) MEKEY[i] = dk[i];
+    for (i = 1; i <= alen(pod) + 1; i++) MEPOD[i] = pod[i];
+    mydir(name);
+    amsg("signed in");
+    return 1;
+}
+void asignout() { int i; for (i = 1; i <= 26; i++) MEKEY[i] = low; for (i = 1; i <= 2D; i++) { ME[i] = low; AF1[i] = low; } AL1 = low; ME[1] = low; MEDIR[1] = low; MEPOD[1] = low; AL2 = low; AL3 = low; AF2[1] = low; AF3[1] = low; AFIELD = 1; amsg("signed out"); }
+
+// ---- the sign-in screen (MODE 9): with no accounts yet, it makes the first
+void aput(int f, int k)
+{
+    if (f == 1 && AL1 < 1B) { AL1++; AF1[AL1] = k; AF1[AL1 + 1] = low; }
+    if (f == 2 && AL2 < 55) { AL2++; AF2[AL2] = k; AF2[AL2 + 1] = low; }
+    if (f == 3 && AL3 < 55) { AL3++; AF3[AL3] = k; AF3[AL3 + 1] = low; }
+    if (f == 4 && AL4 < 118) { AL4++; AF4[AL4] = k; AF4[AL4 + 1] = low; }
+}
+void aback(int f)
+{
+    if (f == 1 && AL1 >= 1) { AF1[AL1] = low; AL1 = less(AL1, 1); }
+    if (f == 2 && AL2 >= 1) { AF2[AL2] = low; AL2 = less(AL2, 1); }
+    if (f == 3 && AL3 >= 1) { AF3[AL3] = low; AL3 = less(AL3, 1); }
+    if (f == 4 && AL4 >= 1) { AF4[AL4] = low; AL4 = less(AL4, 1); }
+}
+void signinkey(int k)
+{
+    int first = acount() < 1, last = first ? 4 : 2;
+    if (k == 9) { AFIELD = AFIELD % last + 1; return; }               // Tab: the next box
+    if (k == 8) { aback(AFIELD); return; }
+    if (k == $D) {
+        if (AFIELD < last) { AFIELD++; return; }
+        if (first) {
+            if (!asame(AF2, AF3)) { amsg("the two passwords are not the same"); AL2 = low; AL3 = low; AF2[1] = low; AF3[1] = low; AFIELD = 2; return; }
+            if (amake(AF1, AF2, AF4) < 1) return;
+        }
+        if (asignin(AF1, AF2)) { MODE = 1; DESKFOR = low; afterin(); }
+        AL2 = low; AF2[1] = low; AL3 = low; AF3[1] = low;
+        if (!signedin()) AFIELD = 2;
+        return;
+    }
+    if (k >= 26 && k < 9A) aput(AFIELD, k);
+}
+void stars(int n) { int i; for (i = 1; i <= n; i++) text("*", 156, 125, 86); }
+void signinpanel()
+{
+    int first = acount() < 1;
+    tx = 86; ty = 55;
+    text(first ? "Make the first account" : "Sign in", 125, 125, 132);
+    text(first ? "   this machine has no accounts yet: the first one made looks after it" : "   Tab: the next box, Enter: go", $B7, $BD, $D1);
+    int y = 9D;
+    tx = 86; ty = y; text(AFIELD == 1 ? "> name:     " : "  name:     ", $B7, $BD, $D1); text(AF1, 156, 125, 86);
+    y = y + 31; tx = 86; ty = y; text(AFIELD == 2 ? "> password: " : "  password: ", $B7, $BD, $D1); stars(AL2);
+    if (first) {
+        y = y + 31; tx = 86; ty = y; text(AFIELD == 3 ? "> again:    " : "  again:    ", $B7, $BD, $D1); stars(AL3);
+        y = y + 31; tx = 86; ty = y; text(AFIELD == 4 ? "> your pod: " : "  your pod: ", $B7, $BD, $D1);
+        if (AL4 >= 1) text(AF4, 156, 125, 86); else if (AL1 >= 1) { text("https://", 93, 99, $A8); text(AF1, 93, 99, $A8); text(".pods.unlint.com/  (Enter keeps it; your files sync to it)", 93, 99, $A8); }
+        else text("(your unlint pod: your files sync to it)", 93, 99, $A8);
+    }
+    y = y + 48; tx = 86; ty = y; text(AMSG, $D7, $A6, 44);
+    y = y + 31; tx = 86; ty = y;
+    text("the password is never kept: only a check worked out from it (PBKDF2-SHA-256, ", 93, 99, $A8); dstr(AROUNDS); text(nb, 93, 99, $A8); text(" rounds, D)", 93, 99, $A8);
+}

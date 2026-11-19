@@ -282,6 +282,17 @@ it draws, never from the pixels; numbers in D numerals. `do N` acts on thing N.
 with the numbers: base 10 brings the old count (12 months of 28 to 31 days); D brings the stones' calendar, kept by
 Mike's family by word of mouth: 13 months of 28 days (every month four weeks exactly), midwinter day off to close the
 year, and in a leap year midsummer day off too. `time` says today in it; Settings shows it.
+0.22: user accounts (Mike: "the deltahexos user accounts security system, let them sync to pod as a standard thing").
+Nothing opens before someone signs in; the first start makes the first account. `accounts.txt` keeps, for each name, a
+salt from the world's chance (the timing of the person's own keys and mouse), the rounds, and a check (SHA-256 of
+PBKDF2-HMAC-SHA-256 of the password: never the password). A wrong password makes the next try wait (1, 2, 4 ... seconds,
+up to an hour); a name that is not there takes the same work, so the time says nothing. Each person's files are in
+`users\NAME` (Notepad, the terminal, Files); names with folder signs are refused, and only programs (`.efi`) come from the
+machine's own top folder. Signing out leaves nothing of them in memory. Every account names its unlint pod
+(`https://NAME.pods.unlint.com/` unless given another) and each save goes on its outbox, `users\NAME\sync.txt`.
+`lang/guard`: SHA-256, HMAC, PBKDF2 in Delta, on Delta's new word bits (`xor32`, `and32`, `or32`, `rotr32`, `shr32`,
+`shl32`), checked against the standards' own answers. The firmware's 5-minute watchdog is switched off at start (it
+reset the machine before). Next: each person's files sealed with their key; the outbox sent over the machine's own link.
 0.19: base 10 for people (Mike: "introduce a base 10 option for the humans"): Settings (or `numbers ten` / `numbers d`),
 kept on the drive. In base 10 the old-fashioned 0 is written with our zero, a circle holding three dots, less than 1 (a hundred and
 five is 1, our zero, 5; on the serial line it travels as ⊚; it is only a symbol, as keyboards differ),
