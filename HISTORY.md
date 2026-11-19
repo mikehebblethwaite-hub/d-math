@@ -144,3 +144,9 @@ midsummer is one too. "Back then people only had 2 seasons, winter and summer." 
 
 Mike, 11:00: "6000 year old operating system lol". Claude: "A calendar older than the stones themselves, running on a
 64-bit machine, written in a language that compiles itself. The newest code with the oldest clock."
+
+## The glyphs stand still (19 Nov, 12:18)
+
+Mike: "Stop them spinning then: too hard to learn them by counting the angles as they spin." Every D digit now stands still,
+the same way round as the font (1 as it always was, all of them upright, read left to right), in the room, in Delta Hex OS
+and in the examples. The colour stays: the spectrum a number's energy is in, the shade how much there is.

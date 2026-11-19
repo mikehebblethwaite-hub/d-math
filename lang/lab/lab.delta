@@ -843,7 +843,7 @@ void spiral(int n, int cx, int cy, int size, int turn)   // digit n (1..13) abou
         int L = (1 + less(i, 1) / 2) * u;
         x = less(x + L * cosk(a) / K, L); y = less(y + L * sink(a) / K, L);
         SPX[i + 1] = x; SPY[i + 1] = y;
-        a = (a + 12) % 75 + 1;                   // a sixth of a turn: hex
+        a = (a + 61) % 75 + 1;                   // a sixth of a turn, round the font's way: hex
     }
     for (i = 1; i <= n + 2; i++) { sx = sx + SPX[i]; sy = sy + SPY[i]; }
     sx = sx / (n + 2); sy = sy / (n + 2);      // its middle: it turns about that
@@ -882,13 +882,13 @@ void spectrum(int kind, int n)                       // kind 1 heat, 2 current, 
 int DPOS;
 void dspin(int n, int kind, int speed)
 {
-    if (n < 1) { unknownmark(BIG * 13 + (tx + $D) * 13, BIG * 13 + (ty + $C) * 13, $B7, FR * speed % 75 + 1); tx = tx + 22; }
+    if (n < 1) { unknownmark(BIG * 13 + (tx + $D) * 13, BIG * 13 + (ty + $C) * 13, $B7, 1); tx = tx + 22; }
     else {
         int q = n / $D, d = n % $D;
         if (d < 1) { d = $D; q = less(q, 1); }
         if (q >= 1) dspin(q, kind, speed);
         DPOS++;
-        spiral(d, BIG * 13 + (tx + $D) * 13, BIG * 13 + (ty + $C) * 13, $D1, (FR * speed + DPOS * $B) % 75 + 1);
+        spiral(d, BIG * 13 + (tx + $D) * 13, BIG * 13 + (ty + $C) * 13, $D1, 1);                     // still, the font's way up (Mike: too hard to learn spinning)
         tx = tx + 22;
     }
 }
