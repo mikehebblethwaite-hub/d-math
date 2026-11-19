@@ -188,6 +188,11 @@ int main(int argc, char **argv)
 }
 DC
 got=$($DELTA run "$T/f.delta" 2>&1); if [ "$got" = "17 6D 93 named" ]; then echo "ok honest: functions"; pass=$((pass+1)); else echo "FAIL honest: functions: [$got]"; bad=$((bad+1)); fi
+# #include: a program made of files; a file named twice (or included by an included one) is read once
+mkdir -p "$T/objects"; printf '#include "objects/b.delta"\nint twice(int n) { return n * 2; }\n' > "$T/objects/a.delta"
+printf 'int thrice(int n) { return n * 3; }\n' > "$T/objects/b.delta"
+printf '#include "objects/a.delta"\n#include "objects/b.delta"\nint main(int argc, char **argv)\n{\nsay("%%d %%d", twice(4), thrice(4));\nreturn 1;\n}\n' > "$T/inc.delta"
+if [ "$($DELTA run "$T/inc.delta" 2>&1)" = "8 C" ]; then echo "ok honest: #include, nested, each file once"; pass=$((pass+1)); else echo "FAIL honest: #include"; bad=$((bad+1)); fi
 dnum() { local v=$1 s="" r; while [ $v -ge 1 ]; do r=$((v%13)); [ $r -lt 1 ] && r=13; s="${DIGS:$((r-1)):1}$s"; v=$(((v-r)/13)); done; echo "$s"; }
 DIGS=123456789ABCD                                       # the report is in D numerals, like everything else
 if [ $bad = 1 ]; then echo "every test passed: $(dnum $((pass-1))) of them (D numerals)"
