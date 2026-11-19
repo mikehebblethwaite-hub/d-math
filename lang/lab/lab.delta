@@ -380,7 +380,9 @@ void panelwords(int sel)
     LINE = low;
     lab_line("Delta lab room   (D numerals; 1/64 inch to the unit)");
     tx = 2A; ty = 31 + LINE * 1D;
-    words("W A S D walk   Q E down up   arrows turn   drag: look   wheel: nearer   wheel held: tilt and turn   T: heat view   H: hide   Esc: close", 91, 97, $AA);
+    words("W A S D walk   Q E down, up   arrows turn   drag: look   wheel: nearer", 91, 97, $AA);
+    LINE++; tx = 2A; ty = 31 + LINE * 1D;
+    words("wheel held and dragged: tilt and turn   T: heat view   H: hide   Esc: close", 91, 97, $AA);
     LINE = LINE + 2;
     scene_panel(sel);
 }
