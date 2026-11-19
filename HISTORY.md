@@ -107,3 +107,6 @@ Mike: the 3-D room is the lab box for the OS now, and engineers get tools to use
 model as waves make air move and that's earth's weather system"; "also give them a windtunnel in there". First step:
 waves-air.delta, real buoy readings driving a sea, the air moved only from crowded to less crowded. Its halving height
 came out 0.116 to 0.120 of a wavelength against theory's 0.110 on five readings; one reading is off, kept as found.
+
+The wind tunnel (19 Nov, ~01:00): the same air rule, a fan and an open end. Ideal flow round a post came out by itself,
+within 2.4 per cent of theory just off the post. What it lacks (no wake, no lift) points at the next neighbour: momentum.

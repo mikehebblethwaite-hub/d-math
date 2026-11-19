@@ -213,6 +213,15 @@ turn the assembly text into the program file.
   water. The model, on six readings from 3.5 to 9 s: 0.116 to 0.120 for five (a steady 5 to 9 per cent high); one (6.5 s)
   is off and not yet understood. Buoy files are not in this repository: Cefas WaveNet data, Open Government Licence
   ("Contains data from Cefas WaveNet"). `paper/images/waves-air.png`.
+- The wind tunnel in the lab box: `lang/examples/windtunnel.delta [post|plate|wing] [SIZE]` (Mike: "also give them a
+  windtunnel in there"). The same air as the waves: hex cells, air only from more crowded to less crowded. A fan keeps
+  the left end a little more crowded, the right end is open to the room, the walls and the shape hold no air; the air
+  book balances every step. Nothing about the flow is drawn: the air speeds round the post's sides and the plate's tips
+  and stands still in front of and behind them. Fair test against ideal flow round a post (speed 1 + R²/r² times the
+  free stream): 2.4 per cent under to 0.3 per cent over just off the post, rising to 6 per cent over further out, where
+  the tunnel's walls squeeze the stream as real walls do; the cell touching the post reads low (half its neighbours are
+  solid). Not yet: a wake and lift, which need the air's own push kept as it moves (the candle's lesson).
+  `paper/images/windtunnel.png`.
 - Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come).
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 
