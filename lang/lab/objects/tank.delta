@@ -177,8 +177,7 @@ void tank_draw(int x, int z)
         lab_box(x1 + less(col, 1) * WCELL, less(z, depth), x1 + (col + 1) * WCELL, z + depth, y1, top);
     }
     BOXEND = 1;
-    lab_alpha(6); lab_colour(125, 144, 151);                 // the glass round it
-    lab_box(x1, less(z, depth), x1 + WGW * WCELL, z + depth, y1, y1 + WGH * WCELL * $D / 12);
+    lab_glassbox(x1, less(z, depth), x1 + WGW * WCELL, z + depth, y1, y1 + WGH * WCELL * $D / 12);   // the glass round it
     lab_alpha(149);
 }
 void tank_panel()

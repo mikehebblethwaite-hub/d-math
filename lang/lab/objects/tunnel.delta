@@ -182,13 +182,11 @@ void tunnel_draw(int x, int z)
         if (up >= down) lab_colour(v, v / 2, v / 6); else lab_colour(v / 6, v / 2, v);
         lab_glow(wx, wy, z, TCELL * 2);
     }
-    // the post across the tunnel, and the glass round it all
-    lab_alpha(156); lab_colour(125, 118, $D1); TUBER = tsize * TCELL;
+    // the post across the tunnel (a smooth steel rod), and the glass round it all
     int px3 = x1 + TCX * TCELL, py3 = y1 + less(TGH, TCY) * TCELL * $D / 12;
-    lab_tube(px3, py3, less(z, depth), px3, py3, z + depth);
-    lab_alpha(6); lab_colour(125, 144, 151);
-    lab_box(x1, less(z, depth), x1 + TGW * TCELL, z + depth, y1, y1 + TGH * TCELL * $D / 12);
-    lab_alpha(149); TUBER = 2;
+    WTUBE = tsize * TCELL * 13; lab_wire(px3, py3, less(z, depth), px3, py3, z + depth); lab_wirelay(1, low);
+    lab_glassbox(x1, less(z, depth), x1 + TGW * TCELL, z + depth, y1, y1 + TGH * TCELL * $D / 12);
+    lab_alpha(149);
 }
 void tunnel_panel()
 {

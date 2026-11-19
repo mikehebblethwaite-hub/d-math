@@ -703,6 +703,19 @@ void dnum(int n, int kind)                           // a number in D: its spira
 }
 void label(char *s) { text(s, $D1, $D9, 118); }
 void value(int n, int kind) { tx = tx + 4; dnum(n, kind); tx = tx + $A; }
+
+// a glass box (a tank, a tunnel): its faces faint, its twelve edges round glass rods that catch the lamp
+void gedge(int ax, int ay, int az, int bx, int by, int bz) { lab_wire(ax, ay, az, bx, by, bz); }
+void lab_glassbox(int x1, int z1, int x2, int z2, int yb, int yt)
+{
+    lab_alpha(6); lab_colour($D1, $DA, 112); lab_box(x1, z1, x2, z2, yb, yt);
+    LA = 13A;
+    WTUBE = 1C;                                                       // the edges: about 1/32 inch thick, in sixteenths
+    gedge(x1, yb, z1, x2, yb, z1); gedge(x1, yt, z1, x2, yt, z1); gedge(x1, yb, z2, x2, yb, z2); gedge(x1, yt, z2, x2, yt, z2);
+    gedge(x1, yb, z1, x1, yb, z2); gedge(x2, yb, z1, x2, yb, z2); gedge(x1, yt, z1, x1, yt, z2); gedge(x2, yt, z1, x2, yt, z2);
+    gedge(x1, yb, z1, x1, yt, z1); gedge(x2, yb, z1, x2, yt, z1); gedge(x1, yb, z2, x1, yt, z2); gedge(x2, yb, z2, x2, yt, z2);
+    lab_wirelay(3, low);
+}
 // ---------------------------------------------------------------- moving about
 void walk(int ahead, int side, int fwd, int right)                  // ahead/side: how far; fwd/right: 1 that way, 2 the other
 {
