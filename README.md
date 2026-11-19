@@ -262,7 +262,9 @@ reads its reports (a tablet in QEMU: `-device qemu-xhci -device usb-tablet`).
 **0.09 and 0.10: Notepad and the terminal** (Mike, 19 Nov 2026: "add to the operating system the stuff everyone needs
 first"). Notepad (the n tile or key): typing, the arrows, Home/End, Page Up/Down, a click places the cursor, line numbers in
 D numerals, Delta highlighting; F2 or Ctrl+S saves `notes.txt` to the boot drive through the firmware's file system
-(`drive_write`, `drive_read` in `lang/efi.delta`) and it opens again at start. The terminal (the t tile or key): `help`,
+(`drive_write`, `drive_read` in `lang/efi.delta`) and it opens again at start. 0.11: `edit NAME` in the terminal
+opens any file (a new name starts a new one); Ctrl+F finds (Enter: the next, a gold box round it), Ctrl+R finds and
+replaces them all. The terminal (the t tile or key): `help`,
 `version`, `mem`, `files`, `show NAME`, `sum 7 + 6`, `ask C v 4 ohm`, `echo`, `clear`, `notepad`, `off`. Everything it writes
 also goes down the serial line, and what is typed on the line comes in as keys: `lang/vm.delta SOCKET serial help mem`
 uses Delta Hex OS from outside, in Delta. Test machines boot from a real FAT32 image (`fat:rw:` misplaces writes).
