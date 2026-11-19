@@ -8,7 +8,7 @@
 //
 // Shapes: post R (a round post, R cells across its half), plate H (a flat plate square to the stream, H cells tall),
 // wing L (a thin wing tilted a little, L cells long).
-//   delta run examples/windtunnel.delta [post|plate|wing] [SIZE]       (SIZE a D numeral)
+//   delta run examples/windtunnel-ideal.delta [post|plate|wing] [SIZE]       (SIZE a D numeral)
 //
 // Fair test (the referee, from outside D): air going past a round post runs twice as fast at its top and bottom as the
 // free stream far away (ideal flow; a tunnel's walls add a little).

@@ -222,6 +222,14 @@ turn the assembly text into the program file.
   the tunnel's walls squeeze the stream as real walls do; the cell touching the post reads low (half its neighbours are
   solid). Not yet: a wake and lift, which need the air's own push kept as it moves (the candle's lesson).
   `paper/images/windtunnel.png`.
+- The wind tunnel with moving air: `lang/examples/windtunnel.delta [post|plate|wing] [SIZE]` (the ideal-flow one is now
+  `windtunnel-ideal.delta`). Each hex cell holds air at rest and air going each of the six hex ways; each step the air
+  going one way moves to that neighbour, then each cell's shares settle toward the balance its own air and movement call
+  for; air meeting the shape turns straight back. Mass is counted exactly every step. Why hex: on six ways moving air
+  shares out evenly in every direction; on four it cannot. Nothing about eddies is written in, yet behind a round post
+  they peel off by turns, a vortex street (`paper/images/windtunnel-eddies.png`: warm rising, cool falling). Fair test,
+  the Strouhal number (Roshko: 0.173 for an open stream at Re 154): 0.209 in a tunnel the post fills 23 per cent of,
+  0.183 in one twice as tall (12 per cent): closing on the open-stream value as the walls move away, as real tunnels do.
 - **The Delta lab room** (`lang/lab/lab.delta`; Mike, 19 Nov 2026: "many objects will go in this lab room like unity or
   unreal 3d; these objects can have code attached"). A room 20 feet each way, lit by a ceiling lamp, that things are put
   in. The room is the engine and knows nothing of what is inside the things: each thing is a Delta `thing` with its own

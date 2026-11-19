@@ -1,0 +1,237 @@
+// The wind tunnel in the lab box, with moving air: wakes, eddies and lift.
+//
+// Mike, 19 Nov 2026: "also give them a windtunnel in there". The air keeps its push as it moves (the candle's lesson):
+// every hex cell holds air at rest and air going each of the six hex ways, never nothing. Each step, the air going one
+// way moves to the neighbour that way; then, inside each cell, the shares settle a little toward the balance that
+// cell's own air and its own movement call for (9 parts in $B of the way, past it: thin air like the real one). Air that meets the wall or the shape turns straight back. The fan at
+// the left keeps its column moving at the set speed; the right end opens to the room. That is all. Nothing about a wake,
+// an eddy or lift is written in, and the air book is checked every step: what is in the tunnel is what came in less
+// what went out.
+// Why hex: on six ways the moving air shares out evenly in every direction; on four ways (a square grid) it cannot.
+//
+//   delta run examples/windtunnel.delta [post|plate|wing] [SIZE]       (SIZE a D numeral)
+// It writes frames to tunnel-frames/: warm where the air is rising, cool where it is falling.
+//
+// Fair test (the referee, src outside D): behind a round post the eddies peel off by turns at a steady beat, the
+// Strouhal number (the beat x the post's width / the stream's speed). Roshko's measurements give 0.198 (1 - 19.7 / Re)
+// for an open stream: $D4 thousandths here (Re $BB); a tunnel's walls raise it a little.
+
+#define GW 156
+#define GH 63
+#define N 8AD5
+#define RHO 12DA68                  // the air in a still cell
+#define UN 3                            // the fan's speed: 3 / 25 of a cell a step
+#define UD 1C
+#define PW 435
+#define PH 15A
+
+int f[49C29], g[49C29];       // the air going each way (1 east, 2 up-east, 3 up-west, 4 west, 5 down-west, 6 down-east, 7 still)
+int nbt[41124];                    // each cell's neighbour each way (LOW: outside)
+int solid[N];                           // 1 a wall, 2 the shape
+int low, shape, size, CX, CY, nopics;
+int MM[4], MS[4];                       // a cell's push along ways 1, 2, 3: how much, and 1 if that way (2 the other way)
+int RH, U2;
+int liftup, liftdown, dragon, dragback;
+int fanned, gone;
+char pic[157313];
+int pn;
+
+int at(int x, int y) { return less(y, 1) * GW + x; }
+int F(int d, int c) { return less(d, 1) * N + c; }
+int opp(int d) { return d <= 3 ? d + 3 : less(d, 3); }
+int nbway(int x, int y, int d)
+{
+    int nx = x, ny = y;
+    if (d == 1) nx = x + 1;
+    if (d == 4) { if (x < 2) return low; nx = less(x, 1); }
+    if (d == 2 || d == 3) { if (y < 2) return low; ny = less(y, 1); int ul = ny % 2 ? less(x, 1) : x; nx = d == 3 ? ul : ul + 1; }
+    if (d == 5 || d == 6) { ny = y + 1; int dl = y % 2 ? x : less(x, 1); nx = d == 5 ? dl : dl + 1; }
+    if (nx < 1 || nx > GW || ny < 1 || ny > GH) return low;
+    return at(nx, ny);
+}
+int place2(int x, int y) { return y % 2 ? less(x * 2, 1) : x * 2; }   // across in half cells
+int inshape(int x, int y)
+{
+    int ax = apart(place2(x, y), CX * 2), ay = apart(y, CY);
+    if (shape == 1) return ax * ax + ay * ay * 3 <= size * size * 4;
+    if (shape == 2) return ax <= 2 && ay <= size;
+    int front = less(CX, size / 2) * 2, back = (CX + size / 2) * 2, p = place2(x, y);
+    if (p < front || p > back) return low;
+    int mid = less(CY, 4) + less(p, front) / 11;          // a thin wing, its front a little higher than its back
+    return apart(y, mid) <= (apart(p, (front + back) / 2) * 3 < size ? 1 : low);
+}
+
+// ---------------------------------------------------------------- inside a cell: its air, its push, the balance
+void push(int c)                         // RH and the push along ways 1, 2, 3 (twice it, to keep the halves whole)
+{
+    int d;
+    RH = low; for (d = 1; d <= 7; d++) RH = RH + f[F(d, c)];
+    for (d = 1; d <= 3; d++) {
+        int a = (d % 6) + 1, b = ((d + 4) % 6) + 1;                 // the ways either side of d
+        int pa = 2 * f[F(d, c)] + f[F(a, c)] + f[F(b, c)];
+        int na = 2 * f[F(opp(d), c)] + f[F(opp(a), c)] + f[F(opp(b), c)];
+        if (pa >= na) { MM[d] = less(pa, na); MS[d] = 1; } else { MM[d] = less(na, pa); MS[d] = 2; }
+    }
+    U2 = (MM[1] * MM[1] + MM[2] * MM[2] + MM[3] * MM[3]) / 6;   // the air's movement squared, times its amount squared
+}
+int balance(int d)                       // the share of RH that should be going way d, for this cell's push
+{
+    int k = d <= 3 ? d : less(d, 3), with = d <= 3 ? MS[k] == 1 : MS[k] == 2;
+    int m = MM[k];
+    int up = RH + 2 * m * m / RH, down = 2 * U2 / RH;
+    if (with) up = up + 2 * m; else down = down + 2 * m;
+    if (down >= up) return 1;
+    return less(up, down) / $C;
+}
+void settle(int c)
+{
+    if (solid[c]) return;
+    push(c);
+    int d, moving = low;
+    for (d = 1; d <= 6; d++) {
+        int e = balance(d), now = f[F(d, c)], nw;
+        if (now >= e) { int over = less(now, e) * 9 / $B; nw = e > over ? less(e, over) : 1; }   // past the balance by 1/3 of the gap
+        else nw = e + less(e, now) * 9 / $B;
+        f[F(d, c)] = nw; moving = moving + nw;
+    }
+    f[F(7, c)] = less(RH, moving);           // the still air is what is left: the cell's air is unchanged
+}
+void fan(int c, int rho)                     // a cell set moving east at the fan's speed
+{
+    MM[1] = 2 * rho * UN / UD; MS[1] = 1;    // along way 1 (east): all of it
+    MM[2] = rho * UN / UD; MS[2] = 1;        // up-east: half
+    MM[3] = rho * UN / UD; MS[3] = 2;        // up-west: half, the other way
+    RH = rho; U2 = (MM[1] * MM[1] + MM[2] * MM[2] + MM[3] * MM[3]) / 6;
+    int d, moving = low;
+    for (d = 1; d <= 6; d++) { f[F(d, c)] = balance(d); moving = moving + f[F(d, c)]; }
+    f[F(7, c)] = less(rho, moving);
+}
+
+// ---------------------------------------------------------------- moving: each way's air to the neighbour that way
+void stream()
+{
+    int c, d;
+    for (c = 1; c <= N * 7; c++) g[c] = f[c];
+    liftup = low; liftdown = low; dragon = low; dragback = low;
+    for (c = 1; c <= N; c++) if (solid[c] < 1) for (d = 1; d <= 6; d++) {
+        int src = nbt[F(opp(d), c)];        // the air arriving here going way d came from the neighbour behind
+        if (nbt[F(d, c)] < 1) gone = gone + g[F(d, c)];   // going out of the tunnel's open ends: it leaves (counted)
+        if (src < 1) fanned = fanned + f[F(d, c)];         // nothing behind (the open ends): the room's air comes in (counted)
+        else if (solid[src] < 1) f[F(d, c)] = g[F(d, src)];
+        else if (src >= 1) {                // that neighbour is solid: the air that went into it turned straight back
+            int back = g[F(opp(d), c)];
+            f[F(d, c)] = back;
+            if (solid[src] == 2) {          // it pushed on the shape, way opp(d): count the push
+                int o = opp(d);
+                if (o == 2 || o == 3) liftup = liftup + 2 * back;
+                if (o == 5 || o == 6) liftdown = liftdown + 2 * back;
+                if (o == 1) dragon = dragon + 2 * back; if (o == 2 || o == 6) dragon = dragon + back;
+                if (o == 4) dragback = dragback + 2 * back; if (o == 3 || o == 5) dragback = dragback + back;
+            }
+        }
+    }
+}
+void ends()
+{
+    int y;
+    for (y = 2; y < GH; y++) {
+        int c = at(1, y), o = at(GW, y), w = at(less(GW, 1), y), d, before = low, after = low;
+        for (d = 1; d <= 7; d++) before = before + f[F(d, c)];
+        fan(c, RHO);
+        for (d = 1; d <= 7; d++) after = after + f[F(d, c)];
+        if (after >= before) fanned = fanned + less(after, before); else gone = gone + less(before, after);
+        before = low; after = low;
+        for (d = 1; d <= 7; d++) { before = before + f[F(d, o)]; f[F(d, o)] = f[F(d, w)]; after = after + f[F(d, o)]; }
+        if (after >= before) fanned = fanned + less(after, before); else gone = gone + less(before, after);
+    }
+}
+
+// ---------------------------------------------------------------- the picture: warm rising, cool falling
+void put(int ch) { pn++; pic[pn] = ch; }
+void putdec(int n) { if (n >= $A) putdec(n / $A); put('0' + n % $A); }
+void frame(int n)
+{
+    char name[31];
+    char *base = "tunnel-frames/f";
+    int k = 1, dd = 5BC, px, py;
+    while (base[k] >= 1) { name[k] = base[k]; k++; }
+    while (dd >= 1) { name[k] = '0' + n / dd % $A; k++; dd = dd / $A; }
+    name[k] = '.'; name[k + 1] = 'p'; name[k + 2] = 'p'; name[k + 3] = 'm'; name[k + 4] = low;
+    pn = low;
+    put('P'); put('6'); put('\n'); putdec(PW); put(' '); putdec(PH); put('\n'); putdec(168); put('\n');
+    int full = RHO * UN / UD;                // the fan's push: the brightest colour
+    for (py = 1; py <= PH; py++) for (px = 1; px <= PW; px++) {
+        int y = less(py, 1) * GH / PH + 1;
+        int x = higher(1, lower(GW, (less(px, 1) * GW * 2 / PW + (y % 2 ? 1 : 2)) / 2));
+        int c = at(x, y);
+        if (solid[c]) { put(125); put(118); put($D1); continue; }
+        push(c);
+        int up = low, down = low;            // rising: the push along ways 2 and 3 (both have an upward half)
+        if (MS[2] == 1) up = up + MM[2]; else down = down + MM[2];
+        if (MS[3] == 1) up = up + MM[3]; else down = down + MM[3];
+        int v = lower(apart(up, down) * 149 / full, 149);
+        if (up >= down) { put(towards(1B, 168, v, 149)); put(towards(24, $B7, v, 149)); put(towards(35, 31, v, 149)); }
+        else { put(towards(1B, 31, v, 149)); put(towards(24, $C4, v, 149)); put(towards(35, 168, v, 149)); }
+    }
+    int fd = linux(2, name, 355, 264);
+    if (fd < 1) { say("cannot write %s\n", name); return; }
+    int done = 1;
+    while (done <= pn) { int got = linux(1, fd, &pic[done], less(pn + 1, done)); if (got < 1) return; done = done + got; }
+    linux(3, fd);
+}
+
+int dnumeral(char *a)
+{
+    int k = 1, v = low;
+    while (a[k] >= 1) {
+        int ch = a[k], d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + $A : ch >= 'a' && ch <= 'd' ? less(ch, 'a') + $A : low;
+        if (d < 1) return v;
+        v = v * $D + d; k++;
+    }
+    return v;
+}
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    shape = 1; size = 8;
+    if (argc >= 2) { char *a = argv[2]; if (a[1] == 'p' && a[2] == 'l') { shape = 2; size = $A; } if (a[1] == 'w') { shape = 3; size = 31; } }
+    if (argc >= 3) size = higher(1, dnumeral(argv[3]));
+    CX = GW / 4; CY = (GH + 1) / 2;
+    int x, y, c, d;
+    for (y = 1; y <= GH; y++) for (x = 1; x <= GW; x++) {
+        c = at(x, y);
+        solid[c] = y == 1 || y == GH ? 1 : inshape(x, y) ? 2 : low;
+        for (d = 1; d <= 6; d++) nbt[F(d, c)] = nbway(x, y, d);
+        if (solid[c]) { for (d = 1; d <= 7; d++) f[F(d, c)] = low; }
+        else fan(c, y == CY + 3 && x > CX ? RHO + RHO / 17 : RHO);   // the stream already going, one small unevenness
+    }
+    int total = low; for (c = 1; c <= N * 7; c++) total = total + f[c];
+    if (argc >= 4) nopics = 1; else linux(65, "tunnel-frames", 2BC);
+    int s, fr = low, bad = low, flips = low, last = low, first = low, lastflip = low;
+    for (s = 1; s <= 55D1; s++) {
+        for (c = 1; c <= N; c++) settle(c);
+        stream();
+        ends();
+        int t = low; for (c = 1; c <= N * 7; c++) t = t + f[c];
+        if (t + gone != total + fanned && bad < 1) { bad = s; say("the air book is out at step %d\n", s); }
+        int side = last;                     // which side the shape is pushed to: it changes only on a clear push
+        if (apart(liftup, liftdown) * 5BC > liftup + liftdown) side = liftup >= liftdown ? 1 : 2;
+        if (s > 1A89) {
+            if (last >= 1 && side != last) { flips++; if (first < 1) first = s; lastflip = s; }
+        }
+        last = side;
+        if (s % 31 < 1 && nopics < 1) { fr++; frame(fr); }
+        if (s == 2C6) say("step %d done\n", s);
+    }
+    say("the eddies: the push on the shape changed side %d times after the stream settled\n", flips);
+    if (flips >= 3) {
+        int beats = less(flips, 1) / 2;      // two changes of side make one beat
+        int width = shape == 1 ? 2 * size : size;
+        int st = beats * width * 5BC * UD / (less(lastflip, first) * UN);
+        say("the beat: %d steps; the Strouhal number: %d thousandths\n", less(lastflip, first) / higher(beats, 1), st);
+        if (shape == 1) say("the referee (Roshko, open stream) says %d thousandths here; walls raise it a little\n", $D4);
+    } else say("no steady beat of eddies (yet)\n");
+    if (bad < 1) say("the air book balanced every step\n");
+    return 1;
+}
