@@ -1,4 +1,4 @@
-// Delta Hex OS: the no-zero operating system, written in Delta. 0.16: Notepad has tabs (6 files open at once); the honeycomb; runs programs.
+// Delta Hex OS: the no-zero operating system, written in Delta. 0.17: Files; copy and rename; Notepad tabs; the honeycomb; runs programs.
 //
 // The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
 // C library. It asks the firmware for the machine's memory and counts it, from 1, in D numerals; then the firmware
@@ -60,6 +60,9 @@ int EFQN, ERPN, EFIND, EFOUND;      // EFIND: 1 finding, 2 the words to replace,
 char *EMSG;
 char RUNBUF[54D442];                     // a program read from the drive, to be run (up to 54D442 bytes)
 int DESKFOR;                                        // which tile was picked when the desktop layer was drawn
+char FNAMES[15C2];              // up to 3B names, 4C letters each
+int FSIZE[3B], FDIR[3B];
+int FCOUNT, FPICK = 1, FASK;        // FASK: 1 while asking "take it away?"
 char DOC[$D868D];               // 6 places of 2377D letters
 char DNAME[23D];                // their names, 4D letters each
 int DOCN[6], DCUR[6], DTOP[6], DSAVED[6];
@@ -551,9 +554,10 @@ char *tilename(int t)
     if (t == 6) return "Notepad";
     if (t == 7) return "Terminal";
     if (t == 8) return "Lab room";
+    if (t == 9) return "Files";
     return "ready";
 }
-int tilekind(int t) { if (t == 2) return 2; if (t == 3) return 4; if (t == 4) return 3; if (t == 5) return 1; if (t == 6) return 6; if (t == 7) return 4; if (t == 8) return 1; return 5; }
+int tilekind(int t) { if (t == 2) return 2; if (t == 3) return 4; if (t == 4) return 3; if (t == 5) return 1; if (t == 6) return 6; if (t == 7) return 4; if (t == 8) return 1; if (t == 9) return 2; return 5; }
 char *tilenote(int t)
 {
     if (t == 2) return "engineer's assistant";
@@ -563,6 +567,7 @@ char *tilenote(int t)
     if (t == 6) return "writing";
     if (t == 7) return "commands, in words";
     if (t == 8) return "the lab room: things with their own code, a candle burning (runs lab.efi)";
+    if (t == 9) return "the boot drive's files: open one in Notepad, or take it away";
     return "ready to hold what comes next";
 }
 
@@ -575,6 +580,7 @@ void opentile(int t)
     if (t == 6) { MODE = 5; EDGEN++; }
     if (t == 7) { MODE = 6; TGEN++; }
     if (t == 8) { int n = drive_read("lab.efi", RUNBUF, 54D441); if (n >= 1) run_program(RUNBUF, n); DESKFOR = low; }
+    if (t == 9) { readfiles(); MODE = 7; }
     tlen = low; typed[1] = low;
 }
 
@@ -1182,10 +1188,11 @@ void trun()                                                                // En
         ts("edit NAME   opens it in Notepad (a new name, a new file); in Notepad Ctrl+F finds, Ctrl+R replaces\n");
         ts("echo WORDS  says them back\n");
         ts("run NAME    runs a program from the drive (run lab.efi: the lab room)\n");
+        ts("copy A B    a copy of A called B      rename A B   A is called B from now on\n");
         ts("time        the machine's clock      del NAME    takes a file away      write NAME WORDS   a file in one line\n");
         ts("clear       a clean screen      notepad     opens Notepad      off     switches the machine off\n");
     }
-    else if (tword("version")) ts("Delta Hex OS 0.16: no zero, written in Delta\n");
+    else if (tword("version")) ts("Delta Hex OS 0.17: no zero, written in Delta\n");
     else if (tword("mem")) {
         ts("ready to hold "); tn(ready); ts("   this system "); tn(ours); ts("   the firmware's "); tn(firmware);
         ts("   held back "); tn(held); ts("   all together "); tn(all); ts("\n");
@@ -1241,6 +1248,15 @@ void trun()                                                                // En
             if (run_program(RUNBUF, n)) ts("it has ended; back in Delta Hex OS\n"); else { ts("the firmware would not run it: its answer "); tn(run_why()); ts("\n"); }
             DESKFOR = low; EDGEN++; }
     }
+    else if (tword("copy") || tword("rename")) {                    // copy A B, rename A B (a copy, then A taken away)
+        int ren = TIN[1] == 'r', sp = TPART; while (sp <= TINN && TIN[sp] != 26) sp++;
+        if (sp > TINN) ts("copy FROM TO, or rename FROM TO\n");
+        else { char a[4C]; int q = 1; for (i = TPART; i < sp && q < 4A; i++) { a[q] = TIN[i]; q++; } a[q] = low;
+            int n = drive_read(a, RUNBUF, 54D441);
+            if (n < 1) { ts("no file called "); ts(a); ts("\n"); }
+            else if (drive_write(&TIN[sp + 1], RUNBUF, n) < 1) ts("the drive did not take it\n");
+            else { if (ren) drive_delete(a); ts(a); ts(ren ? " is now " : " copied to "); ts(&TIN[sp + 1]); ts(": "); tn(n); ts(" bytes\n"); } }
+    }
     else if (tword("edit")) { if (TPART <= TINN) { tabopen(&TIN[TPART]); MODE = 5; } else ts("edit which file? (edit notes.txt)\n"); }
     else if (tword("off")) off();
     else { ts("I do not know "); ts(TIN); ts(" yet (help lists what I know)\n"); }
@@ -1267,6 +1283,60 @@ void terminal()
     }
 }
 
+// ---------------------------------------------------------------- the drive's files, read once into a list
+int fnat(int k) { return less(k, 1) * 4C; }
+void readfiles()                    // the boot drive's top folder, file by file, into the list
+{
+    FCOUNT = low;
+    int root = ef_root();
+    if (root < 1) return;
+    char info[372];
+    while (FCOUNT < 3B) {
+        int size = 365;
+        fa[1] = root; fa[2] = &size; fa[3] = &info[1];
+        if (fwcall(rd(root + 26, 8), &fa[1]) != 1 || size < 1) break;   // Read: one entry a time
+        FCOUNT++;
+        int k = 63, q = 1;
+        while (info[k] >= 1 && k < size && q < 4B) { FNAMES[fnat(FCOUNT) + q] = info[k]; q++; k = k + 2; }
+        FNAMES[fnat(FCOUNT) + q] = low;
+        FSIZE[FCOUNT] = u64(info, 9, 8);
+        FDIR[FCOUNT] = u64(info, 58, 8) % 26 >= 13;
+    }
+    fa[1] = root; fwcall(rd(root + 13, 8), &fa[1]);
+    if (FPICK > FCOUNT) FPICK = higher(1, FCOUNT);
+}
+char *fname(int k) { return &FNAMES[fnat(k) + 1]; }
+void filespanel()
+{
+    backbutton();
+    tx = 86; ty = 46; text("Files", $B7, 125, 163);
+    text("   the boot drive: arrows pick, Enter opens in Notepad, Delete takes it away, r reads the drive again", $B7, $BD, $D1);
+    int k;
+    for (k = 1; k <= FCOUNT; k++) {
+        ty = 79 + k * 22;
+        if (k == FPICK) { int x, yy; for (yy = ty; yy <= ty + 1A; yy++) for (x = 79; x <= 543; x++) mixpx(x, yy, 156, 125, 86, 1C); }   // a soft band behind the picked one
+        tx = 93; text(fname(k), k == FPICK ? 156 : 136, k == FPICK ? 125 : 13A, k == FPICK ? 86 : 145);
+        tx = 2DD;
+        if (FDIR[k]) text("a folder", $B7, $BD, $D1);
+        else { dstr(FSIZE[k]); text(nb, 156, 125, 86); text(" bytes", $B7, $BD, $D1); }
+    }
+    if (FCOUNT < 1) { tx = 93; ty = 9B; text("no files found on the boot drive", 136, 13A, 145); }
+    if (FASK) { tx = 93; ty = less(H, 62); text("take ", 156, $B7, 86); text(fname(FPICK), 156, 125, 86); text(" away from the drive? y: yes, any other key: no", 156, $B7, 86); }
+}
+void fileskey(int k)
+{
+    if (FASK) {
+        FASK = low;
+        if (k == 'y' || k == 'Y') { drive_delete(fname(FPICK)); readfiles(); }
+        return;
+    }
+    if (k == 5BD && FPICK > 1) FPICK = less(FPICK, 1);
+    if (k == 5C1 && FPICK < FCOUNT) FPICK++;
+    if (k == $D && FCOUNT >= 1 && FDIR[FPICK] < 1) { tabopen(fname(FPICK)); MODE = 5; }
+    if (k == 5C7 && FCOUNT >= 1 && FDIR[FPICK] < 1) FASK = 1;
+    if (k == 'r') readfiles();
+}
+
 // ---------------------------------------------------------------- keys and the mouse, for whichever is open
 
 void listen()
@@ -1280,11 +1350,13 @@ void listen()
             if (k == $D) opentile(FOCUS);
             if (k == 79) opentile(2); if (k == 8B) opentile(3); if (k == 85) opentile(4);   // d s m: by their first letter
             if (k == 86) opentile(6); if (k == 8C) opentile(7); if (k == 84) opentile(8);            // n t l
+            if (k == 7B) opentile(9);                                                                // f: Files
         } else {
             if (MODE == 5 && EFIND >= 1) edkey(k);                              // the find bar is open: Esc closes it
             else if (k == 5D9) { MODE = 1; tlen = low; DESKFOR = low; }         // Esc: back to the desktop
             else if (MODE == 5) edkey(k);                                         // Notepad takes every key
             else if (MODE == 6) tkey(k);                                          // so does the terminal
+            else if (MODE == 7) fileskey(k);                                      // and Files
             else if (k == $D) { if (MODE == 2) fly(); if (MODE == 3) think(); tlen = low; }
             else if (k == 8) { if (tlen >= 1) tlen = less(tlen, 1); }
             else if (k >= 26 && k < 9A && tlen < 6C) { tlen++; typed[tlen] = k; }
@@ -1332,7 +1404,7 @@ int main(int argc, char **argv)
     layout();
     edstart();
     serfind();
-    ts("Delta Hex OS 0.16: the terminal. help lists the commands.\n"); tprompt();
+    ts("Delta Hex OS 0.17: the terminal. help lists the commands.\n"); tprompt();
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
@@ -1349,7 +1421,8 @@ int main(int argc, char **argv)
         if (MODE == 4) memorypanel();
         if (MODE == 5) notepad();
         if (MODE == 6) terminal();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.16", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        if (MODE == 7) filespanel();
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.17", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);
