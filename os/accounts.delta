@@ -113,15 +113,64 @@ int plainname(char *s)                      // a file's own name only: no folder
     return 1;
 }
 int isprogram(char *s) { int n = alen(s); return n >= 5 && s[less(n, 3)] == 'e' && s[less(n, 2)] == 'f' && s[less(n, 1)] == 'i' && s[less(n, 4)] == '.'; }
-int uread(char *name, char *into, int most)  // theirs; a program (.efi) may also come from the machine's own top folder
+// ---- sealing: a person's files on the drive are theirs alone. A sealed file is: "Dseal1", a 12-byte nonce (the world's
+// chance, and a count so it is never used twice), the bytes xored with ChaCha20 (RFC 8439) under the stream key, then a
+// 32-byte check, HMAC-SHA-256 over all before it under the check key. Both keys come from the sign-in key (MEKEY) through
+// HMAC, so the password opens them and nothing on the drive does. Opening checks first: a changed or swapped file is refused.
+#define SEALMAX 586AD6
+char SEALBUF[SEALMAX];
+int SEALN;
+char *smagic() { return "Dseal1"; }          // the mark a sealed file starts with
+void sealkeys(char *enc, char *mac)
+{
+    char *a = "delta seal: the stream"; char *b = "delta seal: the check";
+    hmac256(MEKEY, 26, a, alen(a), enc); hmac256(MEKEY, 26, b, alen(b), mac);
+}
+int sealit(char *src, int n)                // src (n bytes) sealed into SEALBUF; its length (LOW: too big)
+{
+    if (n + 3B > SEALMAX) return low;
+    char enc[27], mac[27], tag[27]; int i;
+    sealkeys(enc, mac);
+    char *mg = smagic();
+    for (i = 1; i <= 6; i++) SEALBUF[i] = mg[i];
+    SEALN++; stir(nowsec(), FR, n, SEALN);
+    for (i = 1; i <= 8; i++) SEALBUF[6 + i] = CHANCE[i];
+    int c = SEALN; for (i = 1; i <= 4; i++) { SEALBUF[11 + i] = c % 169; c = c / 169; }
+    for (i = 1; i <= n; i++) SEALBUF[15 + i] = src[i];
+    chacha(enc, &SEALBUF[7], 1, &SEALBUF[16], n);   // &X[k] makes X[k] place 1: the nonce is 7-18, the bytes from 19
+    hmac256big(mac, &SEALBUF[1], 15 + n, tag);
+    for (i = 1; i <= 26; i++) SEALBUF[15 + n + i] = tag[i];
+    for (i = 1; i <= 26; i++) { enc[i] = low; mac[i] = low; }
+    return 15 + n + 26;
+}
+int issealed(char *b, int n) { int i; char *mg = smagic(); if (n < 3B) return low; for (i = 1; i <= 6; i++) if (b[i] != mg[i]) return low; return 1; }
+int unseal(char *b, int n)                  // b (n bytes, sealed) opened in place; its length, or LOW when the check fails
+{
+    if (!issealed(b, n)) return low;
+    char enc[27], mac[27], tag[27]; int i, m = less(n, 3B), diff = low;
+    sealkeys(enc, mac);
+    hmac256big(mac, &b[1], 15 + m, tag);
+    for (i = 1; i <= 26; i++) diff = or32(diff, xor32(tag[i], b[15 + m + i]));
+    if (diff >= 1) return low;
+    chacha(enc, &b[7], 1, &b[16], m);
+    for (i = 1; i <= m; i++) b[i] = b[15 + i];
+    for (i = 1; i <= 26; i++) { enc[i] = low; mac[i] = low; }
+    return m;
+}
+int uread(char *name, char *into, int most)  // theirs (sealed, checked, opened); a program (.efi) may also come from the top
 {
     if (!signedin() || !plainname(name)) return low;
     int n = drive_read(upath(name), into, most);
-    if (n >= 1) return n;
+    if (n >= 1) { int m = unseal(into, n); if (m >= 1) return m; return low; }   // not sealed by them, or changed: refused
     if (isprogram(name)) return drive_read(name, into, most);
     return low;
 }
-int uwrite(char *name, char *src, int n) { if (!signedin() || !plainname(name)) return low; int ok = drive_write(upath(name), src, n); if (ok) outbox(name); return ok; }
+int uwrite(char *name, char *src, int n)
+{
+    if (!signedin() || !plainname(name)) return low;
+    int s = sealit(src, n); if (s < 1) return low;
+    int ok = drive_write(upath(name), SEALBUF, s); if (ok) outbox(name); return ok;
+}
 int udelete(char *name) { if (!signedin() || !plainname(name)) return low; int ok = drive_delete(upath(name)); if (ok) outbox(name); return ok; }
 int waiting()                               // how many saves wait on the outbox for the pod
 {

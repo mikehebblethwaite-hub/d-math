@@ -1386,7 +1386,7 @@ void trun()                                                                // En
         ts("whoami      who is signed in, their pod      pod   your pod and the saves waiting to sync to it\n");
         ts("signout     signs you out      account NAME PASSWORD [POD]   makes another account (its pod: NAME.pods.unlint.com)\n");
     }
-    else if (tword("version")) ts("Delta Hex OS 0.22: no zero, written in Delta\n");
+    else if (tword("version")) ts("Delta Hex OS 0.23: no zero, written in Delta\n");
     else if (tword("mem")) {
         ts("ready to hold "); tn(ready); ts("   this system "); tn(ours); ts("   the firmware's "); tn(firmware);
         ts("   held back "); tn(held); ts("   all together "); tn(all); ts("\n");
@@ -1485,7 +1485,7 @@ void forget()                       // signing out: nothing of the last person s
     for (i = 1; i <= tlen + 1; i++) typed[i] = low; tlen = low;
     FCOUNT = low; EDGEN++;
 }
-void afterin() { int i; for (i = 1; i <= 55D1; i++) TL[i] = low; TLN = 1; TCOL = low; TGEN++; edstart(); ts("Delta Hex OS 0.22: the terminal. help lists the commands.\n"); tprompt(); }   // a fresh start for who signed in
+void afterin() { int i; for (i = 1; i <= 55D1; i++) TL[i] = low; TLN = 1; TCOL = low; TGEN++; edstart(); ts("Delta Hex OS 0.23: the terminal. help lists the commands.\n"); tprompt(); }   // a fresh start for who signed in
 void tkey(int k)
 {
     if (k == $D) { trun(); return; }
@@ -1589,7 +1589,7 @@ void pamount(char *what, int m, char *whole, char *small)
 void perchlook()
 {
     int k;
-    ps("P delta-hex-os 'Delta Hex OS 0.22: "); ps(modename()); ps("'\n");
+    ps("P delta-hex-os 'Delta Hex OS 0.23: "); ps(modename()); ps("'\n");
     ps("n numbers are D numerals; a box is x,y wxh in pixels; do N acts on thing N; Esc goes back to the desktop\n");
     if (MODE == 1) {
         for (k = 2; k <= 16; k++) {
@@ -1771,7 +1771,7 @@ int main(int argc, char **argv)
         if (MODE == 7) filespanel();
         if (MODE == 8) settingspanel();
         if (MODE == 9) signinpanel();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.22", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.23", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);

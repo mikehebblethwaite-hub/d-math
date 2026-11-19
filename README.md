@@ -292,7 +292,12 @@ machine's own top folder. Signing out leaves nothing of them in memory. Every ac
 (`https://NAME.pods.unlint.com/` unless given another) and each save goes on its outbox, `users\NAME\sync.txt`.
 `lang/guard`: SHA-256, HMAC, PBKDF2 in Delta, on Delta's new word bits (`xor32`, `and32`, `or32`, `rotr32`, `shr32`,
 `shl32`), checked against the standards' own answers. The firmware's 5-minute watchdog is switched off at start (it
-reset the machine before). Next: each person's files sealed with their key; the outbox sent over the machine's own link.
+reset the machine before).
+0.23: each person's files are sealed on the drive: "Dseal1", a 12-byte nonce (the world's chance and a count), the bytes
+xored with ChaCha20 (RFC 8439, in `lang/guard`, matching the standard), and an HMAC-SHA-256 check over all of it. Both keys
+come from the sign-in key, so the password opens them and nothing on the drive does; a changed or swapped file is refused.
+Checked from outside: Python's own ChaCha20 and HMAC open a file the OS sealed, with keys from PBKDF2 of the password.
+Next: the outbox sent to the pod over the machine's own link; changing a password (seal again); a clearer refusal message.
 0.19: base 10 for people (Mike: "introduce a base 10 option for the humans"): Settings (or `numbers ten` / `numbers d`),
 kept on the drive. In base 10 the old-fashioned 0 is written with our zero, a circle holding three dots, less than 1 (a hundred and
 five is 1, our zero, 5; on the serial line it travels as ⊚; it is only a symbol, as keyboards differ),

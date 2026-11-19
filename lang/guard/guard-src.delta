@@ -96,3 +96,68 @@ void hexof(char *b, int n, char *into)      // bytes as base-16 letters (for che
     for (i = 1; i <= n; i++) { into[less(i, 1) * 2 + 1] = dg[b[i] / {{16}} + 1]; into[less(i, 1) * 2 + 2] = dg[b[i] % {{16}} + 1]; }
     into[n * 2 + 1] = low;
 }
+
+// ---- ChaCha20 (RFC 8439): a stream of bytes from a 32-byte key, a 12-byte nonce and a block count; xor it over the data
+int CS[{{17}}], CX[{{17}}];
+char CKS[{{65}}];
+int le32(char *b, int at) { return ((b[at + 3] * {{256}} + b[at + 2]) * {{256}} + b[at + 1]) * {{256}} + b[at]; }
+int rotl32(int v, int n) { return rotr32(v, less({{32}}, n)); }
+void cqr(int a, int b, int c, int d)                     // the quarter round
+{
+    CX[a] = w32(CX[a] + CX[b]); CX[d] = rotl32(xor32(CX[d], CX[a]), {{16}});
+    CX[c] = w32(CX[c] + CX[d]); CX[b] = rotl32(xor32(CX[b], CX[c]), {{12}});
+    CX[a] = w32(CX[a] + CX[b]); CX[d] = rotl32(xor32(CX[d], CX[a]), 8);
+    CX[c] = w32(CX[c] + CX[d]); CX[b] = rotl32(xor32(CX[b], CX[c]), 7);
+}
+void chacha_block(char *key, char *nonce, int count)    // 64 bytes of stream into CKS
+{
+    int i;
+    CS[1] = {{1634760805}}; CS[2] = {{857760878}}; CS[3] = {{2036477234}}; CS[4] = {{1797285236}};   // "expand 32-byte k"
+    for (i = 1; i <= 8; i++) CS[4 + i] = le32(key, less(i, 1) * 4 + 1);
+    CS[{{13}}] = w32(count);
+    for (i = 1; i <= 3; i++) CS[{{13}} + i] = le32(nonce, less(i, 1) * 4 + 1);
+    for (i = 1; i <= {{16}}; i++) CX[i] = CS[i];
+    for (i = 1; i <= {{10}}; i++) {
+        cqr(1, 5, 9, {{13}}); cqr(2, 6, {{10}}, {{14}}); cqr(3, 7, {{11}}, {{15}}); cqr(4, 8, {{12}}, {{16}});
+        cqr(1, 6, {{11}}, {{16}}); cqr(2, 7, {{12}}, {{13}}); cqr(3, 8, 9, {{14}}); cqr(4, 5, {{10}}, {{15}});
+    }
+    for (i = 1; i <= {{16}}; i++) {
+        int v = w32(CX[i] + CS[i]), p = less(i, 1) * 4 + 1;
+        CKS[p] = v % {{256}}; v = v / {{256}}; CKS[p + 1] = v % {{256}}; v = v / {{256}}; CKS[p + 2] = v % {{256}}; CKS[p + 3] = v / {{256}};
+    }
+}
+void chacha(char *key, char *nonce, int count, char *data, int n)   // data (n bytes from place 1) xored with the stream, in place
+{
+    int at = 1;
+    while (at <= n) {
+        chacha_block(key, nonce, count);
+        int k; for (k = 1; k <= {{64}} && at <= n; k++) { data[at] = xor32(data[at], CKS[k]); at++; }
+        count++;
+    }
+}
+// HMAC-SHA-256 over a message of any size (hmac256 above keeps short ones in GBUF): the inner hash streamed block by block
+void hmac256big(char *key, char *m, int mn, char *out)
+{
+    char kfull[{{65}}], ipad[{{65}}], inner[{{33}}]; int i;
+    for (i = 1; i <= {{64}}; i++) kfull[i] = low;
+    for (i = 1; i <= {{32}}; i++) kfull[i] = key[i];                 // a 32-byte key
+    for (i = 1; i <= {{64}}; i++) ipad[i] = xor32(kfull[i], {{54}});
+    guard_start();
+    GH[1] = {{1779033703}}; GH[2] = {{3144134277}}; GH[3] = {{1013904242}}; GH[4] = {{2773480762}};
+    GH[5] = {{1359893119}}; GH[6] = {{2600822924}}; GH[7] = {{528734635}}; GH[8] = {{1541459225}};
+    g_block(ipad, 1);
+    int at = 1;
+    while (at + {{63}} <= mn) { g_block(m, at); at = at + {{64}}; }
+    char tail[{{129}}]; int tn = low;
+    for (i = at; i <= mn; i++) { tn++; tail[tn] = m[i]; }
+    tn++; tail[tn] = {{128}};
+    while (tn % {{64}} != {{56}}) { tn++; tail[tn] = low; }
+    int bits = ({{64}} + mn) * 8, k;
+    for (k = 8; k >= 1; k = less(k, 1)) { tail[tn + k] = bits % {{256}}; bits = bits / {{256}}; }
+    tn = tn + 8;
+    g_block(tail, 1); if (tn > {{64}}) g_block(tail, {{65}});
+    for (i = 1; i <= 8; i++) { int v = GH[i]; inner[less(i, 1) * 4 + 4] = v % {{256}}; v = v / {{256}}; inner[less(i, 1) * 4 + 3] = v % {{256}}; v = v / {{256}}; inner[less(i, 1) * 4 + 2] = v % {{256}}; inner[less(i, 1) * 4 + 1] = v / {{256}}; }
+    for (i = 1; i <= {{64}}; i++) GBUF[i] = xor32(kfull[i], {{92}});
+    for (i = 1; i <= {{32}}; i++) GBUF[{{64}} + i] = inner[i];
+    sha256(GBUF, {{96}}, out);
+}
