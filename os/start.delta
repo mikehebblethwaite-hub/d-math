@@ -1395,7 +1395,8 @@ void trun()                                                                // En
     else if (tword("files")) { tfiles(); if (TEN) { ts("(sizes in "); ts(basename()); ts(", converted from D)\n"); } }
     else if (tword("show")) {
         int got = uread(&TIN[TPART], TFILE, 1A7C);
-        if (got < 1) { ts("no file called "); ts(&TIN[TPART]); ts("\n"); }
+        if (got < 1 && UCHANGED) { ts(&TIN[TPART]); ts(" was changed on the drive, not by you: refused (its seal does not match)\n"); }
+        else if (got < 1) { ts("no file called "); ts(&TIN[TPART]); ts("\n"); }
         else { for (i = 1; i <= got; i++) tc(TFILE[i]); if (TFILE[got] != $A) ts("\n"); }
     }
     else if (tword("sum")) {

@@ -120,6 +120,7 @@ int isprogram(char *s) { int n = alen(s); return n >= 5 && s[less(n, 3)] == 'e' 
 #define SEALMAX 586AD6
 char SEALBUF[SEALMAX];
 int SEALN;
+int UCHANGED;                               // 1: the last read found the file changed on the drive (refused)
 char *smagic() { return "Dseal1"; }          // the mark a sealed file starts with
 void sealkeys(char *enc, char *mac)
 {
@@ -161,7 +162,8 @@ int uread(char *name, char *into, int most)  // theirs (sealed, checked, opened)
 {
     if (!signedin() || !plainname(name)) return low;
     int n = drive_read(upath(name), into, most);
-    if (n >= 1) { int m = unseal(into, n); if (m >= 1) return m; return low; }   // not sealed by them, or changed: refused
+    UCHANGED = low;
+    if (n >= 1) { int m = unseal(into, n); if (m >= 1) return m; UCHANGED = 1; return low; }   // not sealed by them, or changed: refused
     if (isprogram(name)) return drive_read(name, into, most);
     return low;
 }
