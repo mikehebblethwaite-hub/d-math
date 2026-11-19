@@ -194,6 +194,17 @@ mkdir -p "$T/objects"; printf '#include "objects/b.delta"\nint twice(int n) { re
 printf 'int thrice(int n) { return n * 3; }\n' > "$T/objects/b.delta"
 printf '#include "objects/a.delta"\n#include "objects/b.delta"\nint main(int argc, char **argv)\n{\nsay("%%d %%d", twice(4), thrice(4));\nreturn 1;\n}\n' > "$T/inc.delta"
 if [ "$($DELTA run "$T/inc.delta" 2>&1)" = "8 C" ]; then echo "ok honest: #include, nested, each file once"; pass=$((pass+1)); else echo "FAIL honest: #include"; bad=$((bad+1)); fi
+# guard: SHA-256, HMAC-SHA-256 and PBKDF2-HMAC-SHA-256 against the standards' own answers (FIPS 180-4, RFC 4231, RFC 7914)
+got=$($DELTA run guard-check.delta 2>&1); rm -f guard-check
+want='sha-abc ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+sha-empty e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+sha-two 248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1
+hmac-1 b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7
+pbkdf2-1 120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b
+pbkdf2-4096 c5e478d59288c841aa530db6845c4c8d962893a001ce4e11a4963873aa98134a'
+if [ "$got" = "$want" ]; then echo "ok honest: guard: SHA-256, HMAC, PBKDF2 match the standards"; pass=$((pass+1)); else echo "FAIL honest: guard: [$got]"; bad=$((bad+1)); fi
+# the bits of a word: xor32 and32 or32 rotr32 shr32 shl32
+last "word bits"  'say("%d %d %d %d %d %d\n", xor32($D, 6), and32($D, 6), or32($D, 6), rotr32(1, 1), shr32($D, 2), shl32(3, 2));' 'B 4 12 282BA4AAB 3 C'
 dnum() { local v=$1 s="" r; while [ $v -ge 1 ]; do r=$((v%13)); [ $r -lt 1 ] && r=13; s="${DIGS:$((r-1)):1}$s"; v=$(((v-r)/13)); done; echo "$s"; }
 DIGS=123456789ABCD                                       # the report is in D numerals, like everything else
 if [ $bad = 1 ]; then echo "every test passed: $(dnum $((pass-1))) of them (D numerals)"

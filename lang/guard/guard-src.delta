@@ -1,0 +1,98 @@
+// guard: what keeps a user's things theirs (Mike, 19 Nov 2026: "the deltahexos user accounts security system").
+// SHA-256 (FIPS 180-4), HMAC-SHA-256 (RFC 2104) and PBKDF2-HMAC-SHA-256 (RFC 8018), in Delta, on 32-bit words with
+// Delta's own xor32, and32, or32, rotr32, shr32 (a word's bits, each HIGH or LOW). Bytes live in char rows from place 1.
+// Checked against the published test vectors (lang/tests/run.sh: guard).
+//
+// Written from the standards, not copied: the 64 round words are the first 32 bits of the fractional parts of the cube
+// roots of the first 64 primes; the start words, of the square roots of the first 8 (FIPS 180-4, 4.2.2 and 5.3.3).
+#define WORD {{4294967296}}                 // a 32-bit word holds less than this
+int GK[{{65}}];
+int GH[9], GW[{{65}}];
+int GREADY;
+void guard_start()
+{
+    if (GREADY) return;
+    GREADY = 1;
+    int k[{{65}}];
+    k[1] = {{1116352408}}; k[2] = {{1899447441}}; k[3] = {{3049323471}}; k[4] = {{3921009573}}; k[5] = {{961987163}}; k[6] = {{1508970993}}; k[7] = {{2453635748}}; k[8] = {{2870763221}};
+    k[9] = {{3624381080}}; k[{{10}}] = {{310598401}}; k[{{11}}] = {{607225278}}; k[{{12}}] = {{1426881987}}; k[{{13}}] = {{1925078388}}; k[{{14}}] = {{2162078206}}; k[{{15}}] = {{2614888103}}; k[{{16}}] = {{3248222580}};
+    k[{{17}}] = {{3835390401}}; k[{{18}}] = {{4022224774}}; k[{{19}}] = {{264347078}}; k[{{20}}] = {{604807628}}; k[{{21}}] = {{770255983}}; k[{{22}}] = {{1249150122}}; k[{{23}}] = {{1555081692}}; k[{{24}}] = {{1996064986}};
+    k[{{25}}] = {{2554220882}}; k[{{26}}] = {{2821834349}}; k[{{27}}] = {{2952996808}}; k[{{28}}] = {{3210313671}}; k[{{29}}] = {{3336571891}}; k[{{30}}] = {{3584528711}}; k[{{31}}] = {{113926993}}; k[{{32}}] = {{338241895}};
+    k[{{33}}] = {{666307205}}; k[{{34}}] = {{773529912}}; k[{{35}}] = {{1294757372}}; k[{{36}}] = {{1396182291}}; k[{{37}}] = {{1695183700}}; k[{{38}}] = {{1986661051}}; k[{{39}}] = {{2177026350}}; k[{{40}}] = {{2456956037}};
+    k[{{41}}] = {{2730485921}}; k[{{42}}] = {{2820302411}}; k[{{43}}] = {{3259730800}}; k[{{44}}] = {{3345764771}}; k[{{45}}] = {{3516065817}}; k[{{46}}] = {{3600352804}}; k[{{47}}] = {{4094571909}}; k[{{48}}] = {{275423344}};
+    k[{{49}}] = {{430227734}}; k[{{50}}] = {{506948616}}; k[{{51}}] = {{659060556}}; k[{{52}}] = {{883997877}}; k[{{53}}] = {{958139571}}; k[{{54}}] = {{1322822218}}; k[{{55}}] = {{1537002063}}; k[{{56}}] = {{1747873779}};
+    k[{{57}}] = {{1955562222}}; k[{{58}}] = {{2024104815}}; k[{{59}}] = {{2227730452}}; k[{{60}}] = {{2361852424}}; k[{{61}}] = {{2428436474}}; k[{{62}}] = {{2756734187}}; k[{{63}}] = {{3204031479}}; k[{{64}}] = {{3329325298}};
+    int i; for (i = 1; i <= {{64}}; i++) GK[i] = k[i];
+}
+int w32(int v) { return v % WORD; }
+void g_block(char *m, int at)               // one 64-byte block from place at, into the running words GH
+{
+    int t;
+    for (t = 1; t <= {{16}}; t++) { int p = at + less(t, 1) * 4; GW[t] = ((m[p] * {{256}} + m[p + 1]) * {{256}} + m[p + 2]) * {{256}} + m[p + 3]; }
+    for (t = {{17}}; t <= {{64}}; t++) {
+        int a = GW[less(t, {{15}})], b = GW[less(t, 2)];
+        int sga = xor32(xor32(rotr32(a, 7), rotr32(a, {{18}})), shr32(a, 3));
+        int sgb = xor32(xor32(rotr32(b, {{17}}), rotr32(b, {{19}})), shr32(b, {{10}}));
+        GW[t] = w32(GW[less(t, {{16}})] + sga + GW[less(t, 7)] + sgb);
+    }
+    int a = GH[1], b = GH[2], c = GH[3], d = GH[4], e = GH[5], f = GH[6], g = GH[7], h = GH[8];
+    for (t = 1; t <= {{64}}; t++) {
+        int SGB = xor32(xor32(rotr32(e, 6), rotr32(e, {{11}})), rotr32(e, {{25}}));
+        int ch = xor32(and32(e, f), and32(less({{4294967295}}, e), g));
+        int t1 = w32(h + SGB + ch + GK[t] + GW[t]);
+        int SGA = xor32(xor32(rotr32(a, 2), rotr32(a, {{13}})), rotr32(a, {{22}}));
+        int mj = xor32(xor32(and32(a, b), and32(a, c)), and32(b, c));
+        int t2 = w32(SGA + mj);
+        h = g; g = f; f = e; e = w32(d + t1); d = c; c = b; b = a; a = w32(t1 + t2);
+    }
+    GH[1] = w32(GH[1] + a); GH[2] = w32(GH[2] + b); GH[3] = w32(GH[3] + c); GH[4] = w32(GH[4] + d);
+    GH[5] = w32(GH[5] + e); GH[6] = w32(GH[6] + f); GH[7] = w32(GH[7] + g); GH[8] = w32(GH[8] + h);
+}
+void sha256(char *m, int n, char *out)      // n bytes of m (from place 1) -> 32 bytes in out (from place 1)
+{
+    guard_start();
+    GH[1] = {{1779033703}}; GH[2] = {{3144134277}}; GH[3] = {{1013904242}}; GH[4] = {{2773480762}};
+    GH[5] = {{1359893119}}; GH[6] = {{2600822924}}; GH[7] = {{528734635}}; GH[8] = {{1541459225}};
+    int at = 1;
+    while (at + {{63}} <= n) { g_block(m, at); at = at + {{64}}; }
+    char tail[{{129}}]; int tn = low, i;
+    for (i = at; i <= n; i++) { tn++; tail[tn] = m[i]; }
+    tn++; tail[tn] = {{128}};                                   // the one HIGH bit after the message
+    while (tn % {{64}} != {{56}}) { tn++; tail[tn] = low; }     // then LOW bits to 8 bytes short of a block
+    int bits = n * 8, k;                                         // then the length in bits, 8 bytes, biggest first
+    for (k = 8; k >= 1; k = less(k, 1)) { tail[tn + k] = bits % {{256}}; bits = bits / {{256}}; }
+    tn = tn + 8;
+    g_block(tail, 1); if (tn > {{64}}) g_block(tail, {{65}});
+    for (i = 1; i <= 8; i++) { int v = GH[i]; out[less(i, 1) * 4 + 4] = v % {{256}}; v = v / {{256}}; out[less(i, 1) * 4 + 3] = v % {{256}}; v = v / {{256}}; out[less(i, 1) * 4 + 2] = v % {{256}}; out[less(i, 1) * 4 + 1] = v / {{256}}; }
+}
+char GBUF[{{2200}}];
+void hmac256(char *key, int kn, char *m, int mn, char *out)   // HMAC-SHA-256 of m (mn bytes, at most 2048) with key
+{
+    char kfull[{{65}}], inner[{{33}}]; int i;
+    for (i = 1; i <= {{64}}; i++) kfull[i] = low;
+    if (kn > {{64}}) sha256(key, kn, kfull); else for (i = 1; i <= kn; i++) kfull[i] = key[i];
+    for (i = 1; i <= {{64}}; i++) GBUF[i] = xor32(kfull[i], {{54}});           // ipad
+    for (i = 1; i <= mn; i++) GBUF[{{64}} + i] = m[i];
+    sha256(GBUF, {{64}} + mn, inner);
+    for (i = 1; i <= {{64}}; i++) GBUF[i] = xor32(kfull[i], {{92}});           // opad
+    for (i = 1; i <= {{32}}; i++) GBUF[{{64}} + i] = inner[i];
+    sha256(GBUF, {{96}}, out);
+}
+void pbkdf2(char *pw, int pn, char *salt, int sn, int rounds, char *out)   // PBKDF2-HMAC-SHA-256, the first 32 bytes
+{
+    char s[{{200}}], u[{{33}}], v[{{33}}]; int i, r;
+    for (i = 1; i <= sn; i++) s[i] = salt[i];
+    s[sn + 1] = low; s[sn + 2] = low; s[sn + 3] = low; s[sn + 4] = 1;     // block number 1, four bytes
+    hmac256(pw, pn, s, sn + 4, u);
+    for (i = 1; i <= {{32}}; i++) out[i] = u[i];
+    for (r = 2; r <= rounds; r++) {
+        hmac256(pw, pn, u, {{32}}, v);
+        for (i = 1; i <= {{32}}; i++) { u[i] = v[i]; out[i] = xor32(out[i], v[i]); }
+    }
+}
+void hexof(char *b, int n, char *into)      // bytes as base-16 letters (for checking against the standards' answers)
+{
+    char *dg = "0123456789abcdef"; int i;
+    for (i = 1; i <= n; i++) { into[less(i, 1) * 2 + 1] = dg[b[i] / {{16}} + 1]; into[less(i, 1) * 2 + 2] = dg[b[i] % {{16}} + 1]; }
+    into[n * 2 + 1] = low;
+}

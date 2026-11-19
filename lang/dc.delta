@@ -110,6 +110,7 @@ char flowname[999999];          // 1 at a name's pool place: the flow has heard 
 
 int kint, kchar, klong, kvoid, kunsigned, ksigned, kconst, kstatic, kif, kelse, kwhile, kfor, kreturn, kbreak;
 int kcontinue, kmove, kfrom, kto, kand, ksay, kless, kapart, klower, khigher, ktowards, kcopy, kmain;
+int kxor32, kand32, kor32, krotr32, kshr32, kshl32;   // the bits of a 32-bit word (Mike, 19 Nov 2026: what security needs)
 int kdefine, kinclude, kthing, kvessel, klinux, kwait, kstop, kwide, khigh, kfits, kshrug, kself, ktilde;
 int kstore, kconduct, kneighbours, kspend, ktick, kwear, kmix, kquiet, kleak, kloss, kper, kby, kheat;
 
@@ -532,6 +533,12 @@ int inline(int w)
         lab(ok); ins("sub rax, rcx");
     } else if (w == kapart) { int ok = newlab(); ins("sub rax, rcx"); jmp("jge", ok); ins("neg rax"); lab(ok); }
     else if (w == klower) { ins("cmp rax, rcx"); ins("cmovg rax, rcx"); }
+    else if (w == kxor32) { ins("xor rax, rcx"); ins("mov eax, eax"); }                 // each bit: HIGH where the two differ
+    else if (w == kand32) { ins("and rax, rcx"); ins("mov eax, eax"); }                 // HIGH where both are
+    else if (w == kor32) { ins("or rax, rcx"); ins("mov eax, eax"); }                   // HIGH where either is
+    else if (w == krotr32) { ins("ror eax, cl"); }                                      // the word turned round n places
+    else if (w == kshr32) { ins("mov eax, eax"); ins("shr rax, cl"); }                  // moved down n places (the low ones fall off)
+    else if (w == kshl32) { ins("shl rax, cl"); ins("mov eax, eax"); }                  // moved up n places, kept to 32
     else { ins("cmp rax, rcx"); ins("cmovl rax, rcx"); }
     return INT;
 }
@@ -563,7 +570,8 @@ int call()
     P = P + 2;                                       // past the name and (
     if (nm == kshrug) nm = word("dl_shrugread");
     if (nm == ksay) return sayit();
-    if ((nm == kless || nm == kapart || nm == klower || nm == khigher || nm == ktowards || nm == kcopy) && findfn(nm, low) < 1) return inline(nm);
+    if ((nm == kless || nm == kapart || nm == klower || nm == khigher || nm == ktowards || nm == kcopy
+         || nm == kxor32 || nm == kand32 || nm == kor32 || nm == krotr32 || nm == kshr32 || nm == kshl32) && findfn(nm, low) < 1) return inline(nm);
     if (findfn(nm, low) < 1 && curown >= 1 && findfn(nm, curown) >= 1) {
         int s = findlocal(kself);
         insr("mov rax, [rbp-", lo[s], "]");
@@ -1661,6 +1669,7 @@ int main(int argc, char **argv)
     kbreak = word("break"); kcontinue = word("continue"); kmove = word("move"); kfrom = word("from"); kto = word("to");
     kand = word("and"); ksay = word("say"); kless = word("less"); kapart = word("apart"); klower = word("lower");
     khigher = word("higher"); ktowards = word("towards"); kcopy = word("copy"); kmain = word("main");
+    kxor32 = word("xor32"); kand32 = word("and32"); kor32 = word("or32"); krotr32 = word("rotr32"); kshr32 = word("shr32"); kshl32 = word("shl32");
     kdefine = word("define"); kinclude = word("include"); kthing = word("thing"); kvessel = word("vessel");
     klinux = word("linux"); kwait = word("wait"); kstop = word("stop"); kwide = word("screenwide"); khigh = word("screenhigh");
     kfits = word("fits"); kshrug = word("shrug"); kself = word("self"); ktilde = word("~");

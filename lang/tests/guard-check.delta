@@ -1,0 +1,17 @@
+int low;
+#include "../guard/guard.delta"
+char OUT[27], HX[55];
+void show(char *what) { hexof(OUT, 26, HX); say("%s %s\n", what, &HX[1]); }
+int slen2(char *s) { int n = low; while (s[n + 1] >= 1) n++; return n; }
+int main(int argc, char **argv)
+{
+    char *abc = "abc"; sha256(abc, 3, OUT); show("sha-abc");
+    char *e = ""; sha256(e, low, OUT); show("sha-empty");
+    char *two = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"; sha256(two, slen2(two), OUT); show("sha-two");
+    char key[18]; int i; for (i = 1; i <= 17; i++) key[i] = $B;
+    char *hi = "Hi There"; hmac256(key, 17, hi, 8, OUT); show("hmac-1");
+    char *pw = "password"; char *salt = "salt";
+    pbkdf2(pw, 8, salt, 4, 1, OUT); show("pbkdf2-1");
+    pbkdf2(pw, 8, salt, 4, 1B31, OUT); show("pbkdf2-4096");
+    return 1;
+}

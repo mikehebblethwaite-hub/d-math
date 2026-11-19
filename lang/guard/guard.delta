@@ -1,0 +1,98 @@
+// guard: what keeps a user's things theirs (Mike, 19 Nov 2026: "the deltahexos user accounts security system").
+// SHA-256 (FIPS 180-4), HMAC-SHA-256 (RFC 2104) and PBKDF2-HMAC-SHA-256 (RFC 8018), in Delta, on 32-bit words with
+// Delta's own xor32, and32, or32, rotr32, shr32 (a word's bits, each HIGH or LOW). Bytes live in char rows from place 1.
+// Checked against the published test vectors (lang/tests/run.sh: guard).
+//
+// Written from the standards, not copied: the 64 round words are the first 32 bits of the fractional parts of the cube
+// roots of the first 64 primes; the start words, of the square roots of the first 8 (FIPS 180-4, 4.2.2 and 5.3.3).
+#define WORD 535A79889                 // a 32-bit word holds less than this
+int GK[4D];
+int GH[9], GW[4D];
+int GREADY;
+void guard_start()
+{
+    if (GREADY) return;
+    GREADY = 1;
+    int k[4D];
+    k[1] = 14A387A72; k[2] = 24369C1C8; k[3] = 397993A1C; k[4] = 4A64559DD; k[5] = 1243BAC97; k[6] = 1AD81365A; k[7] = 2D1447B95; k[8] = 3699A5281;
+    k[9] = 459B686B8; k[$A] = 4C46BB49; k[$B] = 98A584CA; k[$C] = 1997D148B; k[$D] = 248AA464C; k[11] = 285C14A22; k[12] = 328986689; k[13] = 3C9C53BC5;
+    k[14] = 4917A8A9B; k[15] = 4C13D3679; k[16] = 429C6AB8; k[17] = 983BCC49; k[18] = $C376A593; k[19] = 16BA42AAC; k[1A] = 1BA2396A8; k[1B] = 25A6CA256;
+    k[1C] = 319234AD5; k[1D] = 35C7D3589; k[21] = 37DA381B8; k[22] = 3C213CDB6; k[23] = 4123486C3; k[24] = 451823DDA; k[25] = 1A7AB92B; k[26] = 54DCA344;
+    k[27] = $A7D73625; k[28] = $C43457DC; k[29] = 17831D92C; k[2A] = 193342B8A; k[2B] = 1DD2812A2; k[2C] = 258786AAB; k[2D] = 288D49895; k[31] = 2D1D3B253;
+    k[32] = 3468CB957; k[33] = 35C3B81C4; k[34] = 3CC452DC1; k[35] = 414216A8B; k[36] = 43D5A3124; k[37] = 454BA4899; k[38] = 4D33B461C; k[39] = 44DA44C1;
+    k[3A] = 6B196131; k[3B] = 7DD48AC5; k[3C] = $A66D6D7B; k[3D] = 1111B2B89; k[41] = 1236718BC; k[42] = 17DD98B53; k[43] = 1B657939C; k[44] = 21B16BC52;
+    k[45] = 2521B8913; k[46] = 263466C75; k[47] = 2966BD5CC; k[48] = 2B841D319; k[49] = 2C9163D79; k[4A] = 34C18BD7C; k[4B] = 3BDA4D81C; k[4C] = 3DD9AC18D;
+    int i; for (i = 1; i <= 4C; i++) GK[i] = k[i];
+}
+int w32(int v) { return v % WORD; }
+void g_block(char *m, int at)               // one 64-byte block from place at, into the running words GH
+{
+    int t;
+    for (t = 1; t <= 13; t++) { int p = at + less(t, 1) * 4; GW[t] = ((m[p] * 169 + m[p + 1]) * 169 + m[p + 2]) * 169 + m[p + 3]; }
+    for (t = 14; t <= 4C; t++) {
+        int a = GW[less(t, 12)], b = GW[less(t, 2)];
+        int sga = xor32(xor32(rotr32(a, 7), rotr32(a, 15)), shr32(a, 3));
+        int sgb = xor32(xor32(rotr32(b, 14), rotr32(b, 16)), shr32(b, $A));
+        GW[t] = w32(GW[less(t, 13)] + sga + GW[less(t, 7)] + sgb);
+    }
+    int a = GH[1], b = GH[2], c = GH[3], d = GH[4], e = GH[5], f = GH[6], g = GH[7], h = GH[8];
+    for (t = 1; t <= 4C; t++) {
+        int SGB = xor32(xor32(rotr32(e, 6), rotr32(e, $B)), rotr32(e, 1C));
+        int ch = xor32(and32(e, f), and32(less(535A79888, e), g));
+        int t1 = w32(h + SGB + ch + GK[t] + GW[t]);
+        int SGA = xor32(xor32(rotr32(a, 2), rotr32(a, $D)), rotr32(a, 19));
+        int mj = xor32(xor32(and32(a, b), and32(a, c)), and32(b, c));
+        int t2 = w32(SGA + mj);
+        h = g; g = f; f = e; e = w32(d + t1); d = c; c = b; b = a; a = w32(t1 + t2);
+    }
+    GH[1] = w32(GH[1] + a); GH[2] = w32(GH[2] + b); GH[3] = w32(GH[3] + c); GH[4] = w32(GH[4] + d);
+    GH[5] = w32(GH[5] + e); GH[6] = w32(GH[6] + f); GH[7] = w32(GH[7] + g); GH[8] = w32(GH[8] + h);
+}
+void sha256(char *m, int n, char *out)      // n bytes of m (from place 1) -> 32 bytes in out (from place 1)
+{
+    guard_start();
+    GH[1] = 22475BB85; GH[2] = 3B14DB5AB; GH[3] = 131D97B4D; GH[4] = 3527A369D;
+    GH[5] = 1889783AD; GH[6] = 325A9D69B; GH[7] = 856D613D; GH[8] = 1B7479D67;
+    int at = 1;
+    while (at + 4B <= n) { g_block(m, at); at = at + 4C; }
+    char tail[9C]; int tn = low, i;
+    for (i = at; i <= n; i++) { tn++; tail[tn] = m[i]; }
+    tn++; tail[tn] = 9B;                                   // the one HIGH bit after the message
+    while (tn % 4C != 44) { tn++; tail[tn] = low; }     // then LOW bits to 8 bytes short of a block
+    int bits = n * 8, k;                                         // then the length in bits, 8 bytes, biggest first
+    for (k = 8; k >= 1; k = less(k, 1)) { tail[tn + k] = bits % 169; bits = bits / 169; }
+    tn = tn + 8;
+    g_block(tail, 1); if (tn > 4C) g_block(tail, 4D);
+    for (i = 1; i <= 8; i++) { int v = GH[i]; out[less(i, 1) * 4 + 4] = v % 169; v = v / 169; out[less(i, 1) * 4 + 3] = v % 169; v = v / 169; out[less(i, 1) * 4 + 2] = v % 169; out[less(i, 1) * 4 + 1] = v / 169; }
+}
+char GBUF[$CD3];
+void hmac256(char *key, int kn, char *m, int mn, char *out)   // HMAC-SHA-256 of m (mn bytes, at most 2048) with key
+{
+    char kfull[4D], inner[27]; int i;
+    for (i = 1; i <= 4C; i++) kfull[i] = low;
+    if (kn > 4C) sha256(key, kn, kfull); else for (i = 1; i <= kn; i++) kfull[i] = key[i];
+    for (i = 1; i <= 4C; i++) GBUF[i] = xor32(kfull[i], 42);           // ipad
+    for (i = 1; i <= mn; i++) GBUF[4C + i] = m[i];
+    sha256(GBUF, 4C + mn, inner);
+    for (i = 1; i <= 4C; i++) GBUF[i] = xor32(kfull[i], 71);           // opad
+    for (i = 1; i <= 26; i++) GBUF[4C + i] = inner[i];
+    sha256(GBUF, 75, out);
+}
+void pbkdf2(char *pw, int pn, char *salt, int sn, int rounds, char *out)   // PBKDF2-HMAC-SHA-256, the first 32 bytes
+{
+    char s[125], u[27], v[27]; int i, r;
+    for (i = 1; i <= sn; i++) s[i] = salt[i];
+    s[sn + 1] = low; s[sn + 2] = low; s[sn + 3] = low; s[sn + 4] = 1;     // block number 1, four bytes
+    hmac256(pw, pn, s, sn + 4, u);
+    for (i = 1; i <= 26; i++) out[i] = u[i];
+    for (r = 2; r <= rounds; r++) {
+        hmac256(pw, pn, u, 26, v);
+        for (i = 1; i <= 26; i++) { u[i] = v[i]; out[i] = xor32(out[i], v[i]); }
+    }
+}
+void hexof(char *b, int n, char *into)      // bytes as base-16 letters (for checking against the standards' answers)
+{
+    char *dg = "0123456789abcdef"; int i;
+    for (i = 1; i <= n; i++) { into[less(i, 1) * 2 + 1] = dg[b[i] / 13 + 1]; into[less(i, 1) * 2 + 2] = dg[b[i] % 13 + 1]; }
+    into[n * 2 + 1] = low;
+}

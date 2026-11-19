@@ -299,9 +299,10 @@ int setcc(char *m)
     if (is(m, "setge")) return hx("9D"); if (is(m, "setle")) return hx("9E"); if (is(m, "setg")) return hx("9F");
     return low;
 }
-int alu(char *m)                                  // add 1, sub 6, cmp 8, xor 7 (the /digit, counted from 1)
+int alu(char *m)                                  // add 1, or 2, and 5, sub 6, xor 7, cmp 8 (the /digit, counted from 1)
 {
     if (is(m, "add")) return 1; if (is(m, "sub")) return 6; if (is(m, "cmp")) return 8; if (is(m, "xor")) return 7;
+    if (is(m, "or")) return 2; if (is(m, "and")) return 5;
     return low;
 }
 
@@ -342,6 +343,8 @@ void encode(char *m)
         if (d == 6) { op1 = hx("29"); op3 = hx("2B"); }
         if (d == 8) { op1 = hx("39"); op3 = hx("3B"); }
         if (d == 7) { op1 = hx("31"); op3 = hx("33"); }
+        if (d == 2) { op1 = hx("09"); op3 = hx("0B"); }
+        if (d == 5) { op1 = hx("21"); op3 = hx("23"); }
         if (c == 1) { rex(w, oreg[2], 1); b(op1); modrm(r3(oreg[2]), 1); return; }
         if (c == 2) { rex(w, oreg[1], 2); b(op3); modrm(r3(oreg[1]), 2); return; }
     }
@@ -355,6 +358,10 @@ void encode(char *m)
         return;
     }
     if (is(m, "movsxd")) { rex(1, oreg[1], 2); ob("63"); modrm(r3(oreg[1]), 2); return; }     // a 4-byte direction, widened
+    if ((is(m, "shr") || is(m, "shl") || is(m, "ror")) && nops == 2 && okind[2] == 1) {             // by cl: shr /5, shl /4, ror /1
+        int dg = is(m, "shr") ? 5 : is(m, "shl") ? 4 : 1;
+        rex(osize[1] == 8, low, 1); ob("D3"); modrm(dg, 1); return;
+    }
     if (is(m, "shr")) { rex(1, low, 1); ob("D1"); modrm(5, 1); return; }                        // halve (shr r, 1)
     if (is(m, "cmovg")) { rex(1, oreg[1], 2); ob("0F 4F"); modrm(r3(oreg[1]), 2); return; }
     if (is(m, "cmovl")) { rex(1, oreg[1], 2); ob("0F 4C"); modrm(r3(oreg[1]), 2); return; }
