@@ -33,7 +33,8 @@ send around to other places or bots, always"):
 - warmth is kept to a hundredth of a degree, and a cell that moved less than 3 hundredths since it was last written
   counts as "as it was" (the error never passes 2 hundredths and never grows);
 - the base is the key frame's lowest less 20 degrees; a cell falling below it makes a new key frame at once;
-- sent anywhere, the file is zipped as well. First measure (19 Nov, the lab with the outside door open, every cell
+- sent anywhere, the file is zipped as well, as standard gzip, so the other system opens it without learning anything
+  (Mike: "passing data to other systems, they must be able to uncompress without learning"); inside, it is plain lines. First measure (19 Nov, the lab with the outside door open, every cell
   changing): 72 KB a frame as written, about 19 KB zipped. Our own zip (deflate) in Delta is on the list; PNG needs it too. New fields (`w` wind across, `v` wind up, `u` wind along) need no new
 version: a reader takes the fields the file names.
 

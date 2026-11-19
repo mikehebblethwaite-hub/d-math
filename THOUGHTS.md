@@ -5,6 +5,11 @@ some other ways after completion"). Not promises: each is tried, measured, and k
 
 ## Compression (after .hexi, .pngi, .mp4i and .mp3i work)
 
+The rule that bounds every idea here (Mike, 19 Nov 2026): data passed to other systems must open there without learning
+anything new. So what leaves our systems is compressed in a standard way every system already reads (zip/gzip deflate;
+PNG, MP4, MP3 inside the media packs), and our own zip in Delta must write those same standard bytes. Our own ways below are
+for inside our own systems only, or sit inside a standard wrapper that still opens anywhere.
+
 - .hexi today: key frames, "=" for unchanged, runs, warmth within 2 hundredths; zip on top when sent (72 KB a frame
   written, about 19 KB zipped, with every cell changing).
 - Try: writing each cell as its change from the cell beside it (neighbours are close in warmth: the hex way).
