@@ -1,0 +1,109 @@
+// ---------------------------------------------------------------- outside: the place and the time of year the lab is set to
+// (Mike: "the outside door ... lets in the current outside environment, dependent on time of year and place the lab is set to
+// by the user".) The place is read from place.txt (north or south, east or west, in whole degrees, D numerals); the time is
+// now, by this machine's clock, moved by [ and ] a stones' month (28 days) and by ; and ' an hour. From them: the sun's
+// height, by our own hex circle (96 places round, so to about 4 degrees), and the outside's warmth: a year's mean for the
+// latitude, its summer-winter swing, and the day's swing with the sun. A first outside from the sun and the latitude alone;
+// real readings (buoys, the eye, a thermometer) are to take its place.
+int PLAT = {{51}}, PSOUTH, PLON = 2, PWEST = 1;            // to start: the stones (Stonehenge), 51 north, 2 west
+int SHIFTS = {{126230400}};                                 // the user's move from now, in seconds, held up by four years
+#define SHIFTBASE {{126230400}}
+int OY, OM, ODAY, ODOY, OMIN;                               // the outside's date (the old count), day of its year, minute of day (UTC)
+int SMIN;                                                   // the sun's own time there, minutes from midnight
+int SUNS = K;                                               // the sun's height: its sine, held up by K (K: on the horizon)
+int SY2, SM2, SD2, SFUN2;                                   // the stones' calendar date
+int ylen(int y) { return y % 4 < 1 && (y % {{100}} >= 1 || y % {{400}} < 1) ? {{366}} : {{365}}; }
+int omlen(int y, int m)
+{
+    if (m == 2) return ylen(y) == {{366}} ? {{29}} : {{28}};
+    if (m == 4 || m == 6 || m == {{9}} || m == {{11}}) return {{30}};
+    return {{31}};
+}
+int odayno(int y, int m, int d) { int p = less(y, 1), n = p * {{365}} + p / 4 + p / {{400}}, k; n = less(n, p / {{100}}); for (k = 1; k < m; k++) n = n + omlen(y, k); return n + d; }
+void stones2(int y, int m, int d)                           // the stones' calendar: 13 months of 28 days; midwinter, and in a leap year midsummer, days off
+{
+    int t = odayno(y, m, d), mw = odayno(y, {{12}}, {{21}}), s;
+    SFUN2 = low; SM2 = low; SD2 = low;
+    if (t == mw) { SY2 = y; SFUN2 = 1; return; }
+    if (t > mw) { SY2 = y + 1; s = mw + 1; } else { SY2 = y; s = odayno(less(y, 1), {{12}}, {{21}}) + 1; }
+    int ms = odayno(SY2, 6, {{21}}), leap = less(odayno(SY2, {{12}}, {{21}}), odayno(less(SY2, 1), {{12}}, {{21}})) == {{366}};
+    if (leap && t == ms) { SFUN2 = 2; return; }
+    int day = less(t, s) + 1;
+    if (leap && t > ms) day = less(day, 1);
+    SM2 = less(day, 1) / {{28}} + 1; SD2 = less(day, 1) % {{28}} + 1;
+}
+int nowsecs() { int ts[2]; ts[1] = low; ts[2] = low; linux({{228}}, low, &ts[1]); return ts[1] >= {{1000000000}} ? ts[1] : {{1781913600}}; }   // the clock, or midsummer 2026 when there is none
+int placeof(int deg, int neg) { int p = deg * {{96}} / {{360}}; return neg ? less({{96}} + 1, p) : p + 1; }   // an angle to a place round the hex circle
+int sm(int a, int b) { return term(K, a, K, b, K); }        // two sines or cosines (held up by K) times each other, held up by K
+void place_read()
+{
+    char s[{{200}}]; int n = window_readfile("place.txt", s, {{190}});
+    if (n < 1) n = window_readfile("lang/lab/place.txt", s, {{190}});
+    if (n < 1) return;
+    s[n + 1] = low;
+    int k = 1;
+    while (k <= n) {
+        if (s[k] == 'n' || s[k] == 's' || s[k] == 'e' || s[k] == 'w') {
+            int w = s[k], at = k; while (at <= n && s[at] != {{32}}) at++;
+            int v = pnum(s, &at);
+            if (v >= 1) { if (w == 'n' || w == 's') { PLAT = lower(v, {{89}}); PSOUTH = w == 's'; } else { PLON = lower(v, {{180}}); PWEST = w == 'w'; } }
+            k = at;
+        }
+        k++;
+    }
+}
+void outside_now()                                          // the date, the sun and the outside's warmth, for now (moved by the user)
+{
+    int secs = less(nowsecs() + SHIFTS, SHIFTBASE);
+    int days = secs / {{86400}} + 1; OMIN = secs % {{86400}} / {{60}};
+    OY = {{1970}}; while (days > ylen(OY)) { days = less(days, ylen(OY)); OY++; }
+    ODOY = days; OM = 1; while (days > omlen(OY, OM)) { days = less(days, omlen(OY, OM)); OM++; }
+    ODAY = days;
+    stones2(OY, OM, ODAY);
+    SMIN = PWEST ? less(OMIN + {{1440}}, PLON * 4) % {{1440}} : (OMIN + PLON * 4) % {{1440}};
+    int pd = less(ODOY + {{365}}, {{81}}) % {{365}} * {{96}} / {{365}} + 1;      // the sun's swing north and south through the year
+    int dec = apart(sink(pd), K) * {{2344}} / K;                                // its declination, hundredths of a degree
+    int pdec = placeof(dec / {{100}}, sink(pd) < K);
+    int pph = placeof(PLAT, PSOUTH);
+    int ph = (SMIN * {{96}} / {{1440}} + {{48}}) % {{96}} + 1;                  // the hour's turn from noon
+    SUNS = less(sm(sink(pph), sink(pdec)) + sm(sm(cosk(pph), cosk(pdec)), cosk(ph)), K);
+    // the outside's warmth: the latitude's year mean and swing (every 15 degrees, between them in line), the season, the sun's day
+    int TM[7] = {{{300150}}, {{299150}}, {{293150}}, {{284150}}, {{274150}}, {{258150}}, {{248150}}};
+    int AMP[7] = {{{1000}}, {{3000}}, {{7000}}, {{10000}}, {{14000}}, {{18000}}, {{20000}}};
+    int j = lower(6, PLAT / {{15}} + 1), f = PLAT % {{15}};
+    int tm = towards(TM[j], TM[j + 1], f, {{15}}), am = towards(AMP[j], AMP[j + 1], f, {{15}});
+    int peak = PSOUTH ? {{17}} : {{200}};                                       // the warmest day, a month after the longest
+    int ps = less(ODOY + {{365}}, peak) % {{365}} * {{96}} / {{365}} + 1;
+    int t = term(tm, cosk(ps), K, K + am, K);
+    OUTT = term(t, SUNS, K, K + {{4000}}, K);                                   // and 4 degrees either way with the sun
+}
+void outside_keys(int key)
+{
+    if (key == {{34}}) SHIFTS = SHIFTS > {{2419200}} ? less(SHIFTS, {{2419200}}) : SHIFTS;     // [ : a stones' month back
+    if (key == {{35}}) SHIFTS = SHIFTS + {{2419200}};                                          // ] : on
+    if (key == {{47}}) SHIFTS = SHIFTS > {{3600}} ? less(SHIFTS, {{3600}}) : SHIFTS;           // ; : an hour back
+    if (key == {{48}}) SHIFTS = SHIFTS + {{3600}};                                             // ' : on
+    if (key == {{33}}) OUTOPEN = OUTOPEN ? low : 1;                                            // P : the outside door
+}
+void sky(int up, int step, int x, int y)                    // the outside, seen through the outside door: sky, or the grass
+{
+    int r, g, b, day = SUNS > K ? lower(K, less(SUNS, K) * 4) : low;         // daylight: 1 of K once the sun is 15 degrees up
+    int dusk = apart(SUNS, K) < K / 8;
+    if (up) { r = {{20}} + day * {{110}} / K; g = {{24}} + day * {{150}} / K; b = {{50}} + day * {{190}} / K;
+              if (dusk) { r = r + {{90}}; g = g + {{40}}; } }
+    else { r = {{14}} + day * {{70}} / K; g = {{22}} + day * {{110}} / K; b = {{12}} + day * {{40}} / K; }
+    int k = (y * W + x) * 4 + 1, a, c;
+    for (c = 1; c <= step; c++) { int m = k; for (a = 1; a <= step; a++) { bg[m] = clampc(b); bg[m + 1] = clampc(g); bg[m + 2] = clampc(r); m = m + 4; } k = k + CW; }
+}
+void outside_panel()
+{
+    lab_line(OUTOPEN ? "the outside door (P): open" : "the outside door (P): shut");
+    lab_value(PSOUTH ? "the lab is set at, degrees south" : "the lab is set at, degrees north", PLAT, PWEST ? "and west (place.txt)" : "and east (place.txt)");
+    lab_value(PWEST ? "  degrees west" : "  degrees east", PLON, "");
+    if (SFUN2 == 1) lab_line("the day: midwinter, the day off ([ ] a month, ; ' an hour)");
+    else if (SFUN2 == 2) lab_line("the day: midsummer, the leap year's day off ([ ] a month, ; ' an hour)");
+    else { lab_value("the stones' month", SM2, "([ ] moves a month)"); lab_value("  its day", SD2, ""); }
+    lab_value("the sun's own hour there", SMIN / {{60}} + 1, "(1 is midnight to 1; ; ' moves an hour)");
+    if (SUNS > K) lab_value("the sun's height, as a sine", less(SUNS, K) * {{1000}} / K + 1, "thousandths"); else lab_line("the sun is down");
+    tvalue("outside", OUTT);
+}

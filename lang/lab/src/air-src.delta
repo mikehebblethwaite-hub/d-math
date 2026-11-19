@@ -1,0 +1,161 @@
+// ---------------------------------------------------------------- the air: one air for both rooms, the things and the bodies
+// (Mike: "active environment effects in the lab": bodies in the way of the air, breath, Dan's processors' heat, a window,
+// a door to outside letting in the outside of the place and time of year the lab is set to.)
+// The air is hex cells a foot across (rows half a cell along in turn), 20 across, 40 deep (the lab, then the wave room),
+// 20 high. Each holds its warmth (thousandths of a kelvin) and its carbon dioxide (parts per million). Each step is a
+// second of the room's time. Warmth and carbon dioxide only move: from a cell to its neighbour, more upward when the lower
+// one is warmer (warm air rises), through the wall between the rooms only where the door or the window is open, out through
+// the walls slowly, out of the outside door fast. Bodies and the tank fill their cells: the air goes round them. The book:
+// what the sources gave, what came in and went out, and what the air holds now, checked every step.
+// A first air, not yet a flow of momentum (the tunnel's next neighbour): warm and cold mix and rise; the draught a flame feels
+// is taken from how much went through each opening at the floor, from the colder side to the warmer.
+#define AX {{20}}
+#define AZ {{40}}
+#define AY {{20}}
+#define ACELLS {{16000}}
+#define WPS {{29}}                          // a watt for a second warms a cell (a cubic foot, 34 joules a degree) 29 thousandths of a degree
+#define OZ1 {{3072}}                        // the outside door, in the lab's left wall: 4 ft from its front wall ...
+#define OZ2 {{4992}}                        // ... 2 ft 6 in wide (a standard door, 6 ft 6 in high)
+int AT[{{16001}}];
+int ACO[{{16001}}];
+int ASOLID[{{16001}}];
+int OUTT = {{283150}}, OUTCO = {{420}};     // outside: its warmth (set by place and time) and its carbon dioxide
+int OUTOPEN;                                // the outside door: 1 open
+int EGIVEN, EOUT, EIN, ESTART, AIRBAD, ASTEP; // the book, in thousandths of a degree of one cell
+int BOTTOMIN[4], BOTTOMOUT[4];              // this step, at the floor: how much went into the lab through 1 outside door, 2 the door between, 3 the window; and out
+int LEANR, LEANL, LEANF, LEANB;             // the draught at the candle: how far its flame leans (64ths a unit up), right, left, on, back
+int aidx(int i, int r, int l) { return (less(l, 1) * AZ + less(r, 1)) * AX + i; }
+int acell(int x, int y, int z)
+{
+    int r = higher(1, lower(AZ, z / FOOT + 1)), l = higher(1, lower(AY, y / FOOT + 1));
+    int sh = r % 2 < 1 ? FOOT / 2 : 1;                                    // even rows sit half a cell along
+    int i = x > sh ? less(x, sh) / FOOT + 1 : 1;
+    return aidx(higher(1, lower(AX, i)), r, l);
+}
+int ovl(int a1, int a2, int b1, int b2) { int lo2 = higher(a1, b1), hi2 = lower(a2, b2); return hi2 > lo2 ? less(hi2, lo2) : low; }
+int wallopen(int i, int l)                 // between rows 20 and 21 (the wall between), at column i, layer l: thousandths open
+{
+    int x1 = less(i, 1) * FOOT + FOOT / 4, x2 = x1 + FOOT, y1 = less(l, 1) * FOOT + 1, y2 = l * FOOT;   // the face between the two cells
+    int a = low;
+    if (DOOROPEN) a = a + ovl(x1, x2, DX1, DX2) * ovl(y1, y2, 1, DH);
+    if (WINOPEN >= 1) a = a + ovl(x1, x2, WX1 + FRAME, less(WX2, FRAME)) * ovl(y1, y2, WY1 + FRAME, WY1 + wingap());
+    return a * {{1000}} / (FOOT * FOOT);
+}
+int outdoor(int r, int l)                  // the outside door's share of a left-wall cell's face, thousandths
+{
+    if (OUTOPEN < 1) return low;
+    return ovl(less(r, 1) * FOOT + 1, r * FOOT, OZ1, OZ2) * ovl(less(l, 1) * FOOT + 1, l * FOOT, 1, DH) * {{1000}} / (FOOT * FOOT);
+}
+int MOVED;                                  // what the last apair moved (warmth), for the openings' count
+void apair(int a, int b, int k)             // the two cells even out k thousandths of the way (half each)
+{
+    MOVED = low;
+    if (ASOLID[a] || ASOLID[b] || k < 1) return;
+    int m;
+    if (AT[a] > AT[b]) { m = less(AT[a], AT[b]) * k / {{2000}}; AT[a] = less(AT[a], m); AT[b] = AT[b] + m; MOVED = m; }
+    else if (AT[b] > AT[a]) { m = less(AT[b], AT[a]) * k / {{2000}}; AT[b] = less(AT[b], m); AT[a] = AT[a] + m; MOVED = m; }
+    if (ACO[a] > ACO[b]) { m = less(ACO[a], ACO[b]) * k / {{2000}}; ACO[a] = less(ACO[a], m); ACO[b] = ACO[b] + m; }
+    else if (ACO[b] > ACO[a]) { m = less(ACO[b], ACO[a]) * k / {{2000}}; ACO[b] = less(ACO[b], m); ACO[a] = ACO[a] + m; }
+}
+void aout(int a, int k)                     // a cell evens out with the outside, k thousandths of the way
+{
+    if (ASOLID[a] || k < 1) return;
+    int m;
+    if (AT[a] > OUTT) { m = less(AT[a], OUTT) * k / {{1000}}; AT[a] = less(AT[a], m); EOUT = EOUT + m; }
+    else if (OUTT > AT[a]) { m = less(OUTT, AT[a]) * k / {{1000}}; AT[a] = AT[a] + m; EIN = EIN + m; }
+    if (ACO[a] > OUTCO) ACO[a] = less(ACO[a], less(ACO[a], OUTCO) * k / {{1000}});
+    else if (OUTCO > ACO[a]) ACO[a] = ACO[a] + less(OUTCO, ACO[a]) * k / {{1000}};
+}
+int asum() { int s = low, n; for (n = 1; n <= ACELLS; n++) s = s + AT[n]; return s; }
+void air_start()
+{
+    int n; for (n = 1; n <= ACELLS; n++) { AT[n] = {{293150}}; ACO[n] = {{450}}; }   // both rooms at 20 degrees to start
+    ESTART = asum();
+}
+void air_heat(int x, int y, int z, int mw)                // a source warms the air where it is (mw: thousandths of a watt)
+{
+    int c = acell(x, y, z), m = mw * WPS / {{1000}};
+    while (ASOLID[c] && c + AX * AZ <= ACELLS) c = c + AX * AZ;                 // inside a body: into the air above it
+    AT[c] = AT[c] + m; EGIVEN = EGIVEN + m;
+}
+void air_breath(int x, int y, int z, int ppm) { int c = acell(x, y, z); ACO[c] = ACO[c] + ppm; }
+void air_solid(int x1, int z1, int x2, int z2, int top)    // a body or a thing fills these cells this step
+{
+    int x, z, y;
+    for (y = FOOT / 2; y <= top; y = y + FOOT) for (z = z1; z <= z2; z = z + FOOT / 2) for (x = x1; x <= x2; x = x + FOOT / 2) ASOLID[acell(x, y, z)] = 1;
+}
+void air_body(int x, int z, int top, int mw)               // a person or Dan: a column of the air filled, warm round its sides
+{
+    air_solid(x, z, x, z, top);
+    int y, n = higher(1, top / FOOT);
+    for (y = FOOT / 2; y <= top; y = y + FOOT) {
+        air_heat(x + FOOT, y, z, mw / (n * 4)); air_heat(lo(x, FOOT), y, z, mw / (n * 4));
+        air_heat(x, y, z + FOOT, mw / (n * 4)); air_heat(x, y, lo(z, FOOT), mw / (n * 4));
+    }
+}
+void opening(int k, int lab, int other, int moved)         // count what went through an opening at the floor: from cold to warm
+{
+    if (moved < 1) return;
+    if (AT[other] < AT[lab]) BOTTOMIN[k] = BOTTOMIN[k] + moved; else BOTTOMOUT[k] = BOTTOMOUT[k] + moved;
+}
+void air_step()
+{
+    int i, r, l, n;
+    ASTEP++;
+    for (n = 1; n <= 3; n++) { BOTTOMIN[n] = low; BOTTOMOUT[n] = low; }
+    for (r = 1; r <= AZ; r++) for (l = 1; l <= AY; l++) for (i = 1; i <= AX; i++) {
+        int a = aidx(i, r, l);
+        if (i < AX) apair(a, aidx(i + 1, r, l), {{160}});                       // across
+        if (r < AZ) {                                                          // on, to the two neighbours in the next row
+            int i1 = r % 2 ? less(i, 1) : i, i2 = r % 2 ? i : i + 1, k = {{160}};
+            if (r == AZ / 2) k = wallopen(i, l) * {{160}} / {{1000}};             // the wall between: only where open
+            if (i1 >= 1) { apair(a, aidx(i1, r + 1, l), k); if (r == AZ / 2 && l <= 2) opening(2, a, aidx(i1, r + 1, l), MOVED); }
+            if (i2 <= AX) { apair(a, aidx(i2, r + 1, l), k); if (r == AZ / 2 && l <= 2) opening(2, a, aidx(i2, r + 1, l), MOVED); }
+        }
+        if (l < AY) { int b = aidx(i, r, l + 1); apair(a, b, AT[a] > AT[b] ? {{400}} : {{40}}); }   // up: warm air rises
+        int faces = (i == 1) + (i == AX) + (r == 1) + (r == AZ) + (l == 1) + (l == AY);
+        if (faces >= 1) aout(a, faces * 2);                                    // through the walls, floor and ceiling, slowly
+        if (i == 1 && r <= AZ / 2) {
+            int f = outdoor(r, l);
+            if (f >= 1) {
+                int was = AT[a];
+                aout(a, f / 2);
+                if (l <= 2) { if (OUTT < was) BOTTOMIN[1] = BOTTOMIN[1] + apart(was, AT[a]); else BOTTOMOUT[1] = BOTTOMOUT[1] + apart(was, AT[a]); }
+            }
+        }
+    }
+    if (AIRBAD < 1 && asum() + EOUT != ESTART + EGIVEN + EIN) AIRBAD = ASTEP;    // nothing vanished, nothing from nowhere
+}
+int CANX, CANZ;                                            // where the candle stands (the scene says)
+void lean(int ox, int oz, int amt, int towardsit)          // the draught from an opening at (ox, oz): away from it when in
+{
+    int cx = CANX, cz = CANZ, dx = apart(cx, ox), dz = apart(cz, oz), d = higher(FOOT, isqrt(dx * dx + dz * dz));
+    int s = amt * FOOT / d / {{8}};                                             // how hard, weaker with distance
+    int rx = s * dx / d, rz = s * dz / d;
+    int right = (cx >= ox) != towardsit, on = (cz >= oz) != towardsit;
+    if (right) LEANR = LEANR + rx; else LEANL = LEANL + rx;
+    if (on) LEANF = LEANF + rz; else LEANB = LEANB + rz;
+}
+void air_draught()                                         // the candle's flame leans with the draught at the floor
+{
+    LEANR = low; LEANL = low; LEANF = low; LEANB = low;
+    lean(1, (OZ1 + OZ2) / 2, BOTTOMIN[1], low); lean(1, (OZ1 + OZ2) / 2, BOTTOMOUT[1], 1);
+    lean((DX1 + DX2) / 2, ROOM, BOTTOMIN[2], low); lean((DX1 + DX2) / 2, ROOM, BOTTOMOUT[2], 1);
+    int r1 = less(LEANR, lower(LEANR, LEANL)), l1 = less(LEANL, lower(LEANR, LEANL));
+    int f1 = less(LEANF, lower(LEANF, LEANB)), b1 = less(LEANB, lower(LEANF, LEANB));
+    LEANR = lower(r1, {{48}}); LEANL = lower(l1, {{48}}); LEANF = lower(f1, {{48}}); LEANB = lower(b1, {{48}});
+}
+int roomt(int lab, int top)                                  // a room's air, or the top or bottom layer of it, on average
+{
+    int s = low, n = low, i, r, l;
+    for (r = lab ? 1 : AZ / 2 + 1; r <= (lab ? AZ / 2 : AZ); r++) for (l = top == 2 ? AY : 1; l <= (top == 1 ? 1 : AY); l++)
+        for (i = 1; i <= AX; i++) { int a = aidx(i, r, l); if (ASOLID[a] < 1) { s = s + AT[a]; n++; } }
+    return n >= 1 ? s / n : {{293150}};
+}
+int roomco(int lab) { int s = low, n = low, i, r, l; for (r = lab ? 1 : AZ / 2 + 1; r <= (lab ? AZ / 2 : AZ); r++) for (l = 1; l <= AY; l++) for (i = 1; i <= AX; i++) { s = s + ACO[aidx(i, r, l)]; n++; } return s / n; }
+void tvalue(char *name, int mk)                               // a temperature, in tenths of a degree above or below freezing
+{
+    int v = apart(mk, {{273150}}) / {{100}};
+    if (v < 1) { lab_line(name); lab_line("    at freezing, within a tenth of a degree"); return; }
+    lab_value(name, v, mk > {{273150}} ? "tenths of a degree above freezing" : "tenths of a degree below freezing");
+}

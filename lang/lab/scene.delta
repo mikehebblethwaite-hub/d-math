@@ -40,9 +40,24 @@ void scene_panel(int sel)
     lab_line(camZ > ROOM ? "you are in the wave room;  O: the door between, 1 to 5: the window" : "you are in the lab;  O: the door between, 1 to 5: the window");
     lab_line(DOOROPEN ? "the door between: open" : "the door between: shut");
     if (WINOPEN >= 1) lab_value("the window: open, fifths of the way", WINOPEN, ""); else lab_line("the window: shut");
+    lab_line("the air (1 ft hex cells, both rooms; a second a step, so faster than real time; T shows it):");
+    tvalue("  the lab", roomt(1, 3)); tvalue("    at its floor", roomt(1, 1)); tvalue("    at its ceiling", roomt(1, 2));
+    tvalue("  the wave room", roomt(low, 3));
+    lab_value("  carbon dioxide in the lab", roomco(1), "parts per million");
+    if (AIRBAD < 1) lab_line("  the air's book balances: given, in and out, held"); else lab_value("  the air's book went out at step", AIRBAD, "");
+    outside_panel();
     lab_line("4 things (click one to see inside it)");
     if (sel == 1) candle1.panel();
     if (sel == 2) faraday1.panel();
     if (sel == 3) tunnel1.panel();
     if (sel == 4) tank1.panel();
+}
+void scene_air()                          // what each thing gives the air, and where it fills it
+{
+    CANX = candle1.x; CANZ = candle1.z;
+    air_heat(candle1.x, 2B5, candle1.z, 2A54B);                      // the candle's flame: about 80 watts
+    air_heat(faraday1.x, 1A5, faraday1.z, 3C63);                         // Faraday's pile and contacts: 8.7 watts
+    air_heat(MID, less(ROOM, 4C * 6), MID, 213D5);                       // the lab's lamp: 60 watts
+    air_heat(MID, less(ROOM, 4C * 6), MID + ROOM, 213D5);                // the wave room's lamp
+    air_solid(less(tank1.x, 659), less(tank1.z, $C4), tank1.x + 659, tank1.z + $C4, 6B4);   // the tank fills its place
 }

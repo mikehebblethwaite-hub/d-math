@@ -132,6 +132,8 @@ int turnz(int r, int i) { return less(MID + r * sink(i) / K, r); }
 #define FRAME 9B                       // a frame or a rail: 2 inches
 int DOOROPEN = 1;                           // 1 open; LOW shut
 int WINOPEN;                                // LOW shut, or 1 to 5
+#include "air.delta"                        // one air for both rooms, the things and the bodies
+#include "outside.delta"                    // the place and the time of year the lab is set to: the sun, the outside
 int THRU[2C68B5];                      // per pixel: 1 when its look went on into the other room (2 through the glass)
 int CLIP;                                   // 1: what is drawn now is in the other room: only through the openings
 int ZLO = 1, ZHI = ROOM, LEGROOM = 1;       // the room a look is in now: its back and front walls, and which (1 lab, 2 wave)
@@ -229,6 +231,7 @@ void shade(int x, int y, int surf, int step)
         if (HY < 1B8) { r = 152; g = 14D; b = 147; if (HY > 1A5) { r = 121; g = 11C; b = 116; } }
         if (LEGROOM == 2 && HY >= 1B8) { r = less(r, 1D); b = lower(b + 11, 168); }   // the wave room: a cooler blue-grey
         if (surf == 1 && HZ == ROOM && wallpaint(HX, HY)) { r = PR; g = PG; b = PB; }
+        if (surf == 4 && HX <= 1 && LEGROOM == 1 && HZ + FRAME >= OZ1 && HZ <= OZ2 + FRAME && wallpaint(less(HZ + DX1, OZ1), HY)) { r = PR; g = PG; b = PB; }
     }
     L = L * corner(surf) / 2967;
     int heat = 1;
@@ -240,6 +243,12 @@ void shade(int x, int y, int surf, int step)
         int a = apart(HX, MID), c = apart(HY, ROOM), e = apart(HZ, MID);
         int d2 = a * a + c * c + e * e;                                     // squares: no root needed per pixel
         if (d2 < roomr2) { heat = roomh / 6CD58; if (heat > 6C) heat = 6C; heat = heat * less(roomr2, d2) / roomr2; }
+    }
+    if (HEATVIEW) {                                        // as a heat camera sees it: the air beside the surface, by its warmth
+        int az = LEGROOM == 1 ? lower(HZ, less(ROOM, 1)) : higher(HZ, ROOM + 1);
+        int ta = AT[acell(lower(HX, less(ROOM, 1)), lower(HY, less(ROOM, 1)), lower(az, less(ROOM * 2, 1)))];
+        int hh = ta > 92A14 ? lower(168, less(ta, 92A14) * 168 / 1528C) : 1;   // 263 K to 303 K across the heat colours
+        heatcolour(higher(1, hh)); r = HR; g = HG; b = HB; L = 169; heat = 1;
     }
     r = lower(higher(r * L / 169 + heat, 1), 168); g = lower(higher(g * L / 169 + heat / 4, 1), 168); b = lower(higher(b * L / 169, 1), 168);
     int k = (y * W + x) * 4 + 1, i, j;
@@ -364,6 +373,10 @@ void looks(int x, int y, int step)        // one pixel's look, turned with the c
         HZ = wz >= OFF ? sz + oz : less(sz, lower(oz, less(sz, ZLO)));
         hd = hd + dist * f16 / mag / 13;
         surf = axis == 1 ? 4 : axis == 3 ? 1 : wy >= OFF ? 3 : 2;
+        if (axis == 1 && wx < OFF && LEGROOM == 1 && OUTOPEN && HZ >= OZ1 && HZ <= OZ2 && HY <= DH) {   // out of the outside door
+            int j2, i2; for (j2 = y; j2 < y + step && j2 <= H; j2++) for (i2 = x; i2 < x + step && i2 <= W; i2++) THRU[j2 * W + i2] = low;
+            sky(wy >= OFF, step, x, y); return;
+        }
         int onwall = axis == 3 && ((LEGROOM == 1 && wz >= OFF) || (LEGROOM == 2 && wz < OFF));
         if (leg == 1 && onwall) {
             int s = seethrough(HX, HY);
@@ -947,6 +960,7 @@ int main(int argc, char **argv)
     }
     WASZ = camZ;
     scene_start();
+    air_start(); place_read(); outside_now();
     int sharp = low, moved = 1, showpanel = 1, sel = 1, frame = low;
     int lastmx = low, lastmy = low, held = low, pressx = low, pressy = low, midheld = low;
     while (1) {
@@ -955,8 +969,10 @@ int main(int argc, char **argv)
         int key = window_key();
         if (key == 9) return 1;                                       // Esc
         if (key == 34) showpanel = showpanel ? low : 1;           // H
-        if (key == 22) HEATVIEW = HEATVIEW ? low : 1;             // T: heat view, or as the eye sees
+        if (key == 22) { HEATVIEW = HEATVIEW ? low : 1; moved = 1; }   // T: heat view, or as the eye sees
+        if (HEATVIEW && frame % 13 < 1) sharp = low;                 // the heat view: the air changes, so the room is looked at again
         if (key == 32) { window_fullscreen(); moved = 1; }        // F: full screen, or not
+        outside_keys(key); if (key == 27 || key == 28 || key == 29 || key == 38 || key == 39) moved = 1;
         if (key == 26) { DOOROPEN = DOOROPEN ? low : 1; moved = 1; }   // O: the door between, open or shut
         if (key >= $A && key <= 11) { int n = less(key, 9); WINOPEN = WINOPEN == n ? low : n; moved = 1; }   // 1 to 5: the window open that much; again: shut
         int speed = INCH / 2;
@@ -1002,6 +1018,14 @@ int main(int argc, char **argv)
         else if (sharp < 1) { lab_room(1); sharp = 1; }
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
         scene_step();
+        if (frame % 8 < 1) outside_now();
+        for (wi = 1; wi <= ACELLS; wi++) ASOLID[wi] = low;
+        scene_air();                                                  // the things, the bodies and the lamps in the air
+        air_body(camX, camZ, camY + INCH * 4, WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n' ? WATTS : 5BC * 5BC / $A);   // the one looking
+        if (WHO[1] != 'd') air_breath(camX, camY, camZ, D8);       // their breath: 5 millilitres of carbon dioxide a second
+        if (OTHHERE) air_body(OTHX, OTHZ, OTHY + INCH * 4, WHO[1] == 'd' ? 5BC * 5BC / $A : WATTS);
+        air_step(); air_draught();
+        if (frame % 2B < 1) air_note();                                // the air in words, for bots
         scene_draw();
         if (frame % 8 < 1) presence_write(frame);                    // where I stand, for the others
         if (frame % 4 < 1) presence_read(other);
@@ -1013,4 +1037,5 @@ int main(int argc, char **argv)
     return 1;
 }
 
+#include "airnote.delta"                       // the air in words, for bots
 #include "scene.delta"                         // what is in the room: the room itself never changes

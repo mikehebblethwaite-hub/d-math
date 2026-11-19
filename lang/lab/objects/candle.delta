@@ -275,23 +275,26 @@ void candle_draw(int x, int z)
         int across = col * 2 + (row % 2 ? low : 1);                   // in half cells: odd rows sit half a cell along
         int wx = across >= mid * 2 ? x + less(across, mid * 2) * CELLW / 2 : less(x, less(mid * 2, across) * CELLW / 2);
         int wy = WAXH + $A + less(less(CGH, 2), row) * CELLH;
+        int up = less(wy, WAXH + $A);                                 // how high above the wick: the draught leans it more there
+        wx = less(wx + LEANR * up / 4C, lower(LEANL * up / 4C, less(wx + LEANR * up / 4C, 1)));   // the room's draught (air.delta)
+        int zz = less(z + LEANF * up / 4C, lower(LEANB * up / 4C, less(z + LEANF * up / 4C, 1)));
         if (HEATVIEW) {                                           // as a heat camera sees it: the warm air too
             if (h > AMB + 2) {
                 heatcolour(lower(168, less(h, AMB) * 168 / 24A));
                 int a = lower(168, less(h, AMB) * 4);
-                lab_colour(HR * a / 168, HG * a / 168, HB * a / 168); lab_glow(wx, wy, z, CELLW * 2);
+                lab_colour(HR * a / 168, HG * a / 168, HB * a / 168); lab_glow(wx, wy, zz, CELLW * 2);
             }
-            if (s >= 2) lab_haze(wx, wy, z, CELLW, 93, lower(125, less(s, 1) * 17));
+            if (s >= 2) lab_haze(wx, wy, zz, CELLW, 93, lower(125, less(s, 1) * 17));
             continue;
         }
         // as the eye sees it: hot air shows nothing; hot soot shines yellow to white; burning shines blue; cool soot is smoke
         int kelvin = h * 197 / AMB;                              // still air (AMB) is 197 K; heat goes as temperature
         if (s >= 2) {                                             // soot: it glows by its temperature (light.delta)
             sootglow(kelvin, less(s, 1));
-            if (GLR + GLG + GLB >= 4) { lab_colour(GLR, GLG, GLB); lab_glow(wx, wy, z, CELLW * 2); }
+            if (GLR + GLG + GLB >= 4) { lab_colour(GLR, GLG, GLB); lab_glow(wx, wy, zz, CELLW * 2); }
         }
-        if (fl[i] >= 1) { burnglow(fl[i]); lab_colour(GLR, GLG, GLB); lab_glow(wx, wy, z, CELLW); }
-        if (s >= 2 && kelvin < 41B) lab_haze(wx, wy, z, CELLW, 93, lower($C4, less(s, 1) * 13));
+        if (fl[i] >= 1) { burnglow(fl[i]); lab_colour(GLR, GLG, GLB); lab_glow(wx, wy, zz, CELLW); }
+        if (s >= 2 && kelvin < 41B) lab_haze(wx, wy, zz, CELLW, 93, lower($C4, less(s, 1) * 13));
     }
 }
 void candle_panel()

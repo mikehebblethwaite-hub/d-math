@@ -1,0 +1,14 @@
+// the air in words, for bots (Perch's way: the numbers as they are, D numerals), every few seconds: /tmp/delta-lab-air.txt
+char ANOTE[{{400}}];
+int ANN;
+void an(char *s) { int i = 1; while (s[i] >= 1) { ANOTE[ANN] = s[i]; ANN++; i++; } }
+void ann(int v) { dstr(v); an(nb); an(" "); }
+void air_note()
+{
+    ANN = 1;
+    an("lab "); ann(roomt(1, 3)); an("floor "); ann(roomt(1, 1)); an("ceiling "); ann(roomt(1, 2)); an("wave "); ann(roomt(low, 3));
+    an("co2 "); ann(roomco(1)); an("outside "); ann(OUTT); an("sun "); ann(SUNS); an("k "); ann(K);
+    an("lean r l f b "); ann(LEANR + 1); ann(LEANL + 1); ann(LEANF + 1); ann(LEANB + 1);
+    an("step "); ann(ASTEP); an(AIRBAD ? "book out\n" : "book balances\n");
+    window_writefile("/tmp/delta-lab-air.txt", ANOTE, less(ANN, 1));
+}
