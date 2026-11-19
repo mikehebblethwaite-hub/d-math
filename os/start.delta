@@ -1,4 +1,4 @@
-// Delta Hex OS: the no-zero operating system, written in Delta. 0.14: pictures as big as the screen (from the firmware); runs programs.
+// Delta Hex OS: the no-zero operating system, written in Delta. 0.15: the honeycomb grows (19 tiles), the Lab room tile; runs programs.
 //
 // The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
 // C library. It asks the firmware for the machine's memory and counts it, from 1, in D numerals; then the firmware
@@ -58,6 +58,8 @@ char EFQ[4C];                       // the words being found
 char ERP[4C];                       // and the words to put instead
 int EFQN, ERPN, EFIND, EFOUND;      // EFIND: 1 finding, 2 the words to replace, 3 the new words; EFOUND: where it sits
 char *EMSG;
+char RUNBUF[54D442];                     // a program read from the drive, to be run (up to 54D442 bytes)
+int DESKFOR;                                        // which tile was picked when the desktop layer was drawn
 char TL[55D1];                 // the lines shown: 93 lines of 79 letters, the newest at the bottom
 int TLN;                            // how many lines are held
 int TCOL;                           // letters on the line being written
@@ -485,8 +487,8 @@ void background()
 int MODE = 1;                   // 1 the desktop, 2 Dragonfly, 3 say, 4 memory
 int FOCUS = 2;                  // the tile picked (2 to 7; 1 is the middle)
 int lastmb;
-int TX[7];
-int TY[7];
+int TX[16];
+int TY[16];
 int TR;
 
 int slen(char *s) { int i = 1; while (s[i] >= 1) i++; return less(i, 1); }
@@ -520,19 +522,20 @@ void hexedge(int cx, int cy, int R, int r, int g, int b)   // its six corners ar
     inklay(r, g, b);
 }
 
-void layout()                                       // the seven places: the middle, then round it from the top
+void layout()                                       // the honeycomb: the middle, the ring round it, the ring round that
 {
-    TR = H * 2 / $D;
-    int S = TR + TR / $C;                        // a little gap between neighbours
-    int cx = W / 2, cy = H / 2 + H / 31;
-    int ax = S * 3 / 2, ay = S * $D / 12, ay2 = S * 1D / 12;
-    TX[1] = cx; TY[1] = cy;
-    TX[2] = cx; TY[2] = less(cy, ay2);
-    TX[3] = cx + ax; TY[3] = less(cy, ay);
-    TX[4] = cx + ax; TY[4] = cy + ay;
-    TX[5] = cx; TY[5] = cy + ay2;
-    TX[6] = less(cx, ax); TY[6] = cy + ay;
-    TX[7] = less(cx, ax); TY[7] = less(cy, ay);
+    // each tile's place in the hex grid: across in steps of 1 1/2 tiles, down in half-steps of root 3 (held up from 3 and 5)
+    int dxo[16] = {3, 3, 4, 4, 3, 2, 2, 3, 4, 5, 5, 5, 4, 3, 2, 1, 1, 1, 2};
+    int dyo[16] = {5, 3, 4, 6, 7, 6, 4, 1, 2, 3, 5, 7, 8, 9, 8, 7, 5, 3, 2};
+    int S = less(H, B7) * 12 / 9D;             // two rings and a middle: about 8 2/3 tiles tall, room above and below
+    TR = S * $C / $D;                                  // a little gap between neighbours
+    int cx = W / 2, cy = less(H / 2, 6);
+    int ax = S * 3 / 2, half = S * $D / 12;            // half of root 3 times S
+    int t;
+    for (t = 1; t <= 16; t++) {
+        TX[t] = dxo[t] >= 3 ? cx + less(dxo[t], 3) * ax : less(cx, less(3, dxo[t]) * ax);
+        TY[t] = dyo[t] >= 5 ? cy + less(dyo[t], 5) * half : less(cy, less(5, dyo[t]) * half);
+    }
 }
 
 char *tilename(int t)
@@ -543,9 +546,10 @@ char *tilename(int t)
     if (t == 5) return "Off";
     if (t == 6) return "Notepad";
     if (t == 7) return "Terminal";
-    return "ready to hold";
+    if (t == 8) return "Lab room";
+    return "ready";
 }
-int tilekind(int t) { if (t == 2) return 2; if (t == 3) return 4; if (t == 4) return 3; if (t == 5) return 1; if (t == 6) return 6; if (t == 7) return 4; return 5; }
+int tilekind(int t) { if (t == 2) return 2; if (t == 3) return 4; if (t == 4) return 3; if (t == 5) return 1; if (t == 6) return 6; if (t == 7) return 4; if (t == 8) return 1; return 5; }
 char *tilenote(int t)
 {
     if (t == 2) return "engineer's assistant";
@@ -554,7 +558,8 @@ char *tilenote(int t)
     if (t == 5) return "switch it off";
     if (t == 6) return "writing";
     if (t == 7) return "commands, in words";
-    return "for what comes next";
+    if (t == 8) return "the lab room: things with their own code, a candle burning (runs lab.efi)";
+    return "ready to hold what comes next";
 }
 
 void opentile(int t)
@@ -565,15 +570,15 @@ void opentile(int t)
     if (t == 5) off();
     if (t == 6) { MODE = 5; EDGEN++; }
     if (t == 7) { MODE = 6; TGEN++; }
+    if (t == 8) { int n = drive_read("lab.efi", RUNBUF, 54D441); if (n >= 1) run_program(RUNBUF, n); DESKFOR = low; }
     tlen = low; typed[1] = low;
 }
 
-int DESKFOR;                                        // which tile was picked when the desktop layer was drawn
 void desktop()
 {
     if (DESKFOR == FOCUS) { copy(&px[1], &desk[1], (W * H + W + 2) * 4); emblem(TX[1], TY[1], TR * 3 / 5); return; }
     int t;
-    for (t = 1; t <= 7; t++) {
+    for (t = 1; t <= 16; t++) {
         int on = t == FOCUS;
         spectrum(tilekind(t), 1A89);
         if (t == 1) { HA = 125; hexfill(TX[t], TY[t], TR, 1B, 24, 37); }
@@ -582,10 +587,11 @@ void desktop()
         else { HT = 17; hexedge(TX[t], TY[t], TR, SR / 2, SG / 2, SB / 2); }
         if (t >= 2) {
             spectrum(tilekind(t), 1A89);
-            centred(tilename(t), TX[t], less(TY[t], 24), SR, SG, SB);
-            centred(tilenote(t), TX[t], TY[t] + 2, $B7, $BD, $D1);
+            centred(tilename(t), TX[t], less(TY[t], B), SR, SG, SB);
         }
     }
+    spectrum(tilekind(FOCUS), 1A89); centred(tilename(FOCUS), W / 2, less(H, 62), SR, SG, SB);
+    tx = tx + B; text(":  ", 93, 99, $A8); text(tilenote(FOCUS), $B7, $BD, $D1);   // the picked tile, in words
     centred("arrows or Tab move,  Enter or a click opens,  Esc comes back (on the desktop: off)", W / 2, less(H, 35), 91, 97, $AA);
     copy(&desk[1], &px[1], (W * H + W + 2) * 4); DESKFOR = FOCUS;
     emblem(TX[1], TY[1], TR * 3 / 5);
@@ -1068,7 +1074,6 @@ void tamount(char *what, int m, char *whole, char *small)
     ts("\n");
 }
 char TFILE[1A89];
-char RUNBUF[54D442];                     // a program read from the drive, to be run (up to 54D442 bytes)
 void tfiles()                                                              // the boot drive's top folder, file by file
 {
     int root = ef_root();
@@ -1107,7 +1112,7 @@ void trun()                                                                // En
         ts("time        the machine's clock      del NAME    takes a file away      write NAME WORDS   a file in one line\n");
         ts("clear       a clean screen      notepad     opens Notepad      off     switches the machine off\n");
     }
-    else if (tword("version")) ts("Delta Hex OS 0.14: no zero, written in Delta\n");
+    else if (tword("version")) ts("Delta Hex OS 0.15: no zero, written in Delta\n");
     else if (tword("mem")) {
         ts("ready to hold "); tn(ready); ts("   this system "); tn(ours); ts("   the firmware's "); tn(firmware);
         ts("   held back "); tn(held); ts("   all together "); tn(all); ts("\n");
@@ -1197,11 +1202,11 @@ void listen()
     while (k >= 1) {
         if (MODE == 1) {
             if (k == 5D9) off();                                            // Esc on the desktop: off
-            if (k == 5C2 || k == 5C1 || k == 9) FOCUS = FOCUS >= 7 ? 2 : FOCUS + 1;   // on round the flower
-            if (k == 5C3 || k == 5BD) FOCUS = FOCUS <= 2 ? 7 : less(FOCUS, 1);                // back round
+            if (k == 5C2 || k == 5C1 || k == 9) FOCUS = FOCUS >= 16 ? 2 : FOCUS + 1;   // on round the honeycomb
+            if (k == 5C3 || k == 5BD) FOCUS = FOCUS <= 2 ? 16 : less(FOCUS, 1);                // back round
             if (k == $D) opentile(FOCUS);
             if (k == 79) opentile(2); if (k == 8B) opentile(3); if (k == 85) opentile(4);   // d s m: by their first letter
-            if (k == 86) opentile(6); if (k == 8C) opentile(7);                              // n t
+            if (k == 86) opentile(6); if (k == 8C) opentile(7); if (k == 84) opentile(8);            // n t l
         } else {
             if (MODE == 5 && EFIND >= 1) edkey(k);                              // the find bar is open: Esc closes it
             else if (k == 5D9) { MODE = 1; tlen = low; DESKFOR = low; }         // Esc: back to the desktop
@@ -1219,9 +1224,9 @@ void listen()
 void clicks(int mx, int my, int mb)
 {
     int t;
-    if (MODE == 1) for (t = 2; t <= 7; t++) if (inhex(mx, my, TX[t], TY[t], TR) && (mx != MX1 || my != MY1)) FOCUS = t;   // the mouse points
+    if (MODE == 1) for (t = 2; t <= 16; t++) if (inhex(mx, my, TX[t], TY[t], TR) && (mx != MX1 || my != MY1)) FOCUS = t;   // the mouse points
     if (mb >= 1 && lastmb < 1) {                                                  // a click: pressed now, not before
-        if (MODE == 1) { for (t = 2; t <= 7; t++) if (inhex(mx, my, TX[t], TY[t], TR)) opentile(t); }
+        if (MODE == 1) { for (t = 2; t <= 16; t++) if (inhex(mx, my, TX[t], TY[t], TR)) opentile(t); }
         else if (onback(mx, my)) { MODE = 1; tlen = low; DESKFOR = low; }
         else if (MODE == 5) edclick(mx, my);
     }
@@ -1254,7 +1259,7 @@ int main(int argc, char **argv)
     layout();
     edstart();
     serfind();
-    ts("Delta Hex OS 0.14: the terminal. help lists the commands.\n"); tprompt();
+    ts("Delta Hex OS 0.15: the terminal. help lists the commands.\n"); tprompt();
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
@@ -1271,7 +1276,7 @@ int main(int argc, char **argv)
         if (MODE == 4) memorypanel();
         if (MODE == 5) notepad();
         if (MODE == 6) terminal();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.14", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.15", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);
