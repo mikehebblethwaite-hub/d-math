@@ -56,3 +56,10 @@ Last daily review: 19 Nov 2026 (the first).
 ## The test driver hung now and then (lang/vm.delta)
 - Cause: QEMU's greeting sometimes arrives with its first prompt in the same read; the driver then waited for another.
 - System: the driver checks every read, the greeting too, for the end of the answer (`done()`).
+
+## The lab candle went out by itself after about 6400 steps
+- Cause: the room's draw of air along the floor slides a whole row sideways each time a parcel rises; now and then it
+  slid the very cells on the wick away, flame and vapour together, and the wick cooled. Walling the wax off as solid
+  was tried and was worse (the slice holds only the top of the candle: the flame's air from below was cut).
+- System: the wick holds its own cells (`cwickat`): the draw stops at the wick. The candle burned 8000 steps steady
+  (about 2000 to 2200 K), checked with a long run of the candle alone (the long run is now part of trying any change).

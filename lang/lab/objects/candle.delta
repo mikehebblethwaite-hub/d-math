@@ -3,6 +3,8 @@
 #define CGH 6D
 int hot[271A], oxy[271A], vap[271A], smoke[271A];
 int rest[271A];              // the rest of the air (nitrogen, and the burnt gas): it takes room too
+int csolid[271A];            // the candle's own wax: solid, the air flows round it
+int cwickat[271A];           // the wick's cells: air drawn along the row cannot slide them off the wick
 #define REST 39               // a still cell: oxygen OX and the rest REST: its room is full
 int lift[271A];              // how much push upward a parcel has built (not energy: its warmth against the cooler air above)
 int RISE = 156;
@@ -24,6 +26,7 @@ void hand(int *a, int *b, int n) { if (n >= 1) { *a = less(*a, n); *b = *b + n; 
 
 void cspreadpair(int i, int j)
 {
+    if (csolid[i] || csolid[j]) return;
     if (hot[i] > hot[j]) hand(&hot[i], &hot[j], less(hot[i], hot[j]) / $C); else hand(&hot[j], &hot[i], less(hot[j], hot[i]) / $C);
     if (oxy[i] > oxy[j]) hand(&oxy[i], &oxy[j], less(oxy[i], oxy[j]) / 8); else hand(&oxy[j], &oxy[i], less(oxy[j], oxy[i]) / 8);
     if (rest[i] > rest[j]) hand(&rest[i], &rest[j], less(rest[i], rest[j]) / 8); else hand(&rest[j], &rest[i], less(rest[j], rest[i]) / 8);
@@ -81,8 +84,18 @@ int cupfrom(int x, int y)                // of the two cells above (x, y), the c
 }
 
 int colx[79];
-void cclimb(int x, int y, int step)      // pressure: a parcel going up lifts the whole column above it; the sky takes the
+int cpathfree(int x, int y, int dir)      // can the room push air along this row from that side (no wick in the way)?
+{
+    int xx;
+    if (dir == 1) { for (xx = less(x, 1); xx >= 1; xx = less(xx, 1)) { if (cwickat[cell(xx, y)]) return low; if (xx == 1) break; } }
+    else { for (xx = x + 1; xx <= CGW; xx++) if (cwickat[cell(xx, y)]) return low; }
+    return 1;
+}
+int cclimb(int x, int y, int step)      // pressure: a parcel going up lifts the whole column above it; the sky takes the
 {                                        // top one; the room pushes air in along the row to fill the place it left
+    int side = step % 2 ? 1 : 2;
+    if (cpathfree(x, y, side) < 1) side = side == 1 ? 2 : 1;
+    if (cpathfree(x, y, side) < 1) return low;                   // wax both ways: no air can come in along this row
     int n = 1, k, yy = y, cx = x;
     colx[1] = x;
     while (yy >= 2) { int u = cupfrom(cx, yy); if (u < 1) break; yy = less(yy, 1); cx = u; n++; colx[n] = cx; }
@@ -90,11 +103,12 @@ void cclimb(int x, int y, int step)      // pressure: a parcel going up lifts th
     skyheat = skyheat + hot[t]; skyox = skyox + oxy[t]; skyvap = skyvap + vap[t]; skysmoke = skysmoke + smoke[t];
     for (k = n; k >= 2; k = less(k, 1)) ccopycell(cell(colx[k], less(y + 1, k)), cell(colx[less(k, 1)], less(y + 2, k)));   // row of k is y + 1 take k
     int xx;
-    if (step % 2) { for (xx = x; xx >= 2; xx = less(xx, 1)) ccopycell(cell(xx, y), cell(less(xx, 1), y)); xx = 1; }
+    if (side == 1) { for (xx = x; xx >= 2; xx = less(xx, 1)) ccopycell(cell(xx, y), cell(less(xx, 1), y)); xx = 1; }
     else { for (xx = x; xx < CGW; xx++) ccopycell(cell(xx, y), cell(xx + 1, y)); xx = CGW; }
     int e = cell(xx, y);                                         // fresh room air comes in at the edge
     hot[e] = AMB; oxy[e] = OX; rest[e] = REST; vap[e] = 1; smoke[e] = 1; lift[e] = low;
     roomheatin = roomheatin + AMB; roomoxin = roomoxin + OX; roomvapin = roomvapin + 1;
+    return 1;
 }
 
 void crise(int step)
@@ -103,6 +117,7 @@ void crise(int step)
     for (y = 1; y <= CGH; y++) for (xx = 1; xx <= CGW; xx++) {     // from the top down
         int x = step % 2 ? xx : less(CGW + 1, xx);              // every other step from the other side: no lean
         int i = cell(x, y);
+        if (csolid[i]) continue;
         if (y == 1) {                                          // above the top row is the open sky
             if (hot[i] > AMB + LIFT) {
                 skyheat = skyheat + hot[i]; skyox = skyox + oxy[i]; skyvap = skyvap + vap[i]; skysmoke = skysmoke + smoke[i];
@@ -116,7 +131,7 @@ void crise(int step)
         int j = cell(up, less(y, 1));
         if (hot[i] > AMB + LIFT && hot[i] > hot[j]) lift[i] = lift[i] + less(hot[i], AMB);   // the room's weight pushes it up
         else lift[i] = less(lift[i], lift[i] / 8);             // not lighter now: its push fades, slowly (it is moving)
-        if (lift[i] >= RISE) { lift[i] = less(lift[i], RISE); cclimb(x, y, step); }
+        if (lift[i] >= RISE && csolid[j] < 1) { lift[i] = less(lift[i], RISE); if (cclimb(x, y, step) < 1) cswap(i, j); }
     }
 }
 
@@ -204,6 +219,7 @@ void flamecolour(int i)
 // vapour pushes the air away, and oxygen reaches the vapour only from the sides (something in, something out).
 void ccrowdpair(int i, int j)
 {
+    if (csolid[i] || csolid[j]) return;
     int ti = oxy[i] + rest[i] + vap[i], tj = oxy[j] + rest[j] + vap[j];
     if (apart(ti, tj) < 4) return;
     int a = ti > tj ? i : j, b = ti > tj ? j : i, ta = higher(ti, tj), m = apart(ti, tj) / 4;
@@ -230,6 +246,7 @@ void candle_start()
     int i;
     EV = BURN + LATENT;
     for (i = 1; i <= CGW * CGH; i++) { hot[i] = AMB; oxy[i] = OX; rest[i] = REST; vap[i] = 1; smoke[i] = 1; lift[i] = low; }
+    for (i = 1; i <= 3; i++) cwickat[cell(CGW / 2 + i, less(CGH, 2))] = 1;     // the wick holds its own cells: the draw stops there
     wax = 54D442;
     for (i = 1; i <= 3; i++) { hot[cell(CGW / 2 + i, less(CGH, 2))] = IGN * 3; wh[i] = IGN * 3; }      // the match
     bookstart = ebook();

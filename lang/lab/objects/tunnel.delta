@@ -1,0 +1,213 @@
+// The wind tunnel, as a thing in the lab room: moving air on the hex lattice, a round post in the stream, the eddies
+// peeling off behind it by turns (a vortex street). The same rules as lang/examples/windtunnel.delta: air going each of
+// the six hex ways moves to that neighbour, then settles toward the balance its cell calls for; air meeting the post
+// turns straight back; a fan keeps the left end moving, the right end opens to the room. The flow is drawn on the
+// tunnel's middle plane: warm where the air is rising, cool where it is falling.
+
+#define TGW $C4
+#define TGH 49
+#define TN 459A
+#define TRHO 12DA68                  // the air in a still cell
+#define TUN 3                            // the fan's speed: 3 / 25 of a cell a step
+#define TUD 1C
+int tfa[25135], tga[25135];       // the air going each way (1 east, 2 up-east, 3 up-west, 4 west, 5 down-west, 6 down-east, 7 still)
+int tnbt[1D868];                    // each cell's neighbour each way (LOW: outside)
+int tsolid[TN];                           // 1 a wall, 2 the tshape
+int tshape = 1, tsize = 6, TCX, TCY;          // the shape in the stream: a round post, 6 cells its half-width
+int TMM[4], TMS[4];                       // a cell's push along ways 1, 2, 3: how much, and 1 if that way (2 the other way)
+int TRH, TU2;
+int tliftup, tliftdown, tdragon, tdragback;
+int tfanned, tgone;
+int tat(int x, int y) { return less(y, 1) * TGW + x; }
+int TF(int d, int c) { return less(d, 1) * TN + c; }
+int topp(int d) { return d <= 3 ? d + 3 : less(d, 3); }
+int tnbway(int x, int y, int d)
+{
+    int nx = x, ny = y;
+    if (d == 1) nx = x + 1;
+    if (d == 4) { if (x < 2) return low; nx = less(x, 1); }
+    if (d == 2 || d == 3) { if (y < 2) return low; ny = less(y, 1); int ul = ny % 2 ? less(x, 1) : x; nx = d == 3 ? ul : ul + 1; }
+    if (d == 5 || d == 6) { ny = y + 1; int dl = y % 2 ? x : less(x, 1); nx = d == 5 ? dl : dl + 1; }
+    if (nx < 1 || nx > TGW || ny < 1 || ny > TGH) return low;
+    return tat(nx, ny);
+}
+int tplace2(int x, int y) { return y % 2 ? less(x * 2, 1) : x * 2; }   // across in half cells
+int tinshape(int x, int y)
+{
+    int ax = apart(tplace2(x, y), TCX * 2), ay = apart(y, TCY);
+    if (tshape == 1) return ax * ax + ay * ay * 3 <= tsize * tsize * 4;
+    if (tshape == 2) return ax <= 2 && ay <= tsize;
+    int front = less(TCX, tsize / 2) * 2, back = (TCX + tsize / 2) * 2, p = tplace2(x, y);
+    if (p < front || p > back) return low;
+    int mid = less(TCY, 4) + less(p, front) / 11;          // a thin wing, its front a little higher than its back
+    return apart(y, mid) <= (apart(p, (front + back) / 2) * 3 < tsize ? 1 : low);
+}
+
+// ---------------------------------------------------------------- inside a cell: its air, its push, the balance
+void tpush(int c)                         // TRH and the push along ways 1, 2, 3 (twice it, to keep the halves whole)
+{
+    int d;
+    TRH = low; for (d = 1; d <= 7; d++) TRH = TRH + tfa[TF(d, c)];
+    for (d = 1; d <= 3; d++) {
+        int a = (d % 6) + 1, b = ((d + 4) % 6) + 1;                 // the ways either side of d
+        int pa = 2 * tfa[TF(d, c)] + tfa[TF(a, c)] + tfa[TF(b, c)];
+        int na = 2 * tfa[TF(topp(d), c)] + tfa[TF(topp(a), c)] + tfa[TF(topp(b), c)];
+        if (pa >= na) { TMM[d] = less(pa, na); TMS[d] = 1; } else { TMM[d] = less(na, pa); TMS[d] = 2; }
+    }
+    TU2 = (TMM[1] * TMM[1] + TMM[2] * TMM[2] + TMM[3] * TMM[3]) / 6;   // the air's movement squared, times its amount squared
+}
+int tbalance(int d)                       // the share of TRH that should be going way d, for this cell's push
+{
+    int k = d <= 3 ? d : less(d, 3), with = d <= 3 ? TMS[k] == 1 : TMS[k] == 2;
+    int m = TMM[k];
+    int up = TRH + 2 * m * m / TRH, down = 2 * TU2 / TRH;
+    if (with) up = up + 2 * m; else down = down + 2 * m;
+    if (down >= up) return 1;
+    return less(up, down) / $C;
+}
+void tsettle(int c)
+{
+    if (tsolid[c]) return;
+    tpush(c);
+    int d, moving = low;
+    for (d = 1; d <= 6; d++) {
+        int e = tbalance(d), now = tfa[TF(d, c)], nw;
+        if (now >= e) { int over = less(now, e) * 9 / $B; nw = e > over ? less(e, over) : 1; }   // past the balance by 1/3 of the gap
+        else nw = e + less(e, now) * 9 / $B;
+        tfa[TF(d, c)] = nw; moving = moving + nw;
+    }
+    tfa[TF(7, c)] = less(TRH, moving);           // the still air is what is left: the cell's air is unchanged
+}
+void tfan(int c, int rho)                     // a cell set moving east at the fan's speed
+{
+    TMM[1] = 2 * rho * TUN / TUD; TMS[1] = 1;    // along way 1 (east): all of it
+    TMM[2] = rho * TUN / TUD; TMS[2] = 1;        // up-east: half
+    TMM[3] = rho * TUN / TUD; TMS[3] = 2;        // up-west: half, the other way
+    TRH = rho; TU2 = (TMM[1] * TMM[1] + TMM[2] * TMM[2] + TMM[3] * TMM[3]) / 6;
+    int d, moving = low;
+    for (d = 1; d <= 6; d++) { tfa[TF(d, c)] = tbalance(d); moving = moving + tfa[TF(d, c)]; }
+    tfa[TF(7, c)] = less(rho, moving);
+}
+
+// ---------------------------------------------------------------- moving: each way's air to the neighbour that way
+void tstream()
+{
+    int c, d;
+    for (c = 1; c <= TN * 7; c++) tga[c] = tfa[c];
+    tliftup = low; tliftdown = low; tdragon = low; tdragback = low;
+    for (c = 1; c <= TN; c++) if (tsolid[c] < 1) for (d = 1; d <= 6; d++) {
+        int src = tnbt[TF(topp(d), c)];        // the air arriving here going way d came from the neighbour behind
+        if (tnbt[TF(d, c)] < 1) tgone = tgone + tga[TF(d, c)];   // going out of the tunnel's open ends: it leaves (counted)
+        if (src < 1) tfanned = tfanned + tfa[TF(d, c)];         // nothing behind (the open ends): the room's air comes in (counted)
+        else if (tsolid[src] < 1) tfa[TF(d, c)] = tga[TF(d, src)];
+        else if (src >= 1) {                // that neighbour is solid: the air that went into it turned straight back
+            int back = tga[TF(topp(d), c)];
+            tfa[TF(d, c)] = back;
+            if (tsolid[src] == 2) {          // it pushed on the tshape, way topp(d): count the push
+                int o = topp(d);
+                if (o == 2 || o == 3) tliftup = tliftup + 2 * back;
+                if (o == 5 || o == 6) tliftdown = tliftdown + 2 * back;
+                if (o == 1) tdragon = tdragon + 2 * back; if (o == 2 || o == 6) tdragon = tdragon + back;
+                if (o == 4) tdragback = tdragback + 2 * back; if (o == 3 || o == 5) tdragback = tdragback + back;
+            }
+        }
+    }
+}
+void tends()
+{
+    int y;
+    for (y = 2; y < TGH; y++) {
+        int c = tat(1, y), o = tat(TGW, y), w = tat(less(TGW, 1), y), d, before = low, after = low;
+        for (d = 1; d <= 7; d++) before = before + tfa[TF(d, c)];
+        tfan(c, TRHO);
+        for (d = 1; d <= 7; d++) after = after + tfa[TF(d, c)];
+        if (after >= before) tfanned = tfanned + less(after, before); else tgone = tgone + less(before, after);
+        before = low; after = low;
+        for (d = 1; d <= 7; d++) { before = before + tfa[TF(d, o)]; tfa[TF(d, o)] = tfa[TF(d, w)]; after = after + tfa[TF(d, o)]; }
+        if (after >= before) tfanned = tfanned + less(after, before); else tgone = tgone + less(before, after);
+    }
+}
+
+// ---------------------------------------------------------------- the picture: warm rising, cool falling
+
+
+#define TCELL $C                         // a cell: 3/16 inch across, so the tunnel is 30 inches long
+int TSTEP, TFLIPS, TLAST, TFIRST, TLASTFLIP, TBAD, TTOTAL;
+void tunnel_start()
+{
+    TCX = TGW / 4; TCY = (TGH + 1) / 2;
+    int x, y, c, d;
+    for (y = 1; y <= TGH; y++) for (x = 1; x <= TGW; x++) {
+        c = tat(x, y);
+        tsolid[c] = y == 1 || y == TGH ? 1 : tinshape(x, y) ? 2 : low;
+        for (d = 1; d <= 6; d++) tnbt[TF(d, c)] = tnbway(x, y, d);
+        if (tsolid[c]) { for (d = 1; d <= 7; d++) tfa[TF(d, c)] = low; }
+        else tfan(c, y == TCY + 3 && x > TCX ? TRHO + TRHO / 17 : TRHO);   // one small unevenness to start the swing
+    }
+    TTOTAL = low; for (c = 1; c <= TN * 7; c++) TTOTAL = TTOTAL + tfa[c];
+}
+void tunnel_steps(int n)
+{
+    int k, c;
+    for (k = 1; k <= n; k++) {
+        TSTEP++;
+        for (c = 1; c <= TN; c++) tsettle(c);
+        tstream(); tends();
+        int side = TLAST;
+        if (apart(tliftup, tliftdown) * 5BC > tliftup + tliftdown) side = tliftup >= tliftdown ? 1 : 2;
+        if (TSTEP > 8B5 && TLAST >= 1 && side != TLAST) { TFLIPS++; if (TFIRST < 1) TFIRST = TSTEP; TLASTFLIP = TSTEP; }
+        TLAST = side;
+        if (TSTEP % 79 < 1) {                                     // the air book, now and then
+            int t = low; for (c = 1; c <= TN * 7; c++) t = t + tfa[c];
+            if (t + tgone != TTOTAL + tfanned && TBAD < 1) TBAD = TSTEP;
+        }
+    }
+}
+void tunnel_draw(int x, int z)
+{
+    int x1 = less(x, TGW * TCELL / 2), y1 = 31, depth = 11A;
+    lab_alpha(156); lab_colour(86, 3D, 28);
+    lab_box(x1, less(z, depth), x1 + TGW * TCELL, z + depth, 1, y1);                   // its base
+    int full = TRHO * TUN / TUD, row, col;
+    for (row = 2; row < TGH; row = row + 2) for (col = 1; col <= TGW; col = col + 2) {
+        int c = tat(col, row);
+        int wx = x1 + col * TCELL + (row % 2 ? low : TCELL / 2), wy = y1 + less(TGH, row) * TCELL * $D / 12;
+        if (tsolid[c]) continue;
+        tpush(c);
+        int up = low, down = low;
+        if (TMS[2] == 1) up = up + TMM[2]; else down = down + TMM[2];
+        if (TMS[3] == 1) up = up + TMM[3]; else down = down + TMM[3];
+        int v = lower(apart(up, down) * 168 / full, 168);
+        if (v < 1B) continue;
+        if (up >= down) lab_colour(v, v / 2, v / 6); else lab_colour(v / 6, v / 2, v);
+        lab_glow(wx, wy, z, TCELL * 2);
+    }
+    // the post across the tunnel, and the glass round it all
+    lab_alpha(156); lab_colour(125, 118, $D1); TUBER = tsize * TCELL;
+    int px3 = x1 + TCX * TCELL, py3 = y1 + less(TGH, TCY) * TCELL * $D / 12;
+    lab_tube(px3, py3, less(z, depth), px3, py3, z + depth);
+    lab_alpha(6); lab_colour(125, 144, 151);
+    lab_box(x1, less(z, depth), x1 + TGW * TCELL, z + depth, y1, y1 + TGH * TCELL * $D / 12);
+    lab_alpha(149); TUBER = 2;
+}
+void tunnel_panel()
+{
+    lab_line("The wind tunnel: moving air on the hex lattice, a round post (lang/lab/objects/tunnel.delta)");
+    lab_value("steps run", TSTEP, "");
+    lab_value("the eddies changed side", TFLIPS, "times");
+    if (TFLIPS >= 3) {
+        int beats = less(TFLIPS, 1) / 2;
+        lab_value("a beat every", less(TLASTFLIP, TFIRST) / higher(beats, 1), "steps");
+        lab_value("Strouhal number", beats * tsize * 2 * 5BC * TUD / (higher(1, less(TLASTFLIP, TFIRST)) * TUN), "thousandths (open air: about 173)");
+    } else lab_line("the eddies are still growing: give it a few thousand steps");
+    if (TBAD < 1) lab_line("the air book balances: what the fan pushed in is in the tunnel or out of its end");
+    else lab_value("the air book went out at step", TBAD, "");
+}
+
+thing tunnel {
+    int x, z;
+    void start() { tunnel_start(); }
+    void step() { tunnel_steps(4); }
+    void draw() { tunnel_draw(x, z); }
+    void panel() { tunnel_panel(); }
+};
