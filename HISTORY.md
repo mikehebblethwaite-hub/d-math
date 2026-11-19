@@ -86,3 +86,13 @@ desktop became a flower of seven hex tiles (the emblem in the middle; Dragonfly,
 hold). Dragonfly works volts, amps, ohms, watts and heat in D numerals; where a whole does not come out even it counts in
 thousandths, and the crumb that does not share stays on the knife (the cake rule, paper 5.6). The mouse had been left open
 at 0.07: it turned out to work all along; the test had sent relative moves, which a tablet does not take.
+
+## The candle (19 Nov, ~00:30)
+
+Mike, 19:09 on the 18th: smoke and a flame should come from the same neighbour rule as the bubbles, "no fancy silly
+tricks ... the truth will out". `smoke.delta`: hex cells, moves only, the energy book balanced every step. Each missing
+piece was a neighbour found by the model failing: the hot gas rose too fast to warm the wick (so the wick became solid,
+warmed by contact and by the light of the flame it sees); a hot region could rise only at its top edge (so the push comes
+from the room's weight); heat had nowhere to go (so warm cells give light to the room). The flame now takes hold on the
+wick, makes soot where air is short and a widening plume, then smothers in its own soot: the next missing neighbour is
+pressure (Mike's principle, 19:10: model shape not nature means an undetected neighbour).
