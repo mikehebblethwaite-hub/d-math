@@ -107,3 +107,4 @@ int window_wheel_up() { int n = dl_wup; dl_wup = less(1, 1); return n; }
 int window_wheel_down() { int n = dl_wdown; dl_wdown = less(1, 1); return n; }
 void window_fullscreen() { }                 // on the machine itself the picture is always the whole screen
 int window_readfile(char *name, char *into, int most) { return drive_read(name, into, most); }   // from the boot drive
+int window_writefile(char *name, char *src, int n) { return drive_write(name, src, n); }   // to the boot drive

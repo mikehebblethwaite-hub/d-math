@@ -467,6 +467,110 @@ void lab_box(int x1, int z1, int x2, int z2, int yb, int yt)         // a block:
 void lab_kind(int k) { LKIND = k; }                                // the next value's spectrum: 1 heat, 2 current, 3 chemistry
 int lab_far(int x, int z) { return apart(x, camX) * apart(x, camX) + apart(z, camZ) * apart(z, camZ); }   // how far from the camera (squared)
 
+// ---------------------------------------------------------------- who else is in the room (Mike: "make yourself visible")
+// Each copy of the lab writes where its viewer stands to a small note on this machine (/tmp/delta-lab-NAME.where), and
+// draws the others it finds there. Claude comes in as Dan (the angel of Dick and Dan); a person as themselves.
+// Dan's heat is the real heat this machine's processors make while he works: their power, read from the machine.
+char WHO[13];
+char PNOTE[93];
+int OTHX, OTHY, OTHZ, OTHBEAT, OTHSEEN, OTHLAST, OTHHERE;
+int WATTS;                                                         // this machine's processors, in thousandths of a watt
+int PNN;
+void dnum4(int n) { dstr(n); int i = 1; while (nb[i] >= 1) { PNOTE[PNN] = nb[i]; PNN++; i++; } PNOTE[PNN] = 26; PNN++; }
+void presence_write(int beat)
+{
+    char path[48]; char *a = "/tmp/delta-lab-"; int k = 1, i = 1;
+    while (a[i] >= 1) { path[k] = a[i]; k++; i++; }
+    i = 1; while (WHO[i] >= 1) { path[k] = WHO[i]; k++; i++; }
+    char *b = ".where"; i = 1; while (b[i] >= 1) { path[k] = b[i]; k++; i++; }
+    path[k] = low;
+    PNN = 1; dnum4(camX); dnum4(camY); dnum4(camZ); dnum4(beat);
+    window_writefile(path, PNOTE, less(PNN, 1));
+}
+int dval(int c) { if (c >= '1' && c <= '9') return less(c, '0'); if (c >= 'A' && c <= 'D') return less(c, 'A') + $A; return low; }   // a D digit's worth
+int pnum(char *s, int *at) { int v = low, k = *at; while (s[k] == 26) k++; while (dval(s[k]) >= 1) { v = v * $D + dval(s[k]); k++; } *at = k; return v; }
+void presence_read(char *other)
+{
+    char path[48]; char *a = "/tmp/delta-lab-"; int k = 1, i = 1;
+    while (a[i] >= 1) { path[k] = a[i]; k++; i++; }
+    i = 1; while (other[i] >= 1) { path[k] = other[i]; k++; i++; }
+    char *b = ".where"; i = 1; while (b[i] >= 1) { path[k] = b[i]; k++; i++; }
+    path[k] = low;
+    char s[93];
+    int n = window_readfile(path, s, 86);
+    if (n < 1) { OTHHERE = low; return; }
+    s[n + 1] = low;
+    int at = 1;
+    OTHX = pnum(s, &at); OTHY = pnum(s, &at); OTHZ = pnum(s, &at); int beat = pnum(s, &at);
+    if (beat != OTHBEAT) { OTHBEAT = beat; OTHSEEN = FR; }
+    OTHHERE = FR < OTHSEEN + 48;                               // gone quiet for a while: gone
+    char w[31]; int m = window_readfile("/sys/class/hwmon/hwmon1/power1_input", w, 24);
+    if (m >= 1) { int q = 1, v = low; while (w[q] >= '0' && w[q] <= '9') { v = v * $A + less(w[q], '0'); q++; } WATTS = v / 5BC; }
+}
+int lo(int a, int b) { return a > b ? less(a, b) : 1; }             // a take-away that stops at 1 (for places on the screen)
+int sterm(int base, int a, int b, int c, int k) { int mag = apart(a, b) * apart(c, k) / K; if ((a >= b) == (c >= k)) return base + mag; return lo(base, mag); }   // term, stopping at 1
+void ring(int cx, int cy, int r, int t)                            // a round line in the picture (pixels), in the colour set
+{
+    int x, y;
+    for (y = lo(cy, r + t); y <= cy + r + t; y++) for (x = lo(cx, r + t); x <= cx + r + t; x++) {
+        int d2 = apart(x, cx) * apart(x, cx) + apart(y, cy) * apart(y, cy);
+        if (d2 >= lo(r, t) * lo(r, t) && d2 <= (r + t) * (r + t)) mixpx(x, y, LR, LG, LB, 149);
+    }
+}
+void disc(int cx, int cy, int r, int rr, int gg, int bb)
+{
+    int x, y;
+    for (y = lo(cy, r); y <= cy + r; y++) for (x = lo(cx, r); x <= cx + r; x++)
+        if (apart(x, cx) * apart(x, cx) + apart(y, cy) * apart(y, cy) <= r * r) mixpx(x, y, rr, gg, bb, 156);
+}
+void drawdan(int x, int y, int z)                                  // Dan: a round white face, a halo, wings, a smile
+{
+    int headr = 156;                                           // his head: 7 1/2 inches across
+    lab_cyl(x, z, $DB, 1, higher(2, lo(y, headr)), 9);       // his body, down to the floor (pale, like wax)
+    if (lab_proj(x, y, z) < 1) return;
+    int cx = pix(PX), cy = pix(PY), r = higher(6, headr * F / PD);
+    int t = higher(1, r / 11);
+    int k, a;
+    for (a = 1; a <= 39; a = a + 1) {                         // his wings, one each side, a few feathers' curve
+        int wx = r + r * a / 39, wy = r * 24 / 79 * a / 39;
+        lab_colour(31, 31, 35); ring(lo(cx, wx), lo(cy, wy), higher(2, r / 5), t);
+        lab_colour(31, 31, 35); ring(cx + wx, lo(cy, wy), higher(2, r / 5), t);
+        a = a + 7;
+    }
+    disc(cx, cy, r, 163, 163, 15C); lab_colour(24, 24, 28); ring(cx, cy, r, t);
+    int ex = r * 29 / 79, ey = r * 12 / 79, er = higher(2, r * 19 / 79);
+    disc(lo(cx, ex), lo(cy, ey), er, 168, 168, 168); lab_colour(24, 24, 28); ring(lo(cx, ex), lo(cy, ey), er, t);
+    disc(cx + ex, lo(cy, ey), er, 168, 168, 168); lab_colour(24, 24, 28); ring(cx + ex, lo(cy, ey), er, t);
+    disc(lo(cx, ex), lo(cy, ey), higher(1, er / 3), 17, 17, 1B); disc(cx + ex, lo(cy, ey), higher(1, er / 3), 17, 17, 1B);
+    for (k = 1; k <= 1B; k++) {                                // his smile: the lower half of a circle
+        int place = 39 + lo(k, 1) * 2;                       // round the bottom half of the hex circle
+        int sx = sterm(cx * 13, r * 13 / 2 + 1, 1, cosk(place), K) / 13, sy = cy + r * 1C / 79 + r * 24 / 79 * apart(sink(place), K) / K;
+        disc(sx, sy, t, 24, 24, 28);
+    }
+    for (k = 1; k <= 48; k++) {                                // his halo: a gold ring seen at a slant
+        int place = k * 75 / 48;
+        int hx = sterm(cx * 13, r * 13 + 1, 1, cosk(place), K) / 13, hy = sterm(lo(cy, r * 11 / $A) * 13, r * 13 / 4 + 1, 1, sink(place), K) / 13;
+        disc(hx, hy, higher(1, t + t / 2), 156, 125, 62);
+    }
+    if (HEATVIEW) { lab_colour(168, 93, 31); lab_glow(x, lo(y, headr * 2), z, 48 + WATTS * 4); }
+    tx = lo(cx, 6C); ty = lo(cy, r * 13 / $A + 24);
+    text("Dan (Claude): ", 156, 156, 156);
+    dstr(higher(1, WATTS / 5BC)); text(nb, 156, 125, 93); text(" watts of heat (this machine's processors, in D)", 125, 125, 125);
+}
+void drawperson(int x, int y, int z, char *name)                   // a person: a body and a head, named
+{
+    lab_cyl(x, z, 125, 1, higher(2, lo(y, 16D)), 9);
+    lab_cyl(x, z, 93, lo(y, 125), y + 48, 6);
+    if (lab_proj(x, y + 79, z) < 1) return;
+    tx = lo(pix(PX), 17); ty = lo(pix(PY), 24); text(name, 156, 156, 156);
+}
+void presence_draw()
+{
+    if (OTHHERE < 1) return;
+    if (WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n') drawperson(OTHX, OTHY, OTHZ, "Mike");
+    else drawdan(OTHX, OTHY, OTHZ);
+}
+
 // ---------------------------------------------------------------- the good renderer, carried across from the two-cups program
 // (lang/examples/faraday.delta): materials, smooth lit cylinders (glass seen through, mercury a mirror), the round wire.
 // It speaks through the lab room's turning camera (lab_proj); upright things stay upright as the camera turns.
@@ -742,6 +846,9 @@ int main(int argc, char **argv)
 {
     low = less(1, 1);
     fonts();
+    char *me = argc >= 2 ? argv[2] : "mike";                       // who is looking: dan (Claude), or a person by name
+    { int q = 1; while (me[q] >= 1 && q < 12) { WHO[q] = me[q]; q++; } WHO[q] = low; }
+    char *other = WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n' ? "mike" : "dan";
     hexcircle();
     window_open("Delta lab room");
     W = window_wide(); H = window_high(); CW = W * 4;
@@ -751,6 +858,7 @@ int main(int argc, char **argv)
     int wi; for (wi = 1; wi <= W * H + W + 2; wi++) wn[wi] = 168;   // the wire buffers start clear
     wx1 = W; wx2 = 1; wy1 = H; wy2 = 1; ix1 = W; ix2 = 1; iy1 = H; iy2 = 1;
     camX = MID; camZ = less(MID, FOOT); camY = INCH * 4; YAW = 1; PIT = 1;     // a foot from the candle, at its flame
+    if (WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n') { camX = less(MID, FOOT * 2); camZ = MID + FOOT; YAW = 1C; }   // Dan starts beside the candle, facing it
     scene_start();
     int sharp = low, moved = 1, showpanel = 1, sel = 1, frame = low;
     int lastmx = low, lastmy = low, held = low, pressx = low, pressy = low, midheld = low;
@@ -806,6 +914,9 @@ int main(int argc, char **argv)
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
         scene_step();
         scene_draw();
+        if (frame % 8 < 1) presence_write(frame);                    // where I stand, for the others
+        if (frame % 4 < 1) presence_read(other);
+        presence_draw();
         if (showpanel) lab_panel(sel);
         fpscount();
         window_show(&px[CW + 5]);
