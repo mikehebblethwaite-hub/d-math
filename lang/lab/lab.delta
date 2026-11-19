@@ -32,6 +32,8 @@ int floorh, roomh, roomr2;
 int HR, HG, HB;
 int low;
 int HEATVIEW;                  // 1: things are drawn as a heat camera sees them (T); LOW: as the eye sees them
+int LA = 149;               // how much a column, block or tube covers what is behind it (lab_alpha)
+int TUBER = 2;                  // a tube's radius in 1/64 inch, set before lab_tube
 char *fw;
 char *fd;
 #include "fonts.delta"
@@ -338,7 +340,7 @@ void lab_column(int x, int z, int rad, int yb, int yt)               // an uprig
             if (lab_proj(px3, y, pz3) < 1) continue;
             int rr = higher(11, rad * F * 13 / PD / 6);
             int x1 = pix(less(PX, rr)), x2 = pix(PX + rr), y1 = pix(less(PY, rr)), y2 = pix(PY + rr), qx, qy;
-            for (qy = y1; qy <= y2; qy++) for (qx = x1; qx <= x2; qx++) mixpx(qx, qy, LR * lit / 169, LG * lit / 169, LB * lit / 169, 149);
+            for (qy = y1; qy <= y2; qy++) for (qx = x1; qx <= x2; qx++) mixpx(qx, qy, LR * lit / 169, LG * lit / 169, LB * lit / 169, LA);
         }
     }
     int ring;                                                         // its top: rings in to the middle
@@ -348,7 +350,7 @@ void lab_column(int x, int z, int rad, int yb, int yt)               // an uprig
         if (lab_proj(px3, yt, pz3) < 1) continue;
         int rr = higher(11, rad * F * 13 / PD / 6);
         int x1 = pix(less(PX, rr)), x2 = pix(PX + rr), y1 = pix(less(PY, rr)), y2 = pix(PY + rr), qx, qy;
-        for (qy = y1; qy <= y2; qy++) for (qx = x1; qx <= x2; qx++) mixpx(qx, qy, LR, LG, LB, 149);
+        for (qy = y1; qy <= y2; qy++) for (qx = x1; qx <= x2; qx++) mixpx(qx, qy, LR, LG, LB, LA);
     }
 }
 int MARKX[31], MARKY[31], MARKON[31];                       // where each object was seen this frame, to pick it
@@ -393,6 +395,59 @@ void lab_panel(int sel)                                              // the word
     int right = lower(less(W, 4), WIDEST + 17), bottom = 31 + LINE * 1D + 11;
     for (y = 1B; y <= bottom; y++) for (x = 17; x <= right; x++) mixpx(x, y, 8, $A, 15, $D1);
     panelwords(sel);
+}
+
+// ---------------------------------------------------------------- more for things to draw with: see-through, rods, blocks
+void lab_alpha(int a) { LA = a; }
+void lab_tube(int x1, int y1, int z1, int x2, int y2, int z2)         // a rod or a wire, round, in the colour set
+{
+    int n = higher(4, (apart(x1, x2) + apart(y1, y2) + apart(z1, z2)) / 3), k;
+    for (k = 1; k <= n; k++) {
+        int x = towards(x1, x2, k, n), y = towards(y1, y2, k, n), z = towards(z1, z2, k, n);
+        if (lab_proj(x, y, z) < 1) continue;
+        int rr = higher($A, TUBER * F * 13 / PD);
+        int qx, qy, x1p = pix(less(PX, rr)), x2p = pix(PX + rr), y1p = pix(less(PY, rr)), y2p = pix(PY + rr);
+        for (qy = y1p; qy <= y2p; qy++) for (qx = x1p; qx <= x2p; qx++) {
+            int ddx = apart(BIG * 13 + qx * 13 + 8, PX), ddy = apart(BIG * 13 + qy * 13 + 8, PY);
+            if (ddx * ddx + ddy * ddy < rr * rr) {
+                int shine = ddx * 2 < rr && PX > BIG * 13 + qx * 13 ? 31 : 1;      // a bright line down its near side
+                mixpx(qx, qy, LR + shine, LG + shine, LB + shine, LA);
+            }
+        }
+    }
+}
+int QX[4], QY[4], QZ[4];                                              // a flat face's four corners, in the room
+void quadfill(int lit)                                                // the face, filled, lit by how it faces the lamp
+{
+    int sx[4], sy[4], k, ymin = 36694, ymax = 1;
+    for (k = 1; k <= 4; k++) {
+        if (lab_proj(QX[k], QY[k], QZ[k]) < 1) return;
+        sx[k] = pix(PX); sy[k] = pix(PY);
+        ymin = lower(ymin, sy[k]); ymax = higher(ymax, sy[k]);
+    }
+    int y;
+    for (y = higher(1, ymin); y <= lower(H, ymax); y++) {
+        int xa = 36694, xb = 1;
+        for (k = 1; k <= 4; k++) {
+            int j = k % 4 + 1, ya = sy[k], yb = sy[j];
+            if ((y >= ya && y <= yb) || (y >= yb && y <= ya)) {
+                int x = ya == yb ? sx[k] : ya < yb ? towards(sx[k], sx[j], less(y, ya), less(yb, ya)) : towards(sx[j], sx[k], less(y, yb), less(ya, yb));
+                xa = lower(xa, x); xb = higher(xb, x);
+                if (ya == yb) { xa = lower(xa, sx[j]); xb = higher(xb, sx[j]); }
+            }
+        }
+        int x;
+        for (x = higher(1, xa); x <= lower(W, xb); x++) mixpx(x, y, LR * lit / 169, LG * lit / 169, LB * lit / 169, LA);
+    }
+}
+void corners(int ax, int ay, int az, int bx, int by, int bz) { QX[1] = ax; QY[1] = ay; QZ[1] = az; QX[3] = bx; QY[3] = by; QZ[3] = bz; }
+void lab_box(int x1, int z1, int x2, int z2, int yb, int yt)         // a block: its sides the camera sees, then its top
+{
+    if (camZ < z1) { QX[1] = x1; QY[1] = yb; QZ[1] = z1; QX[2] = x2; QY[2] = yb; QZ[2] = z1; QX[3] = x2; QY[3] = yt; QZ[3] = z1; QX[4] = x1; QY[4] = yt; QZ[4] = z1; quadfill(125); }
+    if (camZ > z2) { QX[1] = x1; QY[1] = yb; QZ[1] = z2; QX[2] = x2; QY[2] = yb; QZ[2] = z2; QX[3] = x2; QY[3] = yt; QZ[3] = z2; QX[4] = x1; QY[4] = yt; QZ[4] = z2; quadfill($D1); }
+    if (camX < x1) { QX[1] = x1; QY[1] = yb; QZ[1] = z1; QX[2] = x1; QY[2] = yb; QZ[2] = z2; QX[3] = x1; QY[3] = yt; QZ[3] = z2; QX[4] = x1; QY[4] = yt; QZ[4] = z1; quadfill($C4); }
+    if (camX > x2) { QX[1] = x2; QY[1] = yb; QZ[1] = z1; QX[2] = x2; QY[2] = yb; QZ[2] = z2; QX[3] = x2; QY[3] = yt; QZ[3] = z2; QX[4] = x2; QY[4] = yt; QZ[4] = z1; quadfill($C4); }
+    if (camY > yt) { QX[1] = x1; QY[1] = yt; QZ[1] = z1; QX[2] = x2; QY[2] = yt; QZ[2] = z1; QX[3] = x2; QY[3] = yt; QZ[3] = z2; QX[4] = x1; QY[4] = yt; QZ[4] = z2; quadfill(163); }
 }
 // ---------------------------------------------------------------- moving about
 void walk(int ahead, int side, int fwd, int right)                  // ahead/side: how far; fwd/right: 1 that way, 2 the other

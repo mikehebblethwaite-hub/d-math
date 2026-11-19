@@ -238,7 +238,11 @@ turn the assembly text into the program file.
   and show what they hold in the room's panel (`lab_line`, `lab_value`). Walk round: W A S D, Q E down and up, the
   arrows turn, drag to look, the wheel goes nearer, a click picks a thing, H hides the panel, Esc closes. The camera
   turns by places on the hex circle (no sines), and the room is looked out to its walls pixel by pixel. First thing
-  in it: the candle (`objects/candle.delta`), running live, its energy book balanced every step.
+  in it: the candle (`objects/candle.delta`), running live, its energy book balanced every step. Second: Faraday's two
+  glasses of 1821 (`objects/faraday.delta`), the first electric motor at its real size: the wire circling the fixed magnet,
+  the free magnet circling the rod, the current blue, the pile's energy shared by resistance and all ending as heat in
+  the room's air, its book balanced every step. Things draw with `lab_column`, `lab_tube`, `lab_box`, `lab_glow`, `lab_haze`,
+  `lab_colour` and `lab_alpha` (see-through). `paper/images/lab-faraday.png`.
 - Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come). The list of what Delta does not do
   yet: `lang/TODO.md`.
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).

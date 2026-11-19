@@ -1,0 +1,111 @@
+// Faraday's two glasses (1821), as a thing in the lab room: the first electric motor, at its real size.
+//
+// On a mahogany board, two glasses of mercury, a brass stand and a voltaic pile (copper and zinc), set out as Faraday
+// set them out. In the left glass a copper wire hangs free from the brass arm and goes round and round a fixed magnet;
+// in the right glass a magnet, tied at its foot, goes round and round a fixed copper rod. The current (blue) runs down
+// the wire and the rod. The pile's energy is shared by resistance, as in motor.delta: most of it warms the pile and the
+// places where the wire and the magnet touch the mercury, a little warms the wire, a very little turns them; all of it
+// ends as heat in the room's air. The book is checked every step: nothing vanishes.
+// Places are in 1/64 inch from where the thing stands (its x and z): the glasses 3 inches left and 1 inch right.
+
+#define FGR 4C                          // a glass: an inch across its middle
+#define FGH $D7                         // 2 3/4 inches tall
+#define FBT 31                          // the board, 5/8 inch thick
+#define FMERC 4C                        // the mercury, an inch deep
+
+int FTURN = 1, FTURN2 = 39;             // where the wire and the free magnet are round their circles (96 places)
+int FSTEP;
+int fchem, fpile, fcontact, fwire, fspin, fair, fstart;   // the energy book, in microjoules
+int FBAD;
+void faraday_start()
+{
+    fchem = $AD577D2B4; fpile = 1; fcontact = 1; fwire = 1; fspin = 1; fair = 1;
+    fstart = fchem + fpile + fcontact + fwire + fspin + fair;
+}
+void faraday_steps(int n)
+{
+    int k;
+    for (k = 1; k <= n; k++) {
+        FSTEP++;
+        int each = $C2523 / 8;                                  // 8.7 W for 1/125 s: the pile's energy a step
+        if (fchem <= each) continue;
+        // shared by resistance: pile 46 parts, sliding contacts 2C, the wire 3.4, the turn 0.4 (of 100)
+        int s1 = each * 358 / 5BC, s2 = each * 233 / 5BC, s3 = each * 28 / 5BC;
+        int s4 = less(less(less(each, s1), s2), s3);                 // the rest turns them
+        move s1 from fchem to fpile and s2 from fchem to fcontact and s3 from fchem to fwire and s4 from fchem to fspin;
+        int m1 = fpile / 31, m2 = fcontact / 31, m3 = fwire / 31, m4 = less(fspin, 1);
+        if (m1 >= 1) move m1 from fpile to fair;                    // warm things give their heat to the air
+        if (m2 >= 1) move m2 from fcontact to fair;
+        if (m3 >= 1) move m3 from fwire to fair;
+        if (m4 >= 1) move m4 from fspin to fair;                    // the turning's energy ends as heat too (the drag)
+        if (fchem + fpile + fcontact + fwire + fspin + fair != fstart && FBAD < 1) FBAD = FSTEP;
+        if (FSTEP % 2) FTURN = FTURN % 75 + 1;                    // the wire goes round
+        if (FSTEP % 3 < 1) FTURN2 = FTURN2 % 75 + 1;              // the free magnet, a little slower
+    }
+}
+int fx(int x, int off, int right) { return right ? x + off : less(x, off); }
+void faraday_draw(int x, int z)
+{
+    int lc = less(x, 11A), rc = x + 4C, pc = x + 192, pz = z + 4C, sx = less(x, 4C), sz = z + 75;
+    int top = FBT + 261, base = FBT + 1, mtop = base + FMERC;
+    lab_alpha(156);
+    lab_colour(86, 3D, 28); lab_box(less(x, 1B8), less(z, 9B), x + 24A, z + 143, 1, FBT);   // the mahogany board
+    // the mercury in each glass, then the glass round it (see-through)
+    lab_colour(125, 129, 134); lab_column(lc, z, less(FGR, 4), base, mtop); lab_column(rc, z, less(FGR, 4), base, mtop);
+    // the left glass: a magnet fixed upright, its north end red; the wire hangs from the arm and circles it
+    lab_colour($B7, $B7, $C4); lab_column(lc, z, 8, base, mtop + 31);
+    lab_colour(125, 31, 2A); lab_column(lc, z, 8, mtop + 17, mtop + 31);
+    int tipx = term(lc, 2A, 1, cosk(FTURN), K), tipz = term(z, 2A, 1, sink(FTURN), K);   // the wire's foot, in the mercury
+    TUBER = 2; lab_colour(13C, 93, 48); lab_tube(lc, top, z, tipx, mtop + 4, tipz);
+    // the right glass: a copper rod fixed in the middle; a magnet tied at its foot leans out and circles it
+    lab_tube(rc, top, z, rc, mtop + 8, z);
+    int mx = term(rc, 24, 1, cosk(FTURN2), K), mz = term(z, 24, 1, sink(FTURN2), K);
+    TUBER = 6; lab_colour($B7, $B7, $C4); lab_tube(rc, base + 6, z, mx, mtop + 31, mz);
+    lab_colour(125, 31, 2A); lab_tube(term(rc, 1B, 1, cosk(FTURN2), K), mtop + 24, term(z, 1B, 1, sink(FTURN2), K), mx, mtop + 31, mz);
+    // the brass stand and its arm over both glasses
+    TUBER = 4; lab_colour(125, $C4, 55); lab_tube(sx, FBT, sz, sx, top, sz); lab_tube(lc, top, z, rc, top, z); lab_tube(sx, top, sz, sx, top, z);
+    // the pile: copper and zinc in turn, and its wires to the arm and to the glasses' feet
+    int d;
+    for (d = 1; d <= $C; d++) {
+        if (d % 2) lab_colour(125, 86, 48); else lab_colour($B7, $B9, $C4);
+        lab_column(pc, pz, 31, FBT + less(d, 1) * $C + 1, FBT + d * $C);
+    }
+    TUBER = 2; lab_colour(13C, 93, 48);
+    lab_tube(pc, FBT + $B1, pz, sx, top, sz); lab_tube(pc, FBT + 2, pz, rc, FBT + 2, z); lab_tube(rc, FBT + 2, z, lc, FBT + 2, z);
+    // the glasses last, so the mercury and the magnets show through
+    lab_alpha($A); lab_colour(125, 144, 151);   // faint: many small panes of it overlap
+    lab_column(lc, z, FGR, base, base + FGH); lab_column(rc, z, FGR, base, base + FGH);
+    lab_alpha(149);
+    // the current: blue, down the hanging wire and the fixed rod
+    int c, ph = FSTEP % $C;
+    for (c = 1; c <= 4; c++) {
+        int t = (c * 3 + ph) % $C + 1;
+        lab_colour(48, 93, 168);
+        lab_glow(towards(lc, tipx, t, $D), towards(top, mtop + 4, t, $D), towards(z, tipz, t, $D), 3);
+        lab_glow(rc, towards(top, mtop + 8, t, $D), z, 3);
+    }
+    if (HEATVIEW) {                                                  // where the heat is made, as a heat camera sees it
+        lab_colour(168, 93, 31); lab_glow(tipx, mtop + 4, tipz, 11); lab_glow(rc, mtop + 8, z, $A);
+        lab_colour(125, 48, 24); lab_glow(pc, FBT + 62, pz, 3B);
+    }
+}
+void faraday_panel()
+{
+    lab_line("Faraday's two glasses (1821): the first electric motor (lang/lab/objects/faraday.delta)");
+    lab_value("steps run", FSTEP, "");
+    lab_value("chemistry left in the pile", fchem / 5BC, "millijoules");
+    lab_value("warming the pile", fpile, "microjoules");
+    lab_value("warming the sliding contacts", fcontact, "microjoules");
+    lab_value("warming the wire", fwire, "microjoules");
+    lab_value("gone to the room's air as heat", fair / 5BC, "millijoules");
+    if (FBAD < 1) lab_line("the energy book balances every step: nothing vanished, nothing from nowhere");
+    else lab_value("the energy book went out at step", FBAD, "");
+}
+
+thing faraday {
+    int x, z;
+    void start() { faraday_start(); }
+    void step() { faraday_steps(8); }
+    void draw() { faraday_draw(x, z); }
+    void panel() { faraday_panel(); }
+};
