@@ -132,6 +132,7 @@ int turnz(int r, int i) { return less(MID + r * sink(i) / K, r); }
 #define FRAME 9B                       // a frame or a rail: 2 inches
 int DOOROPEN = 1;                           // 1 open; LOW shut
 int WINOPEN;                                // LOW shut, or 1 to 5
+int POSE = 1;                               // 1 standing, 2 crouching, 3 lying down (C or Ctrl)
 int PAGE = 1;                               // which page the panel shows (Tab turns them; a click shows the thing's)
 int DANNEED, DANRAD;                        // Dan needs the toilet; the warmth his radiator gives the air (the washroom)
 #include "air.delta"                        // one air for both rooms, the things and the bodies
@@ -489,7 +490,7 @@ void panelwords(int sel)
     lab_line("Delta lab room   (D numerals; 1/64 inch to the unit)");
     if (FPS >= 1) { LINE = less(LINE, 1); tx = 389; ty = 31 + LINE * 1D; words("pictures a second: ", $B7, $BD, $D1); dstr(FPS); words(nb, 156, 125, 93); LINE++; }
     tx = 2A; ty = 31 + LINE * 1D;
-    words("W A S D walk   Q E down, up   arrows turn   drag: look   wheel: nearer", 91, 97, $AA);
+    words("W A S D walk   C or Ctrl: stand, crouch, lie down   Q E down, up   arrows turn   drag: look   wheel: nearer", 91, 97, $AA);
     LINE++; tx = 2A; ty = 31 + LINE * 1D;
     words("wheel held and dragged: tilt and turn   T: heat view   F: full screen   H: hide   Esc: close", 91, 97, $AA);
     LINE = LINE + 2;
@@ -959,7 +960,7 @@ int main(int argc, char **argv)
     floorh = 1; roomh = 1; roomr2 = 1;
     int wi; for (wi = 1; wi <= W * H + W + 2; wi++) wn[wi] = 168;   // the wire buffers start clear
     wx1 = W; wx2 = 1; wy1 = H; wy2 = 1; ix1 = W; ix2 = 1; iy1 = H; iy2 = 1;
-    camX = MID; camZ = less(MID, FOOT); camY = INCH * 4; YAW = 1; PIT = 1;     // a foot from the candle, at its flame
+    camX = MID; camZ = less(MID, FOOT * 6); camY = INCH * 4C; YAW = 1; PIT = 6B;   // standing (eyes 5 ft 4 in up), 6 ft from the candle, looking down at it
     if (WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n') { camX = less(MID, FOOT * 2); camZ = MID + FOOT; YAW = 1C; }   // Dan starts beside the candle, facing it
     if (argc >= 4) {                                                 // a start place: x and z in feet (D numerals), and a facing
         int at1 = 1, at2 = 1, at3 = 1;
@@ -981,6 +982,12 @@ int main(int argc, char **argv)
         if (HEATVIEW && frame % 13 < 1) sharp = low;                 // the heat view: the air changes, so the room is looked at again
         if (key == 32) { window_fullscreen(); moved = 1; }        // F: full screen, or not
         washroom_keys(key, camX, camZ); floor_keys(key, camX, camZ);
+        if (key == 42 || key == 2B || key == 81) {                    // C or Ctrl: stand, crouch, lie down, stand ...
+            POSE = POSE % 3 + 1;
+            camY = POSE == 1 ? INCH * 4C : POSE == 2 ? INCH * 2A : INCH * 5;   // eyes 5 ft 4 in, 3 ft, 5 in off the floor
+            if (POSE == 3) PIT = 1;                                    // lying down: eyes level, along the floor
+            moved = 1;
+        }
         if (key == 1A) { PAGE = PAGE % 4 + 1; showpanel = 1; }          // Tab: the panel's next page
         if (key == 43) VENTON = VENTON ? low : 1;                       // V: the vent's fan
         if (key == 38 || key == 39) moved = 1;
