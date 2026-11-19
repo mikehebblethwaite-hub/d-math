@@ -47,7 +47,7 @@ void bench_air() { air_solid(BX1 + 4C, BZ1, less(ROOM, 1), BZ2, less(BTOP, 75));
 void bench_panel()
 {
     lab_line(VENTON ? "the vent (V): its fan on, drawing the room's air out to waste" : "the vent (V): its fan off");
-    if (EWASTE > EMAKE + 24) lab_value("  warmth it took out, more than came back in", less(EWASTE, EMAKE) * 28 / 5BC + 1, "joules (the air went to waste; as much came back round the doors)");
+    if (EWASTE > EMAKE + 24) lab_kind(1); lab_value("  warmth it took out, more than came back in", less(EWASTE, EMAKE) * 28 / 5BC + 1, "joules (the air went to waste; as much came back round the doors)");
     lab_line("The bench: an oak worktop at desk height down the right wall (lang/lab/objects/bench.delta)");
     lab_line("  a second sink (K beside it washes your hands), test tubes, a beaker, a multimeter, a power supply,");
     lab_line("  an oscilloscope, a microscope, a Bunsen burner: things to see for now, true tools in their own time");

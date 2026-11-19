@@ -56,7 +56,7 @@ void scene_panel(int sel)
         lab_line("the air (1 ft hex cells, both rooms; a second a step, so faster than real time; T shows it):");
         tvalue("  the lab", roomt(1, 3)); tvalue("    at its floor", roomt(1, 1)); tvalue("    at its ceiling", roomt(1, 2));
         tvalue("  the wave room", roomt(low, 3));
-        lab_value("  carbon dioxide in the lab", roomco(1), "parts per million");
+        lab_kind(3); lab_value("  carbon dioxide in the lab", roomco(1), "parts per million");
         if (AIRBAD < 1) lab_line("  the air's book balances: given, in and out, held"); else lab_value("  the air's book went out at step", AIRBAD, "");
         lab_value("the floor: hex tiles, piped; stand on one: , colder, . warmer. Tiles set", FLOORSET, "");
         { int t = tileat(camX, camZ); if (FON[t]) tvalue("  the tile you stand on is set to", FT[t]); else lab_line("  the tile you stand on: off"); }

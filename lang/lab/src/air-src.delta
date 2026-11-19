@@ -173,7 +173,7 @@ void tvalue(char *name, int mk)                               // a temperature, 
 {
     int v = apart(mk, {{273150}}) / {{100}};
     if (v < 1) { lab_line(name); lab_line("    at freezing, within a tenth of a degree"); return; }
-    lab_value(name, v, mk > {{273150}} ? "tenths of a degree above freezing" : "tenths of a degree below freezing");
+    lab_kind(1); lab_value(name, v, mk > {{273150}} ? "tenths of a degree above freezing" : "tenths of a degree below freezing");
 }
 // ---------------------------------------------------------------- the floor: hex tiles, piped (Mike, 19 Nov 2026)
 // The floor is hex tiles a foot across, each over its own pipe loop, for your experiments and Dan's: stand on a tile and

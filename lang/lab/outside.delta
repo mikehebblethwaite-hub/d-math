@@ -104,6 +104,6 @@ void outside_panel()
     else if (SFUN2 == 2) lab_line("the day: midsummer, the leap year's day off ([ ] a month, ; ' an hour)");
     else { lab_value("the stones' month", SM2, "([ ] moves a month)"); lab_value("  its day", SD2, ""); }
     lab_value("the sun's own hour there", SMIN / 48 + 1, "(1 is midnight to 1; ; ' moves an hour)");
-    if (SUNS > K) lab_value("the sun's height, as a sine", less(SUNS, K) * 5BC / K + 1, "thousandths"); else lab_line("the sun is down");
+    if (SUNS > K) { lab_kind(1); lab_value("the sun's height, as a sine", less(SUNS, K) * 5BC / K + 1, "thousandths"); } else lab_line("the sun is down");
     tvalue("outside", OUTT);
 }
