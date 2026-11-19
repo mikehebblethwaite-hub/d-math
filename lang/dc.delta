@@ -363,7 +363,8 @@ int iskeyword(int w)
 int name()
 {
     if (tk[P] == TNUM) failat("expected a name: a word made only of D digits (1-9, A-D) is a numeral, not a name");
-    if (tk[P] != TID || iskeyword(tv[P])) failat("expected a name");
+    if (tk[P] == TID && iskeyword(tv[P])) { line = tl[P]; failname("'", tv[P], "' is one of Delta's own words (move from to and thing vessel fits store conduct neighbours spend tick wear mix shrug quiet, and the types): pick another name"); }
+    if (tk[P] != TID) failat("expected a name");
     P++;
     return tv[less(P, 1)];
 }

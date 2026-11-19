@@ -28,6 +28,7 @@ refuse "minus ten degrees"  'int frost = -$A;' 'no longer measure'
 refuse "count down"        'int i = 3; i--;' moved
 refuse "-="      'int i = 3; i -= 2;' moved
 refuse "0 in a name"    'int x0 = 1;' 'always something'
+refuse "a keyword as a name" 'int to = 1;' "own words"
 refuse "#define 20"   '#define N 20' 'digits 1-9 A-D'
 refuse "move too many"     'int a = 2, b = 1; move 3 from a to b;' 'cannot move'
 

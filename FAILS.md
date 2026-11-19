@@ -13,30 +13,37 @@ Last daily review: 19 Nov 2026 (the first).
 - Fix: test with QMP `input-send-event` (absolute x and y, then the button): the OS read the reports and put the pointer
   exactly there.
 - Lesson: before calling our code broken, check the test speaks what the device speaks.
+- System: `lang/vm.delta` drives the test machine and speaks QMP (absolute places, buttons).
 
 ## The candle went out, again and again (smoke.delta)
 - Cause: each time, a neighbour nature has was missing: a solid wick that keeps heat; rising pushed by the room's
   weight; heat leaving as light; then pressure (the column lifted, room air in along the floor).
 - Lesson: when the model's shape is not nature's, look for the neighbour that is not there (see by what is not seen),
   never a trick that forces the shape.
+- System: the principle in the README and the paper (section 7); every model states its book and its fair test.
 
 ## Frames deleted before the clip was made (windtunnel.delta)
 - Cause: `encode ; remove frames` with `;`: the encode failed (a picture 243 rows tall; the encoder wants an even height)
   and the frames went anyway.
 - Lesson: clean up only after checking that what the clean-up feeds exists.
+- System: not yet (a habit for now: `&&`, then check the file).
 
 ## Names Delta keeps for itself
 - `move`, `from`, `to`, `and`, `thing`, `vessel`, `fits`, `store`, `conduct`, `neighbours`, `spend`, `tick`, `wear`, `mix`,
   `shrug`, `quiet` are Delta's own words; `CB`, `C2` and any word made only of 1-9 and A-D is a numeral, not a name.
 - Lesson: read the compiler's keyword list (`iskeyword` in `lang/dc.delta`) before naming things.
+- System: the compiler names the word ('to' is one of Delta's own words ... pick another name); test "a keyword as a
+  name".
 
 ## The window lost the mouse (window.delta)
 - Cause: while waiting for the display to answer a request, the reply reader threw away every event except a key
   press; mouse moves and buttons that arrived then were lost.
 - Fix: every event, wherever it is read, goes through one handler (`dl_xevent`).
 - Lesson: a reader that waits for one thing must keep what else it hears.
+- System: `dl_xevent`, and a mouse test on a hidden display.
 
 ## The wave model's long waves were measured wrong (waves-air.delta)
 - Cause: the box was a fixed 80 m; waves of 66 to 126 m did not fit two crests, so ripples were taken for crests.
 - Fix: the box fits the sea (about 80 cells to a wavelength, the cell's size set by the reading's period).
+- System: the box sized from the sea.
 - Still open: one reading (6.5 s) is off; kept as found.
