@@ -22,3 +22,7 @@ Things Delta does not do yet, found while building with it. Each gets a test in 
   words for it, bound by the PNG's hash. The OS already says its own screen as Perch words (Ctrl+P look), so a picture of
   the screen carries its words from the source, not guessed from pixels. Needs: a PNG writer in Delta (stored deflate
   blocks, CRC-32, Adler-32), SHA-256 in Delta, then a "photo" command and key that writes NAME.pngi to the boot drive.
+- Video in Delta Hex OS defaults to .mp4i (Mike, 19 Nov 2026: "default video are mp4i"): the MP4 exactly as made, plus
+  Perch's words for it over time (what was on screen and heard, per stretch), bound by the MP4's hash. Needs, after the
+  .pngi work: an MP4 writer in Delta (the boxes: ftyp, moov, mdat; a first codec the OS can write itself), then a
+  record key/command for the screen.
