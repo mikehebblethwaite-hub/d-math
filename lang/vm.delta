@@ -25,7 +25,7 @@ int qmp;                                         // 1 when the machine speaks QM
 int serial;                                      // 1: the machine's serial line (Delta Hex OS's terminal): answers end at its prompt
 int done(int n)                                  // the answer so far is finished: QMP ended its line, or the monitor shows its prompt
 {
-    if (serial) return n >= 7 && reply[less(n, 6)] == 'd' && reply[less(n, 1)] == '>' && reply[n] == ' ';
+    if (serial) return n >= 2 && reply[less(n, 1)] == '>' && reply[n] == ' ';      // a prompt: "delta> "
     if (qmp) return n >= 1 && reply[n] == '\n';
     return n >= 7 && reply[less(n, 6)] == '(' && reply[less(n, 1)] == ')' && reply[n] == ' ';
 }

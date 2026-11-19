@@ -1,4 +1,4 @@
-// Delta Hex OS: the no-zero operating system, written in Delta. 0.17: Files; copy and rename; Notepad tabs; the honeycomb; runs programs.
+// Delta Hex OS: the no-zero operating system, written in Delta. 0.18: Perch (Ctrl+P: look, do N): the screen in words for bots.
 //
 // The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
 // C library. It asks the firmware for the machine's memory and counts it, from 1, in D numerals; then the firmware
@@ -1192,7 +1192,7 @@ void trun()                                                                // En
         ts("time        the machine's clock      del NAME    takes a file away      write NAME WORDS   a file in one line\n");
         ts("clear       a clean screen      notepad     opens Notepad      off     switches the machine off\n");
     }
-    else if (tword("version")) ts("Delta Hex OS 0.17: no zero, written in Delta\n");
+    else if (tword("version")) ts("Delta Hex OS 0.18: no zero, written in Delta\n");
     else if (tword("mem")) {
         ts("ready to hold "); tn(ready); ts("   this system "); tn(ours); ts("   the firmware's "); tn(firmware);
         ts("   held back "); tn(held); ts("   all together "); tn(all); ts("\n");
@@ -1337,12 +1337,121 @@ void fileskey(int k)
     if (k == 'r') readfiles();
 }
 
+// ---------------------------------------------------------------- Perch: the screen in words, for bots (Mike: "a perch display in delta")
+// Ctrl+P (from the keyboard or the serial line) opens a Perch line in any part of the OS; what is on the screen is not
+// changed. `look` says the screen as Perch says one: short lines, each thing numbered to act on (`do N`). The words come
+// straight from what each part knows as it draws, never from the pixels. Numbers are D numerals.
+//   P place 'title'    t box 'words'    b N box 'button'    i N box 'typed so far'    s N 'a choice'    a N 'a thing to open'
+
+int PIN;                            // 1 while a Perch line is being typed
+char PLINE[79];
+int PLEN;
+void ps(char *s) { int i = 1; while (s[i] >= 1) { serput(s[i]); i++; } }
+void pn(int n) { dstr(n); ps(nb); }
+void pbox(int x, int y, int w, int h) { ps(" "); pn(x); ps(","); pn(y); ps(" "); pn(w); ps("x"); pn(h); }
+void pq(char *s) { ps(" '"); ps(s); ps("'"); }
+char *modename()
+{
+    if (MODE == 1) return "the desktop"; if (MODE == 2) return "Dragonfly"; if (MODE == 3) return "Say";
+    if (MODE == 4) return "Memory"; if (MODE == 5) return "Notepad"; if (MODE == 6) return "Terminal";
+    if (MODE == 7) return "Files"; return "a program";
+}
+void pamount(char *what, int m, char *whole, char *small)
+{
+    ps("t"); pq(what); ps(" ");
+    if (m < 1) ps("~"); else if (m % 5BC < 1) { pn(m / 5BC); ps(" "); ps(whole); } else { pn(m); ps(" "); ps(small); }
+    ps("\n");
+}
+void perchlook()
+{
+    int k;
+    ps("P delta-hex-os 'Delta Hex OS 0.18: "); ps(modename()); ps("'\n");
+    ps("n numbers are D numerals; a box is x,y wxh in pixels; do N acts on thing N; Esc goes back to the desktop\n");
+    if (MODE == 1) {
+        for (k = 2; k <= 16; k++) {
+            ps("b "); pn(less(k, 1)); pbox(less(TX[k], TR), less(TY[k], TR), TR * 2, TR * 2); pq(tilename(k));
+            if (k == FOCUS) ps(" picked"); ps("\n");
+        }
+        ps("t 'the picked one: "); ps(tilenote(FOCUS)); ps("'\n");
+    }
+    if (MODE == 2) {
+        ps("i 1"); pq(typed); ps("\n");
+        if (DFK == 2) { ps("t"); pq(DFMSG); ps("\n"); }
+        if (DFK == 1) {
+            pamount("pressure", VM, "volts", "millivolts"); pamount("current", IM, "amps", "milliamps");
+            pamount("drag", RM, "ohms", "milliohms"); pamount("power", PM, "watts", "milliwatts");
+            if (EM >= 1) pamount("heat", EM, "joules", "millijoules");
+        }
+    }
+    if (MODE == 3) {
+        ps("i 1"); pq(typed); ps("\n");
+        if (akind == 1) { ps("t '"); ps(heard); ps(" is "); pn(answer); ps("'\n"); }
+        if (akind == 2) { ps("t"); pq(amsg); ps("\n"); }
+    }
+    if (MODE == 4) {
+        ps("t 'ready to hold "); pn(ready); ps(" pages; this system "); pn(ours); ps("; the firmware's "); pn(firmware);
+        ps("; held back "); pn(held); ps("; all together "); pn(all); ps(" (pages of 1B31 bytes)'\n");
+    }
+    if (MODE == 5) {
+        for (k = 1; k <= NDOC; k++) { ps("s "); pn(k); pq(k == ACTIVE ? ENAME : &DNAME[nat(k) + 1]); if (k == ACTIVE) ps(" open"); ps("\n"); }
+        int cl = lineat(ECUR);
+        ps("t 'line "); pn(cl); ps(", column "); pn(less(ECUR, linestart(cl)) + 1); ps(", "); pn(EDN); ps(" letters, ");
+        ps(ESAVED ? "saved" : "changed, not saved"); ps("'\n");
+        int row, p = linestart(ETOP), line = ETOP;
+        for (row = 1; row <= erows() && p <= EDN + 1; row++) {
+            ps("t "); pn(line); ps(" '");
+            while (p <= EDN && ED[p] != $A) { serput(ED[p]); p++; }
+            ps("'\n"); p++; line++;
+        }
+    }
+    if (MODE == 6) {
+        int first = TLN > 1B ? less(TLN, 1B) + 1 : 1;
+        for (k = first; k <= TLN; k++) { ps("t"); pq(&TL[less(k, 1) * 79 + 1]); ps("\n"); }
+    }
+    if (MODE == 7) {
+        for (k = 1; k <= FCOUNT; k++) {
+            ps("a "); pn(k); pq(fname(k));
+            if (FDIR[k]) ps(" a folder"); else { ps(" "); pn(FSIZE[k]); ps(" bytes"); }
+            if (k == FPICK) ps(" picked"); ps("\n");
+        }
+    }
+}
+void perchdo(int n)
+{
+    if (MODE == 1 && n >= 1 && n + 1 <= 16) { FOCUS = n + 1; opentile(n + 1); ps("opened "); ps(tilename(n + 1)); ps("\n"); return; }
+    if (MODE == 7 && n >= 1 && n <= FCOUNT && FDIR[n] < 1) { FPICK = n; tabopen(fname(n)); MODE = 5; ps("opened "); ps(fname(n)); ps(" in Notepad\n"); return; }
+    if (MODE == 5 && n >= 1 && n <= NDOC) { tabkeep(); tabshow(n); ps("the tab "); ps(ENAME); ps("\n"); return; }
+    ps("nothing numbered "); pn(n); ps(" here\n");
+}
+void perchrun()
+{
+    PLINE[PLEN + 1] = low;
+    ps("\n");
+    if (PLEN >= 4 && PLINE[1] == 'l' && PLINE[2] == 'o' && PLINE[3] == 'o' && PLINE[4] == 'k') perchlook();
+    else if (PLEN >= 4 && PLINE[1] == 'd' && PLINE[2] == 'o' && PLINE[3] == 26) {
+        int k = 4, n = low; while (dval(PLINE[k]) >= 1) { n = n * $D + dval(PLINE[k]); k++; }
+        perchdo(n);
+    }
+    else ps("Perch: look (the screen in words) or do N (act on thing N)\n");
+    ps("delta> ");
+}
+int perchkey(int k)                 // 1 when Perch took the key
+{
+    if (PIN < 1) { if (k == 13) { PIN = 1; PLEN = low; ps("\nperch: "); return 1; } return low; }
+    if (k == $D) { PIN = low; perchrun(); return 1; }
+    if (k == 8) { if (PLEN >= 1) PLEN = less(PLEN, 1); return 1; }
+    if (k == 5D9) { PIN = low; ps("\ndelta> "); return 1; }
+    if (k >= 26 && k < 9A && PLEN < 77) { PLEN++; PLINE[PLEN] = k; serput(k); }
+    return 1;
+}
+
 // ---------------------------------------------------------------- keys and the mouse, for whichever is open
 
 void listen()
 {
     int k = key();
     while (k >= 1) {
+        if (perchkey(k)) { k = key(); continue; }                           // Ctrl+P: a Perch line, in any part
         if (MODE == 1) {
             if (k == 5D9) off();                                            // Esc on the desktop: off
             if (k == 5C2 || k == 5C1 || k == 9) FOCUS = FOCUS >= 16 ? 2 : FOCUS + 1;   // on round the honeycomb
@@ -1404,7 +1513,7 @@ int main(int argc, char **argv)
     layout();
     edstart();
     serfind();
-    ts("Delta Hex OS 0.17: the terminal. help lists the commands.\n"); tprompt();
+    ts("Delta Hex OS 0.18: the terminal. help lists the commands.\n"); tprompt();
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
@@ -1422,7 +1531,7 @@ int main(int argc, char **argv)
         if (MODE == 5) notepad();
         if (MODE == 6) terminal();
         if (MODE == 7) filespanel();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.17", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.18", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);
