@@ -118,3 +118,10 @@ came out 0.116 to 0.120 of a wavelength against theory's 0.110 on five readings;
 
 The wind tunnel (19 Nov, ~01:00): the same air rule, a fan and an open end. Ideal flow round a post came out by itself,
 within 2.4 per cent of theory just off the post. What it lacks (no wake, no lift) points at the next neighbour: momentum.
+
+## What everyone needs first: Notepad, then a terminal (19 Nov, ~01:30 to 01:50)
+
+Mike: "add to the operating system the stuff everyone needs first on the list: Notepad++ port to Delta". Notepad came
+first (0.09), saving to the boot drive through the firmware. Then Mike: "add a terminal, lets get you into delta in a vm".
+The terminal (0.10) speaks on the serial line too: from 01:48 Claude could type into Delta Hex OS from outside and read
+its answers (help, mem, files, sum, ask, show), all in D numerals.

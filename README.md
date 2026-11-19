@@ -259,6 +259,14 @@ between tiles, Enter or a click opens one, Esc comes back (on the desktop Esc sw
 hex steps, root 3 only as the bridge 1D/12. The mouse is our own USB driver in Delta: it finds the pointer device and
 reads its reports (a tablet in QEMU: `-device qemu-xhci -device usb-tablet`).
 
+**0.09 and 0.10: Notepad and the terminal** (Mike, 19 Nov 2026: "add to the operating system the stuff everyone needs
+first"). Notepad (the n tile or key): typing, the arrows, Home/End, Page Up/Down, a click places the cursor, line numbers in
+D numerals, Delta highlighting; F2 or Ctrl+S saves `notes.txt` to the boot drive through the firmware's file system
+(`drive_write`, `drive_read` in `lang/efi.delta`) and it opens again at start. The terminal (the t tile or key): `help`,
+`version`, `mem`, `files`, `show NAME`, `sum 7 + 6`, `ask C v 4 ohm`, `echo`, `clear`, `notepad`, `off`. Everything it writes
+also goes down the serial line, and what is typed on the line comes in as keys: `lang/vm.delta SOCKET serial help mem`
+uses Delta Hex OS from outside, in Delta. Test machines boot from a real FAT32 image (`fat:rw:` misplaces writes).
+
 **Dragonfly, the engineer's assistant** (Mike, 18 Nov 2026: "Dragonflys need building in Delta Hex OS"). Type two of
 volts, amps, ohms and watts, in D numerals with their units (`C v 4 ohm`, `5 amp B ohm`, `2B w 7 v`; add `6 s` for heat
 over time): it works out the rest with whole numbers. D writes no fraction of a whole, so when a whole does not come
