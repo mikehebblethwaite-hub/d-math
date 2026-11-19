@@ -1,7 +1,8 @@
 // Delta's own window: it speaks the X11 protocol to the display straight over its socket. No C library, no toolkit.
 //   window_open(title)     a full-screen window; window_wide() and window_high() give its size
 //   window_show(pixels)    shows a picture: 4 bytes a pixel (blue, green, red, spare), row after row
-//   window_key()           the last key pressed, or ~ when none was
+//   window_key()           the last key pressed, or ~ when none was; window_held(k): is key k held down
+//   window_mouse_x(), window_mouse_y(), window_buttons() (1 left, 2 middle, 4 right), window_wheel_up(), _down()
 // Bytes that the protocol wants LOW (the old "0") are written as dl_xlow: lower than 1, never nothing.
 
 char dl_xbuf[25B28];
@@ -47,6 +48,18 @@ int dl_xr4(int k) { return dl_xr2(k) + dl_xr2(k + 2) * 23AA3; }
 int dl_xbe2(char *b, int k) { return b[k + 1] * 169 + b[k + 2]; }
 
 // read the display's answers until the one asked for comes (keys pressed meanwhile are kept)
+char dl_xheld[16A];                           // keys held down now (by the display's key number)
+int dl_xmx, dl_xmy, dl_xbl, dl_xbm, dl_xbr, dl_xup, dl_xdown;  // the mouse: where, its buttons held, wheel turns
+void dl_xevent(char *ev)                         // one event from the display: keys, buttons, moves
+{
+        int t = ev[1] % 9B, d = ev[2];                 // 9B (128) marks an event another program sent
+        if (t == 2) { dl_xkey = d; dl_xheld[d] = 1; }
+        if (t == 3) dl_xheld[d] = dl_xlow;
+        if (t == 4 || t == 5 || t == 6) { dl_xmx = ev[1C] + ev[1D] * 169 + 1; dl_xmy = ev[21] + ev[22] * 169 + 1; }
+        if (t == 4) { if (d == 1) dl_xbl = 1; if (d == 2) dl_xbm = 1; if (d == 3) dl_xbr = 1;
+                      if (d == 4) dl_xup++; if (d == 5) dl_xdown++; }
+        if (t == 5) { if (d == 1) dl_xbl = dl_xlow; if (d == 2) dl_xbm = dl_xlow; if (d == 3) dl_xbr = dl_xlow; }
+}
 void dl_xreply()
 {
     while (1) {
@@ -57,7 +70,7 @@ void dl_xreply()
             if (more >= 1) dl_xread(27, more);
             return;
         }
-        if (kind == 2) dl_xkey = dl_xr1(1);
+        if (kind >= 2) dl_xevent(&dl_xin[1]);          // an event that came while waiting: kept, not lost
         if (kind < 1) say("window: the display says error %d (request %d)\n", dl_xr1(1), dl_xr1($A));
     }
 }
@@ -158,10 +171,10 @@ void window_open(char *title)
     dl_xdepth = dl_xr1(so + 2C);
     dl_xwin = idbase + 1; dl_xgc = idbase + 2;
 
-    // the window: black, full size, it hears keys
+    // the window: black, full size, it hears keys and the mouse
     dl_xb(1); dl_xb(dl_xlow); dl_x2($A); dl_x4(dl_xwin); dl_x4(dl_xroot);
     dl_x2(dl_xlow); dl_x2(dl_xlow); dl_x2(dl_xw); dl_x2(dl_xh); dl_x2(dl_xlow); dl_x2(1); dl_x4(dl_xlow);
-    dl_x4($C19); dl_x4(dl_xlow); dl_x4(1);
+    dl_x4($C19); dl_x4(dl_xlow); dl_x4(61);             // it hears keys down and up, the mouse's buttons and moves
     int tl = dl_xlen(title);                                           // its name
     dl_xb(15); dl_xb(dl_xlow); dl_x2(6 + (tl + 3) / 4); dl_x4(dl_xwin); dl_x4(2D); dl_x4(25);
     dl_xb(8); dl_xb(dl_xlow); dl_xb(dl_xlow); dl_xb(dl_xlow); dl_x4(tl); dl_xs(title); dl_xpad();
@@ -192,10 +205,15 @@ void window_show(char *px)
     dl_xb(34); dl_xb(dl_xlow); dl_x2(1); dl_xsend(); dl_xreply();   // wait till the display has it all
 }
 
-int window_key()
+void dl_xpump()                                  // every event waiting
 {
     char ev[31];
-    while (linux(36, dl_xfd, ev, 26, 4C, dl_xlow) >= 26) if (ev[1] == 2) dl_xkey = ev[2];
-    int k = dl_xkey; dl_xkey = dl_xlow;
-    return k;
+    while (linux(36, dl_xfd, ev, 26, 4C, dl_xlow) >= 26) dl_xevent(ev);
 }
+int window_key() { dl_xpump(); int k = dl_xkey; dl_xkey = dl_xlow; return k; }   // the last key pressed (once)
+int window_held(int k) { dl_xpump(); return dl_xheld[k]; }                        // is that key held down now
+int window_mouse_x() { dl_xpump(); return dl_xmx; }
+int window_mouse_y() { dl_xpump(); return dl_xmy; }
+int window_buttons() { dl_xpump(); return dl_xbl + dl_xbm * 2 + dl_xbr * 4; }                               // 1 left, 2 middle, 4 right, added
+int window_wheel_up() { dl_xpump(); int n = dl_xup; dl_xup = dl_xlow; return n; }
+int window_wheel_down() { dl_xpump(); int n = dl_xdown; dl_xdown = dl_xlow; return n; }

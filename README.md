@@ -222,7 +222,8 @@ turn the assembly text into the program file.
   the tunnel's walls squeeze the stream as real walls do; the cell touching the post reads low (half its neighbours are
   solid). Not yet: a wake and lift, which need the air's own push kept as it moves (the candle's lesson).
   `paper/images/windtunnel.png`.
-- Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come).
+- Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come). The list of what Delta does not do
+  yet: `lang/TODO.md`.
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 
 ## Delta Hex OS (os/)
