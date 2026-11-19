@@ -26,3 +26,6 @@ Things Delta does not do yet, found while building with it. Each gets a test in 
   Perch's words for it over time (what was on screen and heard, per stretch), bound by the MP4's hash. Needs, after the
   .pngi work: an MP4 writer in Delta (the boxes: ftyp, moov, mdat; a first codec the OS can write itself), then a
   record key/command for the screen.
+- Sound in Delta Hex OS defaults to .mp3i (Mike, 19 Nov 2026: "sound is mp3i"): the MP3 exactly as made, plus Perch's
+  words for what is heard over time, bound by the MP3's hash. Needs an MP3 writer in Delta (or MP3 frames from the
+  sound card's own samples) after the .pngi and .mp4i work.
