@@ -25,8 +25,7 @@ void bench_draw()
     // a rack of test tubes (the beaker is the seed beaker now: objects/seedcup.delta)
     lab_colour($B7, 86, 55); lab_box(6729, 2BB4, 6A22, 2D85, BTOP, BTOP + 125);
     int t; for (t = 1; t <= 5; t++) lab_cyl(6767 + t * 62, 2C9B, 22, BTOP + 48, BTOP + 341, 3);
-    // a multimeter (yellow) and a power supply (grey, its two terminals red and black)
-    lab_colour(149, 118, 31); lab_box(67A5, 396A, 6A22, 3C63, BTOP, BTOP + 93);
+    // the power supply (grey, its two terminals red and black); the multimeter is a thing of its own now (objects/meter.delta)
     lab_colour($AA, $AC, $B3); lab_box(667D, 41AD, 6B47, 4723, BTOP, BTOP + 264);
     lab_cyl(667D, 4381, 24, BTOP + $B7, BTOP + 132, 2); lab_cyl(667D, 4552, 24, BTOP + $B7, BTOP + 132, 1);
     // the oscilloscope is a thing of its own now (objects/scope.delta), standing here
@@ -42,9 +41,9 @@ void bench_panel()
     lab_line(VENTON ? "the vent (V): its fan on, drawing the room's air out to magic waste" : "the vent (V): its fan off");
     if (EWASTE > EMAKE + 24) lab_kind(1); lab_value("  warmth it took out, more than came back in", less(EWASTE, EMAKE) * 28 / 5BC + 1, "joules (the air went to magic waste; as much came back round the doors, by magic)");
     lab_line("The bench: an oak worktop at desk height down the right wall (lang/lab/objects/bench.delta)");
-    lab_line("  a second sink (K beside it washes your hands), test tubes, a multimeter, a power supply,");
+    lab_line("  a second sink (K beside it washes your hands), test tubes, a power supply,");
     lab_line("  a Bunsen burner: things to see for now, true tools in their own time");
-    lab_line("  working: the oscilloscope, the microscope and the seed beaker (click them); their links are magic, no wires");
+    lab_line("  working: the oscilloscope, the microscope, the seed beaker and the multimeter (click them); their links are magic, no wires");
 }
 thing bench {
     int x, z;

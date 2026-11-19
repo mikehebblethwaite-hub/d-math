@@ -1,0 +1,98 @@
+// The multimeter on the bench (19 Nov 2026: the next bench tool, made properly). Its probes are magic: no leads, they
+// touch what you pick from where they lie (Mike: "the attachments inputs outputs can be magic remote, no wires").
+// Click it; Y picks what the probes touch, U what it measures (volts, amps, ohms, watts). Every reading says where it
+// comes from: the lab's own model, this machine's own sensors, or magic.
+//   Faraday's pile and wire: the model (motor.delta's values): a pile of 1.5 V with 0.15 ohm inside, the whole circuit
+//     0.26 ohm, so 5.8 A and 8.7 W while the pile has chemistry left; the wire 0.009 ohm.
+//   The lab's lamp: 60 W on magic mains (230 V AC, the lab has no mains model): 0.26 A, 881 ohm hot.
+//   Dan's processors: this machine's own sensors (amdgpu): the package's watts, and the two rails it reports, the
+//     graphics core (vddgfx) and the northbridge (vddnb). It has no current sensor, so the meter shows no amps for Dan.
+#define MTX 68CA                       // the meter on the bench (yellow, where the multimeter always stood)
+#define MTZ 3ACD
+int MTGT = 1, MMODE = 1;                    // what the probes touch (1 pile, 2 wire, 3 lamp, 4 Dan); 1 V, 2 A, 3 ohm, 4 W
+int VGFX, VNB, MTICK;                       // Dan's rails, millivolts (read every 43 frames)
+char RBUF[31];
+int readmv(char *f) { int n = window_readfile(f, RBUF, 24), v = low, i; for (i = 1; i <= n; i++) if (RBUF[i] >= '0' && RBUF[i] <= '9') v = v * $A + less(RBUF[i], '0'); return v; }
+char *mtname() { return MTGT == 1 ? "Faraday's pile (across its two ends)" : MTGT == 2 ? "Faraday's hanging wire" : MTGT == 3 ? "the lab's lamp (magic mains)" : "Dan's processors (this machine)"; }
+char *mmname() { return MMODE == 1 ? "volts" : MMODE == 2 ? "amps" : MMODE == 3 ? "ohms" : "watts"; }
+int pileon() { return fchem > $BAB; }  // the pile still has chemistry (the model's book)
+// a reading in thousandths (millivolts, milliamps, milliohms, milliwatts); LOW with a reason in MWHY when there is none
+char *MWHY;
+int mread()
+{
+    MWHY = "";
+    if (MTGT == 1) {
+        if (MMODE == 3) return 16D;                                     // the whole circuit
+        if (!pileon()) { MWHY = "the pile is flat: no chemistry left"; return MMODE == 1 ? 1 : low; }
+        if (MMODE == 1) return 396;                                     // 1.5 V less 5.8 A x 0.15 ohm inside it
+        if (MMODE == 2) return 2842;
+        return 3C63;
+    }
+    if (MTGT == 2) {
+        if (MMODE == 3) return 9;
+        if (!pileon()) { MWHY = "no current: the pile is flat"; return low; }
+        if (MMODE == 1) return 3D;                                      // 5.8 A x 0.009 ohm
+        if (MMODE == 2) return 2842;
+        return 1A3;
+    }
+    if (MTGT == 3) {
+        if (MMODE == 1) return 7D8C4;
+        if (MMODE == 2) return 171;
+        if (MMODE == 3) return 24ACD3;
+        return 213D5;
+    }
+    if (MMODE == 1) return VGFX;
+    if (MMODE == 4) return WATTS + 1;
+    MWHY = MMODE == 2 ? "this machine has no current sensor: no amps for Dan" : "no ohms on a working processor (it is not a plain resistance)";
+    return low;
+}
+char *mfrom() { return MTGT <= 2 ? "from the lab's model of Faraday's motor (motor.delta's values)" : MTGT == 3 ? "from magic mains: the lab has no mains model" : "from this machine's own sensors (amdgpu)"; }
+void meter_step()
+{
+    MTICK++;
+    if (MTICK % 34 == 1) { VGFX = readmv("/sys/class/hwmon/hwmon1/in0_input"); VNB = readmv("/sys/class/hwmon/hwmon1/in1_input"); }
+}
+void meter_draw()
+{
+    lab_alpha(163);
+    lab_colour(149, 118, 31); lab_box(67A5, 396A, 6A22, 3C63, BTOP, BTOP + 93);          // its yellow case
+    lab_colour(31, 39, 31); lab_box(67BC, 399B, 68CA, 3C32, BTOP + 93, BTOP + 97);   // its screen
+    lab_colour(24, 24, 28); lab_cyl(6976, 3ACD, 48, BTOP + 93, BTOP + $B7, 1);             // the dial
+}
+void meter_panel()
+{
+    lab_line("The multimeter (lang/lab/objects/meter.delta): Y what the probes touch, U what it measures");
+    lab_line("  the probes are magic: no leads, they touch what you pick from where they lie");
+    lab_line("on:"); lab_line(mtname());
+    lab_line("measuring:"); lab_line(mmname());
+    int v = mread();
+    if (v >= 1) lab_value(MMODE == 1 ? "  reading, millivolts" : MMODE == 2 ? "  reading, milliamps" : MMODE == 3 ? "  reading, milliohms" : "  reading, milliwatts", v, MTGT == 3 && MMODE <= 2 ? "(AC)" : "");
+    if (MWHY[1] >= 1) lab_line(MWHY);
+    if (MTGT == 4 && MMODE == 1) lab_value("  the other rail (the northbridge, vddnb), millivolts", VNB, "");
+    lab_line(mfrom());
+}
+void meter_keys(int key, int picked)
+{
+    if (picked != 8) return;
+    if (key == 23) MTGT = MTGT % 4 + 1;             // Y
+    if (key == 24) MMODE = MMODE % 4 + 1;           // U
+}
+char TNOTE[1A1];
+int TNN;
+void tn2(char *s) { int i = 1; while (s[i] >= 1) { TNOTE[TNN] = s[i]; TNN++; i++; } }
+void meter_note()
+{
+    TNN = 1; tn2("meter on "); tn2(MTGT == 1 ? "pile" : MTGT == 2 ? "wire" : MTGT == 3 ? "lamp-magic-mains" : "dan-processors");
+    tn2(" measuring "); tn2(mmname()); tn2(" thousandths ");
+    int v = mread(); if (v >= 1) { dstr(v); tn2(nb); } else tn2("none");
+    if (MWHY[1] >= 1) { tn2(" ("); tn2(MWHY); tn2(")"); }
+    tn2("\n");
+    window_writefile("/tmp/delta-lab-meter.txt", TNOTE, less(TNN, 1));
+}
+thing meter {
+    int x, z;
+    void start() { }
+    void step() { meter_step(); }
+    void draw() { meter_draw(); }
+    void panel() { meter_panel(); }
+};
