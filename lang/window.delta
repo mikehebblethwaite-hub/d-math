@@ -3,6 +3,7 @@
 //   window_show(pixels)    shows a picture: 4 bytes a pixel (blue, green, red, spare), row after row
 //   window_key()           the last key pressed, or ~ when none was; window_held(k): is key k held down
 //   window_mouse_x(), window_mouse_y(), window_buttons() (1 left, 2 middle, 4 right), window_wheel_up(), _down()
+//   window_fullscreen()    full screen on, or off again
 // Bytes that the protocol wants LOW (the old "0") are written as dl_xlow: lower than 1, never nothing.
 
 char dl_xbuf[25B28];
@@ -217,3 +218,11 @@ int window_mouse_y() { dl_xpump(); return dl_xmy; }
 int window_buttons() { dl_xpump(); return dl_xbl + dl_xbm * 2 + dl_xbr * 4; }                               // 1 left, 2 middle, 4 right, added
 int window_wheel_up() { dl_xpump(); int n = dl_xup; dl_xup = dl_xlow; return n; }
 int window_wheel_down() { dl_xpump(); int n = dl_xdown; dl_xdown = dl_xlow; return n; }
+void window_fullscreen()                     // full screen on, or off again (the window manager is asked, the usual way)
+{
+    int state = dl_xatom("_NET_WM_STATE"), full = dl_xatom("_NET_WM_STATE_FULLSCREEN");
+    dl_xb(1C); dl_xb(dl_xlow); dl_x2($B); dl_x4(dl_xroot); dl_x4(42DBB7);          // SendEvent to the screen, for the manager
+    dl_xb(27); dl_xb(26); dl_x2(dl_xlow); dl_x4(dl_xwin); dl_x4(state);              // a ClientMessage: this window's state
+    dl_x4(2); dl_x4(full); dl_x4(dl_xlow); dl_x4(1); dl_x4(dl_xlow);                  // 2: change it over; full screen
+    dl_xsend();
+}

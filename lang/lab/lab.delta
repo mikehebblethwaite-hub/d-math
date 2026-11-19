@@ -382,7 +382,7 @@ void panelwords(int sel)
     tx = 2A; ty = 31 + LINE * 1D;
     words("W A S D walk   Q E down, up   arrows turn   drag: look   wheel: nearer", 91, 97, $AA);
     LINE++; tx = 2A; ty = 31 + LINE * 1D;
-    words("wheel held and dragged: tilt and turn   T: heat view   H: hide   Esc: close", 91, 97, $AA);
+    words("wheel held and dragged: tilt and turn   T: heat view   F: full screen   H: hide   Esc: close", 91, 97, $AA);
     LINE = LINE + 2;
     scene_panel(sel);
 }
@@ -434,6 +434,7 @@ int main(int argc, char **argv)
         if (key == 9) return 1;                                       // Esc
         if (key == 34) showpanel = showpanel ? low : 1;           // H
         if (key == 22) HEATVIEW = HEATVIEW ? low : 1;             // T: heat view, or as the eye sees
+        if (key == 32) { window_fullscreen(); moved = 1; }        // F: full screen, or not
         int speed = INCH / 2;
         if (window_held(1C)) { walk(speed, low, 1, 1); moved = 1; }   // W
         if (window_held(2D)) { walk(speed, low, 2, 1); moved = 1; }   // S
