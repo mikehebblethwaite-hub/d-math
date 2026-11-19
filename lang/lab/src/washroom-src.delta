@@ -1,0 +1,143 @@
+// The washroom, a small room in the lab's front right corner (Mike, 19 Nov 2026): a toilet and a sink, for humans and bots.
+// Dan's coolant: his processors' heat warms half a litre of water in his loop; his radiator gives some of it to the room's
+// air. When it is warmer than 40 degrees he walks to the toilet, lets 50 ml of the hot water out into it, and tops up 50 ml
+// of cold from the tap with a cup. The flush takes the bowl and the cistern's water down the drain pipe, through the wall,
+// sent to waste for now; the cistern and the taps fill from "magic water" for now (Mike: both to be replaced as we go).
+// Nothing vanishes: the water book (magic water in = what is held + what went to waste)
+// and the warmth book (the loop's warmth = what it started with + the processors + the magic water, less the radiator and the
+// drain) are checked every step. People: K at the sink washes your hands (a litre), L flushes the toilet.
+#define WRX {{11520}}                       // the washroom: from 15 ft across to the right wall ...
+#define WRZ {{3840}}                        // ... and from the front wall to 5 ft in
+#define WRH {{6144}}                        // its walls 8 ft high, its own ceiling on them
+#define WALL4 {{256}}                       // walls 4 inches thick
+#define WDX1 {{12000}}                      // its door: 2 ft 6 in wide
+#define WDX2 {{13920}}
+#define TOX {{14200}}                       // the toilet: its bowl's middle
+#define TOZ {{900}}
+#define SIX {{14800}}                       // the sink
+#define SIZ {{2900}}
+int MAINS, SEWER, CUPW, BASIN, BASIN2, BOWL = {{1500}}, CIST = {{6000}}, DANW = {{500}};   // water, in millilitres
+int HSTART;                                                                       // what was held to start with
+int DANE, EPROC, EMAINS, ERAD, ESEW, BOWLE, ESTARTD, WRBAD;                         // warmth, in thousandths of a joule
+int DANT, DRAINS, FLUSHES, TOPUPS, WASHES, TAPRUN, WLAST;
+int dant() { return DANE / (DANW * {{4180}} / {{1000}}); }                         // the loop's warmth, thousandths of a kelvin
+void washroom_start()
+{
+    HSTART = CUPW + BASIN + BASIN2 + BOWL + CIST + DANW;
+    DANE = DANW * {{4180}} / {{1000}} * {{303150}};                                   // the loop starts at 30 degrees
+    ESTARTD = DANE;
+}
+int washblocked(int x, int z)               // 1 when a walker at (x, z) would be in the washroom's walls (door excepted)
+{
+    int pad = {{256}};
+    if (z <= WRZ + WALL4 + pad && x + pad >= WRX && x <= WRX + pad) return 1;                       // its left wall
+    if (z + pad >= WRZ && z <= WRZ + WALL4 + pad && x + pad >= WRX && (x < WDX1 + pad || x + pad > WDX2)) return 1;   // its front, but the door
+    return low;
+}
+void flush()
+{
+    SEWER = SEWER + BOWL; BOWL = low; ESEW = ESEW + BOWLE; BOWLE = low;                // the bowl, down the drain
+    BOWL = {{1500}}; SEWER = SEWER + less(CIST, {{1500}}); CIST = low;                // the cistern rinses through, the bowl refills
+    MAINS = MAINS + {{6000}}; CIST = {{6000}};                                        // the cistern fills from magic water
+    FLUSHES++;
+}
+void washroom_steps(int n)
+{
+    int k;
+    for (k = 1; k <= n; k++) {
+        int here = low, dx = low, dz = low;
+        if (WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n') { here = 1; dx = camX; dz = camZ; }
+        else if (OTHHERE) { here = 1; dx = OTHX; dz = OTHZ; }
+        if (here) {
+            DANE = DANE + WATTS; EPROC = EPROC + WATTS;                              // the processors warm the loop
+            int ta = AT[acell(dx, {{3000}}, dz)];
+            DANT = dant(); DANRAD = low;
+            if (DANT > ta) { DANRAD = less(DANT, ta) / 2; DANE = less(DANE, DANRAD); ERAD = ERAD + DANRAD; }   // the radiator, half a watt a degree
+            DANNEED = DANT > {{313150}};
+            if (DANNEED && apart(dx, TOX) < {{1200}} && apart(dz, TOZ + {{600}}) < {{1200}}) {   // at the toilet: let 50 ml out, top up 50
+                int e = DANE * {{50}} / DANW;
+                DANE = less(DANE, e); DANW = less(DANW, {{50}}); BOWL = BOWL + {{50}}; BOWLE = BOWLE + e; DRAINS++;
+                flush();
+                MAINS = MAINS + {{50}}; CUPW = CUPW + {{50}}; TAPRUN = {{20}};          // the tap fills the cup ...
+                int em = {{50}} * {{4180}} / {{1000}} * {{283150}};                     // ... with magic water at 10 degrees
+                CUPW = less(CUPW, {{50}}); DANW = DANW + {{50}}; DANE = DANE + em; EMAINS = EMAINS + em; TOPUPS++;   // ... and the cup into the loop
+                WLAST = DANT;
+            }
+        }
+        if (BASIN >= 1) { int d = lower(BASIN, {{100}}); BASIN = less(BASIN, d); SEWER = SEWER + d; }   // the sink drains
+        if (BASIN2 >= 1) { int d = lower(BASIN2, {{100}}); BASIN2 = less(BASIN2, d); SEWER = SEWER + d; }   // the bench sink drains
+        if (TAPRUN >= 1) TAPRUN = less(TAPRUN, 1);
+        if (TAP2 >= 1) TAP2 = less(TAP2, 1);
+        if (WRBAD < 1 && (CUPW + BASIN + BASIN2 + BOWL + CIST + DANW + SEWER != HSTART + MAINS
+                         || DANE + ERAD + ESEW != ESTARTD + EPROC + EMAINS + BOWLE)) WRBAD = 1;
+    }
+}
+void washroom_keys(int key, int x, int z)
+{
+    int inside = x >= WRX && z <= WRZ;
+    if (key == {{45}} && inside) { MAINS = MAINS + {{1000}}; BASIN = BASIN + {{1000}}; TAPRUN = {{30}}; WASHES++; }   // K: wash your hands
+    if (key == {{46}} && inside) flush();
+    if (key == {{45}} && x + {{1500}} >= BX1 && apart(z, S2Z) < {{1200}}) { MAINS = MAINS + {{1000}}; BASIN2 = BASIN2 + {{1000}}; TAP2 = {{30}}; WASHES++; }   // K at the bench sink                                                                          // L: flush
+}
+void washwalls()
+{
+    lab_alpha({{255}});                                                           // solid: nothing shows through
+    lab_colour({{226}}, {{228}}, {{222}});                                            // white walls
+    lab_box(WRX, 1, WRX + WALL4, WRZ + WALL4, 1, WRH);                                // its left wall
+    lab_box(WRX, WRZ, WDX1, WRZ + WALL4, 1, WRH);                                     // its front wall, left of the door
+    lab_box(WDX2, WRZ, ROOM, WRZ + WALL4, 1, WRH);                                    // right of the door
+    lab_box(WDX1, WRZ, WDX2, WRZ + WALL4, DH, WRH);                                   // over the door
+    lab_colour({{200}}, {{200}}, {{196}}); lab_box(WRX, 1, ROOM, WRZ + WALL4, WRH, WRH + {{128}});   // its ceiling
+}
+void washinside()
+{
+    // the toilet: the bowl, its seat, the cistern on the wall
+    lab_cyl(TOX, TOZ, {{448}}, 1, {{1024}}, {{11}});
+    lab_cyl(TOX, TOZ, {{460}}, {{1024}}, {{1060}}, {{11}});
+    lab_colour({{236}}, {{236}}, {{232}}); lab_box(less(TOX, {{480}}), {{40}}, TOX + {{480}}, {{420}}, {{1100}}, {{2200}});
+    // the sink: its pedestal, its basin, water in it when there is some, the tap, the cup
+    lab_cyl(SIX, SIZ, {{128}}, 1, {{1900}}, {{11}});
+    lab_cyl(SIX, SIZ, {{640}}, {{1900}}, {{2200}}, {{11}});
+    if (BASIN >= 1) lab_cyl(SIX, SIZ, {{580}}, {{2100}}, {{2100}} + BASIN / {{20}}, {{12}});
+    WTUBE = {{40}}; lab_wire(less(ROOM, 1), {{2800}}, SIZ, SIX, {{2800}}, SIZ); WTUBE = {{40}}; lab_wire(SIX, {{2800}}, SIZ, SIX, {{2500}}, SIZ); lab_wirelay(5, low);
+    if (TAPRUN >= 1) { WTUBE = {{16}}; lab_wire(SIX, {{2500}}, SIZ, SIX, {{2210}}, SIZ); lab_wirelay({{12}}, low); }   // the tap running
+    lab_cyl(less(SIX, {{420}}), SIZ, {{128}}, {{2200}}, {{2600}}, 3);                  // the cup, on the basin's edge
+    if (CUPW >= 1) lab_cyl(less(SIX, {{420}}), SIZ, {{120}}, {{2210}}, {{2210}} + CUPW * 4, {{12}});
+    // the pipes: copper from magic water (the right wall) to the tap and the cistern; the drains grey, through the wall, to waste
+    WTUBE = {{48}}; lab_wire(less(ROOM, 1), {{2000}}, {{200}}, TOX + {{480}}, {{2000}}, {{200}}); lab_wirelay(6, low);
+    WTUBE = {{96}}; lab_wire(TOX, {{200}}, TOZ, TOX, {{200}}, {{60}}); WTUBE = {{96}}; lab_wire(TOX, {{200}}, {{60}}, less(ROOM, 1), {{200}}, {{60}}); lab_wirelay(1, low);
+    WTUBE = {{64}}; lab_wire(SIX, {{300}}, SIZ, less(ROOM, 1), {{300}}, SIZ); lab_wirelay(1, low);
+    if (HEATVIEW && BOWLE >= 1) { lab_colour({{255}}, {{120}}, {{40}}); lab_glow(TOX, {{900}}, TOZ, {{80}}); }
+}
+void washroom_draw()
+{
+    int inside = camX >= WRX && camZ <= WRZ;
+    if (inside) { washwalls(); washinside(); } else { washinside(); washwalls(); }
+}
+void washroom_air()                         // its walls fill the air's cells (the door left open)
+{
+    air_solid(WRX, 1, WRX + WALL4, WRZ, WRH);
+    air_solid(WRX, WRZ, WDX1, WRZ + WALL4, WRH);
+    air_solid(WDX2, WRZ, less(ROOM, 1), WRZ + WALL4, WRH);
+}
+void washroom_panel()
+{
+    lab_line("The washroom: a toilet and a sink for humans and bots (lang/lab/objects/washroom.delta)");
+    lab_line("  K at the sink: wash your hands;  L: flush.  Dan comes when his coolant is over 40 degrees");
+    if (DANT >= 1) tvalue("  Dan's coolant", DANT);
+    lab_value("  in his loop", DANW, "millilitres");
+    if (DANNEED) lab_line("  Dan needs the toilet: his coolant is hot");
+    lab_value("  Dan let out", DRAINS, "times, 50 ml each, into the toilet");
+    lab_value("  topped up from the cup", TOPUPS, "times, 50 ml of cold water each");
+    lab_value("  flushes", FLUSHES, ""); lab_value("  hands washed", WASHES, "");
+    lab_value("  from magic water (for now: to be replaced)", MAINS, "millilitres"); lab_value("  sent to waste", SEWER, "millilitres");
+    lab_value("  warmth sent to waste with it", ESEW / {{1000}} + 1, "joules");
+    if (WRBAD < 1) lab_line("  the water and warmth books balance: nothing vanished"); else lab_line("  the washroom's book went out");
+}
+thing washroom {
+    int x, z;
+    void start() { washroom_start(); }
+    void step() { washroom_steps(1); }
+    void draw() { washroom_draw(); }
+    void panel() { washroom_panel(); }
+};

@@ -1,0 +1,86 @@
+// The bench: a wooden worktop at desk height (2 ft 6 in) all down the lab's right wall, from the washroom to the wall
+// between, cupboards under it (Mike, 19 Nov 2026). At the washroom end a second sink, on the same magic water and waste; at the far
+// end a Bunsen burner. Between them a microscope, an oscilloscope, a power supply, a multimeter, a rack of test tubes and a
+// beaker. For now they are only things to see: each will become a true working tool in its own time.
+#define BX1 63A5                       // the worktop's front edge: 2 ft from the right wall
+#define BZ1 1BCC                        // from just past the washroom ...
+#define BZ2 6C19                       // ... to just before the wall between
+#define BTOP $B49                       // desk height, 2 ft 6 in
+#define S2X 6851                       // the second sink
+#define S2Z 2424
+int TAP2;                                   // the bench tap running (pictures left)
+int benchblocked(int x, int z) { return x + 1A1 >= BX1 && z + 1A1 >= BZ1 && z <= BZ2 + 1A1; }
+void bench_draw()
+{
+    lab_alpha(163);
+    lab_colour(93, 68, 46); lab_box(BX1 + 4C, BZ1, less(ROOM, 1), BZ2, 1, less(BTOP, 75));      // the cupboards
+    lab_colour(6C, 4A, 31);                                                                            // their doors' lines
+    int z; for (z = BZ1 + 912; z < BZ2; z = z + 912) lab_box(BX1 + 44, z, BX1 + 4C, z + 1B, 4C, less(BTOP, $C4));
+    lab_colour($CC, 93, 5D); lab_box(BX1, BZ1, less(ROOM, 1), BZ2, less(BTOP, 75), BTOP);         // the oak worktop
+    // the second sink: a steel bowl set in the top, a brass tap from magic water, its drain through the wall to waste
+    lab_cyl(S2X, S2Z, 295, BTOP, BTOP + 6, 1);                                  // the sink's steel rim, flush in the top
+    WTUBE = 31; lab_wire(less(ROOM, 1), BTOP + 41B, S2Z, S2X, BTOP + 41B, S2Z); WTUBE = 31; lab_wire(S2X, BTOP + 41B, S2Z, S2X, BTOP + 264, S2Z); lab_wirelay(5, low);
+    if (TAP2 >= 1) { WTUBE = 13; lab_wire(S2X, BTOP + 264, S2Z, S2X, BTOP, S2Z); lab_wirelay($C, low); }
+    // a rack of test tubes and a beaker
+    lab_colour($B7, 86, 55); lab_box(6729, 2BB4, 6A22, 2D85, BTOP, BTOP + 125);
+    int t; for (t = 1; t <= 5; t++) lab_cyl(6767 + t * 62, 2C9B, 22, BTOP + 48, BTOP + 341, 3);
+    lab_cyl(6851, 3427, $DB, BTOP + 1, BTOP + 264, 3);
+    // a multimeter (yellow) and a power supply (grey, its two terminals red and black)
+    lab_colour(149, 118, 31); lab_box(67A5, 396A, 6A22, 3C63, BTOP, BTOP + 93);
+    lab_colour($AA, $AC, $B3); lab_box(667D, 41AD, 6B47, 4723, BTOP, BTOP + 264);
+    lab_cyl(667D, 4381, 24, BTOP + $B7, BTOP + 132, 2); lab_cyl(667D, 4552, 24, BTOP + $B7, BTOP + 132, 1);
+    // the oscilloscope: its case, its screen to the room (green, one bright line across)
+    lab_colour(48, 4A, 51); lab_box(65D4, 496D, 6B47, 51B3, BTOP, BTOP + 341);
+    lab_colour(17, 48, 24); lab_box(65BA, 4A19, 65D4, 4CA4, BTOP + $C4, BTOP + 2AC);
+    lab_colour(93, 168, $AA); lab_box(65AD, 4A33, 65BA, 4C8A, BTOP + 1B4, BTOP + 1BC);
+    // the microscope: its foot, its arm, its stage, its tube leaning toward the eye
+    lab_colour(24, 24, 28); lab_box(67A5, 5555, 6A22, 57A2, BTOP, BTOP + 48);
+    WTUBE = 4C; lab_wire(6976, BTOP + 48, 567A, 6976, BTOP + 41B, 567A); lab_wirelay(1, low);
+    lab_colour(24, 24, 28); lab_box(6767, 5593, 6938, 5764, BTOP + 1A1, BTOP + 1C5);
+    WTUBE = 39; lab_wire(6976, BTOP + 41B, 567A, 6813, BTOP + 512, 567A); WTUBE = 31; lab_wire(6851, BTOP + 3A3, 567A, 6851, BTOP + 264, 567A); lab_wirelay(1, low);
+    // the Bunsen burner at the far end: its foot, its brass tube, the rubber gas pipe to the tap on the wall (not lit yet)
+    lab_cyl(6851, 68CA, $DB, BTOP, BTOP + 39, 5);
+    lab_cyl(6851, 68CA, 31, BTOP + 39, BTOP + 372, 5);
+    WTUBE = 26; lab_wire(6851, BTOP + 79, 68CA, less(ROOM, 1), BTOP + 24A, 6A22); lab_wirelay(2, low);
+}
+void bench_air() { air_solid(BX1 + 4C, BZ1, less(ROOM, 1), BZ2, less(BTOP, 75)); }   // the cupboards fill their cells
+void bench_panel()
+{
+    lab_line(VENTON ? "the vent (V): its fan on, drawing the room's air out to waste" : "the vent (V): its fan off");
+    if (EWASTE > EMAKE + 24) lab_value("  warmth it took out, more than came back in", less(EWASTE, EMAKE) * 28 / 5BC + 1, "joules (the air went to waste; as much came back round the doors)");
+    lab_line("The bench: an oak worktop at desk height down the right wall (lang/lab/objects/bench.delta)");
+    lab_line("  a second sink (K beside it washes your hands), test tubes, a beaker, a multimeter, a power supply,");
+    lab_line("  an oscilloscope, a microscope, a Bunsen burner: things to see for now, true tools in their own time");
+}
+thing bench {
+    int x, z;
+    void start() { }
+    void step() { }
+    void draw() { bench_draw(); }
+    void panel() { bench_panel(); }
+};
+// the vent, high on the right wall over the bench: a square grille a foot across, its slats, the fan behind them (it turns
+// while on: V), and the duct out through the wall, to waste
+int FANTURN = 1;
+void vent_draw()
+{
+    int half = 237, x = less(ROOM, 1B);
+    lab_alpha(163);
+    lab_colour(55, 57, 5B); lab_box(less(ROOM, 6C), less(VZ, half), less(ROOM, 1), VZ + half, less(VY, half), VY + half);   // the dark opening behind
+    lab_colour(136, 138, 13A);                                                                        // the frame, white
+    lab_box(less(x, 31), less(VZ, half + 39), x, less(VZ, half), less(VY, half + 39), VY + half + 39);
+    lab_box(less(x, 31), VZ + half, x, VZ + half + 39, less(VY, half + 39), VY + half + 39);
+    lab_box(less(x, 31), less(VZ, half), x, VZ + half, VY + half, VY + half + 39);
+    lab_box(less(x, 31), less(VZ, half), x, VZ + half, less(VY, half + 39), less(VY, half));
+    // the fan: four blades round its hub; they turn while the fan is on
+    if (VENTON) FANTURN = FANTURN % 75 + 7;
+    int b; for (b = 1; b <= 4; b++) {
+        int p = (FANTURN + b * 1B) % 75 + 1;
+        int ez = term(VZ, 1B8, 1, cosk(p), K), ey = term(VY, 1B8, 1, sink(p), K);
+        WTUBE = 55; lab_wire(less(ROOM, 48), VY, VZ, less(ROOM, 48), ey, ez);
+    }
+    lab_wirelay(1, low);
+    // the slats, in front of the fan
+    lab_colour(125, 127, 12B);
+    int s; for (s = 1; s <= 6; s++) { int sy = less(VY, half) + s * 86; lab_box(less(x, 24), less(VZ, half), x, VZ + half, sy, sy + 1B); }
+}

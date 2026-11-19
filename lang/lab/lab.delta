@@ -132,6 +132,8 @@ int turnz(int r, int i) { return less(MID + r * sink(i) / K, r); }
 #define FRAME 9B                       // a frame or a rail: 2 inches
 int DOOROPEN = 1;                           // 1 open; LOW shut
 int WINOPEN;                                // LOW shut, or 1 to 5
+int PAGE = 1;                               // which page the panel shows (Tab turns them; a click shows the thing's)
+int DANNEED, DANRAD;                        // Dan needs the toilet; the warmth his radiator gives the air (the washroom)
 #include "air.delta"                        // one air for both rooms, the things and the bodies
 #include "outside.delta"                    // the place and the time of year the lab is set to: the sun, the outside
 char THRU[6D75858];                       // per pixel: 1 when its look went on into the other room (2 through the glass)
@@ -207,15 +209,17 @@ void shade(int x, int y, int surf, int step)
 {
     int lw = HD / F + 3;
     int r, g, b, L, line;
-    if (surf == 2) {                                   // the floor: oak boards, a faint line every foot
-        line = HX % FOOT < lw || HZ % FOOT < lw;
+    if (surf == 2) {                                   // the floor: hex tiles a foot across, piped under (air.delta)
         L = lightat(apart(less(ROOM, INCH * 6), HY));
-        int board = HX / 169;
-        int tone = (board * 7) % 5 + 1;
-        int grain = (HZ / 2B + board * $D) % 9 + 1;
-        r = $A2 + tone * 7 + grain; g = 71 + tone * 5 + grain; b = 44 + tone * 3;
-        if (HX % 169 < lw / 2 + 2 || (HZ + board * 6D4) % 1524 < lw / 2 + 2) { r = fadeto(r, 75); g = fadeto(g, 51); b = fadeto(b, 31); }
-        if (line) { r = fadeto(r, 88); g = fadeto(g, 62); b = fadeto(b, 3B); }
+        int tz = LEGROOM == 2 ? higher(HZ, ROOM + 1) : lower(HZ, less(ROOM, 1));
+        int t = tileat(HX, tz);
+        int tone = (t * 7) % 5 + 1;                    // each tile a little different, as fired tiles are
+        r = 138 + tone * 3; g = 134 + tone * 3; b = 128 + tone * 2;
+        if (FON[t]) {                                  // a driven tile: warmer shows red, colder shows blue
+            int d = apart(FT[t], A357D) / 5BC;         // degrees from 20
+            if (FT[t] > A357D) { r = lower(168, r + d * 4); b = less(b, lower(b, d * 2)); } else { b = lower(168, b + d * 4); r = less(r, lower(r, d * 2)); }
+        }
+        if (floorline(HX, tz, lw * 2)) { r = fadeto(r, 75); g = fadeto(g, 72); b = fadeto(b, 6A); }   // the grout
         int m2 = apart(HX, MID) * apart(HX, MID) + apart(HZ, MID) * apart(HZ, MID);
         if (m2 < 4134 && LEGROOM == 1) L = L * (m2 + $A86) / 4BBA;       // the motor's soft shadow
     } else if (surf == 3) {
@@ -701,6 +705,8 @@ void material(int m)           // 1 steel, 2 red paint (north), 3 glass, 4 mercu
     else if (m == 7) { MR = $B7; MG = $BD; MB = $C4; MS = $AA; }
     else if (m == 9) { MR = 152; MG = 147; MB = 12A; MS = 31; }      // 9 candle wax
     else if (m == A) { MR = 31; MG = 28; MB = 24; MS = 14; }         // A the wick
+    else if (m == B) { MR = 156; MG = 156; MB = 152; MS = 125; }     // B porcelain (the washroom)
+    else if (m == C) { MR = $B7; MG = 118; MB = 149; MS = 13C; }      // C water
     else { MR = 93; MG = 75; MB = 55; MS = 17; }
 }
 
@@ -913,6 +919,7 @@ void lab_glassbox(int x1, int z1, int x2, int z2, int yb, int yt)
 int WASZ = 1;                                                       // where the walker stood before the step
 void walk(int ahead, int side, int fwd, int right)                  // ahead/side: how far; fwd/right: 1 that way, 2 the other
 {
+    int oldx = camX, oldz = camZ;
     if (ahead >= 1) {
         int a = fwd == 1 ? ahead + 1 : 1, b = fwd == 1 ? 1 : ahead + 1;
         camX = term(camX, a, b, sink(YAW), K); camZ = term(camZ, a, b, cosk(YAW), K);
@@ -924,6 +931,7 @@ void walk(int ahead, int side, int fwd, int right)                  // ahead/sid
     camX = higher(INCH, lower(camX, less(ROOM, INCH)));
     camY = higher(INCH, lower(camY, less(ROOM, INCH)));
     camZ = higher(INCH, lower(camZ, less(ROOM * 2, INCH)));
+    if (washblocked(camX, camZ) || benchblocked(camX, camZ)) { camX = oldx; camZ = oldz; }    // the washroom's walls: in and out by its door only
     if (camZ > less(ROOM, 3A3) && camZ < ROOM + 3A3 && indoorway(camX, camY) < 1) {   // the wall between: only by the door
         if (WASZ <= ROOM) camZ = less(ROOM, 3A3); else camZ = ROOM + 3A3;
     }
@@ -972,6 +980,11 @@ int main(int argc, char **argv)
         if (key == 22) { HEATVIEW = HEATVIEW ? low : 1; moved = 1; }   // T: heat view, or as the eye sees
         if (HEATVIEW && frame % 13 < 1) sharp = low;                 // the heat view: the air changes, so the room is looked at again
         if (key == 32) { window_fullscreen(); moved = 1; }        // F: full screen, or not
+        washroom_keys(key, camX, camZ); floor_keys(key, camX, camZ);
+        if (key == 1A) { PAGE = PAGE % 4 + 1; showpanel = 1; }          // Tab: the panel's next page
+        if (key == 43) VENTON = VENTON ? low : 1;                       // V: the vent's fan
+        if (key == 38 || key == 39) moved = 1;
+        if (WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n' && DANNEED) { dangoes(); moved = 1; }   // Dan walks to the toilet
         outside_keys(key); if (key == 27 || key == 28 || key == 29 || key == 38 || key == 39) moved = 1;
         if (key == 26) { DOOROPEN = DOOROPEN ? low : 1; moved = 1; }   // O: the door between, open or shut
         if (key >= $A && key <= 11) { int n = less(key, 9); WINOPEN = WINOPEN == n ? low : n; moved = 1; }   // 1 to 5: the window open that much; again: shut
@@ -1001,7 +1014,7 @@ int main(int argc, char **argv)
             int id, best = 6C * 13;
             for (id = 1; id <= 31; id++) if (MARKON[id]) {
                 int d = apart(MARKX[id], BIG * 13 + mx * 13) + apart(MARKY[id], BIG * 13 + my * 13);
-                if (d < best) { best = d; sel = id; }
+                if (d < best) { best = d; sel = id; PAGE = 4; }
             }
         }
         int mid = window_buttons() / 2 % 2;                          // the wheel pressed down: drag to tilt and look round
@@ -1021,9 +1034,9 @@ int main(int argc, char **argv)
         if (frame % 8 < 1) outside_now();
         for (wi = 1; wi <= ACELLS; wi++) ASOLID[wi] = low;
         scene_air();                                                  // the things, the bodies and the lamps in the air
-        air_body(camX, camZ, camY + INCH * 4, WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n' ? WATTS : 5BC * 5BC / $A);   // the one looking
+        air_body(camX, camZ, camY + INCH * 4, WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n' ? DANRAD : 5BC * 5BC / $A);   // the one looking
         if (WHO[1] != 'd') air_breath(camX, camY, camZ, D8);       // their breath: 5 millilitres of carbon dioxide a second
-        if (OTHHERE) air_body(OTHX, OTHZ, OTHY + INCH * 4, WHO[1] == 'd' ? 5BC * 5BC / $A : WATTS);
+        if (OTHHERE) air_body(OTHX, OTHZ, OTHY + INCH * 4, WHO[1] == 'd' ? 5BC * 5BC / $A : DANRAD);
         air_step(); air_draught();
         if (frame % 2B < 1) air_note();                                // the air in words, for bots
         scene_draw();

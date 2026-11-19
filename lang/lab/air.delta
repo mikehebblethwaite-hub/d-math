@@ -24,13 +24,28 @@ int OUTOPEN;                                // the outside door: 1 open
 int EGIVEN, EOUT, EIN, ESTART, AIRBAD, ASTEP; // the book, in thousandths of a degree of one cell
 int BOTTOMIN[4], BOTTOMOUT[4];              // this step, at the floor: how much went into the lab through 1 outside door, 2 the door between, 3 the window; and out
 int LEANR, LEANL, LEANF, LEANB;             // the draught at the candle: how far its flame leans (64ths a unit up), right, left, on, back
+// the floor's tiles and the vent (below)
+int FT[498];                                    // each tile's set warmth (thousandths of a kelvin); FON 1 when it is driven
+int FON[498];
+int FLOORSET, EPLANTIN, EPLANTOUT;
+#define VX 6A9B
+#define VY 2CD9
+#define VZ 44A6
+int VENTON, EWASTE, EMAKE, COWASTE;
 int aidx(int i, int r, int l) { return (less(l, 1) * AZ + less(r, 1)) * AX + i; }
-int acell(int x, int y, int z)
+int acell(int x, int y, int z)              // the cell holding a place: the nearest cell middle (so the cells are hexagons)
 {
-    int r = higher(1, lower(AZ, z / FOOT + 1)), l = higher(1, lower(AY, y / FOOT + 1));
-    int sh = r % 2 < 1 ? FOOT / 2 : 1;                                    // even rows sit half a cell along
-    int i = x > sh ? less(x, sh) / FOOT + 1 : 1;
-    return aidx(higher(1, lower(AX, i)), r, l);
+    int l = higher(1, lower(AY, y / FOOT + 1)), rnear = higher(1, lower(AZ, z / FOOT + 1)), best = 1, bd = 4B99216D9, r, i;
+    for (r = rnear > 1 ? less(rnear, 1) : 1; r <= lower(AZ, rnear + 1); r++) {
+        int sh = r % 2 < 1 ? FOOT / 2 : low, cz = less(r, 1) * FOOT + FOOT / 2;
+        int inear = x > sh ? less(x, sh) / FOOT + 1 : 1;
+        for (i = inear > 1 ? less(inear, 1) : 1; i <= lower(AX, inear + 1); i++) {
+            int cx = less(i, 1) * FOOT + FOOT / 2 + sh;
+            int d = apart(x, cx) * apart(x, cx) + apart(z, cz) * apart(z, cz);
+            if (d < bd) { bd = d; best = aidx(i, r, l); }
+        }
+    }
+    return best;
 }
 int ovl(int a1, int a2, int b1, int b2) { int lo2 = higher(a1, b1), hi2 = lower(a2, b2); return hi2 > lo2 ? less(hi2, lo2) : low; }
 int wallopen(int i, int l)                 // between rows 20 and 21 (the wall between), at column i, layer l: thousandths open
@@ -124,7 +139,8 @@ void air_step()
             }
         }
     }
-    if (AIRBAD < 1 && asum() + EOUT != ESTART + EGIVEN + EIN) AIRBAD = ASTEP;    // nothing vanished, nothing from nowhere
+    floor_step(); vent_step();
+    if (AIRBAD < 1 && asum() + EOUT + EPLANTOUT + EWASTE != ESTART + EGIVEN + EIN + EPLANTIN + EMAKE) AIRBAD = ASTEP;    // nothing vanished, nothing from nowhere
 }
 int CANX, CANZ;                                            // where the candle stands (the scene says)
 void lean(int ox, int oz, int amt, int towardsit)          // the draught from an opening at (ox, oz): away from it when in
@@ -158,4 +174,45 @@ void tvalue(char *name, int mk)                               // a temperature, 
     int v = apart(mk, 97437) / 79;
     if (v < 1) { lab_line(name); lab_line("    at freezing, within a tenth of a degree"); return; }
     lab_value(name, v, mk > 97437 ? "tenths of a degree above freezing" : "tenths of a degree below freezing");
+}
+// ---------------------------------------------------------------- the floor: hex tiles, piped (Mike, 19 Nov 2026)
+// The floor is hex tiles a foot across, each over its own pipe loop, for your experiments and Dan's: stand on a tile and
+// , makes it a degree colder, . a degree warmer (off until first set). A tile evens out with the air just over it; the
+// warmth it gives or takes comes from the plant (the pipes' heat pump), and the plant's book is kept in the air's book.
+int floorline(int x, int z, int lw)          // 1 on the line between two floor tiles (lw: a line's width here)
+{
+    int t = tileat(x, z);
+    return tileat(x + lw, z) != t || tileat(x, z + lw) != t;
+}
+int tileat(int x, int z) { int c = acell(x, 1, z); return less(c, 1) % (AX * AZ) + 1; }   // the tile under (x, z)
+void floor_keys(int key, int x, int z)
+{
+    int t = tileat(x, z);
+    if (key != 47 && key != 48) return;
+    if (FON[t] < 1) { FON[t] = 1; FLOORSET++; FT[t] = AT[acell(x, 1, z)] / 5BC * 5BC; }
+    if (key == 47 && FT[t] > 8B7C6) FT[t] = less(FT[t], 5BC);        // , : a degree colder (not below -19 C)
+    if (key == 48 && FT[t] < $C489B) FT[t] = FT[t] + 5BC;              // . : a degree warmer (not above 79 C)
+}
+void floor_step()                                   // the driven tiles even out with the air over them
+{
+    int t;
+    for (t = 1; t <= AX * AZ; t++) if (FON[t]) {
+        int a = t, m;                                // layer 1's cell over tile t has the same number
+        if (ASOLID[a]) continue;
+        if (FT[t] > AT[a]) { m = less(FT[t], AT[a]) * 1A1 / 5BC; AT[a] = AT[a] + m; EPLANTIN = EPLANTIN + m; }
+        else if (AT[a] > FT[t]) { m = less(AT[a], FT[t]) * 1A1 / 5BC; AT[a] = less(AT[a], m); EPLANTOUT = EPLANTOUT + m; }
+    }
+}
+// ---------------------------------------------------------------- the vent: a fan drawing the room's air out, to waste
+// (Mike: "add a vent to atmosphere; do not add atmosphere outside yet, as that is so massive: sent to waste for now".)
+// High on the lab's right wall over the bench. V turns its fan on or off. What it draws out goes to waste, counted, not
+// followed; the same amount of air comes back in through the gaps round the doors from outside (else the room would be
+// emptied: nothing from nowhere), counted too.
+void vent_step()
+{
+    if (VENTON < 1) return;
+    int c = acell(VX, VY, VZ), f = 163;          // a quarter of the cell's air a second: about 7 litres a second
+    int w = AT[c] * f / 5BC, mk = OUTT * f / 5BC;
+    AT[c] = less(AT[c] + mk, w); EWASTE = EWASTE + w; EMAKE = EMAKE + mk;
+    int cw = ACO[c] * f / 5BC; ACO[c] = less(ACO[c] + OUTCO * f / 5BC, cw); COWASTE = COWASTE + cw;
 }

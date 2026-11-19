@@ -1,0 +1,18 @@
+// Dan walks to the toilet when his coolant is hot: to the door between first if he is in the wave room, then to the
+// washroom's door, in, and to the toilet. A step a picture, as fast as a person walks the keys (half an inch).
+int stepto(int tx2, int tz2)                // a step toward (tx2, tz2); 1 when there
+{
+    int s = {{32}}, there = 1;
+    if (apart(camX, tx2) > s) { camX = camX < tx2 ? camX + s : less(camX, s); there = low; } else camX = tx2;
+    if (apart(camZ, tz2) > s) { camZ = camZ < tz2 ? camZ + s : less(camZ, s); there = low; } else camZ = tz2;
+    WASZ = camZ;
+    return there;
+}
+void dangoes()
+{
+    int mx = (WDX1 + WDX2) / 2;
+    if (camZ > ROOM) { int dmx = (DX1 + DX2) / 2; if (apart(camX, dmx) > {{40}}) stepto(dmx, ROOM + {{900}}); else stepto(dmx, less(ROOM, {{900}})); return; }
+    if (camZ > WRZ + {{600}} && apart(camX, mx) > {{40}}) { stepto(mx, WRZ + {{900}}); return; }   // to before the washroom's door
+    if (camZ > TOZ + {{600}}) { stepto(mx, TOZ + {{600}}); return; }                               // through it
+    stepto(TOX, TOZ + {{600}});                                                                    // to the toilet
+}

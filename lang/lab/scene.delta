@@ -5,10 +5,15 @@
 #include "objects/faraday.delta"
 #include "objects/tunnel.delta"
 #include "objects/tank.delta"
+#include "objects/bench.delta"
+#include "objects/washroom.delta"
+#include "objects/dangoes.delta"
 
 thing candle candle1;                       // a candle ...
 thing faraday faraday1;                     // Faraday's two glasses ...
 thing tunnel tunnel1;                       // the wind tunnel ...
+thing bench bench1;                         // the bench down the right wall
+thing washroom washroom1;                   // the washroom, in the front right corner
 thing tank tank1;                           // the wave tank, in the wave room next door ...
 
 void scene_start()
@@ -16,11 +21,14 @@ void scene_start()
     candle1.x = MID; candle1.z = MID; candle1.start();              // ... in the middle of the floor
     faraday1.x = MID + FOOT * 2; faraday1.z = MID; faraday1.start(); // ... two feet to its right
     tunnel1.x = less(MID, FOOT * 3); tunnel1.z = MID + FOOT; tunnel1.start();   // ... three feet to its left, a foot back
+    washroom1.start();
     tank1.x = MID; tank1.z = ROOM + FOOT * 5; tank1.start();         // ... in the wave room, five feet past the wall between
 }
-void scene_step() { candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
+void scene_step() { washroom1.step(); candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
 void scene_draw()                         // farthest first, the painter's way, so near things cover far ones
 {
+    washroom1.draw();
+    bench1.draw(); vent_draw();
     int far[5], i, k, done[5];
     far[1] = lab_far(candle1.x, candle1.z); far[2] = lab_far(faraday1.x, faraday1.z);
     far[3] = lab_far(tunnel1.x, tunnel1.z); far[4] = lab_far(tank1.x, tank1.z);
@@ -37,20 +45,31 @@ void scene_draw()                         // farthest first, the painter's way, 
 }
 void scene_panel(int sel)
 {
-    lab_line(camZ > ROOM ? "you are in the wave room;  O: the door between, 1 to 5: the window" : "you are in the lab;  O: the door between, 1 to 5: the window");
-    lab_line(DOOROPEN ? "the door between: open" : "the door between: shut");
-    if (WINOPEN >= 1) lab_value("the window: open, fifths of the way", WINOPEN, ""); else lab_line("the window: shut");
-    lab_line("the air (1 ft hex cells, both rooms; a second a step, so faster than real time; T shows it):");
-    tvalue("  the lab", roomt(1, 3)); tvalue("    at its floor", roomt(1, 1)); tvalue("    at its ceiling", roomt(1, 2));
-    tvalue("  the wave room", roomt(low, 3));
-    lab_value("  carbon dioxide in the lab", roomco(1), "parts per million");
-    if (AIRBAD < 1) lab_line("  the air's book balances: given, in and out, held"); else lab_value("  the air's book went out at step", AIRBAD, "");
-    outside_panel();
-    lab_line("4 things (click one to see inside it)");
-    if (sel == 1) candle1.panel();
-    if (sel == 2) faraday1.panel();
-    if (sel == 3) tunnel1.panel();
-    if (sel == 4) tank1.panel();
+    lab_line(PAGE == 1 ? "Tab: [the room]  outside  washroom and bench  the thing you clicked"
+           : PAGE == 2 ? "Tab: the room  [outside]  washroom and bench  the thing you clicked"
+           : PAGE == 3 ? "Tab: the room  outside  [washroom and bench]  the thing you clicked"
+           :             "Tab: the room  outside  washroom and bench  [the thing you clicked]");
+    if (PAGE == 1) {
+        lab_line(camZ > ROOM ? "you are in the wave room;  O: the door between, 1 to 5: the window" : "you are in the lab;  O: the door between, 1 to 5: the window");
+        lab_line(DOOROPEN ? "the door between: open" : "the door between: shut");
+        if (WINOPEN >= 1) lab_value("the window: open, fifths of the way", WINOPEN, ""); else lab_line("the window: shut");
+        lab_line("the air (1 ft hex cells, both rooms; a second a step, so faster than real time; T shows it):");
+        tvalue("  the lab", roomt(1, 3)); tvalue("    at its floor", roomt(1, 1)); tvalue("    at its ceiling", roomt(1, 2));
+        tvalue("  the wave room", roomt(low, 3));
+        lab_value("  carbon dioxide in the lab", roomco(1), "parts per million");
+        if (AIRBAD < 1) lab_line("  the air's book balances: given, in and out, held"); else lab_value("  the air's book went out at step", AIRBAD, "");
+        lab_value("the floor: hex tiles, piped; stand on one: , colder, . warmer. Tiles set", FLOORSET, "");
+        { int t = tileat(camX, camZ); if (FON[t]) tvalue("  the tile you stand on is set to", FT[t]); else lab_line("  the tile you stand on: off"); }
+    }
+    if (PAGE == 2) outside_panel();
+    if (PAGE == 3) { washroom1.panel(); bench1.panel(); }
+    if (PAGE == 4) {
+        lab_line("click a thing to see inside it");
+        if (sel == 1) candle1.panel();
+        if (sel == 2) faraday1.panel();
+        if (sel == 3) tunnel1.panel();
+        if (sel == 4) tank1.panel();
+    }
 }
 void scene_air()                          // what each thing gives the air, and where it fills it
 {
@@ -59,5 +78,6 @@ void scene_air()                          // what each thing gives the air, and 
     air_heat(faraday1.x, 1A5, faraday1.z, 3C63);                         // Faraday's pile and contacts: 8.7 watts
     air_heat(MID, less(ROOM, 4C * 6), MID, 213D5);                       // the lab's lamp: 60 watts
     air_heat(MID, less(ROOM, 4C * 6), MID + ROOM, 213D5);                // the wave room's lamp
+    washroom_air(); bench_air();
     air_solid(less(tank1.x, 659), less(tank1.z, $C4), tank1.x + 659, tank1.z + $C4, 6B4);   // the tank fills its place
 }
