@@ -243,3 +243,12 @@ int window_writefile(char *name, char *src, int n)  // n bytes from the row (pla
     linux(3, fd);
     return 1;
 }
+int window_appendfile(char *name, char *src, int n) // n bytes added to the end of the file (made if it is not there)
+{
+    int fd = linux(2, name, 65A, 264);                 // write, make it, add at the end; the owner writes, anyone may read
+    if (fd < 1) return dl_xlow;
+    linux(1, fd, &src[1], n);
+    linux(3, fd);
+    return 1;
+}
+void window_makefolder(char *name) { linux(65, name, 2BC); }   // a folder (already there is fine)

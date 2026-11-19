@@ -978,11 +978,12 @@ int main(int argc, char **argv)
         frame++;
         FR = frame;
         int key = window_key();
-        if (key == 9) return 1;                                       // Esc
+        if (key == 9) { hexi_stop(); return 1; }                      // Esc (a recording is ended first)
         if (key == 34) showpanel = showpanel ? low : 1;           // H
         if (key == 22) { HEATVIEW = HEATVIEW ? low : 1; moved = 1; }   // T: heat view, or as the eye sees
         if (HEATVIEW && frame % 13 < 1) sharp = low;                 // the heat view: the air changes, so the room is looked at again
         if (key == 32) { window_fullscreen(); moved = 1; }        // F: full screen, or not
+        hexi_key(key);
         washroom_keys(key, camX, camZ); floor_keys(key, camX, camZ);
         if (key == 42 || key == 2B || key == 81) {                    // C or Ctrl: stand, crouch, lie down, stand ...
             POSE = POSE % 3 + 1;
@@ -1046,7 +1047,7 @@ int main(int argc, char **argv)
         air_body(camX, camZ, camY + INCH * 4, WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n' ? DANRAD : 5BC * 5BC / $A);   // the one looking
         if (WHO[1] != 'd') air_breath(camX, camY, camZ, D8);       // their breath: 5 millilitres of carbon dioxide a second
         if (OTHHERE) air_body(OTHX, OTHZ, OTHY + INCH * 4, WHO[1] == 'd' ? 5BC * 5BC / $A : DANRAD);
-        air_step(); air_draught();
+        air_step(); air_draught(); hexi_step();
         if (frame % 2B < 1) air_note();                                // the air in words, for bots
         scene_draw();
         if (frame % 8 < 1) presence_write(frame);                    // where I stand, for the others
@@ -1067,5 +1068,6 @@ void usetag()                               // always on the picture, top right:
     ty = $C; tx = higher(1, less(W, slen(m) * $B + 1C));            // as wide as its words, a little in from the edge
     if (isdan() || OTHHERE) text(m, 168, $B7, 4C); else text(m, $B7, $D1, $B7);
 }
+#include "hexi.delta"                          // recording the air as .hexi (R)
 #include "airnote.delta"                       // the air in words, for bots
 #include "scene.delta"                         // what is in the room: the room itself never changes
