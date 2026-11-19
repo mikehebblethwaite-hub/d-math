@@ -11,6 +11,7 @@ cannot be changed by us afterwards:
   tree hash, date, subject); `commits-2026-11-19.txt.ots` proves that list existed by the time its Bitcoin block was
   made. Because each commit hash covers all of its content and history, this proves the whole repository as it stood.
   Check it: `ots verify commits-2026-11-19.txt.ots` (and `git log --reverse --format='%H %T %aI %s'` matches the list).
+  Confirmed: Bitcoin block 976604 (mined 19 Nov 2026 16:13 UTC, merkle root 7e379c0f9574cd7f...) holds it.
 - Software Heritage (the archive of all public source code) was asked to keep a copy on 19 Nov 2026 15:51 UTC:
   https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/mikehebblethwaite-hub/d-math
 - The Internet Archive's Wayback Machine took a copy of the repository page on 19 Nov 2026 at 15:52:02 UTC:
