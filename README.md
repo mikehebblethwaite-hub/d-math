@@ -278,6 +278,10 @@ uses Delta Hex OS from outside, in Delta. Test machines boot from a real FAT32 i
 part of the OS, from the keyboard or the serial line. `look` says the screen as Perch does (P the place, t words, b N
 buttons, i N what is typed, s N choices, a N things to open, each with its box), straight from what each part knows as
 it draws, never from the pixels; numbers in D numerals. `do N` acts on thing N.
+0.19: base 10 for people (Mike: "introduce a base 10 option for the humans"): Settings (or `numbers ten` / `numbers d`),
+kept on the drive. In base 10 the old-fashioned 0 is written with our less-than-1 sign ~ (a hundred and five is 1~5),
+minus is allowed in sums, and every result says what it was in D: `3 - 10 is -7 (converted from D: 7) the other way: D
+has no negatives`. Perch stays in D numerals for bots.
 0.13: `run NAME` loads a program from the drive and starts it through the firmware: `run lab.efi` is the lab room on the
 bare machine (`lang/window-efi.delta` gives programs the same window calls as on Linux: the OS's screen, keys, our USB mouse).
 
