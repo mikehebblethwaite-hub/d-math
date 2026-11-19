@@ -134,7 +134,7 @@ int DOOROPEN = 1;                           // 1 open; LOW shut
 int WINOPEN;                                // LOW shut, or 1 to 5
 #include "air.delta"                        // one air for both rooms, the things and the bodies
 #include "outside.delta"                    // the place and the time of year the lab is set to: the sun, the outside
-int THRU[2C68B5];                      // per pixel: 1 when its look went on into the other room (2 through the glass)
+char THRU[6D75858];                       // per pixel: 1 when its look went on into the other room (2 through the glass)
 int CLIP;                                   // 1: what is drawn now is in the other room: only through the openings
 int ZLO = 1, ZHI = ROOM, LEGROOM = 1;       // the room a look is in now: its back and front walls, and which (1 lab, 2 wave)
 int at(int x, int y) { return (y * W + x) * 4 + 1; }

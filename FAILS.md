@@ -63,3 +63,10 @@ Last daily review: 19 Nov 2026 (the first).
   was tried and was worse (the slice holds only the top of the candle: the flame's air from below was cut).
 - System: the wick holds its own cells (`cwickat`): the draw stops at the wick. The candle burned 8000 steps steady
   (about 2000 to 2200 K), checked with a long run of the candle alone (the long run is now part of trying any change).
+
+## The two-room lab crashed on Mike's screen, not on the test screen (19 Nov 2026)
+- Cause: the per-pixel "seen through an opening" list (THRU) was sized for about a million pixels; the test screen is
+  1280x800, Mike's is bigger: writing past its end crashed the room the moment it opened.
+- Fix: THRU is as big as the picture buffer (bg), so any screen the room can draw on fits.
+- System: every per-pixel list is sized from the same bound as the picture buffer, never a number picked for the test
+  screen; a change to the room is also run once on Mike's own display size before it is called done.
