@@ -9,14 +9,14 @@
 thing candle candle1;                       // a candle ...
 thing faraday faraday1;                     // Faraday's two glasses ...
 thing tunnel tunnel1;                       // the wind tunnel ...
-thing tank tank1;                           // the wave tank ...
+thing tank tank1;                           // the wave tank, in the wave room next door ...
 
 void scene_start()
 {
     candle1.x = MID; candle1.z = MID; candle1.start();              // ... in the middle of the floor
     faraday1.x = MID + FOOT * 2; faraday1.z = MID; faraday1.start(); // ... two feet to its right
     tunnel1.x = less(MID, FOOT * 3); tunnel1.z = MID + FOOT; tunnel1.start();   // ... three feet to its left, a foot back
-    tank1.x = MID; tank1.z = MID + FOOT * 4; tank1.start();          // ... four feet behind the candle
+    tank1.x = MID; tank1.z = ROOM + FOOT * 5; tank1.start();         // ... in the wave room, five feet past the wall between
 }
 void scene_step() { candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
 void scene_draw()                         // farthest first, the painter's way, so near things cover far ones
@@ -29,15 +29,18 @@ void scene_draw()                         // farthest first, the painter's way, 
         int pick = low, most = low;
         for (i = 1; i <= 4; i++) if (done[i] < 1 && far[i] >= most) { most = far[i]; pick = i; }
         done[pick] = 1;
-        if (pick == 1) { candle1.draw(); lab_mark(1, candle1.x, 1C1, candle1.z); }
-        if (pick == 2) { faraday1.draw(); lab_mark(2, faraday1.x, 1C1, faraday1.z); }
-        if (pick == 3) { tunnel1.draw(); lab_mark(3, tunnel1.x, 1C1, tunnel1.z); }
-        if (pick == 4) { tank1.draw(); lab_mark(4, tank1.x, 1C1, tank1.z); }
+        if (pick == 1) { CLIP = clipfor(candle1.z); candle1.draw(); CLIP = low; lab_mark(1, candle1.x, 1C1, candle1.z); }
+        if (pick == 2) { CLIP = clipfor(faraday1.z); faraday1.draw(); CLIP = low; lab_mark(2, faraday1.x, 1C1, faraday1.z); }
+        if (pick == 3) { CLIP = clipfor(tunnel1.z); tunnel1.draw(); CLIP = low; lab_mark(3, tunnel1.x, 1C1, tunnel1.z); }
+        if (pick == 4) { CLIP = clipfor(tank1.z); tank1.draw(); CLIP = low; lab_mark(4, tank1.x, 1C1, tank1.z); }
     }
 }
 void scene_panel(int sel)
 {
-    lab_line("in the room: 4 things (click one to see inside it)");
+    lab_line(camZ > ROOM ? "you are in the wave room;  O: the door between, 1 to 5: the window" : "you are in the lab;  O: the door between, 1 to 5: the window");
+    lab_line(DOOROPEN ? "the door between: open" : "the door between: shut");
+    if (WINOPEN >= 1) lab_value("the window: open, fifths of the way", WINOPEN, ""); else lab_line("the window: shut");
+    lab_line("4 things (click one to see inside it)");
     if (sel == 1) candle1.panel();
     if (sel == 2) faraday1.panel();
     if (sel == 3) tunnel1.panel();

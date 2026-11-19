@@ -121,11 +121,26 @@ int turnz(int r, int i) { return less(MID + r * sink(i) / K, r); }
 
 // ---------------------------------------------------------------- pixels
 
+#define DX1 $D83                        // the door: 3 ft from the left wall
+#define DX2 1BCC                        // 2 ft 6 in wide
+#define DH 236D                         // 6 ft 6 in high
+#define WX1 46DD                        // the window: 13 ft from the left wall
+#define WX2 5C34                       // 4 ft wide
+#define WY1 $D83                        // its sill, 3 ft up
+#define WY2 25A7                        // its top, 7 ft up
+#define WMID 1995                       // where the two sashes meet when shut
+#define FRAME 9B                       // a frame or a rail: 2 inches
+int DOOROPEN = 1;                           // 1 open; LOW shut
+int WINOPEN;                                // LOW shut, or 1 to 5
+int THRU[2C68B5];                      // per pixel: 1 when its look went on into the other room (2 through the glass)
+int CLIP;                                   // 1: what is drawn now is in the other room: only through the openings
+int ZLO = 1, ZHI = ROOM, LEGROOM = 1;       // the room a look is in now: its back and front walls, and which (1 lab, 2 wave)
 int at(int x, int y) { return (y * W + x) * 4 + 1; }
 int onscreen(int x, int y) { return x >= 1 && x <= W && y >= 1 && y <= H; }
 void setbg(int x, int y, int r, int g, int b) { int i = at(x, y); bg[i] = clampc(b); bg[i + 1] = clampc(g); bg[i + 2] = clampc(r); }
 void mixpx(int x, int y, int r, int g, int b, int a)          // a of 256 covers what was there
 {
+    if (CLIP && x >= 1 && x <= W && y >= 1 && y <= H && THRU[y * W + x] < 1) return;   // in the other room: seen only through an opening
     if (x >= 1 && x <= W && y >= 1 && y <= H && a >= 1) {
         int i = (y * W + x) * 4 + 1;
         a = lower(a, 169);
@@ -136,6 +151,7 @@ void mixpx(int x, int y, int r, int g, int b, int a)          // a of 256 covers
 }
 void addpx(int x, int y, int r, int g, int b)                 // light adds to what is there
 {
+    if (CLIP && x >= 1 && x <= W && y >= 1 && y <= H && THRU[y * W + x] < 1) return;
     if (x >= 1 && x <= W && y >= 1 && y <= H) {
         int i = (y * W + x) * 4 + 1;
         px[i] = lower(px[i] + b, 168); px[i + 1] = lower(px[i + 1] + g, 168); px[i + 2] = lower(px[i + 2] + r, 168);
@@ -147,10 +163,10 @@ int pix(int p16) { return p16 > BIG * 13 ? less(p16, BIG * 13) / 13 : 1; }   // 
 
 int fadeto(int base, int ln) { return towards(base, ln, 149A, HD + 149A); }
 
-int lightat(int nrm)                          // the ceiling lamp over the middle of the room
+int lightat(int nrm)                          // the ceiling lamp over the middle of the room the look is in
 {
     int ly = less(ROOM, INCH * 6);
-    int a = apart(HX, MID), b = apart(HY, ly), c = apart(HZ, MID);
+    int a = apart(HX, MID), b = apart(HY, ly), c = apart(HZ, LEGROOM == 2 ? MID + ROOM : MID);
     int d2 = (a * a + b * b + c * c) / 169 + 1;
     int cos2 = (nrm / 13) * (nrm / 13) * 169 / d2;                 // how square-on the light falls
     return 62 + 118 * cos2 / 169 * 5BC / (5BC + d2 / $BAB);
@@ -159,7 +175,7 @@ int lightat(int nrm)                          // the ceiling lamp over the middl
 int corner(int surf)
 {
     int d = 8B5;
-    if (surf != 1) d = lower(apart(HZ, 1), apart(ROOM, HZ));
+    if (surf != 1) d = lower(apart(HZ, ZLO), apart(ZHI, HZ));
     if (surf != 4) d = lower(d, lower(apart(HX, 1), apart(ROOM, HX)));
     if (surf != 2) d = lower(d, apart(HY, 1));
     if (surf != 3) d = lower(d, apart(ROOM, HY));
@@ -167,6 +183,24 @@ int corner(int surf)
     return 8B5 + d * 3;
 }
 
+int PR, PG, PB;                                    // the paint wallpaint chose
+int wallpaint(int x, int y)                        // the wall between the rooms: the door, the frames; 1 when it painted
+{
+    if (x + FRAME >= DX1 && x <= DX2 + FRAME && y <= DH + FRAME) {
+        if (x >= DX1 && x <= DX2 && y <= DH) {                             // the door itself, shut: oak, four panels
+            PR = $B7; PG = 7D; PB = 51;
+            int px2 = less(x, DX1), py2 = y, inset = 169;
+            int edge = px2 < inset || px2 > less(less(DX2, DX1), inset) || py2 < inset || py2 > less(DH, inset)
+                    || (py2 > $D7C && py2 < 12C9);
+            if (edge < 1) { PR = 9B; PG = 6A; PB = 44; }
+            if (apart(px2, 99C) < 31 && apart(py2, 11A4) < 31) { PR = 132; PG = $DB; PB = 6C; }   // the brass knob
+            return 1;
+        }
+        PR = 14B; PG = 147; PB = 13A; return 1;                // the door frame: white paint
+    }
+    if (x >= WX1 && x <= WX2 && y >= WY1 && y <= WY2) { PR = 14B; PG = 147; PB = 13A; return 1; }   // the window's frame and rails
+    return low;
+}
 void shade(int x, int y, int surf, int step)
 {
     int lw = HD / F + 3;
@@ -181,7 +215,7 @@ void shade(int x, int y, int surf, int step)
         if (HX % 169 < lw / 2 + 2 || (HZ + board * 6D4) % 1524 < lw / 2 + 2) { r = fadeto(r, 75); g = fadeto(g, 51); b = fadeto(b, 31); }
         if (line) { r = fadeto(r, 88); g = fadeto(g, 62); b = fadeto(b, 3B); }
         int m2 = apart(HX, MID) * apart(HX, MID) + apart(HZ, MID) * apart(HZ, MID);
-        if (m2 < 4134) L = L * (m2 + $A86) / 4BBA;       // the motor's soft shadow
+        if (m2 < 4134 && LEGROOM == 1) L = L * (m2 + $A86) / 4BBA;       // the motor's soft shadow
     } else if (surf == 3) {
         line = HX % FOOT < lw || HZ % FOOT < lw;
         L = $B7; r = 147; g = 147; b = 143;
@@ -189,14 +223,17 @@ void shade(int x, int y, int surf, int step)
     } else {
         int sidewall = surf == 4;
         line = (sidewall ? HZ : HX) % FOOT < lw || HY % FOOT < lw;
-        L = lightat(sidewall ? apart(HX, MID) : apart(HZ, MID));
+        L = lightat(sidewall ? apart(HX, MID) : apart(HZ, LEGROOM == 2 ? MID + ROOM : MID));
         r = sidewall ? $D9 : 12B; g = sidewall ? 116 : 11A; b = sidewall ? 12B : $D3;
         if (line) { r = fadeto(r, less(r, 11)); g = fadeto(g, less(g, 11)); b = fadeto(b, less(b, 11)); }
         if (HY < 1B8) { r = 152; g = 14D; b = 147; if (HY > 1A5) { r = 121; g = 11C; b = 116; } }
+        if (LEGROOM == 2 && HY >= 1B8) { r = less(r, 1D); b = lower(b + 11, 168); }   // the wave room: a cooler blue-grey
+        if (surf == 1 && HZ == ROOM && wallpaint(HX, HY)) { r = PR; g = PG; b = PB; }
     }
     L = L * corner(surf) / 2967;
     int heat = 1;
-    if (surf == 2) {
+    if (LEGROOM == 2) { }
+    else if (surf == 2) {
         int f2 = apart(HX, MID) * apart(HX, MID) + apart(HZ, MID) * apart(HZ, MID);
         if (f2 < 1528C) { heat = floorh / 55D1; if (heat > 48) heat = 48; heat = heat * less(1528C, f2) / 1528C; }
     } else {
@@ -285,7 +322,24 @@ int lab_proj(int x, int y, int z)        // where it lands on the screen (PX, PY
     return 1;
 }
 
-// ---------------------------------------------------------------- the room: each pixel looks out until it meets a wall
+// ---------------------------------------------------------------- two rooms: the lab, and the wave room next door
+// The wave room is behind the lab's back wall (z from ROOM to twice ROOM), the same size. The wall between has a door
+// (a standard inside door, 2 ft 6 in by 6 ft 6 in: everything is sized against a person) and a sash window (4 ft by
+// 4 ft, its sill 3 ft up). The door is open or shut. The window's lower sash slides up: open 1 to 5 (fifths of its half),
+// or shut. The glass is seen through either way; only an opening lets air (and people) through.
+int wingap() { return WINOPEN * less(WMID, WY1) / 5; }      // how far the lower sash is up
+int seethrough(int x, int y)                // on the wall between, at (x, y): LOW wall or frame, 1 open air, 2 glass
+{
+    if (x >= DX1 && x <= DX2 && y <= DH) return DOOROPEN ? 1 : low;
+    if (x < WX1 + FRAME || x > less(WX2, FRAME) || y < WY1 + FRAME || y > less(WY2, FRAME)) return low;
+    int g = wingap();
+    if (y <= WY1 + g) return 1;                                         // the opening under the raised sash
+    if (y >= WMID + g && y <= WMID + g + FRAME) return low;             // the lower sash's top rail
+    if (y >= WY1 + g && y <= WY1 + g + FRAME) return low;               // its bottom rail
+    if (y >= less(WMID, FRAME / 2) && y <= WMID + FRAME / 2) return low;   // the upper sash's bottom rail
+    return 2;
+}
+int indoorway(int x, int y) { return DOOROPEN && x >= DX1 + 3A3 && x <= less(DX2, 3A3) && y <= DH; }   // room for a body (10 in either side)
 void looks(int x, int y, int step)        // one pixel's look, turned with the camera, out to the first wall
 {
     int xs = x * 13, ys = y * 13, w2 = W * 8, h2 = H * 8, f16 = F * 13;
@@ -295,20 +349,42 @@ void looks(int x, int y, int step)        // one pixel's look, turned with the c
     int wz = term(OFF, w2, xs, sink(YAW), K); wz = term(wz, z1, OFF, cosk(YAW), K);
     int wy = y1;
     int mx = apart(wx, OFF) + 1, my = apart(wy, OFF) + 1, mz = apart(wz, OFF) + 1;     // how far each way, per step
-    int dx = wx >= OFF ? less(ROOM, camX) : less(camX, 1);                            // how far to the wall each way
-    int dy = wy >= OFF ? less(ROOM, camY) : less(camY, 1);
-    int dz = wz >= OFF ? less(ROOM, camZ) : less(camZ, 1);
-    int axis = 1, dist = dx, mag = mx;                                                // the wall met first
-    if (dy * mag < dist * my) { axis = 2; dist = dy; mag = my; }
-    if (dz * mag < dist * mz) { axis = 3; dist = dz; mag = mz; }
-    int ox = mx * dist / mag, oy = my * dist / mag, oz = mz * dist / mag;
-    HX = wx >= OFF ? camX + ox : less(camX, lower(ox, less(camX, 1)));
-    HY = wy >= OFF ? camY + oy : less(camY, lower(oy, less(camY, 1)));
-    HZ = wz >= OFF ? camZ + oz : less(camZ, lower(oz, less(camZ, 1)));
-    HD = higher(1, dist * f16 / mag / 13);
-    int surf = axis == 1 ? 4 : axis == 3 ? 1 : wy >= OFF ? 3 : 2;
+    int sx = camX, sy = camY, sz = camZ, hd = low, leg, through = low, surf = 1;
+    if (camZ > ROOM) { ZLO = ROOM; ZHI = ROOM * 2; LEGROOM = 2; } else { ZLO = 1; ZHI = ROOM; LEGROOM = 1; }
+    for (leg = 1; leg <= 2; leg++) {
+        int dx = wx >= OFF ? less(ROOM, sx) : less(sx, 1);                           // how far to the wall each way
+        int dy = wy >= OFF ? less(ROOM, sy) : less(sy, 1);
+        int dz = wz >= OFF ? less(ZHI, sz) : less(sz, ZLO);
+        int axis = 1, dist = dx, mag = mx;                                            // the wall met first
+        if (dy * mag < dist * my) { axis = 2; dist = dy; mag = my; }
+        if (dz * mag < dist * mz) { axis = 3; dist = dz; mag = mz; }
+        int ox = mx * dist / mag, oy = my * dist / mag, oz = mz * dist / mag;
+        HX = wx >= OFF ? sx + ox : less(sx, lower(ox, less(sx, 1)));
+        HY = wy >= OFF ? sy + oy : less(sy, lower(oy, less(sy, 1)));
+        HZ = wz >= OFF ? sz + oz : less(sz, lower(oz, less(sz, ZLO)));
+        hd = hd + dist * f16 / mag / 13;
+        surf = axis == 1 ? 4 : axis == 3 ? 1 : wy >= OFF ? 3 : 2;
+        int onwall = axis == 3 && ((LEGROOM == 1 && wz >= OFF) || (LEGROOM == 2 && wz < OFF));
+        if (leg == 1 && onwall) {
+            int s = seethrough(HX, HY);
+            if (s >= 1) {                                                             // on into the other room
+                through = s; sx = HX; sy = HY; sz = HZ;
+                if (LEGROOM == 1) { ZLO = ROOM; ZHI = ROOM * 2; LEGROOM = 2; } else { ZLO = 1; ZHI = ROOM; LEGROOM = 1; }
+                continue;
+            }
+        }
+        break;
+    }
+    HD = higher(1, hd);
+    int j, i;
+    for (j = y; j < y + step && j <= H; j++) for (i = x; i < x + step && i <= W; i++) THRU[j * W + i] = through;
     shade(x, y, surf, step);
+    if (through == 2) {                                                               // seen through the glass: a little green-grey
+        int k = (y * W + x) * 4 + 1, a, b;
+        for (b = 1; b <= step; b++) { int m = k; for (a = 1; a <= step; a++) { bg[m] = bg[m] * 68 / 79; bg[m + 1] = bg[m + 1] * 6C / 79; bg[m + 2] = bg[m + 2] * 66 / 79; m = m + 4; } k = k + CW; }
+    }
 }
+int clipfor(int z) { return (z > ROOM) != (camZ > ROOM); }       // 1 when a thing at z is in the other room
 void lab_room(int step)
 {
     int x, y;
@@ -821,6 +897,7 @@ void lab_glassbox(int x1, int z1, int x2, int z2, int yb, int yt)
     lab_wirelay(3, low);
 }
 // ---------------------------------------------------------------- moving about
+int WASZ = 1;                                                       // where the walker stood before the step
 void walk(int ahead, int side, int fwd, int right)                  // ahead/side: how far; fwd/right: 1 that way, 2 the other
 {
     if (ahead >= 1) {
@@ -832,8 +909,12 @@ void walk(int ahead, int side, int fwd, int right)                  // ahead/sid
         camX = term(camX, a, b, cosk(YAW), K); camZ = term(camZ, b, a, sink(YAW), K);
     }
     camX = higher(INCH, lower(camX, less(ROOM, INCH)));
-    camZ = higher(INCH, lower(camZ, less(ROOM, INCH)));
     camY = higher(INCH, lower(camY, less(ROOM, INCH)));
+    camZ = higher(INCH, lower(camZ, less(ROOM * 2, INCH)));
+    if (camZ > less(ROOM, 3A3) && camZ < ROOM + 3A3 && indoorway(camX, camY) < 1) {   // the wall between: only by the door
+        if (WASZ <= ROOM) camZ = less(ROOM, 3A3); else camZ = ROOM + 3A3;
+    }
+    WASZ = camZ;
 }
 int nowms() { int ts[2]; ts[1] = low; ts[2] = low; if (linux(147, 1, &ts[1]) != low) return low; return ts[1] * 5BC + ts[2] / 28D221; }
 void fpscount() { int t = nowms(); if (t < 1) return; FCOUNT2++; if (FLAST < 1) FLAST = t; if (t >= FLAST + 5BC) { FPS = FCOUNT2 * 5BC / less(t, FLAST); FCOUNT2 = low; FLAST = t; } }
@@ -859,6 +940,12 @@ int main(int argc, char **argv)
     wx1 = W; wx2 = 1; wy1 = H; wy2 = 1; ix1 = W; ix2 = 1; iy1 = H; iy2 = 1;
     camX = MID; camZ = less(MID, FOOT); camY = INCH * 4; YAW = 1; PIT = 1;     // a foot from the candle, at its flame
     if (WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n') { camX = less(MID, FOOT * 2); camZ = MID + FOOT; YAW = 1C; }   // Dan starts beside the candle, facing it
+    if (argc >= 4) {                                                 // a start place: x and z in feet (D numerals), and a facing
+        int at1 = 1, at2 = 1, at3 = 1;
+        camX = pnum(argv[3], &at1) * FOOT; camZ = pnum(argv[4], &at2) * FOOT;
+        if (argc >= 5) YAW = pnum(argv[5], &at3);
+    }
+    WASZ = camZ;
     scene_start();
     int sharp = low, moved = 1, showpanel = 1, sel = 1, frame = low;
     int lastmx = low, lastmy = low, held = low, pressx = low, pressy = low, midheld = low;
@@ -870,6 +957,8 @@ int main(int argc, char **argv)
         if (key == 34) showpanel = showpanel ? low : 1;           // H
         if (key == 22) HEATVIEW = HEATVIEW ? low : 1;             // T: heat view, or as the eye sees
         if (key == 32) { window_fullscreen(); moved = 1; }        // F: full screen, or not
+        if (key == 26) { DOOROPEN = DOOROPEN ? low : 1; moved = 1; }   // O: the door between, open or shut
+        if (key >= $A && key <= 11) { int n = less(key, 9); WINOPEN = WINOPEN == n ? low : n; moved = 1; }   // 1 to 5: the window open that much; again: shut
         int speed = INCH / 2;
         if (window_held(1C)) { walk(speed, low, 1, 1); moved = 1; }   // W
         if (window_held(2D)) { walk(speed, low, 2, 1); moved = 1; }   // S
@@ -916,7 +1005,7 @@ int main(int argc, char **argv)
         scene_draw();
         if (frame % 8 < 1) presence_write(frame);                    // where I stand, for the others
         if (frame % 4 < 1) presence_read(other);
-        presence_draw();
+        CLIP = clipfor(OTHZ); presence_draw(); CLIP = low;
         if (showpanel) lab_panel(sel);
         fpscount();
         window_show(&px[CW + 5]);
