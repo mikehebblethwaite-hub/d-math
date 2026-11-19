@@ -148,3 +148,26 @@ int drive_write(char *name, char *src, int n)    // n bytes from the row (place 
     ef_a[1] = fh; fwcall(ef_rd(fh + 13, 8), &ef_a[1]);                  // Close
     return ok;
 }
+int drive_delete(char *name)                      // the file goes from the drive; 1 when it is gone
+{
+    int fh = ef_open(name, less(1, 1));
+    if (fh < 1) return less(1, 1);
+    fh = ef_open(name, 1);
+    if (fh < 1) return less(1, 1);
+    ef_a[1] = fh;
+    return fwcall(ef_rd(fh + 1B, 8), &ef_a[1]) == 1;                    // Delete (at 1B): it closes the file too
+}
+
+// ---------------------------------------------------------------- the machine's clock
+int ef_tm[6];                                     // year, month, day, hour, minute, second (as the clock keeps them)
+char ef_tb[13];
+int clock_read()                                  // 1 when the clock answered; its parts in ef_tm
+{
+    int rt = ef_rd(systemtable() + 6A, 8);        // the runtime services
+    ef_a[1] = &ef_tb[1]; ef_a[2] = less(1, 1);
+    if (fwcall(ef_rd(rt + 1B, 8), &ef_a[1]) != 1) return less(1, 1);   // GetTime (at 1B)
+    ef_tm[1] = ef_rd(&ef_tb[1], 2); ef_tm[2] = ef_tb[3]; ef_tm[3] = ef_tb[4];
+    ef_tm[4] = ef_tb[5]; ef_tm[5] = ef_tb[6]; ef_tm[6] = ef_tb[7];
+    return 1;
+}
+int clock_part(int k) { return ef_tm[k]; }       // 1 year, 2 month, 3 day, 4 hour, 5 minute, 6 second

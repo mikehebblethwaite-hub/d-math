@@ -1,4 +1,4 @@
-// Delta Hex OS: the no-zero operating system, written in Delta. 0.11: Notepad opens any file, finds and replaces; the terminal.
+// Delta Hex OS: the no-zero operating system, written in Delta. 0.12: the terminal tells the time, writes and takes away files; Notepad finds and replaces.
 //
 // The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
 // C library. It asks the firmware for the machine's memory and counts it, from 1, in D numerals; then the firmware
@@ -697,6 +697,7 @@ void dstr(int n)                                    // n as a D numeral, into nb
     while (n >= 1) { int d = n % $D, q = n / $D; if (d < 1) { d = $D; q = less(q, 1); } k++; r[k] = d <= 9 ? '0' + d : 'A' + less(d, $A); n = q; }
     for (i = 1; i <= k; i++) nb[i] = r[less(k + 1, i)];
     nb[k + 1] = low;
+    if (k < 1) { nb[1] = '~'; nb[2] = low; }          // less than 1 to count: ~, never nothing
 }
 int AGIVEN;
 void one(char *u, int single)                      // "1 volt", "2 volts": one has no s
@@ -1101,9 +1102,10 @@ void trun()                                                                // En
         ts("ask Q       Dragonfly, the engineer's assistant (ask C v 4 ohm 6 s)\n");
         ts("edit NAME   opens it in Notepad (a new name, a new file); in Notepad Ctrl+F finds, Ctrl+R replaces\n");
         ts("echo WORDS  says them back\n");
+        ts("time        the machine's clock      del NAME    takes a file away      write NAME WORDS   a file in one line\n");
         ts("clear       a clean screen      notepad     opens Notepad      off     switches the machine off\n");
     }
-    else if (tword("version")) ts("Delta Hex OS 0.11: no zero, written in Delta\n");
+    else if (tword("version")) ts("Delta Hex OS 0.12: no zero, written in Delta\n");
     else if (tword("mem")) {
         ts("ready to hold "); tn(ready); ts("   this system "); tn(ours); ts("   the firmware's "); tn(firmware);
         ts("   held back "); tn(held); ts("   all together "); tn(all); ts("\n");
@@ -1138,6 +1140,18 @@ void trun()                                                                // En
         tlen = low;
     }
     else if (tword("echo")) { ts(&TIN[TPART]); ts("\n"); }
+    else if (tword("time")) {
+        if (clock_read() < 1) ts("the clock did not answer\n");
+        else { ts("day "); tn(clock_part(3)); ts(" of month "); tn(clock_part(2)); ts(", year "); tn(clock_part(1)); ts(";  "); tn(clock_part(4)); ts(" hours "); tn(clock_part(5)); ts(" minutes "); tn(clock_part(6)); ts(" seconds (the machine's clock; D numerals)\n"); }
+    }
+    else if (tword("del")) { if (drive_delete(&TIN[TPART])) { ts(&TIN[TPART]); ts(" is gone\n"); } else { ts("no file called "); ts(&TIN[TPART]); ts("\n"); } }
+    else if (tword("write")) {                                         // write NAME WORDS: a file in one line
+        int sp = TPART; while (sp <= TINN && TIN[sp] != 26) sp++;
+        if (sp > TINN) ts("write NAME WORDS\n");
+        else { char nm[4C]; int q = 1; for (i = TPART; i < sp && q < 4A; i++) { nm[q] = TIN[i]; q++; } nm[q] = low;
+            int n = low; for (i = sp + 1; i <= TINN; i++) { n++; TFILE[n] = TIN[i]; } n++; TFILE[n] = A;
+            if (drive_write(nm, TFILE, n)) { ts(nm); ts(" written: "); tn(n); ts(" bytes\n"); } else ts("the drive did not take it\n"); }
+    }
     else if (tword("clear")) { for (i = 1; i <= 55D1; i++) TL[i] = low; TLN = 1; TCOL = low; TGEN++; }
     else if (tword("notepad")) { MODE = 5; EDGEN++; }
     else if (tword("edit")) { if (TPART <= TINN) { edload(&TIN[TPART]); MODE = 5; } else ts("edit which file? (edit notes.txt)\n"); }
@@ -1228,7 +1242,7 @@ int main(int argc, char **argv)
     layout();
     edstart();
     serfind();
-    ts("Delta Hex OS 0.11: the terminal. help lists the commands.\n"); tprompt();
+    ts("Delta Hex OS 0.12: the terminal. help lists the commands.\n"); tprompt();
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
@@ -1245,7 +1259,7 @@ int main(int argc, char **argv)
         if (MODE == 4) memorypanel();
         if (MODE == 5) notepad();
         if (MODE == 6) terminal();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.11", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.12", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);
