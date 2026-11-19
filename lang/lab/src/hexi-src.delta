@@ -3,6 +3,8 @@
 char HXB[{{200000}}];
 int HXN = 1, HXON, HXCHK = 1, HXFRAMES;
 char HXNAME[{{80}}];
+int PRVT[{{16001}}], PRVC[{{16001}}];                 // each cell as the last frame wrote it
+int BASET, BASEC, SINCEKEY;
 void hc(int c) { HXB[HXN] = c; HXN++; HXCHK = (HXCHK * {{131}} + c) % {{2147483647}} + 1; }
 void hs(char *s) { int i = 1; while (s[i] >= 1) { hc(s[i]); i++; } }
 void hn(int v) { dstr(v); hs(nb); }
@@ -15,22 +17,44 @@ void hexi_start()
     dstr(nowsecs()); i = 1; while (nb[i] >= 1) { HXNAME[k] = nb[i]; k++; i++; }
     a = ".hexi"; i = 1; while (a[i] >= 1) { HXNAME[k] = a[i]; k++; i++; }
     HXNAME[k] = low;
-    HXON = 1; HXCHK = 1; HXFRAMES = low; HXN = 1;
+    HXON = 1; HXCHK = 1; HXFRAMES = low; HXN = 1; SINCEKEY = low;
     hs("hexi 1\nwhat 'the lab and the wave room: the air'\ngrid hex "); hn(AX); hs(" "); hn(AZ); hs(" "); hn(AY);
-    hs(" 1 foot\nrows half a cell along in turn\nfield t warmth thousandths of a kelvin\nfield c carbon dioxide parts per million\nstep 8 seconds\n");
+    hs(" 1 foot\nrows half a cell along in turn\nfield t warmth hundredths of a kelvin above the base, within 2 hundredths\nfield c carbon dioxide parts per million above the base\nstep 8 seconds\nframes key frames every 13 (D), the rest only what changed: = as it was\n");
     hflush();
 }
-int RUNV, RUNN;                                       // a run of one value, waiting to be written
-void runout() { if (RUNN < 1) return; hs(" "); if (RUNN >= 2) { hn(RUNN); hs("*"); } hn(RUNV); RUNN = low; }
-void hv(int v) { if (RUNN >= 1 && v == RUNV) { RUNN++; return; } runout(); RUNV = v; RUNN = 1; }
+// Compressed the way video is: a key frame holds every cell; the frames between say only what changed ("=" for a cell as it
+// was, runs of them as N*=). A warmth that moved less than 3 hundredths of a degree since it was last written counts as
+// "as it was" (so the error is never more than 2 hundredths, and never grows: past that it is written again). Warmth is kept to a hundredth of a degree (what matters), carbon dioxide to the part per million.
+// The base is the key frame's lowest less 20 degrees, so a cell cooling between key frames stays above it; if one goes
+// lower anyway, a new key frame is made at once.
+int RUNV, RUNN, RUNSAME;                              // a run waiting to be written: of one value, or of "as it was"
+void runout() { if (RUNN < 1) return; hs(" "); if (RUNN >= 2) { hn(RUNN); hs("*"); } if (RUNSAME) hs("="); else hn(RUNV); RUNN = low; }
+void hv(int v, int same)
+{
+    if (RUNN >= 1 && same == RUNSAME && (same || v == RUNV)) { RUNN++; return; }
+    runout(); RUNV = v; RUNSAME = same; RUNN = 1;
+}
 void hexi_frame()
 {
-    int n, l, i, lot = AT[1], loc = ACO[1];
+    int n, l, i, lot = AT[1], loc = ACO[1], key = SINCEKEY < 1 || SINCEKEY >= {{16}};
     for (n = 1; n <= ACELLS; n++) { lot = lower(lot, AT[n]); loc = lower(loc, ACO[n]); }
+    if (key < 1 && (lot <= BASET + {{10}} || loc <= BASEC)) key = 1;     // fell below the base: a key frame now
+    if (key) { BASET = lot > {{20010}} ? less(lot, {{20000}}) : 1; BASEC = loc > {{100}} ? less(loc, {{100}}) : 1; SINCEKEY = low; }
+    SINCEKEY++;
     HXFRAMES++;
-    hs("f "); hn(ASTEP); hs(" base t "); hn(lot); hs(" c "); hn(loc); hs("\n");
-    for (l = 1; l <= AY; l++) { hs("t"); for (i = 1; i <= AX * AZ; i++) hv(less(AT[less(l, 1) * AX * AZ + i], lot) + 1); runout(); hs("\n"); }
-    for (l = 1; l <= AY; l++) { hs("c"); for (i = 1; i <= AX * AZ; i++) hv(less(ACO[less(l, 1) * AX * AZ + i], loc) + 1); runout(); hs("\n"); }
+    hs("f "); hn(ASTEP); hs(key ? " key base t " : " base t "); hn(BASET); hs(" c "); hn(BASEC); hs("\n");
+    for (l = 1; l <= AY; l++) {
+        hs("t");
+        for (i = 1; i <= AX * AZ; i++) { int c = less(l, 1) * AX * AZ + i, q = less(AT[c], BASET) / {{10}} + 1;
+            if (key < 1 && apart(q, PRVT[c]) <= 2) hv(PRVT[c], 1);              // within 2 hundredths of what was written: as it was
+            else { hv(q, low); PRVT[c] = q; } }
+        runout(); hs("\n");
+    }
+    for (l = 1; l <= AY; l++) {
+        hs("c");
+        for (i = 1; i <= AX * AZ; i++) { int c = less(l, 1) * AX * AZ + i, q = less(ACO[c], BASEC) + 1; hv(q, key < 1 && q == PRVC[c]); PRVC[c] = q; }
+        runout(); hs("\n");
+    }
     int lab = roomt(1, 3);
     hs("s 'the lab "); hn(apart(lab, {{273150}}) / {{100}}); hs(lab >= {{273150}} ? " tenths above freezing" : " tenths below freezing");
     hs(OUTOPEN ? "; the outside door open" : "; the outside door shut");

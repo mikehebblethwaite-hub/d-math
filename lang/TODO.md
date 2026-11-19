@@ -29,3 +29,5 @@ Things Delta does not do yet, found while building with it. Each gets a test in 
 - Sound in Delta Hex OS defaults to .mp3i (Mike, 19 Nov 2026: "sound is mp3i"): the MP3 exactly as made, plus Perch's
   words for what is heard over time, bound by the MP3's hash. Needs an MP3 writer in Delta (or MP3 frames from the
   sound card's own samples) after the .pngi and .mp4i work.
+- Our own zip (deflate) in Delta: data sent to other places or bots is always compressed (Mike, 19 Nov 2026). Serves .hexi
+  (zipped to send) and the PNG inside .pngi.
