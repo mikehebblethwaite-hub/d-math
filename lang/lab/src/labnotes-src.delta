@@ -1,0 +1,41 @@
+// Lab notes: what a user found in the lab, one stamped line each, in an ordinary local file (an OS user is a normal
+// user). On Linux d-math/labnotes/WHO.txt (out of git); on the OS's drive lab-WHO.txt. Read whole, written whole (the
+// bare machine cannot add to a file yet).
+// Saved cloud data goes to the user's own private unlint pod (Mike, 19 Nov 2026): Dan's notes are saved by
+// coop-dragonfly-pod to https://dragonfly.pods.unlint.com/lab/notes.txt (private: Dragonfly and Mike) at each change.
+char NOTEBUF[{{200000}}];
+int NOTEN;
+char PODLINE[{{1200}}];
+int PLN = 1;
+void pl(char *s) { int i = 1; while (s[i] >= 1 && PLN < {{1150}}) { PODLINE[PLN] = s[i]; PLN++; i++; } }
+void plv(int v) { dstr(v); pl(nb); }
+void plt(int mk) { if (mk > {{273150}}) { plv(less(mk, {{273150}}) / {{100}}); pl(" tenths of a degree above freezing"); } else { plv(less({{273150}}, mk) / {{100}} + 1); pl(" tenths of a degree below freezing"); } }
+void plstamp()                              // the date and time by this machine's clock, D numerals (~ our zero)
+{
+    int s = nowsecs(), days = s / {{86400}}, y = {{1970}}, m = 1, k;
+    while (1) { int yd = (y % 4 < 1 && (y % {{100}} >= 1 || y % {{400}} < 1)) ? {{366}} : {{365}}; if (days < yd) break; days = less(days, yd); y++; }
+    for (k = 1; k <= {{12}}; k++) {
+        int md = k == 2 ? ((y % 4 < 1 && (y % {{100}} >= 1 || y % {{400}} < 1)) ? {{29}} : {{28}}) : (k == 4 || k == 6 || k == 9 || k == {{11}}) ? {{30}} : {{31}};
+        if (days < md) { m = k; break; }
+        days = less(days, md);
+    }
+    int hm = s % {{86400}};
+    plv(y); pl("-"); plv(m); pl("-"); plv(days + 1); pl(" ");
+    if (hm / {{3600}} >= 1) plv(hm / {{3600}}); else pl("~"); pl(":");
+    if (hm % {{3600}} / {{60}} >= 1) plv(hm % {{3600}} / {{60}}); else pl("~"); pl(" ");
+}
+void lab_note(char *who)                    // PODLINE (place 1 to PLN, without its stamp) as a new stamped line in who's notes
+{
+    char name[{{64}}]; window_notesname(who, name);
+    NOTEN = window_readfile(name, NOTEBUF, {{190000}});
+    if (NOTEN < 1) NOTEN = low;
+    char words[{{1200}}]; int wn = low, i;
+    for (i = 1; i < PLN; i++) { wn++; words[wn] = PODLINE[i]; }
+    PLN = 1; plstamp();
+    for (i = 1; i < PLN; i++) { NOTEN++; NOTEBUF[NOTEN] = PODLINE[i]; }
+    for (i = 1; i <= wn; i++) { NOTEN++; NOTEBUF[NOTEN] = words[i]; }
+    NOTEN++; NOTEBUF[NOTEN] = '\n';
+    window_makefolder("labnotes");
+    window_writefile(name, NOTEBUF, NOTEN);
+    PLN = 1;
+}

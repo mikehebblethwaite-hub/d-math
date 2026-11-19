@@ -258,5 +258,5 @@ int window_appendfile(char *name, char *src, int n) // n bytes added to the end 
     return 1;
 }
 void window_makefolder(char *name) { linux(65, name, 2BC); }   // a folder (already there is fine)
-void window_podname(char *who, char *into)    // a user's pod file: pods/WHO.pod (beside the program's folder)
-{ char *p = "pods/"; int k = low, i = 1; while (p[i] >= 1) { k++; into[k] = p[i]; i++; } i = 1; while (who[i] >= 1 && i < 1C) { k++; into[k] = who[i]; i++; } p = ".pod"; i = 1; while (p[i] >= 1) { k++; into[k] = p[i]; i++; } k++; into[k] = less(1, 1); }
+void window_notesname(char *who, char *into)  // a user's lab notes: labnotes/WHO.txt (beside the program's folder)
+{ char *p = "labnotes/"; int k = low, i = 1; while (p[i] >= 1) { k++; into[k] = p[i]; i++; } i = 1; while (who[i] >= 1 && i < 1C) { k++; into[k] = who[i]; i++; } p = ".txt"; i = 1; while (p[i] >= 1) { k++; into[k] = p[i]; i++; } k++; into[k] = less(1, 1); }

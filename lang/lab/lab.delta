@@ -1077,5 +1077,5 @@ void usetag()                               // always on the picture, top right:
 }
 #include "hexi.delta"                          // recording the air as .hexi (R)
 #include "airnote.delta"                       // the air in words, for bots
-#include "pod.delta"                           // each user's pod: their own file, with their lab notes (pods/WHO.pod)
+#include "labnotes.delta"                      // each user's lab notes (labnotes/WHO.txt); Dan's saved to his private unlint pod
 #include "scene.delta"                         // what is in the room: the room itself never changes

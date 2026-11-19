@@ -71,11 +71,11 @@ void mgrow(int amount)                      // salt come out this step, shared b
     for (k = 1; k <= MN; k++) { CMASS[k] = CMASS[k] + w[k]; given = given + w[k]; }
     if (amount > given) CMASS[MN] = CMASS[MN] + less(amount, given);   // what the sharing left over: nothing vanishes
 }
-// Dan's lab notes, kept in his pod (pods/dan.pod, /lab/notes): what he put on the slide, and what it left
+// Dan's lab notes (labnotes/dan.txt, saved to his private unlint pod): what he put on the slide, and what it left
 void mnote_drop()
 {
     if (isdan() < 1) return;
-    PLN = 1; pl("the microscope: a fresh slide: "); pl(msname()); pod_note("dan", "/lab/notes");
+    PLN = 1; pl("the microscope: a fresh slide: "); pl(msname()); lab_note("dan");
 }
 void mnote_dried()
 {
@@ -84,7 +84,7 @@ void mnote_dried()
     plt(mbenchT()); pl(", its moisture magic, half full; ");
     if (MN >= 1) { plv(MN); pl(" salt cubes came out, the largest "); int k, big = 1; for (k = 1; k <= MN; k++) big = higher(big, medge(k)); plv(big); pl(" micrometres across, most round the edge (the coffee ring)"); }
     else pl("nothing left on the glass (magic water is pure)");
-    pod_note("dan", "/lab/notes");
+    lab_note("dan");
 }
 void microscope_step()
 {
