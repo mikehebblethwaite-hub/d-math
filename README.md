@@ -196,14 +196,13 @@ turn the assembly text into the program file.
   The book runs by moves only and is checked every frame: nothing vanished. Keys: r replays, q closes.
 - A candle: smoke and a flame from the neighbour rule, `lang/examples/smoke.delta` (Mike: "no fancy silly tricks ... the
   truth will out"). Hex cells of air each hold heat, oxygen, wax vapour and smoke, never nothing. Only neighbour moves:
-  spreading toward less, warm air pushed up by the room's weight into the cooler cell above (drawing side air in
-  behind), burning where vapour, oxygen and heat meet (soot where oxygen is short), light given to the room (more the
-  hotter, more where soot glows), and a solid wick warmed by the flame it touches and sees. The energy book balances
-  every step. What came out by itself: the flame takes hold and sits on the wick, soot forms where the air is short, the
-  warm plume widens as it rises. What did not, yet: after about 640 steps the flame smothers in its own soot, because
-  nothing carries the soot away from its base. Nature does not do that, so a neighbour is missing: pressure, the room's
-  air pushing in at the base and carrying the plume up (see by what is not seen). Frames: `smoke-frames/`;
-  `paper/images/smoke.png`.
+  spreading toward less; warm air pushed up by the room's weight, its push kept while it moves; pressure (a parcel going
+  up lifts the column above it, the sky takes the top one, and the room pushes fresh air in along the floor to fill the
+  place it left); burning where vapour, oxygen and heat meet (soot where oxygen is short); light given to the room (more
+  the hotter, more where soot glows); and a solid wick warmed by the flame it touches and sees. The energy book balances
+  every step. Nothing about a flame or a plume is written in: a small flame holds on the wick and stays lit, and a hot
+  column rises from it to the sky with a flicker. Each piece was found by the model failing without it (see HISTORY):
+  without pressure the flame smothered in its own soot. `paper/images/smoke.png`.
 - Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come).
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 

@@ -8,7 +8,9 @@
 //      at a candle's small scale heat passes 1 part in $C of the difference a step, gases 1 in 8, smoke 1 in 39;
 //   2. rising: the room's air is the far neighbour: a parcel warmer than the room builds push, by how much warmer
 //      it is; when the push is enough it changes places with the cooler of the two parcels above it (if that is cooler),
-//      and the place it left draws in the cooler of its two side neighbours (the room pressing air in at the base) (the warm and light go up, the cool
+//      a moving parcel keeps its push and it fades slowly. Pressure: a parcel going up lifts the whole column above it
+//      (the sky takes the top one) and the room pushes air in along the row to fill the place it left (fresh air at the
+//      edge): air cannot pile up or leave a hole, so it flows up the plume and in along the floor (the warm and light go up, the cool
 //      and heavy come down: one move each way);
 //   3. burning: where vapour, oxygen and heat enough meet, one unit of vapour and one of oxygen become heat; where
 //      oxygen is short the burning leaves smoke (soot) too;
@@ -94,10 +96,38 @@ void swap(int i, int j)
     t = lift[i]; lift[i] = lift[j]; lift[j] = t;
 }
 
+void copycell(int d, int c) { heat[d] = heat[c]; oxy[d] = oxy[c]; vap[d] = vap[c]; smoke[d] = smoke[c]; lift[d] = lift[c]; }
+
+int upfrom(int x, int y)                // of the two cells above (x, y), the cooler: its x (LOW when there is none)
+{
+    int ul = less(y, 1) % 2 ? less(x, 1) : x;
+    int up = ul;
+    if (ul + 1 <= GW && (ul < 1 || heat[at(ul + 1, less(y, 1))] < heat[at(ul, less(y, 1))])) up = ul + 1;
+    if (up > GW) return low;
+    return up;
+}
+
+int colx[79];
+void climb(int x, int y, int step)      // pressure: a parcel going up lifts the whole column above it; the sky takes the
+{                                        // top one; the room pushes air in along the row to fill the place it left
+    int n = 1, k, yy = y, cx = x;
+    colx[1] = x;
+    while (yy >= 2) { int u = upfrom(cx, yy); if (u < 1) break; yy = less(yy, 1); cx = u; n++; colx[n] = cx; }
+    int t = at(colx[n], less(y + 1, n));
+    skyheat = skyheat + heat[t]; skyox = skyox + oxy[t]; skyvap = skyvap + vap[t]; skysmoke = skysmoke + smoke[t];
+    for (k = n; k >= 2; k = less(k, 1)) copycell(at(colx[k], less(y + 1, k)), at(colx[less(k, 1)], less(y + 2, k)));   // row of k is y + 1 take k
+    int xx;
+    if (step % 2) { for (xx = x; xx >= 2; xx = less(xx, 1)) copycell(at(xx, y), at(less(xx, 1), y)); xx = 1; }
+    else { for (xx = x; xx < GW; xx++) copycell(at(xx, y), at(xx + 1, y)); xx = GW; }
+    int e = at(xx, y);                                         // fresh room air comes in at the edge
+    heat[e] = AMB; oxy[e] = OX; vap[e] = 1; smoke[e] = 1; lift[e] = low;
+    roomheatin = roomheatin + AMB; roomoxin = roomoxin + OX; roomvapin = roomvapin + 1;
+}
+
 void rise(int step)
 {
     int y, xx;
-    for (y = 1; y <= GH; y++) for (xx = 1; xx <= GW; xx++) {     // from the top down, so a parcel goes up one row a step
+    for (y = 1; y <= GH; y++) for (xx = 1; xx <= GW; xx++) {     // from the top down
         int x = step % 2 ? xx : less(GW + 1, xx);              // every other step from the other side: no lean
         int i = at(x, y);
         if (y == 1) {                                          // above the top row is the open sky
@@ -108,20 +138,12 @@ void rise(int step)
             }
             continue;
         }
-        int ul = less(y, 1) % 2 ? less(x, 1) : x;               // the two cells above: (ul, ul + 1)
-        int up = ul, a = at(ul + 1, less(y, 1));
-        if (ul + 1 <= GW && (ul < 1 || heat[a] < heat[at(ul, less(y, 1))] || (heat[a] == heat[at(ul, less(y, 1))] && step % 2))) up = ul + 1;
-        if (up < 1 || up > GW) continue;
+        int up = upfrom(x, y);
+        if (up < 1) continue;
         int j = at(up, less(y, 1));
-        if (heat[i] > AMB + LIFT && heat[i] > heat[j]) {        // lighter than the room's air, and than the air above
-            lift[i] = lift[i] + less(heat[i], AMB);            // the room's weight pushes it up, by how much warmer it is
-            if (lift[i] >= RISE) {
-                lift[i] = low; swap(i, j);
-                int l = x > 1 ? at(less(x, 1), y) : i, r = x < GW ? at(x + 1, y) : i;   // the place it left draws air
-                int k = heat[l] < heat[r] ? l : r;                 // in from the side: the cooler side, room-like air
-                if (heat[k] < heat[i]) swap(i, k);
-            }
-        } else lift[i] = lift[i] / 2;
+        if (heat[i] > AMB + LIFT && heat[i] > heat[j]) lift[i] = lift[i] + less(heat[i], AMB);   // the room's weight pushes it up
+        else lift[i] = less(lift[i], lift[i] / 8);             // not lighter now: its push fades, slowly (it is moving)
+        if (lift[i] >= RISE) { lift[i] = less(lift[i], RISE); climb(x, y, step); }
     }
 }
 

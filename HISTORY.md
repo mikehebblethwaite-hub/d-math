@@ -96,3 +96,7 @@ warmed by contact and by the light of the flame it sees); a hot region could ris
 from the room's weight); heat had nowhere to go (so warm cells give light to the room). The flame now takes hold on the
 wick, makes soot where air is short and a widening plume, then smothers in its own soot: the next missing neighbour is
 pressure (Mike's principle, 19:10: model shape not nature means an undetected neighbour).
+
+Then pressure (19 Nov, ~00:10): moving air keeps its push, and a parcel going up lifts the whole column above it while
+the room pushes fresh air in along the floor. The flame stopped smothering: it holds on the wick and stays lit, soot fell
+from 4569 units to 612, and a hot column rises to the sky. Mike: "ow so nice".
