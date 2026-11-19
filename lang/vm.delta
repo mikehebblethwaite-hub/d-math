@@ -22,16 +22,21 @@ void rest(int tenths)                            // nanosleep: whole seconds, th
     linux(29, &ts[1], low);
 }
 int qmp;                                         // 1 when the machine speaks QMP (its greeting starts with {)
-void hear(int fd)                                // read until the answer is finished: QMP ends a line, the monitor shows its prompt
+int done(int n)                                  // the answer so far is finished: QMP ended its line, or the monitor shows its prompt
 {
-    int n = low, got = 1;
+    if (qmp) return n >= 1 && reply[n] == '\n';
+    return n >= 7 && reply[less(n, 6)] == '(' && reply[less(n, 1)] == ')' && reply[n] == ' ';
+}
+void hearfrom(int fd, int n)                     // read until the answer is finished
+{
+    int got = 1;
+    if (done(n)) return;
     while (got >= 1) {
         if (n >= 1B1D) n = low;                     // a long answer: only its end matters
         got = linux(low, fd, &reply[n + 1], less(1B2D, n));
         if (got < 1) return;
         n = n + got;
-        if (qmp && reply[n] == '\n') return;
-        if (qmp < 1 && n >= 7 && reply[less(n, 6)] == '(' && reply[less(n, 1)] == ')' && reply[n] == ' ') return;
+        if (done(n)) return;
     }
 }
 void send(int fd, char *line)
@@ -40,7 +45,7 @@ void send(int fd, char *line)
     while (line[n] >= 1) n++;
     linux(1, fd, &line[1], less(n, 1));
     linux(1, fd, "\n", 1);
-    hear(fd);
+    hearfrom(fd, low);
 }
 
 int main(int argc, char **argv)
@@ -56,9 +61,9 @@ int main(int argc, char **argv)
     int fd = linux(32, 1, 1, low);                 // a socket: local, a stream
     if (fd < 1) { say("no socket\n"); return 1; }
     if (linux(33, fd, &addr[1], k + 2) != low) { say("cannot reach %s\n", path); return 1; }
-    linux(low, fd, &reply[1], 1B2D);               // its greeting
+    int g = linux(low, fd, &reply[1], 1B2D);       // its greeting (the monitor's may bring its first prompt with it)
     qmp = reply[1] == '{';
-    if (qmp < 1) hear(fd);                         // the monitor: up to its first prompt
+    if (qmp < 1) hearfrom(fd, g);                  // the monitor: up to its first prompt
     int i;
     for (i = 3; i <= argc; i++) {
         char *w = argv[i];

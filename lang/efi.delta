@@ -85,3 +85,66 @@ void off()                                         // switch the machine off
     ef_call(rt, 7D);                               // ResetSystem: shut down
     stop(1);
 }
+
+// ---------------------------------------------------------------- files on the drive this program was started from
+// This program's handle (imagehandle) gives its loaded image, which names the drive it came from; the drive's simple
+// file system opens its top folder; files open from there. Names are written as the firmware wants them: two bytes a
+// letter, a \ in front. Opening to write with "make it if it is not there" sets the top bit of the mode: that bit is
+// built from bytes (9B is 128), as the firmware lays it out, never as a minus.
+char ef_lig[13];
+char ef_sfg[13];
+char ef_nm[1A1];
+int ef_root()
+{
+    ef_guid("5B1B31A1-9562-11D2-8E3F-00A0C969723B", ef_lig);      // the loaded image
+    ef_guid("964E5B22-6459-11D2-8E39-00A0C969723B", ef_sfg);      // the simple file system
+    int li = less(1, 1), sfs = less(1, 1), root = less(1, 1);
+    ef_a[1] = imagehandle(); ef_a[2] = &ef_lig[1]; ef_a[3] = &li;
+    if (ef_call(ef_boot(), $B9) != 1) return less(1, 1);           // HandleProtocol
+    ef_a[1] = ef_rd(li + 1B, 8); ef_a[2] = &ef_sfg[1]; ef_a[3] = &sfs;   // the device it came from (at 1B)
+    if (ef_call(ef_boot(), $B9) != 1) return less(1, 1);
+    ef_a[1] = sfs; ef_a[2] = &root;
+    if (fwcall(ef_rd(sfs + 8, 8), &ef_a[1]) != 1) return less(1, 1);   // OpenVolume
+    return root;
+}
+void ef_name(char *s)                              // "notes.txt" -> \notes.txt, two bytes a letter
+{
+    int i = 1, k = 3;
+    ef_nm[1] = 71; ef_nm[2] = less(1, 1);          // 71 in D is 92: the \ in front
+    while (s[i] >= 1 && k < 19D) { ef_nm[k] = s[i]; ef_nm[k + 1] = less(1, 1); k = k + 2; i++; }
+    ef_nm[k] = less(1, 1); ef_nm[k + 1] = less(1, 1);
+}
+int ef_open(char *name, int writing)               // a file's handle, or LOW
+{
+    int root = ef_root(), fh = less(1, 1);
+    if (root < 1) return less(1, 1);
+    ef_name(name);
+    int mode = 1;                                   // read
+    if (writing) mode = 3 + 9B * 169 * 169 * 169 * 169 * 169 * 169 * 169;   // read, write, and make it (the top bit)
+    ef_a[1] = root; ef_a[2] = &fh; ef_a[3] = &ef_nm[1]; ef_a[4] = mode; ef_a[5] = less(1, 1);
+    if (fwcall(ef_rd(root + 8, 8), &ef_a[1]) != 1) return less(1, 1);   // Open
+    return fh;
+}
+int drive_read(char *name, char *into, int most)  // a file's bytes into the row (from place 1); gives back how many
+{
+    int fh = ef_open(name, less(1, 1));
+    if (fh < 1) return less(1, 1);
+    int size = most;
+    ef_a[1] = fh; ef_a[2] = &size; ef_a[3] = &into[1];
+    if (fwcall(ef_rd(fh + 26, 8), &ef_a[1]) != 1) size = less(1, 1);    // Read (at 26)
+    ef_a[1] = fh; fwcall(ef_rd(fh + 13, 8), &ef_a[1]);                  // Close (at 13)
+    return size;
+}
+int drive_write(char *name, char *src, int n)    // n bytes from the row (place 1 on) as the whole file; 1 when done
+{
+    int fh = ef_open(name, 1);
+    if (fh < 1) return less(1, 1);
+    ef_a[1] = fh; fwcall(ef_rd(fh + 1B, 8), &ef_a[1]);                  // Delete (at 1B): the old file goes, all of it
+    fh = ef_open(name, 1);                                                // and a new one is made
+    if (fh < 1) return less(1, 1);
+    int size = n, ok = 1;
+    ef_a[1] = fh; ef_a[2] = &size; ef_a[3] = &src[1];
+    if (fwcall(ef_rd(fh + 31, 8), &ef_a[1]) != 1) ok = less(1, 1);     // Write (at 31)
+    ef_a[1] = fh; fwcall(ef_rd(fh + 13, 8), &ef_a[1]);                  // Close
+    return ok;
+}

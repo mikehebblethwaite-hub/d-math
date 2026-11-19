@@ -47,3 +47,12 @@ Last daily review: 19 Nov 2026 (the first).
 - Fix: the box fits the sea (about 80 cells to a wavelength, the cell's size set by the reading's period).
 - System: the box sized from the sea.
 - Still open: one reading (6.5 s) is off; kept as found.
+
+## Saving from Delta Hex OS wrote the font, not the text (Notepad)
+- Cause: QEMU's folder-as-a-drive (`fat:rw:`) puts written clusters in the wrong place: the file got bytes from
+  BOOTX64.EFI itself. Delta's write was right: on a real FAT image the same save is byte for byte the text.
+- System: test machines boot from a real FAT32 image (`os/esp.img`), never `fat:rw:` for anything that writes.
+
+## The test driver hung now and then (lang/vm.delta)
+- Cause: QEMU's greeting sometimes arrives with its first prompt in the same read; the driver then waited for another.
+- System: the driver checks every read, the greeting too, for the end of the answer (`done()`).

@@ -1,4 +1,4 @@
-// Delta Hex OS: the no-zero operating system, written in Delta. 0.08: the hex desktop (seven tiles) and Dragonfly.
+// Delta Hex OS: the no-zero operating system, written in Delta. 0.09: Notepad (writing), with the hex desktop and Dragonfly.
 //
 // The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
 // C library. It asks the firmware for the machine's memory and counts it, from 1, in D numerals; then the firmware
@@ -43,6 +43,16 @@ int musb, mep, mkind, mmax;     // the USB mouse found: its USB door, its endpoi
 int fa[6];                      // values for a firmware call
 char usbguid[13];                   // how far the emblem's spirals have turned
 int pushed;
+char ED[2377D];                 // the text
+int EDN;                            // how many letters it holds
+int ECUR = 1;                       // where the next letter goes (1: before the first)
+int ETOP = 1;                       // the first line shown
+int EDGEN = 1, EDSHOWN;             // the text's state: changed (EDGEN moves on), and which state the page shows
+int ESAVED = 1;                     // 1: nothing typed since it was saved (or begun)
+char edl[6D75858];                  // the page, kept while nothing changes
+#define EROW 1B                 // a line's height in pixels
+#define ETOPY 93                // where the text starts down the screen
+#define EGUT 5D                 // the line numbers' column
 
 // ---------------------------------------------------------------- numbers that only move
 // less(a, b), apart(a, b), lower(a, b), higher(a, b), towards(a, b, t, n) are Delta's own: written straight in.
@@ -518,15 +528,17 @@ char *tilename(int t)
     if (t == 3) return "Say";
     if (t == 4) return "Memory";
     if (t == 5) return "Off";
+    if (t == 6) return "Notepad";
     return "ready to hold";
 }
-int tilekind(int t) { if (t == 2) return 2; if (t == 3) return 4; if (t == 4) return 3; if (t == 5) return 1; return 5; }
+int tilekind(int t) { if (t == 2) return 2; if (t == 3) return 4; if (t == 4) return 3; if (t == 5) return 1; if (t == 6) return 6; return 5; }
 char *tilenote(int t)
 {
     if (t == 2) return "engineer's assistant";
     if (t == 3) return "D sums";
     if (t == 4) return "counted from 1";
     if (t == 5) return "switch it off";
+    if (t == 6) return "writing";
     return "for what comes next";
 }
 
@@ -536,6 +548,7 @@ void opentile(int t)
     if (t == 3) MODE = 3;
     if (t == 4) MODE = 4;
     if (t == 5) off();
+    if (t == 6) { MODE = 5; EDGEN++; }
     tlen = low; typed[1] = low;
 }
 
@@ -746,6 +759,153 @@ void memorypanel()
     tx = 86; ty = 372; label("every page holds something: HIGH and LOW bits, never nothing.   awake"); value(FR / 1C, 1); label("seconds");
 }
 
+// ---------------------------------------------------------------- Notepad: writing, in the OS (Mike: "the stuff everyone needs first")
+// Text in one row of letters; the cursor is the place the next letter goes. Line numbers in D numerals; Delta's own words
+// blue, D numerals gold, notes grey-green, words in quotes orange. The page is drawn again only when the text or the
+// view changes; the blinking cursor is drawn over it.
+
+
+void edstart()
+{
+    int got = drive_read("notes.txt", ED, 2377D);         // what was saved last time, if anything
+    if (got >= 1) { EDN = got; ED[EDN + 1] = low; ECUR = 1; ETOP = 1; return; }
+    char *t = "// Notepad in Delta Hex OS. Type; Enter starts a new line; the arrows, Home, End, Page Up and Page Down move;\n// Backspace and Delete take a letter out; Esc goes back to the desktop.\n// Delta's own words are blue, D numerals gold, notes like this one grey-green.\n\nint main(int argc, char **argv)\n{\n    int basket = 1, tree = 1C;\n    move 3 from tree to basket;\n    return 1;\n}\n";
+    EDN = low;
+    while (t[EDN + 1] >= 1) { ED[EDN + 1] = t[EDN + 1]; EDN++; }
+    ED[EDN + 1] = low;
+    ECUR = 1; ETOP = 1;
+}
+int lineat(int p) { int n = 1, k; for (k = 1; k < p && k <= EDN; k++) if (ED[k] == $A) n++; return n; }
+int linestart(int n) { int k = 1, l = 1; while (l < n && k <= EDN) { if (ED[k] == $A) l++; k++; } return k; }
+int lineend(int s) { while (s <= EDN && ED[s] != $A) s++; return s; }      // the place of its line's end (the newline)
+int lines() { return lineat(EDN + 1); }
+int erows() { return less(less(H, ETOPY), 48) / EROW; }
+
+void edput(int c)                   // a letter in at the cursor
+{
+    if (EDN >= 23773) return;
+    int k;
+    for (k = EDN + 1; k >= ECUR; k = less(k, 1)) { ED[k + 1] = ED[k]; if (k == 1) break; }
+    ED[ECUR] = c; EDN++; ECUR++; ED[EDN + 1] = low;
+    EDGEN++; ESAVED = low;
+}
+void edback()                       // the letter before the cursor out
+{
+    if (ECUR < 2) return;
+    int k;
+    for (k = ECUR; k <= EDN + 1; k++) ED[less(k, 1)] = ED[k];
+    EDN = less(EDN, 1); ECUR = less(ECUR, 1);
+    EDGEN++; ESAVED = low;
+}
+void eddelete() { if (ECUR <= EDN) { ECUR++; edback(); } }
+void edcol(int line, int col)       // the cursor to that line, as near that column as the line allows
+{
+    int s = linestart(line), e = lineend(s);
+    ECUR = s + col <= e ? s + col : e;
+    EDGEN++;
+}
+void edkey(int k)
+{
+    int line = lineat(ECUR), col = less(ECUR, linestart(line));
+    if (k >= 26 && k < 9A) edput(k);
+    else if (k == $D) edput($A);
+    else if (k == 5CB || k == 16) { ESAVED = drive_write("notes.txt", ED, EDN); EDGEN++; }   // F2 or Ctrl+S: save
+    else if (k == 9) { edput(26); edput(26); edput(26); edput(26); }
+    else if (k == 8) edback();
+    else if (k == 5C7) eddelete();
+    else if (k == 5C3) { if (ECUR > 1) { ECUR = less(ECUR, 1); EDGEN++; } }                  // left
+    else if (k == 5C2) { if (ECUR <= EDN) { ECUR++; EDGEN++; } }                             // right
+    else if (k == 5BD) { if (line > 1) edcol(less(line, 1), col); }                          // up
+    else if (k == 5C1) { if (line < lines()) edcol(line + 1, col); }                         // down
+    else if (k == 5C4) { ECUR = linestart(line); EDGEN++; }                                  // Home
+    else if (k == 5C5) { ECUR = lineend(linestart(line)); EDGEN++; }                         // End
+    else if (k == 5C8) edcol(higher(1, line > erows() ? less(line, erows()) : 1), col);       // Page Up
+    else if (k == 5C9) edcol(lower(lines(), line + erows()), col);                           // Page Down
+    line = lineat(ECUR);                                          // keep the cursor's line in view
+    if (line < ETOP) { ETOP = line; EDGEN++; }
+    if (line >= ETOP + erows()) { ETOP = less(line + 1, erows()); EDGEN++; }
+}
+void edclick(int mx, int my)        // a click on the page puts the cursor there
+{
+    if (my < ETOPY || mx < EGUT) return;
+    int row = less(my, ETOPY) / EROW, col = less(mx, EGUT) / $B;
+    int line = ETOP + row;
+    if (line > lines()) line = lines();
+    edcol(line, col);
+}
+
+int isnumeral(int s, int n)         // a word made only of D digits is a numeral
+{
+    int k;
+    for (k = s; k < s + n; k++) if (dval(ED[k]) < 1) return low;
+    return 1;
+}
+int iskw(int s, int n)              // one of Delta's own words (or a type)?
+{
+    char *w = "int char void long if else while for return break continue move from to and thing vessel fits store conduct neighbours spend tick wear mix shrug quiet define include ";
+    int at = 1;
+    while (w[at] >= 1) {
+        int m = low; while (w[at + m] != 26) m++;
+        if (m == n) { int k, same = 1; for (k = 1; k <= n; k++) if (w[at + less(k, 1)] != ED[s + less(k, 1)]) same = low; if (same) return 1; }
+        at = at + m + 1;
+    }
+    return low;
+}
+int isword(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '1' && c <= '9') || c == '0' || c == '_'; }
+void letter(int c, int r, int g, int b) { if (c >= 26 && c <= 99) glyph(fw, less(c, 26), $B, r, g, b); else tx = tx + $B; }
+
+void edpage()                       // the whole page: the bar, line numbers, the text in its colours
+{
+    copy(&px[1], &bg[1], (W * H + W + 2) * 4);
+    backbutton();
+    tx = 86; ty = 46; text("Notepad", 149, 13C, $D1);
+    text("   writing, in Delta Hex OS        Esc: back", $B7, $BD, $D1);
+    int rows = erows(), row, p = linestart(ETOP), line = ETOP;
+    for (row = 1; row <= rows && p <= EDN + 1; row++) {
+        ty = ETOPY + less(row, 1) * EROW;
+        dstr(line); tx = less(EGUT, slen(nb) * $B + 11); text(nb, 75, 7D, 97);   // its number, right-aligned
+        tx = EGUT;
+        int incomment = low, instring = low;
+        while (p <= EDN && ED[p] != $A) {
+            int c = ED[p];
+            if (tx > less(W, 17)) { p++; continue; }             // past the right edge: not shown (no wrap yet)
+            if (incomment < 1 && instring < 1 && c == '/' && p < EDN && ED[p + 1] == '/') incomment = 1;
+            if (incomment) { letter(c, 93, $D1, 93); p++; continue; }
+            if (c == '"') { letter(c, 149, $C4, 6C); instring = instring ? low : 1; p++; continue; }
+            if (instring) { letter(c, 149, $C4, 6C); p++; continue; }
+            if (isword(c)) {
+                int s = p, n = low; while (p <= EDN && isword(ED[p])) { p++; n++; }
+                int r = 136, g = 13A, b = 145;
+                if (iskw(s, n)) { r = 86; g = $D1; b = 168; }
+                else if (isnumeral(s, n)) { r = 156; g = 125; b = 86; }
+                int k; for (k = s; k < s + n; k++) letter(ED[k], r, g, b);
+                continue;
+            }
+            letter(c, 136, 13A, 145); p++;
+        }
+        p++; line++;
+    }
+    // the status line: where the cursor is, how long the text is, saved or not
+    int cl = lineat(ECUR);
+    tx = 2A; ty = less(H, 31);
+    text("line ", $B7, $BD, $D1); dstr(cl); text(nb, 156, 125, 86);
+    text("   column ", $B7, $BD, $D1); dstr(less(ECUR, linestart(cl)) + 1); text(nb, 156, 125, 86);
+    text("   letters ", $B7, $BD, $D1); dstr(EDN); text(nb, 156, 125, 86);
+    text("   lines ", $B7, $BD, $D1); dstr(lines()); text(nb, 156, 125, 86);
+    text(ESAVED ? "   saved (notes.txt on the boot drive)" : "   changed: F2 or Ctrl+S saves", $B7, $BD, $D1);
+    copy(&edl[1], &px[1], (W * H + W + 2) * 4);
+    EDSHOWN = EDGEN;
+}
+void notepad()
+{
+    if (EDSHOWN != EDGEN) edpage(); else copy(&px[1], &edl[1], (W * H + W + 2) * 4);
+    if ((FR / 8) % 2) {                                       // the cursor: a thin bar, blinking
+        int cl = lineat(ECUR), row = less(cl, ETOP);
+        int cx = EGUT + less(ECUR, linestart(cl)) * $B, cy = ETOPY + row * EROW, y;
+        for (y = cy + 2; y <= cy + 18; y++) { mixpx(cx, y, 156, 13C, $B7, 149); mixpx(cx + 1, y, 156, 13C, $B7, 149); }
+    }
+}
+
 // ---------------------------------------------------------------- keys and the mouse, for whichever is open
 
 void listen()
@@ -758,7 +918,8 @@ void listen()
             if (k == 5C3 || k == 5BD) FOCUS = FOCUS <= 2 ? 7 : less(FOCUS, 1);                // back round
             if (k == $D) opentile(FOCUS);
         } else {
-            if (k == 5D9) { MODE = 1; tlen = low; }                          // Esc: back to the desktop
+            if (k == 5D9) { MODE = 1; tlen = low; DESKFOR = low; }              // Esc: back to the desktop
+            else if (MODE == 5) edkey(k);                                         // Notepad takes every key
             else if (k == $D) { if (MODE == 2) fly(); if (MODE == 3) think(); tlen = low; }
             else if (k == 8) { if (tlen >= 1) tlen = less(tlen, 1); }
             else if (k >= 26 && k < 9A && tlen < 6C) { tlen++; typed[tlen] = k; }
@@ -774,7 +935,8 @@ void clicks(int mx, int my, int mb)
     if (MODE == 1) for (t = 2; t <= 7; t++) if (inhex(mx, my, TX[t], TY[t], TR) && (mx != MX1 || my != MY1)) FOCUS = t;   // the mouse points
     if (mb >= 1 && lastmb < 1) {                                                  // a click: pressed now, not before
         if (MODE == 1) { for (t = 2; t <= 7; t++) if (inhex(mx, my, TX[t], TY[t], TR)) opentile(t); }
-        else if (onback(mx, my)) { MODE = 1; tlen = low; }
+        else if (onback(mx, my)) { MODE = 1; tlen = low; DESKFOR = low; }
+        else if (MODE == 5) edclick(mx, my);
     }
     lastmb = mb; MX1 = mx; MY1 = my;
 }
@@ -800,6 +962,7 @@ int main(int argc, char **argv)
     findmouse();
     background();
     layout();
+    edstart();
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
@@ -814,7 +977,8 @@ int main(int argc, char **argv)
         if (MODE == 2) dragonfly();
         if (MODE == 3) saypanel();
         if (MODE == 4) memorypanel();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.08", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        if (MODE == 5) notepad();
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.09", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);

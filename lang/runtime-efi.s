@@ -29,6 +29,9 @@ f_screenwide:
 f_screenhigh:
     mov eax, 25
     ret
+f_imagehandle:                  # imagehandle(): the firmware's handle for this program (its drive is found from it)
+    mov rax, [rip+dl_image]
+    ret
 f_systemtable:                  # systemtable(): where the firmware's system table is
     mov rax, [rip+dl_system]
     ret
