@@ -2,6 +2,11 @@
 
 Every error and mistake building D and Delta, kept so it is not made twice. Newest at the bottom.
 
+Once a day (Mike, 19 Nov 2026) these fails are read and each lesson becomes a new system: a test, a check, a tool or a
+rule in the compiler, so the same fail cannot happen again. Each entry says which system it became, or "system: not yet".
+
+Last daily review: 19 Nov 2026 (the first).
+
 ## Delta Hex OS: the mouse "did not work" (0.05 to 0.07), but it did
 - Cause: the test moved the mouse with QEMU's monitor `mouse_move`, which sends relative moves; the test machine has a
   USB tablet, which only takes places. No report ever came, so the pointer never moved.
