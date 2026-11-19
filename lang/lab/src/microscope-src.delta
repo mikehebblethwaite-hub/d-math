@@ -18,9 +18,10 @@
 #define MVC {{2700}}                        // the view's middle: this far right of the drop's middle, on its edge
 #define MCRY {{96}}                         // cubes it keeps count of
 int MFD = {{300}}, MFX = {{42}};             // the field's size on the panel and where it starts, pixels
+char MMSG[{{120}}];                         // what the microscope last said (picking a seed)
 int MSAMPLE = 1, MLENS = 2;                 // 1 sea water, 2 magic water, 3 a clean slide; the lens 1 x40, 2 x100, 3 x400
 int MWATER, MSALT, MOUT, MRATE, MDRY, MN, MAGE;   // nanograms: water left, salt in all, salt come out; nanograms a second
-int CXU[{{97}}], CYU[{{97}}], CANG[{{97}}], CMASS[{{97}}];   // each cube: where (micrometres, held at MHELD), its turn, its weight
+int CXU[{{97}}], CYU[{{97}}], CANG[{{97}}], CMASS[{{97}}], CBORN[{{97}}];   // ... and the step it began (how fast it grew: clarity)   // each cube: where (micrometres, held at MHELD), its turn, its weight
 int mfield() { return MLENS == 1 ? {{4500}} : MLENS == 2 ? {{1800}} : {{450}}; }   // the field across, micrometres
 int mpower() { return MLENS == 1 ? {{40}} : MLENS == 2 ? {{100}} : {{400}}; }
 char *msname() { return MSAMPLE == 1 ? "a drop of the tank's sea water (35 g of salt a kilogram)" : MSAMPLE == 2 ? "a drop of magic water (magic: pure, nothing in it)" : "a clean slide"; }
@@ -59,7 +60,7 @@ void mstart_cube()                          // a new cube, where the world's cha
                                  : MDR * ({{150}} + ch / {{384}} % {{700}}) / {{1000}};   // some inside
     CXU[MN] = term(MHELD, r, low, cosk(p), K); CYU[MN] = term(MHELD, r, low, sink(p), K);
     CANG[MN] = ch / {{7}} % {{24}} + 1;
-    CMASS[MN] = 1;
+    CMASS[MN] = 1; CBORN[MN] = MAGE;
 }
 void mgrow(int amount)                      // salt come out this step, shared by the cubes: bigger ones take more
 {
@@ -85,6 +86,26 @@ void mnote_dried()
     if (MN >= 1) { plv(MN); pl(" salt cubes came out, the largest "); int k, big = 1; for (k = 1; k <= MN; k++) big = higher(big, medge(k)); plv(big); pl(" micrometres across, most round the edge (the coffee ring)"); }
     else pl("nothing left on the glass (magic water is pure)");
     lab_note("dan");
+}
+// the best seed (Mike: "pick by shape, size or what" ... "so clarity"): a cube standing alone (one crystal, not grown into a
+// neighbour), then the clearest: the one that grew slowest (fast growth traps brine inside and clouds it), then the largest
+int alone(int k)
+{
+    int j;
+    for (j = 1; j <= MN; j++) if (j != k) {
+        int dx = apart(CXU[j], CXU[k]), dy = apart(CYU[j], CYU[k]), reach = (medge(j) + medge(k)) * 3 / 4;
+        if (dx * dx + dy * dy < reach * reach) return low;
+    }
+    return 1;
+}
+int mspeed(int k) { return medge(k) * {{1000}} / higher(1, less(MAGE + 1, CBORN[k])); }   // its edge's growth, thousandths of a micrometre a second
+int mbest()
+{
+    int k, best = low;
+    for (k = 1; k <= MN; k++) if (alone(k)) {
+        if (best < 1 || mspeed(k) < mspeed(best) || (mspeed(k) == mspeed(best) && medge(k) > medge(best))) best = k;
+    }
+    return best;
 }
 void microscope_step()
 {
@@ -168,7 +189,8 @@ void microscope_draw()
 void microscope_panel()
 {
     int lfirst = LINE;
-    lab_line("The microscope (lang/lab/objects/microscope.delta): Y a fresh drop, U the next lens");
+    lab_line("The microscope (lang/lab/objects/microscope.delta): Y a fresh drop, U the next lens, I the best cube to the seed beaker");
+    if (MMSG[1] >= 1) lab_line(MMSG);
     lab_line("on the slide:"); lab_line(msname());
     lab_value("  the lens: times", mpower(), "");
     lab_value("  the field across, micrometres", mfield(), "");
@@ -193,11 +215,26 @@ void microscope_panel()
     else mview(MFX, ys, MFD);
     LINE = higher(LINE, lfirst + MFD / {{26}} + 1);
 }
+void mpickseed()
+{
+    if (MDRY < 1 || MN < 1) { amsgm("dry a drop of sea water first: the seed comes from its cubes"); return; }
+    int b = mbest();
+    if (b < 1) { amsgm("no cube stands alone: every one has grown into a neighbour"); return; }
+    seed_start(CMASS[b]);
+    amsgm("the clearest lone cube went to the seed beaker (by magic)");
+    if (isdan()) {
+        PLN = 1; pl("the microscope: picked the seed: of "); plv(MN); pl(" cubes, the clearest that stands alone (slowest grown), ");
+        plv(medge(b)); pl(" micrometres across, its edge grew "); plv(mspeed(b)); pl(" thousandths of a micrometre a second; into the seed beaker");
+        lab_note("dan");
+    }
+}
+void amsgm(char *s) { int i = 1; while (s[i] >= 1 && i < {{118}}) { MMSG[i] = s[i]; i++; } MMSG[i] = low; }
 void microscope_keys(int key, int picked)
 {
     if (picked != 6) return;
     if (key == {{29}}) { MSAMPLE = MSAMPLE % 3 + 1; mdrop(); mnote_drop(); }       // Y
     if (key == {{30}}) MLENS = MLENS % 3 + 1;                         // U
+    if (key == {{31}}) mpickseed();                                    // I: the best cube into the seed beaker
 }
 // the microscope in words, for bots
 char MNOTE[{{600}}];

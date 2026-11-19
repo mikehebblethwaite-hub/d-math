@@ -22,10 +22,9 @@ void bench_draw()
     lab_cyl(S2X, S2Z, {{460}}, BTOP, BTOP + 6, 1);                                  // the sink's steel rim, flush in the top
     WTUBE = {{40}}; lab_wire(less(ROOM, 1), BTOP + {{700}}, S2Z, S2X, BTOP + {{700}}, S2Z); WTUBE = {{40}}; lab_wire(S2X, BTOP + {{700}}, S2Z, S2X, BTOP + {{420}}, S2Z); lab_wirelay(5, low);
     if (TAP2 >= 1) { WTUBE = {{16}}; lab_wire(S2X, BTOP + {{420}}, S2Z, S2X, BTOP, S2Z); lab_wirelay({{12}}, low); }
-    // a rack of test tubes and a beaker
+    // a rack of test tubes (the beaker is the seed beaker now: objects/seedcup.delta)
     lab_colour({{150}}, {{110}}, {{70}}); lab_box({{14400}}, {{6400}}, {{14900}}, {{6700}}, BTOP, BTOP + {{200}});
     int t; for (t = 1; t <= 5; t++) lab_cyl({{14450}} + t * {{80}}, {{6550}}, {{28}}, BTOP + {{60}}, BTOP + {{560}}, 3);
-    lab_cyl({{14600}}, {{7300}}, {{180}}, BTOP + 1, BTOP + {{420}}, 3);
     // a multimeter (yellow) and a power supply (grey, its two terminals red and black)
     lab_colour({{230}}, {{190}}, {{40}}); lab_box({{14500}}, {{8200}}, {{14900}}, {{8700}}, BTOP, BTOP + {{120}});
     lab_colour({{140}}, {{142}}, {{146}}); lab_box({{14300}}, {{9100}}, {{15100}}, {{10000}}, BTOP, BTOP + {{420}});
@@ -43,9 +42,9 @@ void bench_panel()
     lab_line(VENTON ? "the vent (V): its fan on, drawing the room's air out to magic waste" : "the vent (V): its fan off");
     if (EWASTE > EMAKE + {{30}}) lab_kind(1); lab_value("  warmth it took out, more than came back in", less(EWASTE, EMAKE) * {{34}} / {{1000}} + 1, "joules (the air went to magic waste; as much came back round the doors, by magic)");
     lab_line("The bench: an oak worktop at desk height down the right wall (lang/lab/objects/bench.delta)");
-    lab_line("  a second sink (K beside it washes your hands), test tubes, a beaker, a multimeter, a power supply,");
+    lab_line("  a second sink (K beside it washes your hands), test tubes, a multimeter, a power supply,");
     lab_line("  a Bunsen burner: things to see for now, true tools in their own time");
-    lab_line("  working: the oscilloscope and the microscope (click them); their links are magic, no wires");
+    lab_line("  working: the oscilloscope, the microscope and the seed beaker (click them); their links are magic, no wires");
 }
 thing bench {
     int x, z;

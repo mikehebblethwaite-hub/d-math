@@ -1,0 +1,108 @@
+// The seed beaker on the bench (19 Nov 2026, Mike: "do you intend picking the best one to seed more or larger crystals?").
+// The best salt cube from the microscope's dried drop (the largest that stands alone: one crystal, not grown into a
+// neighbour) hangs on a thread in a beaker of saturated brine. The brine dries from its open top in the bench air, and
+// the salt that comes out builds on the seed, so it grows. Click the beaker to see it close up.
+//
+// Real: saturated brine is 36 g of salt to 100 g of water, and it holds its water back (its pull is 750 thousandths, so at
+// the air's magic half-full moisture it dries a quarter as hard as pure water); drying from the open top as from a flat
+// disc (4 x radius x how fast vapour spreads x the vapour the air can still take, at the bench air's own warmth); the
+// cube's size from salt's weight (2.16 g a cubic centimetre). The beaker: 65 mm inside radius, 250 g of water at the start.
+// Magic: the seed comes from the slide to the thread by magic; all the salt that comes out settles on the seed (a real
+// beaker grows crust on its walls and floor too, so a real seed grows slower); the air's moisture, half full.
+#define BKX {{14600}}                       // the beaker on the bench
+#define BKZ {{7300}}
+int SEEDON;                                 // 1: a seed hangs in the brine
+int SEEDNG, BWATER, BRATE, BSTEPS, BMMNOTE, BSTART, BCOVER;   // ... BWATER in micrograms; BRATE tenths of a microgram a second  // the seed's salt (nanograms); the brine's water (milligrams); mg a second x1000
+int seedum() { return SEEDNG >= 1 ? icbrt(SEEDNG * {{463}}) : low; }   // the seed's edge, micrometres
+int bkT() { return AT[acell(BKX, BTOP + {{300}}, BKZ)]; }               // the air over the beaker
+void seed_start(int ng)
+{
+    SEEDON = 1; SEEDNG = ng; BWATER = {{250000000}}; BSTEPS = low; BMMNOTE = seedum() / {{1000}}; BSTART = seedum();
+}
+void seedcup_step()
+{
+    if (SEEDON < 1 || BWATER < {{25000000}}) return;
+    BSTEPS++;
+    // drying from a disc of radius 65 mm: 4 x 0.065 m x 2.5e-5 m2/s = 6.5e-6 m3/s; the pull of saturated brine 750, air 500
+    BRATE = {{65}} * mcs(bkT()) * {{250}} / {{1000000}};        // tenths of a microgram a second (28 micrograms at 20 C)
+    if (BCOVER) BRATE = BRATE / {{10}} + 1;                         // paper over the top, a pinhole in it: about a tenth (a rough guide)
+    int lost = BRATE / {{10}} + 1;                                  // micrograms of water this second
+    BWATER = BWATER > lost ? less(BWATER, lost) : low;
+    SEEDNG = SEEDNG + lost * {{360}};                               // 0.36 g of salt for each g of water: in ng (x1000 / 1000 x 360)
+    int mm = seedum() / {{1000}};
+    if (mm > BMMNOTE) { BMMNOTE = mm; seed_note(); }
+}
+void seed_note()                             // Dan's lab notes, at each whole millimetre the seed reaches
+{
+    if (isdan() < 1) return;
+    PLN = 1; pl("the seed beaker: the salt cube on its thread is now "); plv(BMMNOTE); pl(" mm across (D numerals) after ");
+    plv(BSTEPS); pl(" steps; the brine has "); plv(BWATER / {{1000000}} + 1); pl(" g of water left; the air over it at "); plt(bkT());
+    pl("; all the salt settling on the seed is magic (a real beaker crusts its walls too)");
+    lab_note("dan");
+}
+void seedcup_draw()
+{
+    lab_alpha({{250}});
+    if (SEEDON) {
+        int depth = {{4}} + BWATER / {{1000}} * {{48}} / {{250000}};                       // the brine's depth, to scale (19 mm at 250 g)
+        lab_cyl(BKX, BKZ, {{160}}, BTOP + 1, BTOP + depth, {{12}});             // the brine (water)
+        lab_colour({{60}}, {{50}}, {{40}}); WTUBE = 4; lab_wire(less(BKX, {{200}}), BTOP + {{430}}, BKZ, BKX + {{200}}, BTOP + {{430}}, BKZ); lab_wirelay(5, low);   // the pencil across the rim
+        int e = higher(2, seedum() * {{64}} / {{25400}}), sy = BTOP + {{4}} + depth / 2;
+        WTUBE = 1; lab_wire(BKX, BTOP + {{430}}, BKZ, BKX, sy + e, BKZ); lab_wirelay(1, low);   // the thread
+        lab_colour({{235}}, {{240}}, {{245}}); lab_box(less(BKX, e / 2), less(BKZ, e / 2), BKX + e / 2 + 1, BKZ + e / 2 + 1, sy, sy + e);   // the seed
+    }
+    lab_cyl(BKX, BKZ, {{180}}, BTOP + 1, BTOP + {{420}}, 3);                   // the beaker's glass
+    if (BCOVER) { lab_colour({{240}}, {{238}}, {{228}}); lab_box(less(BKX, {{190}}), less(BKZ, {{190}}), BKX + {{190}}, BKZ + {{190}}, BTOP + {{421}}, BTOP + {{424}}); }   // the paper
+}
+void seedcup_panel()
+{
+    lab_line("The seed beaker (lang/lab/objects/seedcup.delta): grow one salt cube bigger");
+    if (SEEDON < 1) { lab_line("  no seed yet: dry a drop of sea water under the microscope, then I on its page picks the best cube"); return; }
+    lab_value("  the seed, micrometres across", seedum(), "");
+    lab_value("  steps (a second a step)", BSTEPS, "");
+    lab_value("  water left in the brine, grams", BWATER / {{1000000}} + 1, "(it started at 250; stops at 25: the beaker nearly dry)");
+    lab_line(BCOVER ? "  Y: covered with paper, a pinhole in it: it dries about a tenth as fast (slow growth stays clear)" : "  Y: cover it with paper (slower drying, a clearer crystal); open now");
+    if (BWATER >= {{25000000}}) lab_value("  drying, micrograms of water a second", BRATE / {{10}} + 1, "");
+    else lab_line("  the brine is nearly dry: the seed has stopped growing");
+    tvalue("  the air over the beaker", bkT());
+    int perday = BSTEPS >= 1 ? less(seedum(), BSTART) * {{86400}} / BSTEPS : low;     // its edge's growth, micrometres a day
+    if (BSTEPS >= {{600}}) {
+        lab_value("  its edge grows, micrometres a day", perday + 1, "");
+        lab_line(perday < {{1000}} ? "  clear: growing slowly enough (under 1 mm a day: a growers' rough guide)" : perday < {{3000}} ? "  going cloudy: 1 to 3 mm a day traps a little brine (a rough guide)" : "  cloudy: over 3 mm a day traps brine, the faces hollow (a rough guide)");
+    }
+    lab_line("  magic: the seed came to the thread by magic; all the salt settles on it (a real beaker crusts its walls too); the air's moisture");
+    // the seed close up: a square, to scale against a 1 mm bar
+    int xs = {{60}}, ys = {{49}} + LINE * {{26}}, box = {{220}};
+    if (MEASURE) { WIDEST = higher(WIDEST, xs + box + {{40}}); LINE = LINE + 9; return; }
+    int um = higher(1, seedum()), span = higher({{2000}}, um * 3 / 2);           // the view: at least 2 mm across
+    int e = higher(2, um * box / span), x, y;
+    for (y = ys; y <= ys + box; y++) for (x = xs; x <= xs + box; x++) mixpx(x, y, {{26}}, {{40}}, {{52}}, {{240}});   // the brine, dark
+    int cx = xs + box / 2, cy = ys + box / 2;
+    for (y = less(cy, e / 2); y <= cy + e / 2; y++) for (x = less(cx, e / 2); x <= cx + e / 2; x++) {
+        int edge = apart(x, cx) * 5 >= e * 2 || apart(y, cy) * 5 >= e * 2;
+        if (edge) mixpx(x, y, {{120}}, {{130}}, {{140}}, {{250}}); else mixpx(x, y, {{220}}, {{228}}, {{236}}, {{230}});
+    }
+    int bar = {{1000}} * box / span;
+    for (y = ys + box + 6; y <= ys + box + 8; y++) for (x = xs; x <= xs + bar; x++) mixpx(x, y, {{200}}, {{200}}, {{200}}, {{250}});
+    LINE = LINE + 9;
+}
+void seedcup_keys(int key, int picked) { if (picked == 7 && key == {{29}}) BCOVER = BCOVER ? low : 1; }   // Y: the paper cover
+// the beaker in words, for bots
+char BNOTE[{{400}}];
+int BNN;
+void bn(char *s) { int i = 1; while (s[i] >= 1) { BNOTE[BNN] = s[i]; BNN++; i++; } }
+void bnv(int v) { dstr(v); bn(nb); }
+void seedcup_note()
+{
+    BNN = 1; bn("seedcup");
+    if (SEEDON < 1) bn(" no-seed"); else { bn(" seed-um "); bnv(seedum()); bn(" steps "); bnv(BSTEPS + 1); bn(BCOVER ? " covered" : " open"); bn(" water-g "); bnv(BWATER / {{1000000}} + 1); bn(" air-mK "); bnv(bkT()); bn(" all-salt-on-seed magic"); }
+    bn("\n");
+    window_writefile("/tmp/delta-lab-seedcup.txt", BNOTE, less(BNN, 1));
+}
+thing seedcup {
+    int x, z;
+    void start() { }
+    void step() { seedcup_step(); }
+    void draw() { seedcup_draw(); }
+    void panel() { seedcup_panel(); }
+};
