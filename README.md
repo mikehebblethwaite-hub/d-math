@@ -203,6 +203,16 @@ turn the assembly text into the program file.
   every step. Nothing about a flame or a plume is written in: a small flame holds on the wick and stays lit, and a hot
   column rises from it to the sky with a flicker. Each piece was found by the model failing without it (see HISTORY):
   without pressure the flame smothered in its own soot. `paper/images/smoke.png`.
+- Waves move the air: `lang/examples/waves-air.delta BUOY.csv [ROW]` (Mike, 19 Nov 2026: "waves make air move and that's
+  earth's weather system"). One half-hour reading of a real UK wave buoy (its wave height and period) drives a
+  wave-maker; the waves run along the surface by the neighbour rule and die on a beach. The air above is hex cells, each
+  holding a count of air; where the water rises into a cell it has less room, and air only moves from a more crowded
+  cell to a less crowded neighbour. No wind and no flow pattern are written in; the air book balances every step. The
+  box fits the sea (about 80 cells to a wavelength; a cell's size in metres comes from the reading's period).
+  Fair test, the referee from outside: linear wave theory says the air's motion halves 0.110 of a wavelength above the
+  water. The model, on six readings from 3.5 to 9 s: 0.116 to 0.120 for five (a steady 5 to 9 per cent high); one (6.5 s)
+  is off and not yet understood. Buoy files are not in this repository: Cefas WaveNet data, Open Government Licence
+  ("Contains data from Cefas WaveNet"). `paper/images/waves-air.png`.
 - Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come).
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).
 

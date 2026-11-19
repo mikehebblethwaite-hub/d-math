@@ -1,0 +1,330 @@
+// Waves move the air: a slice of real sea in the lab box, the air above it in hex cells.
+//
+// Mike, 19 Nov 2026: "waves make air move and that's earth's weather system". The sea here is a real one: one
+// half-hour reading of a UK wave buoy (Cefas WaveNet: its significant wave height and peak period) drives a wave-maker
+// at the left; the waves run along the surface by the neighbour rule (each piece of surface is pulled toward its two
+// neighbours' level and keeps its way of moving) and die on a beach at the right.
+// The air is a honeycomb of hex cells, each holding a count of air, never nothing. Where the water rises into a cell
+// the cell has less room, so its air is more crowded; air only ever moves from a more crowded cell to a less crowded
+// neighbour. That is all: no wind is written in, no flow pattern is drawn. The air in the box is counted every step.
+//
+// Fair test (the referee, from outside D): linear wave theory says the air's motion over a wave halves 86
+// thousandths of a wavelength above the water. The model measures its own wavelength and its own halving height.
+//
+//   delta run examples/waves-air.delta BUOY.csv [ROW]      (ROW, a D numeral, counts the readings from 1; 1 by default)
+// It writes frames to waves-frames/ and says what it found. Contains data from Cefas WaveNet (Open Government Licence).
+
+#define BIG 36694
+#define K 1B31
+#define GW $C4                // columns: two wavelengths of sea
+#define GH 62                 // rows from the box floor to its lid
+#define SEA 13                // the still water's level, in rows from the floor
+#define FULL 2A9379          // the air a full cell holds at the room's pressure (fine enough that small flows still count)
+#define BEACH 31              // the last columns: a beach where the waves give up their energy
+#define DT 26                 // steps a second
+#define PW 3A3
+#define PH 1B8
+
+int low;
+int Cr[75];
+int S[75];
+int cosk(int i) { return Cr[(i + 74) % 75 + 1]; }
+int sink(int i) { return S[(i + 74) % 75 + 1]; }
+// ---------------------------------------------------------------- the hex circle: no sines, no cosines
+// Mike, 18 Nov 2026: "a circle is made of tiny hex connections". Inside D every place is on a hex grid of tiny steps,
+// written as (across, down) in doubled steps: the six neighbours are (2 across), or (1 across and 1 down), each way.
+// Every neighbour is the same distance away, and the distance of any place from the middle, squared, is a whole number:
+// across² + 3 x down² (four times the true square). A circle is the walk round the middle through neighbours that stay
+// nearest to one distance. No sine, no cosine, no fraction of a turn: only steps.
+// The bridge to the outside world's square things (screen pixels, memory addresses, other people's sines and cosines)
+// is one place only: hexout(), at the smallest point. Down steps are root 3 times taller than half an across step;
+// the bridge uses 26/15 for root 3 (in D numerals 2D/12... 26 over 15: off by 1 part in 1000).
+int RX[9146];
+int RY[9146];
+int hexout(int down) { return down * 1D / 12; }      // the bridge: hex down steps to square units
+
+void hexcircle()
+{
+    int R = $C17, cx = BIG, cy = BIG, target = 4 * R * R;
+    int x = cx + 2 * R, y = cy, n = 1, i;
+    int sa[6] = {2, 1, 1, 2, 1, 1};            // the six steps: how far across ...
+    int ss[6] = {1, 1, 2, 2, 2, 1};          // ... which way across (1 on, 2 back)
+    int sd[6] = {2, 1, 1, 2, 1, 1};            // how far down (2 here means none: see dn)
+    int dn[6] = {3, 1, 1, 3, 2, 2};     // which way down: 1 down, 2 up, 3 not at all
+    RX[1] = x; RY[1] = y;
+    while (n < 9139) {
+        int best = 1, besterr = 12C23A19B, k;
+        for (k = 1; k <= 6; k++) {
+            int nx = ss[k] == 1 ? x + sa[k] : less(x, sa[k]);
+            int ny = dn[k] == 1 ? y + 1 : dn[k] == 2 ? less(y, 1) : y;
+            // going round, not back: the step must turn the same way as the walk (one way round only)
+            int px = apart(x, cx), py = apart(y, cy), pxon = x >= cx, pyon = y >= cy;
+            int stx = sa[k], sty = dn[k] == 3 ? low : 1, stxon = ss[k] == 1, styon = dn[k] == 1;
+            int m1 = px * sty * 3, m2 = py * stx * 3;          // across x step-down, down x step-across
+            int g1 = pxon == styon, g2 = pyon == stxon;
+            int round = (g1 && g2 < 1 && m1 + m2 >= 1) || (g1 && g2 && m1 > m2) || (g1 < 1 && g2 < 1 && m2 > m1);
+            if (round) {
+                int dx = apart(nx, cx), dy = apart(ny, cy);
+                int err = apart(dx * dx + 3 * dy * dy, target);
+                if (err < besterr) { besterr = err; best = k; }
+            }
+        }
+        x = ss[best] == 1 ? x + sa[best] : less(x, sa[best]);
+        y = dn[best] == 1 ? y + 1 : dn[best] == 2 ? less(y, 1) : y;
+        if (n > 17 && apart(x, RX[1]) <= 2 && apart(y, RY[1]) <= 1) break;
+        n++; RX[n] = x; RY[n] = y;
+    }
+    int K2 = 2 * R;                                         // the circle's radius in across units
+    for (i = 1; i <= 75; i++) {
+        int at = less(i, 1) * n / 75 + n / 11A + 1;    // 96 places, evenly by steps, half a place in
+        Cr[i] = less(RX[at] + K2, cx) * K / K2;
+        int up = RY[at] >= cy;
+        S[i] = up ? K + hexout(less(RY[at], cy)) * K / K2 : less(K, hexout(less(cy, RY[at])) * K / K2);
+    }
+}
+
+
+int lev[$D1], vel[$D1];   // the surface: its level (MID + displacement) in 256ths of a row, and how it moves (VMID + way)
+#define MID 28D221
+#define VMID 28D221
+int air[5BBD];             // air in each cell
+int fxr[5BBD], fxl[5BBD], fyu[5BBD], fyd[5BBD];   // air moved this period: right, left, up, down
+int spd[5BBD];             // how much air passed through each cell over the last period (its speed, summed)
+int rm[5BBD];              // each cell's room this step
+int PULL;                       // the surface's pull, in thousandths: how fast the waves run
+int mpc;                        // thousandths of a metre to a cell, set by the sea
+int steps, period;
+int nopics;                      // a third word after the file: no pictures (for test runs)
+int amp, wavelen;               // the wave-maker's half-height (256ths of a row), the measured wavelength (columns)
+int hm, tp, temp;               // the reading: wave height and period in thousandths, sea temperature in thousandths
+int totalair;
+char pic[1B67D2];
+int pn;
+
+int at(int x, int y) { return less(y, 1) * GW + x; }
+
+// ---------------------------------------------------------------- the reading (the one bridge: decimal text in)
+char buf[6CD58];
+int milli(char *s, int *p)          // a decimal number like 2.14 at s[*p] -> 2140 (thousandths); moves *p past it
+{
+    int v = low, f = low, places = low, k = *p;
+    while (s[k] == ' ') k++;
+    while (s[k] >= '0' && s[k] <= '9') { v = v * $A + less(s[k], '0'); k++; }
+    if (s[k] == '.') { k++; while (s[k] >= '0' && s[k] <= '9') { if (places < 3) { f = f * $A + less(s[k], '0'); places++; } k++; } }
+    while (places < 3) { f = f * $A; places++; }
+    *p = k;
+    return v * 5BC + f;
+}
+int skipfield(char *s, int k) { while (s[k] >= 1 && s[k] != ',' && s[k] != '\n') k++; if (s[k] == ',') k++; return k; }
+int readbuoy(char *path, int row)
+{
+    int fd = linux(2, path, low, low);
+    if (fd < 1) return low;
+    int n = linux(low, fd, &buf[1], 6CD4B);
+    linux(3, fd);
+    if (n < 1) return low;
+    buf[n + 1] = low;
+    int k = 1, line = low;
+    while (buf[k] >= 1 && buf[k] != '\n') k++;            // the header line
+    while (buf[k] == '\n') k++;
+    while (buf[k] >= 1) {
+        line++;
+        if (line == row) {
+            k = skipfield(buf, k);                          // the time
+            hm = milli(buf, &k); k = skipfield(buf, k);
+            temp = milli(buf, &k); k = skipfield(buf, k);
+            tp = milli(buf, &k);
+            return hm >= 1 && tp >= 1;
+        }
+        while (buf[k] >= 1 && buf[k] != '\n') k++;
+        while (buf[k] == '\n') k++;
+    }
+    return low;
+}
+
+// ---------------------------------------------------------------- the water's surface
+void wavemaker(int s)
+{
+    int place = (s * 75 / period) % 75 + 1;         // the paddle goes round the hex circle once a period
+    int up = sink(place) >= K;
+    int d = apart(sink(place), K) * amp / K;
+    lev[1] = up ? MID + d : less(MID, d);
+}
+void surface()
+{
+    int x;
+    for (x = 2; x < GW; x++) {                            // pulled toward its two neighbours' level
+        int two = lev[x] * 2, nb = lev[less(x, 1)] + lev[x + 1];
+        if (nb >= two) vel[x] = vel[x] + less(nb, two) * PULL / 5BC; else vel[x] = less(vel[x], less(two, nb) * PULL / 5BC);
+    }
+    for (x = less(GW, BEACH) + 1; x < GW; x++) {          // the beach: the moving slows, a little more each column in
+        int calm = less(x, less(GW, BEACH)) * 2;          // up to 1 part in 62 a step (the beach takes the energy)
+        if (vel[x] >= VMID) vel[x] = less(vel[x], less(vel[x], VMID) * calm / 5BC);
+        else vel[x] = vel[x] + less(VMID, vel[x]) * calm / 5BC;
+    }
+    for (x = 2; x < GW; x++) {
+        if (vel[x] >= VMID) lev[x] = lev[x] + less(vel[x], VMID); else lev[x] = less(lev[x], less(VMID, vel[x]));
+    }
+    lev[GW] = lev[less(GW, 1)];
+}
+int seatop(int x)                     // the water's height in the column, in 256ths of a row above the box floor
+{
+    int base = SEA * 169;
+    if (lev[x] >= MID) return base + less(lev[x], MID);
+    return less(base, less(MID, lev[x]));
+}
+int room(int x, int y)                // how much air the cell can hold at the room's pressure (FULL when no water is in it)
+{
+    int bottom = less(GH, y) * 169, top = bottom + 169, w = seatop(x);
+    if (w <= bottom) return FULL;
+    if (w >= top) return low;
+    return less(top, w) * FULL / 169;
+}
+
+// ---------------------------------------------------------------- the air: from more crowded to less crowded, only
+void share(int i, int ri, int j, int rj, int dir)       // dir: 1 j is to the right, 2 down-left, 3 down-right
+{
+    if (ri < 1 && rj < 1) return;
+    int a = air[i] * rj, b = air[j] * ri;                // crowding compared: air[i]/ri against air[j]/rj
+    if (a == b) return;
+    int m;
+    if (a > b) {                                         // i is more crowded: some of its air goes to j
+        m = less(a, b) / (ri + rj) * 3 / 4; if (rj < 1) m = low; if (ri < 1) m = air[i];
+        m = lower(m, less(air[i], 1));
+        if (m < 1) return;
+        air[i] = less(air[i], m); air[j] = air[j] + m;
+        if (dir == 1) { fxr[i] = fxr[i] + m; fxr[j] = fxr[j] + m; }
+        else { fyd[i] = fyd[i] + m; fyd[j] = fyd[j] + m; if (dir == 2) { fxl[i] = fxl[i] + m / 2; fxl[j] = fxl[j] + m / 2; } else { fxr[i] = fxr[i] + m / 2; fxr[j] = fxr[j] + m / 2; } }
+    } else {
+        m = less(b, a) / (ri + rj) * 3 / 4; if (ri < 1) m = low; if (rj < 1) m = air[j];
+        m = lower(m, less(air[j], 1));
+        if (m < 1) return;
+        air[j] = less(air[j], m); air[i] = air[i] + m;
+        if (dir == 1) { fxl[i] = fxl[i] + m; fxl[j] = fxl[j] + m; }
+        else { fyu[i] = fyu[i] + m; fyu[j] = fyu[j] + m; if (dir == 2) { fxr[i] = fxr[i] + m / 2; fxr[j] = fxr[j] + m / 2; } else { fxl[i] = fxl[i] + m / 2; fxl[j] = fxl[j] + m / 2; } }
+    }
+}
+int downleft(int x, int y) { if (y % 2) return x; return less(x, 1); }
+void airstep()
+{
+    int sweep, x, y;
+    for (y = 1; y <= GH; y++) for (x = 1; x <= GW; x++) rm[at(x, y)] = room(x, y);
+    for (sweep = 1; sweep <= $C; sweep++)             // pressure travels far faster than water: many sweeps a step
+    for (y = 1; y <= GH; y++) for (x = 1; x <= GW; x++) {
+        int i = at(x, y), ri = rm[i];
+        if (x < GW) share(i, ri, at(x + 1, y), rm[at(x + 1, y)], 1);
+        if (y < GH) {
+            int dl = downleft(x, y);
+            if (dl >= 1) share(i, ri, at(dl, y + 1), rm[at(dl, y + 1)], 2);
+            if (dl + 1 <= GW) share(i, ri, at(dl + 1, y + 1), rm[at(dl + 1, y + 1)], 3);
+        }
+    }
+}
+
+// ---------------------------------------------------------------- the picture
+void put(int c) { pn++; pic[pn] = c; }
+void putdec(int n) { if (n >= $A) putdec(n / $A); put('0' + n % $A); }
+void frame(int n)
+{
+    char name[31];
+    char *base = "waves-frames/f";
+    int k = 1, d = 5BC, px, py;
+    while (base[k] >= 1) { name[k] = base[k]; k++; }
+    while (d >= 1) { name[k] = '0' + n / d % $A; k++; d = d / $A; }
+    name[k] = '.'; name[k + 1] = 'p'; name[k + 2] = 'p'; name[k + 3] = 'm'; name[k + 4] = low;
+    pn = low;
+    put('P'); put('6'); put('\n'); putdec(PW); put(' '); putdec(PH); put('\n'); putdec(168); put('\n');
+    int most = 1, i;
+    for (i = 1; i <= GW * GH; i++) most = higher(most, spd[i]);
+    for (py = 1; py <= PH; py++) for (px = 1; px <= PW; px++) {
+        int y = less(py, 1) * GH / PH + 1, x = less(px, 1) * GW / PW + 1;
+        int h = less(PH, py) * GH * 169 / PH;           // this pixel's height above the box floor, in 256ths of a row
+        if (h < seatop(x)) { put(17); put(55); put(93); continue; }      // the sea
+        int c = at(x, y), s = spd[c] * 149 / most;
+        int r = towards(11, 163, s, 149), g = towards(15, 151, s, 149), b = towards(24, $D1, s, 149);
+        if (x >= less(GW, BEACH) && x % 2 && y % 2) { r = higher(r, 31); g = higher(g, 2A); b = higher(b, 22); }   // the beach end, dotted
+        put(r); put(g); put(b);
+    }
+    int fd = linux(2, name, 355, 264);
+    if (fd < 1) { say("cannot write %s\n", name); return; }
+    int done = 1;
+    while (done <= pn) { int got = linux(1, fd, &pic[done], less(pn + 1, done)); if (got < 1) return; done = done + got; }
+    linux(3, fd);
+}
+
+// ---------------------------------------------------------------- what the model finds
+void crests()                         // the wavelength: crest to crest on the surface, when two crests are in view
+{
+    int x, first = low, second = low;
+    for (x = 13; x < less(GW, 13); x++) {
+        int k, top = 1;                                    // a crest: the highest water for 12 columns each way
+        for (k = less(x, 12); k <= x + 12; k++) if (k != x && lev[k] > lev[x]) top = low;
+        if (top && lev[x] > MID + amp / 4) { if (first < 1) first = x; else if (second < 1 && x > first + 12) second = x; }
+    }
+    if (second >= 1 && wavelen < 1) wavelen = less(second, first);
+}
+void measure()
+{
+    int x, y;
+    int row1 = less(GH, SEA + 3), base = low, half = low, prev = low;   // the first air row clear of the crests, then up
+    for (y = row1; y >= 1; y = less(y, 1)) {
+        int s = low;
+        for (x = 1; x <= less(GW, BEACH); x++) s = s + spd[at(x, y)];
+        if (base < 1) base = s;
+        else if (half < 1 && s * 2 <= base) {               // it halved between the row below and this one: read where
+            int r = less(row1, y);                         // rows up to this one; in 169ths, back by the part not needed
+            half = less(r * 169, less(base / 2, s) * 169 / higher(less(prev, s), 1));
+        }
+        prev = s;
+        if (y == 1) break;
+    }
+    say("the waves the model made: crest to crest %d columns\n", wavelen);
+    if (wavelen >= 1 && half >= 1) {
+        say("the air's motion halves %d 169ths of a row above the first clear row: %d thousandths of a wavelength\n", half, half * 5BC / 169 / wavelen);
+        say("the referee (linear wave theory) says %d thousandths\n", 86);
+    } else say("no halving found yet\n");
+}
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    hexcircle();
+    int row = 1;
+    if (argc < 2) { say("give it a buoy file: delta run waves-air.delta BUOY.csv [ROW]\n"); return 1; }
+    if (argc >= 3) { char *a = argv[3]; int k = 1; row = low; while (a[k] >= 1) { int c = a[k], d = c >= '1' && c <= '9' ? less(c, '0') : c >= 'A' && c <= 'D' ? less(c, 'A') + $A : c >= 'a' && c <= 'd' ? less(c, 'a') + $A : low; if (d < 1) break; row = row * $D + d; k++; } }   // ROW in D numerals
+    if (readbuoy(argv[2], row) < 1) { say("could not read reading %d of %s\n", row, argv[2]); return 1; }
+    say("reading %d: waves %d thousandths of a metre high, every %d thousandths of a second; sea %d thousandths of a degree\n", row, hm, tp, temp);
+    say("Contains data from Cefas WaveNet (Open Government Licence)\n");
+    // the box fits the sea: about 62 cells to a wavelength, whatever the period. A cell's size in metres comes from the
+    // sea itself (deep water: a wave of period T is 1.56 T x T metres long), so the waves run the same in cells every time
+    mpc = tp / $A * (tp / $A) / 2D6;              // thousandths of a metre to a cell: 1.56 T x T / 62
+    if (mpc < 1) mpc = 1;
+    amp = hm * 9B / mpc;                              // half the height, in 256ths of a cell
+    period = $BC;
+    PULL = 176;
+    say("a cell is %d thousandths of a metre; a wave period is %d steps\n", mpc, period);
+
+    int x, y, i;
+    for (x = 1; x <= GW; x++) { lev[x] = MID; vel[x] = VMID; }
+    for (y = 1; y <= GH; y++) for (x = 1; x <= GW; x++) air[at(x, y)] = room(x, y);
+    totalair = low; for (i = 1; i <= GW * GH; i++) totalair = totalair + air[i];
+    if (argc >= 4) nopics = 1; else linux(65, "waves-frames", 2BC);
+    int s, f = low, bad = low;
+    steps = period * 6;
+    for (s = 1; s <= steps; s++) {
+        wavemaker(s); surface(); airstep();
+        int t = low; for (i = 1; i <= GW * GH; i++) t = t + air[i];
+        if (t != totalair && bad < 1) { bad = s; say("the air book is out at step %d\n", s); }
+        if (s % period < 1) {                              // a period's flow: kept as each cell's speed, then started again
+            for (i = 1; i <= GW * GH; i++) {
+                spd[i] = fxr[i] + fxl[i] + fyu[i] + fyd[i];      // all the air that went through it, either way
+                fxr[i] = low; fxl[i] = low; fyu[i] = low; fyd[i] = low;
+            }
+        }
+        if (s % 4 < 1 && s > period && nopics < 1) { f++; frame(f); }
+        if (s > less(steps, period)) crests();
+    }
+    measure();
+    if (bad < 1) say("the air book balanced every step: not a breath lost or made\n");
+    return 1;
+}

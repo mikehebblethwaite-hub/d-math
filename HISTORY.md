@@ -100,3 +100,10 @@ pressure (Mike's principle, 19:10: model shape not nature means an undetected ne
 Then pressure (19 Nov, ~00:10): moving air keeps its push, and a parcel going up lifts the whole column above it while
 the room pushes fresh air in along the floor. The flame stopped smothering: it holds on the wick and stays lit, soot fell
 from 4569 units to 612, and a hot column rises to the sky. Mike: "ow so nice".
+
+## The lab box: waves move the air (19 Nov, ~00:15 to 00:50)
+
+Mike: the 3-D room is the lab box for the OS now, and engineers get tools to use it, "like this next wave data air movement
+model as waves make air move and that's earth's weather system"; "also give them a windtunnel in there". First step:
+waves-air.delta, real buoy readings driving a sea, the air moved only from crowded to less crowded. Its halving height
+came out 0.116 to 0.120 of a wavelength against theory's 0.110 on five readings; one reading is off, kept as found.
