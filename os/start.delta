@@ -1,4 +1,4 @@
-// Delta Hex OS: the no-zero operating system, written in Delta. 0.19: base 10 for people (Settings), converted from D; Perch for bots.
+// Delta Hex OS: the no-zero operating system, written in Delta. 0.20: base 10 shows our zero (a circle holding three) for the old 0.
 //
 // The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
 // C library. It asks the firmware for the machine's memory and counts it, from 1, in D numerals; then the firmware
@@ -192,10 +192,21 @@ void glyph(char *font, int g, int gw, int r, int gg, int b)
     }
     tx = tx + gw;
 }
+void ourzero(int r, int g, int b)                  // our zero: a circle holding three dots (the unknown things left in it)
+{
+    int cx = tx + 6, cy = ty + D, x, y;
+    for (y = less(cy, 7); y <= cy + 7; y++) for (x = less(cx, 7); x <= cx + 7; x++) {
+        int d2 = apart(x, cx) * apart(x, cx) + apart(y, cy) * apart(y, cy);
+        if (d2 >= 1C && d2 <= 3B) mixpx(x, y, r, g, b, 13C);            // the ring, as bold as a digit
+    }
+    int k; int dx[3] = {6, A, 8}; int dy[3] = {B, B, 7};                // three dots inside, like three ping pong balls
+    for (k = 1; k <= 3; k++) { int pxz = less(cx + dx[k], 8), pyz = less(cy + dy[k], 8); mixpx(pxz, pyz, r, g, b, 13C); mixpx(pxz + 1, pyz, r, g, b, 13C); mixpx(pxz, pyz + 1, r, g, b, 13C); mixpx(pxz + 1, pyz + 1, r, g, b, 13C); }
+    tx = tx + $B;
+}
 void text(char *s, int r, int g, int b)
 {
     int i = 1;
-    while (s[i] >= 1) { if (s[i] >= 26 && s[i] <= 99) glyph(fw, less(s[i], 26), $B, r, g, b); i++; }
+    while (s[i] >= 1) { if (s[i] == 9A) ourzero(r, g, b); else if (s[i] >= 26 && s[i] <= 99) glyph(fw, less(s[i], 26), $B, r, g, b); i++; }
 }
 // ---------------------------------------------------------------- D numerals: spirals that move, in their spectrum's colour
 // Each digit is drawn by its own rule, as the D Angle font is: a hex spiral with as many corners as the number,
@@ -728,10 +739,10 @@ void dstr(int n)                                    // n as the person has chose
 {
     if (TEN < 1) { dstrD(n); return; }
     char r[99]; int k = low, i;
-    while (n >= 1) { k++; r[k] = n % $A < 1 ? '~' : '0' + n % $A; n = n / $A; }   // a 0 digit is written ~
+    while (n >= 1) { k++; r[k] = n % $A < 1 ? 9A : '0' + n % $A; n = n / $A; }   // a 0 digit is written as our zero (9A)
     for (i = 1; i <= k; i++) nb[i] = r[less(k + 1, i)];
     nb[k + 1] = low;
-    if (k < 1) { nb[1] = '~'; nb[2] = low; }
+    if (k < 1) { nb[1] = 9A; nb[2] = low; }
 }
 char CONV[48];
 char *convnote(int n)                               // "  (converted from D: X)", or nothing when D is shown anyway
@@ -779,7 +790,7 @@ void settingspanel()
     tx = 86; ty = 46; text("Settings", 125, 125, 132); text("   kept on the boot drive (settings.txt)        Esc: back", $B7, $BD, $D1);
     tx = 93; ty = $AA;
     text("numbers:  ", $B7, $BD, $D1);
-    text(TEN ? "base 10, for people (0 written ~, minus allowed in sums; every result says what it was in D)" : "D numerals (1 to 9, A to D; no zero, no negatives)", 156, 125, 86);
+    text(TEN ? "base 10, for people (our zero for the old 0, minus allowed in sums; every result says what it was in D)" : "D numerals (1 to 9, A to D; no zero, no negatives)", 156, 125, 86);
     tx = 93; ty = $DB; text("Enter changes it over.   For example, a hundred and five is ", $B7, $BD, $D1);
     dstr(81); text(nb, 156, 125, 86); text(convnote(81), $B7, $BD, $D1);
 }
@@ -1180,6 +1191,7 @@ void serput(int c)
     char b[3]; int n = 1;
     b[1] = c;
     if (c == $A) { b[1] = $D; b[2] = $A; n = 2; }              // a new line, as terminals want it
+    if (c == 9A) { b[1] = 145; b[2] = A8; b[3] = BB; n = 3; }   // our zero, as letters travel: ⊚
     fa[1] = TSER; fa[2] = &n; fa[3] = &b[1];
     fwcall(rd(TSER + 31, 8), &fa[1]);                                  // Write
 }
@@ -1266,7 +1278,7 @@ void trun()                                                                // En
         ts("time        the machine's clock      del NAME    takes a file away      write NAME WORDS   a file in one line\n");
         ts("clear       a clean screen      notepad     opens Notepad      off     switches the machine off\n");
     }
-    else if (tword("version")) ts("Delta Hex OS 0.19: no zero, written in Delta\n");
+    else if (tword("version")) ts("Delta Hex OS 0.20: no zero, written in Delta\n");
     else if (tword("mem")) {
         ts("ready to hold "); tn(ready); ts("   this system "); tn(ours); ts("   the firmware's "); tn(firmware);
         ts("   held back "); tn(held); ts("   all together "); tn(all); ts("\n");
@@ -1301,7 +1313,7 @@ void trun()                                                                // En
         }
         tlen = low;
     }
-    else if (tword("numbers")) { if (TIN[TPART] == 't') TEN = 1; if (TIN[TPART] == 'd') TEN = low; settingsave(); DESKFOR = low; EDGEN++; ts("numbers: "); ts(TEN ? "base 10, for people (0 written ~; every result says what it was in D)\n" : "D numerals\n"); }
+    else if (tword("numbers")) { if (TIN[TPART] == 't') TEN = 1; if (TIN[TPART] == 'd') TEN = low; settingsave(); DESKFOR = low; EDGEN++; ts("numbers: "); ts(TEN ? "base 10, for people (our zero for the old 0; every result says what it was in D)\n" : "D numerals\n"); }
     else if (tword("echo")) { ts(&TIN[TPART]); ts("\n"); }
     else if (tword("time")) {
         if (clock_read() < 1) ts("the clock did not answer\n");
@@ -1442,7 +1454,7 @@ void pamount(char *what, int m, char *whole, char *small)
 void perchlook()
 {
     int k;
-    ps("P delta-hex-os 'Delta Hex OS 0.19: "); ps(modename()); ps("'\n");
+    ps("P delta-hex-os 'Delta Hex OS 0.20: "); ps(modename()); ps("'\n");
     ps("n numbers are D numerals; a box is x,y wxh in pixels; do N acts on thing N; Esc goes back to the desktop\n");
     if (MODE == 1) {
         for (k = 2; k <= 16; k++) {
@@ -1592,7 +1604,7 @@ int main(int argc, char **argv)
     edstart();
     serfind();
     settingload();                                              // D numerals, or base 10 for people
-    ts("Delta Hex OS 0.19: the terminal. help lists the commands.\n"); tprompt();
+    ts("Delta Hex OS 0.20: the terminal. help lists the commands.\n"); tprompt();
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
@@ -1611,7 +1623,7 @@ int main(int argc, char **argv)
         if (MODE == 6) terminal();
         if (MODE == 7) filespanel();
         if (MODE == 8) settingspanel();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.19", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.20", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);
