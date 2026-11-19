@@ -1,0 +1,46 @@
+// Light: the colours things shine with, from the physics, not from a palette.
+//
+// Mike, 19 Nov 2026: "we find the real math D that makes these colours". Two kinds of light make a flame's colours:
+//  - Hot soot glows by its temperature (Planck): at each wavelength it gives light by how hot it is. Cooler soot is deep
+//    orange-red, hotter is yellow, hotter still white. The three colours a screen shows are read at their own wavelengths
+//    (red 37C, green 32C, blue 29A nanometres): each is how much dimmer it is than the brightest of the three,
+//    so only "less than" is ever worked out, never a minus. How bright in all goes as the temperature to the fourth power
+//    (the same law the stars shine by); the screen's exposure is set as a camera's is: soot at $B32 K fills it.
+//  - Burning molecules shine at their own fixed wavelengths: CH at 272 nm (violet-blue), C2 (the Swan bands) at 2A5
+//    nm (blue) and 2D9 nm (green), CH the strongest. That is the blue at a flame's base, where it burns before soot forms.
+// The bridge from the outside world, used here only: Planck's second constant (671A micrometre-kelvin), the three
+// wavelengths and their natural logarithms (in thousandths), and e. Everything else is D's whole numbers.
+
+int dimfrom(int y)                         // how much is left of 12C23A19C after dimming by e to the power y/5BC
+{
+    int v = 12C23A19C, whole = y / 5BC, part = y % 5BC, k;
+    for (k = 1; k <= whole && v >= 1; k++) v = v * $CB5A5 / 28D221;   // e to the -1: $CB5A5 millionths
+    // the part left: divide by e to the part (1 + p + p p / 2 + p p p / 6 + p p p p / 24, all in thousandths)
+    int p = part, ep = 5BC + p + p * p / $BAB + p * p * p / 131DCC6 + p * p * p * p / 23562C9342;
+    return v * 5BC / ep;
+}
+int GLR, GLG, GLB;                         // the colour worked out last
+void sootglow(int kelvin, int amount)      // glowing soot: its colour by its temperature, how bright by T^4 and how much
+{
+    if (kelvin < 41B) { GLR = low; GLG = low; GLB = low; return; }   // below red heat it gives no light the eye sees
+    // for each colour: x = c2 / (wavelength x T), and 5 ln(wavelength): the colour's light is e^-(x + 5 ln wavelength)
+    int xr = 1483ADB48A / (37C * kelvin) + 5 * 2BC4;
+    int xg = 1483ADB48A / (32C * kelvin) + 5 * 2B39;
+    int xb = 1483ADB48A / (29A * kelvin) + 5 * 2A46;
+    int least = lower(xr, lower(xg, xb));
+    int r = dimfrom(less(xr, least)), g = dimfrom(less(xg, least)), b = dimfrom(less(xb, least));
+    // how bright: T^4 against the exposure's $B32 K, times how much soot (a little soot is see-through)
+    int t2 = kelvin * kelvin / $B32, t4 = t2 * t2 / $B32;          // (T / 1900)^4, in 1900ths
+    int bright = lower($B32, t4) * lower(amount, 8) / 8;
+    GLR = r / 28D221 * 168 * bright / 5BC / $B32;
+    GLG = g / 28D221 * 168 * bright / 5BC / $B32;
+    GLB = b / 28D221 * 168 * bright / 5BC / $B32;
+}
+void burnglow(int n)                       // the burning molecules' own light: CH 272 nm, C2 2A5 and 2D9 nm
+{
+    // each line as a screen shows it: 272 violet-blue (48, 1, 168); 2A5 blue (1, 93, 168); 2D9 green (1, 168, 55)
+    // CH the strongest: weights 3 : 1 : 2
+    int r = (48 * 3 + 1 + 1 * 2) / 6, g = (1 * 3 + 93 + 168 * 2) / 6, b = (168 * 3 + 168 + 55 * 2) / 6;
+    int a = lower(168, n * 13);
+    GLR = r * a / 168; GLG = g * a / 168; GLB = b * a / 168;
+}
