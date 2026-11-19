@@ -31,6 +31,7 @@ int S[75];
 int floorh, roomh, roomr2;
 int HR, HG, HB;
 int low;
+int HEATVIEW;                  // 1: things are drawn as a heat camera sees them (T); LOW: as the eye sees them
 char *fw;
 char *fd;
 #include "fonts.delta"
@@ -379,7 +380,7 @@ void panelwords(int sel)
     LINE = low;
     lab_line("Delta lab room   (D numerals; 1/64 inch to the unit)");
     tx = 2A; ty = 31 + LINE * 1D;
-    words("W A S D walk   Q E down up   arrows turn   drag: look   wheel: nearer   H: hide   Esc: close", 91, 97, $AA);
+    words("W A S D walk   Q E down up   arrows turn   drag: look   wheel: nearer   T: heat view   H: hide   Esc: close", 91, 97, $AA);
     LINE = LINE + 2;
     scene_panel(sel);
 }
@@ -430,6 +431,7 @@ int main(int argc, char **argv)
         int key = window_key();
         if (key == 9) return 1;                                       // Esc
         if (key == 34) showpanel = showpanel ? low : 1;           // H
+        if (key == 22) HEATVIEW = HEATVIEW ? low : 1;             // T: heat view, or as the eye sees
         int speed = INCH / 2;
         if (window_held(1C)) { walk(speed, low, 1, 1); moved = 1; }   // W
         if (window_held(2D)) { walk(speed, low, 2, 1); moved = 1; }   // S
