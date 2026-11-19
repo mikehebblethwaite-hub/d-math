@@ -70,3 +70,10 @@ Last daily review: 19 Nov 2026 (the first).
 - Fix: THRU is as big as the picture buffer (bg), so any screen the room can draw on fits.
 - System: every per-pixel list is sized from the same bound as the picture buffer, never a number picked for the test
   screen; a change to the room is also run once on Mike's own display size before it is called done.
+
+## 2026-11-19: the microscope's first cubes stopped the lab (a take-away below nothing)
+- Cause: a salt cube far above the microscope's field: shift(cy, ...) took its place below the picture's edge, and Delta
+  rightly refused ("cannot move 256 out of something holding 192"). Found on the test screen when the first cubes came out.
+- Fix: places held up from MHELD before the shift; a cube off the field is skipped.
+- Lesson: a place on the picture worked out from a far-off thing must be held up (or use sterm/lo); test every view
+  with things outside it, not only inside.

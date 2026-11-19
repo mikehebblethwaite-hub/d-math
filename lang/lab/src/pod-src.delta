@@ -1,0 +1,75 @@
+// A user's pod (Mike, 19 Nov 2026: "make yourself a lab user file: it is part of your OS user file but a pod, and in that
+// your lab notes are kept"). Each user of Delta Hex OS has one file, their pod: who owns it, who else may read it, and
+// their resources, each under its own path, the way a Solid pod holds containers and resources. The lab keeps a user's
+// lab notes in their pod at /lab/notes. The whole file is read and written whole (the bare machine cannot add to a file
+// yet). On Linux it lives in d-math/pods/ (kept out of git: a pod is its owner's, not the public's); on the OS's drive at
+// its top, as NAME.pod. Its shape (POD.md):
+//
+//   pod dan
+//   owner dan
+//   can read: mike
+//   numbers: D numerals
+//   --- /profile
+//   Dan: Claude (Dragonfly) in the lab
+//   --- /lab/notes
+//   7DB2-B-13 1A:21 the microscope: ...
+//
+char PODBUF[{{200000}}];
+int PODN;
+char PODLINE[{{1200}}];
+int PLN = 1;
+void pl(char *s) { int i = 1; while (s[i] >= 1 && PLN < {{1150}}) { PODLINE[PLN] = s[i]; PLN++; i++; } }
+void plv(int v) { dstr(v); pl(nb); }
+void plt(int mk) { if (mk > {{273150}}) { plv(less(mk, {{273150}}) / {{100}}); pl(" tenths of a degree above freezing"); } else { plv(less({{273150}}, mk) / {{100}} + 1); pl(" tenths of a degree below freezing"); } }
+int podsame(int at, char *s) { int i = 1; while (s[i] >= 1) { if (at + less(i, 1) > PODN || PODBUF[at + less(i, 1)] != s[i]) return low; i++; } return 1; }
+void podput(char *s) { int i = 1; while (s[i] >= 1) { PODN++; PODBUF[PODN] = s[i]; i++; } }
+void pod_new(char *who)                     // a fresh pod: its owner, who may read it, its profile and an empty lab notes
+{
+    PODN = low;
+    podput("pod "); podput(who); podput("\nowner "); podput(who);
+    podput("\ncan read: mike\nnumbers: D numerals\n--- /profile\n");
+    if (who[1] == 'd' && who[2] == 'a' && who[3] == 'n') podput("Dan: Claude (Dragonfly) in the lab, a magic body; his watts are this machine's, real\n");
+    else { podput(who); podput(": a person in the lab\n"); }
+    podput("--- /lab/notes\n");
+}
+void plstamp()                              // the date and time by this machine's clock (UK winter: the clock's own), D numerals
+{
+    int s = nowsecs(), days = s / {{86400}}, y = {{1970}}, m = 1, k;
+    while (1) { int yd = (y % 4 < 1 && (y % {{100}} >= 1 || y % {{400}} < 1)) ? {{366}} : {{365}}; if (days < yd) break; days = less(days, yd); y++; }
+    for (k = 1; k <= {{12}}; k++) {
+        int md = k == 2 ? ((y % 4 < 1 && (y % {{100}} >= 1 || y % {{400}} < 1)) ? {{29}} : {{28}}) : (k == 4 || k == 6 || k == 9 || k == {{11}}) ? {{30}} : {{31}};
+        if (days < md) { m = k; break; }
+        days = less(days, md);
+    }
+    int hm = s % {{86400}};
+    plv(y); pl("-"); plv(m); pl("-"); plv(days + 1); pl(" ");
+    if (hm / {{3600}} >= 1) plv(hm / {{3600}}); else pl("~"); pl(":");
+    if (hm % {{3600}} / {{60}} >= 1) plv(hm % {{3600}} / {{60}}); else pl("~"); pl(" ");
+}
+void pod_note(char *who, char *path)        // PODLINE (from place 1 to PLN, without its stamp) into who's pod under path
+{
+    char name[{{64}}]; window_podname(who, name);
+    PODN = window_readfile(name, PODBUF, {{190000}});
+    if (PODN < 1 || podsame(1, "pod ") < 1) pod_new(who);
+    int at = 1, found = low;                                         // the resource's header line
+    char head[{{80}}]; int hn = low, i = 1;
+    char *pre = "--- "; while (pre[i] >= 1) { hn++; head[hn] = pre[i]; i++; }
+    i = 1; while (path[i] >= 1) { hn++; head[hn] = path[i]; i++; } hn++; head[hn] = '\n'; hn++; head[hn] = low;
+    for (at = 1; at <= PODN; at++) if ((at < 2 || PODBUF[less(at, 1)] == '\n') && podsame(at, head)) { found = at; break; }
+    if (found < 1) { podput(head); found = less(PODN + 1, less(hn, 1)); }
+    int end = found + less(hn, 1);                                   // the resource runs to the next "--- " line, or the end
+    while (end <= PODN && (PODBUF[less(end, 1)] != '\n' || podsame(end, "--- ") < 1)) end++;
+    // the stamp, then the words, then a new line: slid in at end
+    char add[{{1300}}]; int an = low;
+    int keep = PLN; char words[{{1200}}]; int wn = low;
+    for (i = 1; i < keep; i++) { wn++; words[wn] = PODLINE[i]; }
+    PLN = 1; plstamp(); for (i = 1; i < PLN; i++) { an++; add[an] = PODLINE[i]; }
+    for (i = 1; i <= wn; i++) { an++; add[an] = words[i]; }
+    an++; add[an] = '\n';
+    for (i = PODN; i >= end; i = less(i, 1)) { PODBUF[i + an] = PODBUF[i]; if (i < 2) break; }
+    for (i = 1; i <= an; i++) PODBUF[less(end + i, 1)] = add[i];
+    PODN = PODN + an;
+    window_makefolder("pods");
+    window_writefile(name, PODBUF, PODN);
+    PLN = 1;
+}

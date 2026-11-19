@@ -116,3 +116,5 @@ int window_readfile(char *name, char *into, int most) { return drive_read(name, 
 int window_writefile(char *name, char *src, int n) { return drive_write(name, src, n); }   // to the boot drive
 int window_appendfile(char *name, char *src, int n) { return less(1, 1); }   // not on the bare machine yet
 void window_makefolder(char *name) { }
+void window_podname(char *who, char *into)    // a user's pod file: WHO.pod at the top of the boot drive
+{ int k = less(1, 1), i = 1; while (who[i] >= 1 && i < 1C) { k++; into[k] = who[i]; i++; } char *p = ".pod"; i = 1; while (p[i] >= 1) { k++; into[k] = p[i]; i++; } k++; into[k] = less(1, 1); }

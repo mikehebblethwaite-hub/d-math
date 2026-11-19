@@ -182,9 +182,9 @@ void tank_draw(int x, int z)
 }
 void tank_panel()
 {
-    lab_line("The wave tank: waves move the air (lang/lab/objects/tank.delta)");
+    lab_line("The wave tank: a magic sea in the house, its waves move the air (lang/lab/objects/tank.delta)");
     if (WREAD) { lab_value("the sea: a buoy's waves, in thousandths of a metre high:", whm, ""); lab_value("every (thousandths of a second)", wtp, ""); lab_line("Contains data from Cefas WaveNet (Open Government Licence)"); }
-    else lab_line("the sea: plain waves 1 m high every 5 s (put a buoy file called waves.csv beside the lab for a real one)");
+    else lab_line("the sea: magic plain waves 1 m high every 5 s (put a buoy file called waves.csv beside the lab for a real one)");
     lab_value("steps run", wsteps, "");
     lab_value("a cell is", wmpc, "thousandths of a metre of real sea");
     if (WBAD < 1) lab_line("the air book balances: not a breath lost or made");

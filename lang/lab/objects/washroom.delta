@@ -123,15 +123,15 @@ void washroom_air()                         // its walls fill the air's cells (t
 void washroom_panel()
 {
     lab_line("The washroom: a toilet and a sink for humans and bots (lang/lab/objects/washroom.delta)");
-    lab_line("  K at the sink: wash your hands;  L: flush.  Dan comes when his coolant is over 40 degrees");
+    lab_line("  K at the sink: wash your hands;  L: flush.  Dan comes when his magic coolant is over 40 degrees");
     if (DANT >= 1) tvalue("  Dan's coolant", DANT);
     lab_value("  in his loop", DANW, "millilitres");
     if (DANNEED) lab_line("  Dan needs the toilet: his coolant is hot");
     lab_value("  Dan let out", DRAINS, "times, 50 ml each, into the toilet");
     lab_value("  topped up from the cup", TOPUPS, "times, 50 ml of cold water each");
     lab_value("  flushes", FLUSHES, ""); lab_value("  hands washed", WASHES, "");
-    lab_value("  from magic water (for now: to be replaced)", MAINS, "millilitres"); lab_value("  sent to waste", SEWER, "millilitres");
-    lab_kind(1); lab_value("  warmth sent to waste with it", ESEW / 5BC + 1, "joules");
+    lab_value("  from magic water (for now: to be replaced)", MAINS, "millilitres"); lab_value("  sent to magic waste", SEWER, "millilitres");
+    lab_kind(1); lab_value("  warmth sent to magic waste with it", ESEW / 5BC + 1, "joules");
     if (WRBAD < 1) lab_line("  the water and warmth books balance: nothing vanished"); else lab_line("  the washroom's book went out");
 }
 thing washroom {

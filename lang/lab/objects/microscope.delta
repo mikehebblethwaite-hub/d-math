@@ -1,0 +1,226 @@
+// The microscope on the bench (19 Nov 2026: Dragonfly's second tool, made properly). A glass slide on its stage holds a
+// drop; the drop dries in the bench's air as real drops do, and what is in it comes out. A drop of the tank's sea water
+// leaves salt: cubes of it, most round the drop's edge where the water dries last (the coffee edgew). Click it to look down
+// it on the panel; Y puts a fresh drop on the slide (sea water, magic water, a clean slide), U turns to the next lens
+// (x40, x100, x400). What it shows it also says in words, for bots, in /tmp/delta-lab-microscope.txt.
+//
+// Real: the drop's drying (water vapour spreading from a flat drop: 4 x radius x how fast vapour spreads x the vapour the
+// air can still take), the vapour warm air can hold (by the bench air's own warmth), salt holding its water back, salt
+// coming out at 36 g in 100 g of water, the cubes' size from salt's weight (2.16 g a cubic centimetre), the lenses' fields.
+// Magic (Mike: "mark all none real stuff as magic"): the drop comes to the slide by magic (no pipette, no walk to the tank);
+// the air's moisture is magic, half full (the air does not count moisture yet); magic water is pure, so it leaves nothing;
+// the view goes to the panel by magic (no camera on the eyepiece). Where each cube starts is the world's chance: Dan's
+// watts as read that moment and the bench air's warmth (no computer random).
+#define MSX 686D                       // the microscope on the bench: the middle of its stage
+#define MSZ 567A
+#define MDR 149A                         // the drop's radius on the slide, micrometres (it stays pinned at its edge)
+#define MHELD 28D221                      // places on the slide are held up from here (micrometres): no minus
+#define MVC 12C9                        // the view's middle: this far right of the drop's middle, on its edge
+#define MCRY 75                         // cubes it keeps count of
+int MFD = 1A1, MFX = 33;             // the field's size on the panel and where it starts, pixels
+int MSAMPLE = 1, MLENS = 2;                 // 1 sea water, 2 magic water, 3 a clean slide; the lens 1 x40, 2 x100, 3 x400
+int MWATER, MSALT, MOUT, MRATE, MDRY, MN, MAGE;   // nanograms: water left, salt in all, salt come out; nanograms a second
+int CXU[76], CYU[76], CANG[76], CMASS[76];   // each cube: where (micrometres, held at MHELD), its turn, its weight
+int mfield() { return MLENS == 1 ? 1D82 : MLENS == 2 ? $A86 : 288; }   // the field across, micrometres
+int mpower() { return MLENS == 1 ? 31 : MLENS == 2 ? 79 : 24A; }
+char *msname() { return MSAMPLE == 1 ? "a drop of the tank's sea water (35 g of salt a kilogram)" : MSAMPLE == 2 ? "a drop of magic water (magic: pure, nothing in it)" : "a clean slide"; }
+void mdrop()                                // a fresh drop, 10 microlitres, by magic
+{
+    MN = low; MOUT = low; MDRY = low; MAGE = low;
+    if (MSAMPLE == 3) { MWATER = low; MSALT = low; MDRY = 1; return; }
+    MWATER = 1DC187A;                  // 10 milligrams of water, in nanograms
+    MSALT = MSAMPLE == 1 ? $C33D1 : low;
+}
+int mbenchT() { return AT[acell(MSX, BTOP + 24A, MSZ)]; }      // the air just over the stage, thousandths of a kelvin
+int mcs(int t)                              // the water vapour air at t can hold, milligrams a cubic metre (5 degree table)
+{
+    if (t < 97437) return 2291;
+    int c = less(t, 97437), i = c / 2378, f = c % 2378;
+    if (i >= 8) return 1A34A;
+    int a = i < 1 ? 2291 : i < 2 ? 3131 : i < 3 ? 4381 : i < 4 ? 5A98 : i < 5 ? 7B4A : i < 6 ? $A613 : i < 7 ? $DAB6 : 14D42;
+    int b = i < 1 ? 3131 : i < 2 ? 4381 : i < 3 ? 5A98 : i < 4 ? 7B4A : i < 5 ? $A613 : i < 6 ? $DAB6 : i < 7 ? 14D42 : 1A34A;
+    return a + less(b, a) * f / 2378;
+}
+int maw()                                   // the water's pull to stay (thousandths): 1000 pure, 750 when salt is full
+{
+    if (MWATER < 1) return 459;
+    int dis = less(MSALT, MOUT);
+    return higher(459, less(5BC, lower(163, dis * 415 / MWATER)));
+}
+int icbrt(int n) { int a = 1, b = 54D442; while (b > a + 1) { int m = (a + b) / 2; if (m * m * m <= n) a = m; else b = m; } return a; }
+int medge(int k) { return icbrt(CMASS[k] * 298); }               // a cube's edge, micrometres (a nanogram of salt is 463 cubic micrometres)
+void mstart_cube()                          // a new cube, where the world's chance puts it
+{
+    if (MN >= MCRY) return;
+    MN++;
+    int ch = WATTS * 25 + mbenchT() * 7 + MN * 7A + MAGE;
+    int p = ch % 75 + 1;                                         // which way round the drop
+    int r = ch / 75 % 4 >= 1 ? MDR * (512 + ch / 237 % 9D) / 5BC    // most at the edge: the edgew
+                                 : MDR * ($B7 + ch / 237 % 41B) / 5BC;   // some inside
+    CXU[MN] = term(MHELD, r, low, cosk(p), K); CYU[MN] = term(MHELD, r, low, sink(p), K);
+    CANG[MN] = ch / 7 % 1B + 1;
+    CMASS[MN] = 1;
+}
+void mgrow(int amount)                      // salt come out this step, shared by the cubes: bigger ones take more
+{
+    if (MN < 1 || amount < 1) return;
+    int k, wsum = low;
+    for (k = 1; k <= MN; k++) wsum = wsum + medge(k) + 17;
+    int given = low, w[76];
+    for (k = 1; k <= MN; k++) w[k] = amount * (medge(k) + 17) / wsum;
+    for (k = 1; k <= MN; k++) { CMASS[k] = CMASS[k] + w[k]; given = given + w[k]; }
+    if (amount > given) CMASS[MN] = CMASS[MN] + less(amount, given);   // what the sharing left over: nothing vanishes
+}
+// Dan's lab notes, kept in his pod (pods/dan.pod, /lab/notes): what he put on the slide, and what it left
+void mnote_drop()
+{
+    if (isdan() < 1) return;
+    PLN = 1; pl("the microscope: a fresh slide: "); pl(msname()); pod_note("dan", "/lab/notes");
+}
+void mnote_dried()
+{
+    if (isdan() < 1) return;
+    PLN = 1; pl("the microscope: "); pl(msname()); pl(" dried in "); plv(MAGE); pl(" steps (a second a step), the air over the stage at ");
+    plt(mbenchT()); pl(", its moisture magic, half full; ");
+    if (MN >= 1) { plv(MN); pl(" salt cubes came out, the largest "); int k, big = 1; for (k = 1; k <= MN; k++) big = higher(big, medge(k)); plv(big); pl(" micrometres across, most round the edge (the coffee ring)"); }
+    else pl("nothing left on the glass (magic water is pure)");
+    pod_note("dan", "/lab/notes");
+}
+void microscope_step()
+{
+    if (MDRY) return;
+    MAGE++;
+    int drive = less(maw(), 2C6);                                  // the air's magic moisture: half full
+    MRATE = higher(1, 3 * mcs(mbenchT()) * drive / 4723);
+    if (MWATER <= MRATE) { MWATER = low; MDRY = 1; mnote_dried(); }
+    else MWATER = less(MWATER, MRATE);
+    int cap = MWATER * 2A / 79, was = MOUT;
+    if (MSALT > MOUT + cap) MOUT = less(MSALT, cap);
+    if (MOUT > was) {
+        while (MN < MCRY && MOUT > MN * 149A) mstart_cube();
+        mgrow(less(MOUT, was));
+    }
+}
+// looking down it: the bright field, round; the drop's edge a dark line while wet, the water faintly grey; the cubes
+void mview(int xs, int ys, int d)
+{
+    int fov = mfield(), cx = xs + d / 2, cy = ys + d / 2, rr = d * d / 4, x, y;
+    int edgew = higher(17, 2 * fov / d);                            // the edge line: 20 micrometres, at least 2 pixels
+    int r2a = less(MDR, edgew), r2b = MDR + edgew;
+    for (y = ys; y <= ys + d; y++) for (x = xs; x <= xs + d; x++) {
+        int dd = apart(x, cx) * apart(x, cx) + apart(y, cy) * apart(y, cy);
+        if (dd > rr) { mixpx(x, y, 11, 11, 13, 163); continue; }        // outside the field: dark
+        int wx = shift(MHELD + MVC, x, cx, fov, d), wy = shift(MHELD, y, cy, fov, d);
+        int dr = apart(wx, MHELD) * apart(wx, MHELD) + apart(wy, MHELD) * apart(wy, MHELD);
+        int lit = 151 * less(1A89, dd * 543 / rr) / 1A89;   // the field darkens a little toward its rim
+        if (MSAMPLE != 3 && MDRY < 1 && dr >= r2a * r2a && dr <= r2b * r2b) mixpx(x, y, lit / 3, lit / 3, lit / 3 + $A, 163);   // the drop's edge
+        else if (MSAMPLE != 3 && MDRY < 1 && dr < r2a * r2a) mixpx(x, y, lit * 71 / 79, lit * 73 / 79, lit, 163);   // under the water
+        else mixpx(x, y, lit, lit, lit * 75 / 79, 163);    // the glass
+    }
+    int k;
+    for (k = 1; k <= MN; k++) {                                        // each cube: its clear middle, its dark edges, turned its way
+        int h = higher(1, medge(k) * d / fov / 2);
+        int hx2 = shift(cx + MHELD, CXU[k], MHELD + MVC, d, fov), hy2 = shift(cy + MHELD, CYU[k], MHELD, d, fov);   // held up: a cube far off the field lies below the picture's edge
+        if (hx2 <= MHELD + 1 || hy2 <= MHELD + 1) continue;
+        int px2 = less(hx2, MHELD), py2 = less(hy2, MHELD);
+        if (apart(px2, cx) > d || apart(py2, cy) > d) continue;                                  // nowhere near the field
+        int span = h * 12 / $A + 1, c = cosk(CANG[k]), s = sink(CANG[k]);
+        for (y = py2 > span ? less(py2, span) : 1; y <= py2 + span; y++) for (x = px2 > span ? less(px2, span) : 1; x <= px2 + span; x++) {
+            if (apart(x, cx) * apart(x, cx) + apart(y, cy) * apart(y, cy) > rr) continue;
+            int u = term(term(MHELD, x, px2, c, K), y, py2, s, K), v = term(term(MHELD, y, py2, c, K), px2, x, s, K);
+            int au = apart(u, MHELD), av = apart(v, MHELD);
+            if (au > h || av > h) continue;
+            if (au * 5 >= h * 4 || av * 5 >= h * 4) mixpx(x, y, 55, 57, 5D, 156);        // its edges catch the light away
+            else mixpx(x, y, 137, 141, 149, 125);                                     // clear salt
+        }
+    }
+    // the scale bar, bottom left inside the field: 1000, 500 or 100 micrometres
+    int bar = MLENS == 1 ? 5BC : MLENS == 2 ? 2C6 : 79, bw = bar * d / fov, bx = cx > d * 3 / $A ? less(cx, d * 3 / $A) : 1, by = cy + d * 3 / $A;
+    for (y = by; y <= by + 3; y++) for (x = bx; x <= bx + bw; x++) mixpx(x, y, 17, 17, 17, 163);
+}
+int minview()                                                           // how many cubes the field shows
+{
+    int fov = mfield(), k, n = low, r = fov / 2;
+    for (k = 1; k <= MN; k++) if (apart(CXU[k], MHELD + MVC) * apart(CXU[k], MHELD + MVC) + apart(CYU[k], MHELD) * apart(CYU[k], MHELD) <= r * r) n++;
+    return n;
+}
+// on the bench: its horseshoe foot, its pillar, the arm over the stage, the stage with the slide, the objective, the tube
+// and the eyepiece leaning toward you, the lamp under the stage (on)
+void microscope_draw()
+{
+    lab_alpha(163);
+    lab_colour(2A, 2C, 35);
+    lab_box(6767, 553B, 6A5D, 57B9, BTOP, BTOP + 3B);                   // the foot
+    lab_box(699A, 5632, 6A39, 56C5, BTOP + 3B, BTOP + 466);          // the pillar
+    lab_box(6851, 563C, 6A39, 56B8, BTOP + 3D4, BTOP + 466);         // the arm
+    lab_box(6774, 5586, 699A, 5771, BTOP + 1A1, BTOP + 1C5);         // the stage
+    lab_colour($B7, $B7, $BD);
+    lab_box(6A39, 5649, 6A6A, 56AB, BTOP + 219, BTOP + 264);         // the focus knob
+    lab_alpha(93); lab_colour(125, 144, 151);
+    lab_box(6848, 55D5, 6895, 5722, BTOP + 1C5, BTOP + 1CB);         // the slide, 3 in by 1 in, glass
+    lab_alpha(163);
+    lab_cyl(MSX, MSZ, 19, BTOP + 48, BTOP + 6C, 3);                                // the lamp
+    lab_colour(168, 156, 125); lab_glow(MSX, BTOP + 79, MSZ, 4);
+    lab_cyl(MSX, MSZ, 1D, BTOP + 233, BTOP + 2DD, 1);                              // the objective
+    lab_cyl(MSX, MSZ, 31, BTOP + 2DD, BTOP + 41B, 1);                              // the tube
+    WTUBE = 35; lab_wire(MSX, BTOP + 41B, MSZ, less(MSX, $B7), BTOP + 512, MSZ); lab_wirelay(1, low);   // the eyepiece
+}
+void microscope_panel()
+{
+    int lfirst = LINE;
+    lab_line("The microscope (lang/lab/objects/microscope.delta): Y a fresh drop, U the next lens");
+    lab_line("on the slide:"); lab_line(msname());
+    lab_value("  the lens: times", mpower(), "");
+    lab_value("  the field across, micrometres", mfield(), "");
+    lab_value("  the scale bar, micrometres", MLENS == 1 ? 5BC : MLENS == 2 ? 2C6 : 79, "");
+    tvalue("  the air over the stage", mbenchT());
+    lab_line("  the air's moisture: magic, half full (the air does not count moisture yet)");
+    if (MSAMPLE != 3) {
+        if (MDRY) lab_line("  the drop: dry"); else { lab_value("  water left, nanograms", MWATER, ""); lab_value("  drying, nanograms a second", MRATE, "(a second a step)"); }
+        if (MSALT >= 1 && MOUT < 1) lab_line("  the salt: all still in the water");
+        if (MOUT >= 1) { lab_kind(3); lab_value("  salt come out, nanograms", MOUT, ""); }
+        if (MN >= 1) { lab_value("  salt cubes, all round the drop", MN, ""); if (minview() >= 1) lab_value("  of them in this field", minview(), ""); else lab_line("  none of them in this field"); }
+    }
+    lab_line("the drop came by magic, the view comes here by magic; cube places: the world's chance (Dan's watts, the air)");
+    // the field beside the words, as big as the screen lets it be (any screen: never cut off)
+    int ys = 3A + lfirst * 1D;
+    if (MEASURE) {
+        MFD = 1A1;
+        if (H > ys + $AA) MFD = lower(MFD, less(H, ys + 17)); else MFD = 93;
+        if (W > WIDEST + MFD + 48) { MFX = WIDEST + 31; WIDEST = WIDEST + MFD + 31; }   // room beside the words
+        else MFX = W > MFD + 17 ? less(W, MFD + $A) : 1;                                      // else at the screen's right edge
+    }
+    else mview(MFX, ys, MFD);
+    LINE = higher(LINE, lfirst + MFD / 1D + 1);
+}
+void microscope_keys(int key, int picked)
+{
+    if (picked != 6) return;
+    if (key == 23) { MSAMPLE = MSAMPLE % 3 + 1; mdrop(); mnote_drop(); }       // Y
+    if (key == 24) MLENS = MLENS % 3 + 1;                         // U
+}
+// the microscope in words, for bots
+char MNOTE[372];
+int MNN;
+void mnt(char *s) { int i = 1; while (s[i] >= 1) { MNOTE[MNN] = s[i]; MNN++; i++; } }
+void mnv(int v) { dstr(v); mnt(nb); }
+void microscope_note()
+{
+    MNN = 1;
+    mnt("microscope sample "); mnt(MSAMPLE == 1 ? "sea-water" : MSAMPLE == 2 ? "magic-water" : "clean-slide");
+    mnt(" lens-times "); mnv(mpower()); mnt(" field-um "); mnv(mfield());
+    mnt(" air-mK "); mnv(mbenchT()); mnt(" moisture magic-half");
+    mnt(MDRY ? " dry" : " wet"); mnt(" water-ng "); if (MWATER >= 1) mnv(MWATER); else mnt("none");
+    mnt(" rate-ng-s "); if (MDRY) mnt("none"); else mnv(MRATE);
+    mnt(" salt-out-ng "); if (MOUT >= 1) mnv(MOUT); else mnt("none");
+    mnt(" cubes "); if (MN >= 1) mnv(MN); else mnt("none"); mnt(" in-view "); if (minview() >= 1) mnv(minview()); else mnt("none");
+    mnt("\n");
+    window_writefile("/tmp/delta-lab-microscope.txt", MNOTE, less(MNN, 1));
+}
+thing microscope {
+    int x, z;
+    void start() { mdrop(); }
+    void step() { microscope_step(); }
+    void draw() { microscope_draw(); }
+    void panel() { microscope_panel(); }
+};

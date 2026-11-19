@@ -103,6 +103,7 @@ void scope_panel()
     lab_line("2 (blue):"); lab_line(probename(SRC2));
     if (SFILL >= 1) { sminmax(S2, &lo2, &hi2); lab_kind(pkind(SRC2)); lab_value("  now", sget(S2, SFILL), probeunit(SRC2)); lab_kind(pkind(SRC2)); lab_value("  lowest", lo2, ""); lab_kind(pkind(SRC2)); lab_value("  highest", hi2, ""); }
     lab_value("time across the screen, steps", SN * STB, "(each its own scale: lowest to highest)");
+    lab_line("its probes are magic: no wires, they read the room's own numbers where they are");
     int xs = {{42}}, ys = {{49}} + LINE * {{26}}, w = {{600}}, h = {{220}};      // the screen, close up
     if (MEASURE) WIDEST = higher(WIDEST, xs + w + {{20}});
     else { screenface(xs, ys, w, h); lab_colour({{250}}, {{230}}, {{80}}); trace(S1, xs, ys, w, h); lab_colour({{90}}, {{220}}, {{250}}); trace(S2, xs, ys, w, h); }

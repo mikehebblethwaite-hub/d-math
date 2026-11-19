@@ -106,5 +106,5 @@ void outside_panel()
     else { lab_value("the stones' month", SM2, "([ ] moves a month)"); lab_value("  its day", SD2, ""); }
     lab_value("the sun's own hour there", SMIN / {{60}} + 1, "(1 is midnight to 1; ; ' moves an hour)");
     if (SUNS > K) { lab_kind(1); lab_value("the sun's height, as a sine", less(SUNS, K) * {{1000}} / K + 1, "thousandths"); } else lab_line("the sun is down");
-    tvalue("outside", OUTT);
+    tvalue("outside (magic: a first warmth model, not a reading)", OUTT);
 }

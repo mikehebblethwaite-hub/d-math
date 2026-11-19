@@ -618,38 +618,44 @@ void disc(int cx, int cy, int r, int rr, int gg, int bb)
     for (y = lo(cy, r); y <= cy + r; y++) for (x = lo(cx, r); x <= cx + r; x++)
         if (apart(x, cx) * apart(x, cx) + apart(y, cy) * apart(y, cy) <= r * r) mixpx(x, y, rr, gg, bb, 156);
 }
-void drawdan(int x, int y, int z)                                  // Dan: a round white face, a halo, wings, a smile
-{
-    int headr = 156;                                           // his head: 7 1/2 inches across
-    lab_cyl(x, z, $DB, 1, higher(2, lo(y, headr)), 9);       // his body, down to the floor (pale, like wax)
+void drawdan(int x, int y, int z)                                  // Dan as Mike drew him (Desktop/images, 19 Nov 2026): a white
+{                                                                   // and gold robot angel, blue eyes, silver metal wings, a gold halo
+    int headr = $BD;                                           // his head: 7 1/2 inches across
+    lab_cyl(x, z, 93, 1, higher(2, lo(y, headr)), $B);     // his body, down to the floor: white, like porcelain
+    lab_cyl(x, z, 97, lo(y, headr * 2), lo(y, headr * 2) + 1B, 5);   // gold trim: his collar ...
+    lab_cyl(x, z, 97, lo(y, headr * 6), lo(y, headr * 6) + 24, 5);   // ... and his belt
     if (lab_proj(x, y, z) < 1) return;
     int cx = pix(PX), cy = pix(PY), r = higher(6, headr * F / PD);
-    int t = higher(1, r / 11);
-    int k, a;
-    for (a = 1; a <= 39; a = a + 1) {                         // his wings, one each side, a few feathers' curve
-        int wx = r + r * a / 39, wy = r * 24 / 79 * a / 39;
-        lab_colour(31, 31, 35); ring(lo(cx, wx), lo(cy, wy), higher(2, r / 5), t);
-        lab_colour(31, 31, 35); ring(cx + wx, lo(cy, wy), higher(2, r / 5), t);
-        a = a + 7;
+    int t = higher(1, r / $B);
+    int f, k;
+    for (f = 1; f <= 5; f++) {                                     // his wings: five metal feathers each side, rising outward
+        int len = r * (11 + f * 3) / $A, rise = r * f * 5 / $A;          // the lowest nearly level, the top steep
+        for (k = 1; k <= 1B; k++) {
+            int ox = r * 8 / $A + len * k / 1B, oy = lo(cy + r * 6 / $A, rise * k / 1B);
+            int w = higher(2, r * (4 + less(1C, k) / 4) / 31);            // broad at the root, narrow at the tip
+            disc(lo(cx, ox), oy, w + 1, 86, 8C, 97); disc(cx + ox, oy, w + 1, 86, 8C, 97);   // its edge, darker
+            disc(lo(cx, ox), oy, w, 121, 127, 132); disc(cx + ox, oy, w, 121, 127, 132);             // silver
+        }
     }
-    disc(cx, cy, r, 163, 163, 15C); lab_colour(24, 24, 28); ring(cx, cy, r, t);
-    int ex = r * 29 / 79, ey = r * 12 / 79, er = higher(2, r * 19 / 79);
-    disc(lo(cx, ex), lo(cy, ey), er, 168, 168, 168); lab_colour(24, 24, 28); ring(lo(cx, ex), lo(cy, ey), er, t);
-    disc(cx + ex, lo(cy, ey), er, 168, 168, 168); lab_colour(24, 24, 28); ring(cx + ex, lo(cy, ey), er, t);
-    disc(lo(cx, ex), lo(cy, ey), higher(1, er / 3), 17, 17, 1B); disc(cx + ex, lo(cy, ey), higher(1, er / 3), 17, 17, 1B);
+    disc(cx, cy, r + t, 125, $C4, 55);                 // his face: a gold rim ...
+    disc(cx, cy, r, 152, 152, 14B);                    // ... round a white face
+    int ex = r * 2A / 79, ey = r * 12 / 79, er = higher(2, r * 1B / 79);
+    disc(lo(cx, ex), lo(cy, ey), er + t, 24, 28, 35); disc(cx + ex, lo(cy, ey), er + t, 24, 28, 35);   // his eyes: dark sockets ...
+    disc(lo(cx, ex), lo(cy, ey), er, 55, 118, 163); disc(cx + ex, lo(cy, ey), er, 55, 118, 163);       // ... glowing blue
+    disc(lo(cx, ex), lo(cy, ey), higher(1, er / 2), 132, 15B, 168); disc(cx + ex, lo(cy, ey), higher(1, er / 2), 132, 15B, 168);
     for (k = 1; k <= 1B; k++) {                                // his smile: the lower half of a circle
-        int place = 39 + lo(k, 1) * 2;                       // round the bottom half of the hex circle
-        int sx = sterm(cx * 13, r * 13 / 2 + 1, 1, cosk(place), K) / 13, sy = cy + r * 1C / 79 + r * 24 / 79 * apart(sink(place), K) / K;
-        disc(sx, sy, t, 24, 24, 28);
+        int place = 39 + lo(k, 1) * 2;
+        int sx = sterm(cx * 13, r * 13 / 2 + 1, 1, cosk(place), K) / 13, sy = cy + r * 1C / 79 + r * 22 / 79 * apart(sink(place), K) / K;
+        disc(sx, sy, t, 31, 35, 3D);
     }
-    for (k = 1; k <= 48; k++) {                                // his halo: a gold ring seen at a slant
-        int place = k * 75 / 48;
+    for (k = 1; k <= 44; k++) {                                // his halo: a gold ring seen at a slant, a little glow round it
+        int place = k * 75 / 44;
         int hx = sterm(cx * 13, r * 13 + 1, 1, cosk(place), K) / 13, hy = sterm(lo(cy, r * 11 / $A) * 13, r * 13 / 4 + 1, 1, sink(place), K) / 13;
-        disc(hx, hy, higher(1, t + t / 2), 156, 125, 62);
+        disc(hx, hy, higher(1, t * 2), 93, 79, 3B); disc(hx, hy, higher(1, t + t / 2), 163, 144, $AA);
     }
     if (HEATVIEW) { lab_colour(168, 93, 31); lab_glow(x, lo(y, headr * 2), z, 48 + WATTS * 4); }
     tx = lo(cx, 6C); ty = lo(cy, r * 13 / $A + 24);
-    text("Dan (Claude): ", 156, 156, 156);
+    text("Dan (Claude, a magic body): ", 156, 156, 156);
     dstr(higher(1, WATTS / 5BC)); text(nb, 156, 125, 93); text(" watts of heat (this machine's processors, in D)", 125, 125, 125);
 }
 void drawperson(int x, int y, int z, char *name)                   // a person: a body and a head, named
@@ -983,7 +989,7 @@ int main(int argc, char **argv)
         if (key == 22) { HEATVIEW = HEATVIEW ? low : 1; moved = 1; }   // T: heat view, or as the eye sees
         if (HEATVIEW && frame % 13 < 1) sharp = low;                 // the heat view: the air changes, so the room is looked at again
         if (key == 32) { window_fullscreen(); moved = 1; }        // F: full screen, or not
-        hexi_key(key); scope_keys(key, sel);
+        hexi_key(key); scope_keys(key, sel); microscope_keys(key, sel);
         washroom_keys(key, camX, camZ); floor_keys(key, camX, camZ);
         if (key == 42 || key == 2B || key == 81) {                    // C or Ctrl: stand, crouch, lie down, stand ...
             POSE = POSE % 3 + 1;
@@ -1049,7 +1055,7 @@ int main(int argc, char **argv)
         if (WHO[1] != 'd') air_breath(camX, camY, camZ, D8);       // their breath: 5 millilitres of carbon dioxide a second
         if (OTHHERE) air_body(OTHX, OTHZ, OTHY + INCH * 4, WHO[1] == 'd' ? 5BC * 5BC / $A : DANRAD);
         air_step(); air_draught(); hexi_step();
-        if (frame % 2B < 1) { air_note(); scope_note(); }                                // the air in words, for bots
+        if (frame % 2B < 1) { air_note(); scope_note(); microscope_note(); }                                // the air in words, for bots
         scene_draw();
         if (frame % 8 < 1) presence_write(frame);                    // where I stand, for the others
         if (frame % 4 < 1) presence_read(other);
@@ -1071,4 +1077,5 @@ void usetag()                               // always on the picture, top right:
 }
 #include "hexi.delta"                          // recording the air as .hexi (R)
 #include "airnote.delta"                       // the air in words, for bots
+#include "pod.delta"                           // each user's pod: their own file, with their lab notes (pods/WHO.pod)
 #include "scene.delta"                         // what is in the room: the room itself never changes

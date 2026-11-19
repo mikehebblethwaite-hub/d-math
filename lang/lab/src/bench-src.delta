@@ -1,7 +1,8 @@
 // The bench: a wooden worktop at desk height (2 ft 6 in) all down the lab's right wall, from the washroom to the wall
 // between, cupboards under it (Mike, 19 Nov 2026). At the washroom end a second sink, on the same magic water and waste; at the far
 // end a Bunsen burner. Between them a microscope, an oscilloscope, a power supply, a multimeter, a rack of test tubes and a
-// beaker. For now they are only things to see: each will become a true working tool in its own time.
+// beaker. For now they are only things to see: each will become a true working tool in its own time (the oscilloscope
+// and the microscope work now: objects/scope.delta, objects/microscope.delta).
 #define BX1 {{13824}}                       // the worktop's front edge: 2 ft from the right wall
 #define BZ1 {{4224}}                        // from just past the washroom ...
 #define BZ2 {{15232}}                       // ... to just before the wall between
@@ -30,11 +31,7 @@ void bench_draw()
     lab_colour({{140}}, {{142}}, {{146}}); lab_box({{14300}}, {{9100}}, {{15100}}, {{10000}}, BTOP, BTOP + {{420}});
     lab_cyl({{14300}}, {{9400}}, {{30}}, BTOP + {{150}}, BTOP + {{210}}, 2); lab_cyl({{14300}}, {{9700}}, {{30}}, BTOP + {{150}}, BTOP + {{210}}, 1);
     // the oscilloscope is a thing of its own now (objects/scope.delta), standing here
-    // the microscope: its foot, its arm, its stage, its tube leaning toward the eye
-    lab_colour({{30}}, {{30}}, {{34}}); lab_box({{14500}}, {{11900}}, {{14900}}, {{12300}}, BTOP, BTOP + {{60}});
-    WTUBE = {{64}}; lab_wire({{14800}}, BTOP + {{60}}, {{12100}}, {{14800}}, BTOP + {{700}}, {{12100}}); lab_wirelay(1, low);
-    lab_colour({{30}}, {{30}}, {{34}}); lab_box({{14450}}, {{11950}}, {{14750}}, {{12250}}, BTOP + {{300}}, BTOP + {{330}});
-    WTUBE = {{48}}; lab_wire({{14800}}, BTOP + {{700}}, {{12100}}, {{14550}}, BTOP + {{860}}, {{12100}}); WTUBE = {{40}}; lab_wire({{14600}}, BTOP + {{640}}, {{12100}}, {{14600}}, BTOP + {{420}}, {{12100}}); lab_wirelay(1, low);
+    // the microscope is a thing of its own now (objects/microscope.delta), standing here
     // the Bunsen burner at the far end: its foot, its brass tube, the rubber gas pipe to the tap on the wall (not lit yet)
     lab_cyl({{14600}}, {{14700}}, {{180}}, BTOP, BTOP + {{48}}, 5);
     lab_cyl({{14600}}, {{14700}}, {{40}}, BTOP + {{48}}, BTOP + {{600}}, 5);
@@ -43,11 +40,12 @@ void bench_draw()
 void bench_air() { air_solid(BX1 + {{64}}, BZ1, less(ROOM, 1), BZ2, less(BTOP, {{96}})); }   // the cupboards fill their cells
 void bench_panel()
 {
-    lab_line(VENTON ? "the vent (V): its fan on, drawing the room's air out to waste" : "the vent (V): its fan off");
-    if (EWASTE > EMAKE + {{30}}) lab_kind(1); lab_value("  warmth it took out, more than came back in", less(EWASTE, EMAKE) * {{34}} / {{1000}} + 1, "joules (the air went to waste; as much came back round the doors)");
+    lab_line(VENTON ? "the vent (V): its fan on, drawing the room's air out to magic waste" : "the vent (V): its fan off");
+    if (EWASTE > EMAKE + {{30}}) lab_kind(1); lab_value("  warmth it took out, more than came back in", less(EWASTE, EMAKE) * {{34}} / {{1000}} + 1, "joules (the air went to magic waste; as much came back round the doors, by magic)");
     lab_line("The bench: an oak worktop at desk height down the right wall (lang/lab/objects/bench.delta)");
     lab_line("  a second sink (K beside it washes your hands), test tubes, a beaker, a multimeter, a power supply,");
-    lab_line("  a microscope, a Bunsen burner: things to see for now, true tools in their own time; the oscilloscope works (click it)");
+    lab_line("  a Bunsen burner: things to see for now, true tools in their own time");
+    lab_line("  working: the oscilloscope and the microscope (click them); their links are magic, no wires");
 }
 thing bench {
     int x, z;

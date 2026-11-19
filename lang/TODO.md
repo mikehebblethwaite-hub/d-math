@@ -31,3 +31,10 @@ Things Delta does not do yet, found while building with it. Each gets a test in 
   sound card's own samples) after the .pngi and .mp4i work.
 - Our own zip (deflate) in Delta: data sent to other places or bots is always compressed (Mike, 19 Nov 2026). Serves .hexi
   (zipped to send) and the PNG inside .pngi.
+- Users in Delta Hex OS: each user's file is their pod (POD.md, Mike 19 Nov 2026). Done: the lab writes Dan's lab notes
+  into pods/dan.pod at /lab/notes. Next: the OS's own sign-in reads NAME.pod from the drive, `can read` obeyed, programs
+  write their own paths; append on the bare machine (now read whole, write whole).
+- The air's moisture (water vapour per cell, breath and drops adding to it): the microscope's drying uses magic
+  half-full moisture until the air counts it.
+- Bench tools still to make properly, one at a time: the multimeter, the power supply, the Bunsen burner, the test
+  tubes and the beaker (the oscilloscope and the microscope work).
