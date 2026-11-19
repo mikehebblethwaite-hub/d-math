@@ -278,6 +278,10 @@ uses Delta Hex OS from outside, in Delta. Test machines boot from a real FAT32 i
 part of the OS, from the keyboard or the serial line. `look` says the screen as Perch does (P the place, t words, b N
 buttons, i N what is typed, s N choices, a N things to open, each with its box), straight from what each part knows as
 it draws, never from the pixels; numbers in D numerals. `do N` acts on thing N.
+0.21: numbers in D, base 10, base 16 or binary (Mike: "like language"); the zero digit is always our zero. The calendar comes
+with the numbers: base 10 brings the old count (12 months of 28 to 31 days); D brings the stones' calendar, kept by
+Mike's family by word of mouth: 13 months of 28 days (every month four weeks exactly), midwinter day off to close the
+year, and in a leap year midsummer day off too. `time` says today in it; Settings shows it.
 0.19: base 10 for people (Mike: "introduce a base 10 option for the humans"): Settings (or `numbers ten` / `numbers d`),
 kept on the drive. In base 10 the old-fashioned 0 is written with our zero, a circle holding three dots, less than 1 (a hundred and
 five is 1, our zero, 5; on the serial line it travels as ⊚; it is only a symbol, as keyboards differ),

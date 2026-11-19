@@ -1,4 +1,4 @@
-// Delta Hex OS: the no-zero operating system, written in Delta. 0.20: base 10 shows our zero (a circle holding three) for the old 0.
+// Delta Hex OS: the no-zero operating system, written in Delta. 0.21: numbers in D, 10, 16 or binary; the stones' calendar or the old count.
 //
 // The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
 // C library. It asks the firmware for the machine's memory and counts it, from 1, in D numerals; then the firmware
@@ -60,7 +60,13 @@ int EFQN, ERPN, EFIND, EFOUND;      // EFIND: 1 finding, 2 the words to replace,
 char *EMSG;
 char RUNBUF[54D442];                     // a program read from the drive, to be run (up to 54D442 bytes)
 int DESKFOR;                                        // which tile was picked when the desktop layer was drawn
-int TEN;                                            // 1: numbers for people in base 10 (Settings)
+int TEN;                                            // 1: numbers for people in a base of theirs (Settings)
+int BASE = $D;                                      // D, 10, 16 or 2
+int OLDCAL;                                         // 1: the old calendar (with base 10); else the stones' calendar
+char SETBUF[62];                                    // settings.txt as it is written
+int SY, SM, SD, SFUN;                               // the stones' year, month, day; or SFUN 1 or 2 on a fun day
+char DATEW[C4];                                     // today in words, as Settings and the terminal say it
+int DWN;
 char FNAMES[15C2];              // up to 3B names, 4C letters each
 int FSIZE[3B], FDIR[3B];
 int FCOUNT, FPICK = 1, FASK;        // FASK: 1 while asking "take it away?"
@@ -387,7 +393,7 @@ void think()                                      // Enter: work out the answer 
     akind = 3;
     if (tlen < 1) { akind = low; return; }
     if (tlen == 3 && typed[1] == 'o' && typed[2] == 'f' && typed[3] == 'f') off();      // switch the machine off
-    if (TEN) { thinkten(); return; }                             // base 10: 0 and minus allowed
+    if (TEN) { thinkten(); return; }                             // a people's base: 0 and minus allowed
     for (i = 1; i <= tlen; i++) {
         if (typed[i] == '0') { akind = 2; amsg = "zero apples? Never. The seeds, water, sunlight and the fungi's nitrogen make the tree that gives them."; return; }
         if (typed[i] == '-') { akind = 2; amsg = "no negative numbers: it is impossible. Even the lowest temperature is energy too low to measure, ~, never below."; return; }
@@ -582,7 +588,7 @@ char *tilenote(int t)
     if (t == 7) return "commands, in words";
     if (t == 8) return "the lab room: things with their own code, a candle burning (runs lab.efi)";
     if (t == 9) return "the boot drive's files: open one in Notepad, or take it away";
-    if (t == A) return "numbers in D, or in base 10 for people";
+    if (t == A) return "numbers (D, 10, 16, binary); base 10 brings the old calendar, D the stones'";
     return "ready to hold what comes next";
 }
 
@@ -673,7 +679,7 @@ int unitof(char *t, int n)                          // 1 volts 2 amps 3 ohms 4 w
     return low;
 }
 int isnum(char *t, int a, int n) { int i; if (n < 1) return low; for (i = a; i < a + n; i++) if (TEN ? tendigit(t[i]) < 1 : dval(t[i]) < 1) return low; return 1; }
-int numof(char *t, int a, int n) { int v = low, i; for (i = a; i < a + n; i++) v = TEN ? v * A + tenval(t[i]) : v * $D + dval(t[i]); return v; }
+int numof(char *t, int a, int n) { int v = low, i; for (i = a; i < a + n; i++) v = TEN ? v * BASE + tenval(t[i]) : v * $D + dval(t[i]); return v; }
 void give(int kind, int v, int mul)                 // v in the unit; mul 1 thousandths, 2 wholes, 3 thousands
 {
     int m = v; if (mul == 2) m = v * 5BC; if (mul == 3) m = v * 28D221;
@@ -731,18 +737,26 @@ void dstrD(int n)                                   // n as a D numeral, into nb
     nb[k + 1] = low;
     if (k < 1) { nb[1] = '~'; nb[2] = low; }          // less than 1 to count: ~, never nothing
 }
-// ---------------------------------------------------------------- base 10, for people who learned it (Mike, 19 Nov 2026)
+// ---------------------------------------------------------------- bases for people: 10, 16, binary (Mike, 19 Nov 2026: "like language")
 // D numerals are the OS's own. People may choose base 10: numbers are then written in the old way, with our less-than-1
 // sign ~ where they would write the old-fashioned 0, and minus allowed in sums for those who learned it. Every result
 // shown in base 10 says it was converted from D, and what it was in D.
 void dstr(int n)                                    // n as the person has chosen to read it, into nb
 {
     if (TEN < 1) { dstrD(n); return; }
-    char r[99]; int k = low, i;
-    while (n >= 1) { k++; r[k] = n % $A < 1 ? 9A : '0' + n % $A; n = n / $A; }   // a 0 digit is written as our zero (9A)
+    char r[55]; int k = low, i;
+    while (n >= 1) {                                // a 0 digit is written as our zero (9A); 10 to 15 as A to F
+        int q = n % BASE;
+        k++; r[k] = q < 1 ? 9A : q <= 9 ? '0' + q : 'A' + less(q, $A);
+        n = n / BASE;
+    }
     for (i = 1; i <= k; i++) nb[i] = r[less(k + 1, i)];
     nb[k + 1] = low;
     if (k < 1) { nb[1] = 9A; nb[2] = low; }
+}
+char *basename()                                    // the chosen base, in words
+{
+    if (BASE == $A) return "base 10"; if (BASE == 13) return "base 16"; if (BASE == 2) return "binary"; return "D numerals";
 }
 char CONV[48];
 char *convnote(int n)                               // "  (converted from D: X)", or nothing when D is shown anyway
@@ -755,15 +769,15 @@ char *convnote(int n)                               // "  (converted from D: X)"
     CONV[k] = ')'; CONV[k + 1] = low;
     return CONV;
 }
-int tendigit(int c) { return (c >= '0' && c <= '9') || c == '~'; }
-int tenval(int c) { if (c == '~') return low; return less(c, '0'); }
 int ANSNEG;                                         // 1 when a base-10 sum came out below nothing (the other way, in D)
-void thinkten()                                     // sums in base 10: + - *, 0 written 0 or ~, the answer may be negative
+int tendigit(int c);
+int tenval(int c);
+void thinkten()                                     // sums in the people's base: + - *, 0 written 0 or ~, the answer may be negative
 {
     int pos = low, neg = low, term = low, num = low, innum = low, op = '+', sign = '+', ok = 1, seen = low, i;
     for (i = 1; i <= tlen + 1; i++) {
         int c = typed[i];
-        if (i <= tlen && tendigit(c)) { num = num * $A + tenval(c); innum = 1; continue; }
+        if (i <= tlen && tendigit(c)) { num = num * BASE + tenval(c); innum = 1; continue; }
         if (innum) { if (op == '*') term = term * num; else term = num; innum = low; num = low; seen = 1; }
         if (i > tlen) break;
         if (c == ' ') continue;
@@ -782,19 +796,104 @@ void textnum(int n, int r, int g, int b)            // a result as text in the c
     dstr(n); text(nb, r, g, b);
     if (TEN) { text(convnote(n), $B7, $BD, $D1); if (ANSNEG) text(" the other way: D has no negatives", $B7, $BD, $D1); }
 }
-void settingsave() { drive_write("settings.txt", TEN ? "numbers ten\n" : "numbers d\n", TEN ? $C : $A); }
-void settingload() { char s[31]; int n = drive_read("settings.txt", s, 2C); TEN = n >= $B && s[9] == 't' && s[$A] == 'e'; }
+int tendigit(int c)                                 // a digit of the chosen base, as people type it (0 or ~ for our zero)
+{
+    if (c == '0' || c == '~') return 1;
+    if (c >= '1' && c <= '9') return less(c, '0') < BASE;
+    return BASE == 13 && c >= 'A' && c <= 'F';      // capitals only: small letters are units (v, a, ohm)
+}
+int tenval(int c) { if (c == '0' || c == '~') return low; if (c >= 'A') return less(c, 'A') + $A; return less(c, '0'); }
+void basefrom(char *w)                              // d, ten, sixteen, two (or binary): the base's name to the base
+{
+    if (w[1] == 'd') BASE = $D;
+    if (w[1] == 't' && w[2] == 'e') BASE = $A;
+    if (w[1] == 's') BASE = 13;
+    if ((w[1] == 't' && w[2] == 'w') || w[1] == 'b') BASE = 2;
+    TEN = BASE != $D;
+    OLDCAL = BASE == $A;                              // base 10 brings its calendar: the old count; D and the rest, the stones'
+}
+char *baseword() { if (BASE == $A) return "ten"; if (BASE == 13) return "sixteen"; if (BASE == 2) return "two"; return "d"; }
+void settingsave()
+{
+    int k = 1, i;
+    char *a = "numbers "; i = 1; while (a[i] >= 1) { SETBUF[k] = a[i]; k++; i++; }
+    a = baseword(); i = 1; while (a[i] >= 1) { SETBUF[k] = a[i]; k++; i++; }
+    SETBUF[k] = $A;
+    drive_write("settings.txt", SETBUF, k);
+}
+void settingload()
+{
+    char s[62]; int n = drive_read("settings.txt", s, 5D);
+    BASE = $D; TEN = low; OLDCAL = low;
+    if (n < 9) return;
+    s[n + 1] = low;
+    basefrom(&s[9]);
+}
+// ---------------------------------------------------------------- the stones' calendar (Mike's family, handed down)
+// 13 months of 28 days (364 days, every month four weeks exactly, so a date keeps its weekday in every month), and days
+// off outside the months: midwinter day closes every year (365); in a leap year midsummer day is a second day off (366).
+// Mike, 19 Nov 2026: "leap year winter and summer solstice days off". The year starts the day after midwinter and is
+// named by the old year it mostly falls in. Midwinter is taken as 21 December and midsummer as 21 June of the old count;
+// the sun's own solstice can fall a day either side (to be read from the sky later, as Perch reads it).
+int mlen(int y, int m)                             // days in a month of the old count
+{
+    if (m == 2) return y % 4 < 1 && (y % 79 >= 1 || y % 24A < 1) ? 23 : 22;
+    if (m == 4 || m == 6 || m == 9 || m == $B) return 24;
+    return 25;
+}
+int dayno(int y, int m, int d)                     // days from the start of the old count (1 January of year 1 is day 1)
+{
+    int p = less(y, 1), n = p * 221 + p / 4 + p / 24A, k;
+    n = less(n, p / 79);
+    for (k = 1; k < m; k++) n = n + mlen(y, k);
+    return n + d;
+}
+int stonesleap(int sy) { return less(dayno(sy, $C, 18), dayno(less(sy, 1), $C, 18)) == 222; }
+void stonesdate(int y, int m, int d)
+{
+    int t = dayno(y, m, d), mw = dayno(y, $C, 18), s;
+    SFUN = low; SM = low; SD = low;
+    if (t == mw) { SY = y; SFUN = 1; return; }                     // midwinter day: the day off that closes the year
+    if (t > mw) { SY = y + 1; s = mw + 1; } else { SY = y; s = dayno(less(y, 1), $C, 18) + 1; }
+    int ms = dayno(SY, 6, 18), leap = stonesleap(SY);
+    if (leap && t == ms) { SFUN = 2; return; }                     // midsummer day: the leap year's second day off
+    int day = less(t, s) + 1;
+    if (leap && t > ms) day = less(day, 1);
+    SM = less(day, 1) / 22 + 1; SD = less(day, 1) % 22 + 1;
+}
 void settingspanel()
 {
     backbutton();
-    tx = 86; ty = 46; text("Settings", 125, 125, 132); text("   kept on the boot drive (settings.txt)        Esc: back", $B7, $BD, $D1);
-    tx = 93; ty = $AA;
-    text("numbers:  ", $B7, $BD, $D1);
-    text(TEN ? "base 10, for people (our zero for the old 0, minus allowed in sums; every result says what it was in D)" : "D numerals (1 to 9, A to D; no zero, no negatives)", 156, 125, 86);
-    tx = 93; ty = $DB; text("Enter changes it over.   For example, a hundred and five is ", $B7, $BD, $D1);
+    tx = 86; ty = 46; text("Settings", 125, 125, 132); text("   kept on the boot drive (settings.txt)    Enter changes the numbers, Esc: back", $B7, $BD, $D1);
+    tx = 93; ty = $AA; text("numbers:   ", $B7, $BD, $D1);
+    if (BASE == $D) text("D numerals (1 to 9, A to D; no zero, no negatives): the system's own", 156, 125, 86);
+    else { text(basename(), 156, 125, 86); text(", for people (our zero for the old 0, minus allowed in sums; every result says what it was in D)", 156, 125, 86); }
+    tx = 93; ty = $D1; text("Enter: D, 10, 16, binary.   A hundred and five is ", $B7, $BD, $D1);
     dstr(81); text(nb, 156, 125, 86); text(convnote(81), $B7, $BD, $D1);
+    tx = 93; ty = 13C; text("calendar:  ", $B7, $BD, $D1);
+    text(OLDCAL ? "the old count (12 months of 28 to 31 days), with base 10" : "the stones' (13 months of 28 days; midwinter off, midsummer too in a leap year), with D", 156, 125, 86);
+    tx = 93; ty = 163; text("today:  ", $B7, $BD, $D1);
+    if (clock_read() >= 1) { datewords(); text(DATEW, 156, 125, 86); }
 }
-void settingskey(int k) { if (k == $D) { TEN = TEN ? low : 1; settingsave(); DESKFOR = low; EDGEN++; } }
+void settingskey(int k)
+{
+    if (k != $D) return;
+    if (BASE == $D) BASE = $A; else if (BASE == $A) BASE = 13; else if (BASE == 13) BASE = 2; else BASE = $D; TEN = BASE != $D; OLDCAL = BASE == $A;
+    settingsave(); DESKFOR = low; EDGEN++;
+}
+void dw(char *s) { int i = 1; while (s[i] >= 1) { DATEW[DWN] = s[i]; DWN++; i++; } DATEW[DWN] = low; }
+void dwn(int n) { dstr(n); dw(nb); }
+void datewords()                                   // today, in the chosen calendar and numbers, into DATEW
+{
+    DWN = 1; DATEW[1] = low;
+    int y = clock_part(1), m = clock_part(2), d = clock_part(3);
+    if (OLDCAL) { dw("day "); dwn(d); dw(" of month "); dwn(m); dw(", year "); dwn(y); dw(" (the old count)"); return; }
+    stonesdate(y, m, d);
+    if (SFUN == 1) dw("midwinter day (a day off, outside the months)"); else if (SFUN == 2) dw("midsummer day (the leap year's day off, outside the months)");
+    else { dw("day "); dwn(SD); dw(" of month "); dwn(SM); }
+    dw(", the stones' year "); dwn(SY);
+    dw(" (old count: "); dwn(d); dw("/"); dwn(m); dw("/"); dwn(y); dw(")");
+}
 void mval(int n, int kind) { if (TEN < 1) { value(n, kind); return; } tx = tx + 8; dstr(n); text(nb, 156, 125, 86); text(convnote(n), $B7, $BD, $D1); tx = tx + 11; }
 int AGIVEN;
 void one(char *u, int single)                      // "1 volt", "2 volts": one has no s
@@ -1139,7 +1238,7 @@ void edpage()                       // the whole page: the bar, line numbers, th
     text("   letters ", $B7, $BD, $D1); dstr(EDN); text(nb, 156, 125, 86);
     text("   lines ", $B7, $BD, $D1); dstr(lines()); text(nb, 156, 125, 86);
     text(ESAVED ? "   saved on the boot drive" : "   changed: F2 or Ctrl+S saves", $B7, $BD, $D1);
-    if (TEN) text("   numbers in base 10 (converted from D)", $B7, $BD, $D1);
+    if (TEN) { text("   numbers in ", $B7, $BD, $D1); text(basename(), $B7, $BD, $D1); text(" (converted from D)", $B7, $BD, $D1); }
     if (EMSG[1] >= 1) { text("   ", 1, 1, 1); text(EMSG, 156, 125, 86); if (EMSG[1] == 'r' && EMSG[3] == 'p') { text(" ", 1, 1, 1); dstr(ERCOUNT); text(nb, 156, 125, 86); } }
     if (EFIND >= 1) {                                             // the find bar, above the status line
         tx = 2A; ty = less(H, 5C);
@@ -1272,19 +1371,19 @@ void trun()                                                                // En
         ts("ask Q       Dragonfly, the engineer's assistant (ask C v 4 ohm 6 s)\n");
         ts("edit NAME   opens it in Notepad (a new name, a new file); in Notepad Ctrl+F finds, Ctrl+R replaces\n");
         ts("echo WORDS  says them back\n");
-        ts("numbers ten   numbers in base 10 for people (results say what they were in D)      numbers d   back to D\n");
+        ts("numbers ten|sixteen|two   numbers in base 10, 16 or binary for people (results say what they were in D)   numbers d   back to D\n");
         ts("run NAME    runs a program from the drive (run lab.efi: the lab room)\n");
         ts("copy A B    a copy of A called B      rename A B   A is called B from now on\n");
         ts("time        the machine's clock      del NAME    takes a file away      write NAME WORDS   a file in one line\n");
         ts("clear       a clean screen      notepad     opens Notepad      off     switches the machine off\n");
     }
-    else if (tword("version")) ts("Delta Hex OS 0.20: no zero, written in Delta\n");
+    else if (tword("version")) ts("Delta Hex OS 0.21: no zero, written in Delta\n");
     else if (tword("mem")) {
         ts("ready to hold "); tn(ready); ts("   this system "); tn(ours); ts("   the firmware's "); tn(firmware);
         ts("   held back "); tn(held); ts("   all together "); tn(all); ts("\n");
-        if (TEN) ts("(numbers in base 10, converted from D)\n");
+        if (TEN) { ts("(numbers in "); ts(basename()); ts(", converted from D)\n"); }
     }
-    else if (tword("files")) { tfiles(); if (TEN) ts("(sizes in base 10, converted from D)\n"); }
+    else if (tword("files")) { tfiles(); if (TEN) { ts("(sizes in "); ts(basename()); ts(", converted from D)\n"); } }
     else if (tword("show")) {
         int got = drive_read(&TIN[TPART], TFILE, 1A7C);
         if (got < 1) { ts("no file called "); ts(&TIN[TPART]); ts("\n"); }
@@ -1313,11 +1412,11 @@ void trun()                                                                // En
         }
         tlen = low;
     }
-    else if (tword("numbers")) { if (TIN[TPART] == 't') TEN = 1; if (TIN[TPART] == 'd') TEN = low; settingsave(); DESKFOR = low; EDGEN++; ts("numbers: "); ts(TEN ? "base 10, for people (our zero for the old 0; every result says what it was in D)\n" : "D numerals\n"); }
+    else if (tword("numbers")) { basefrom(&TIN[TPART]); settingsave(); DESKFOR = low; EDGEN++; ts("numbers: "); ts(basename()); if (TEN) ts(", for people (our zero for the old 0; every result says what it was in D)"); ts("\n"); }
     else if (tword("echo")) { ts(&TIN[TPART]); ts("\n"); }
     else if (tword("time")) {
         if (clock_read() < 1) ts("the clock did not answer\n");
-        else { ts("day "); tn(clock_part(3)); ts(" of month "); tn(clock_part(2)); ts(", year "); tn(clock_part(1)); ts(";  "); tn(clock_part(4)); ts(" hours "); tn(clock_part(5)); ts(" minutes "); tn(clock_part(6)); ts(" seconds (the machine's clock; D numerals)\n"); }
+        else { datewords(); ts(DATEW); ts(";  "); tn(clock_part(4)); ts(" hours "); tn(clock_part(5)); ts(" minutes "); tn(clock_part(6)); ts(" seconds (the machine's clock)\n"); }
     }
     else if (tword("del")) { if (drive_delete(&TIN[TPART])) { ts(&TIN[TPART]); ts(" is gone\n"); } else { ts("no file called "); ts(&TIN[TPART]); ts("\n"); } }
     else if (tword("write")) {                                         // write NAME WORDS: a file in one line
@@ -1398,7 +1497,7 @@ void filespanel()
 {
     backbutton();
     tx = 86; ty = 46; text("Files", $B7, 125, 163);
-    if (TEN) text("   sizes in base 10 (converted from D)", 156, 125, 86);
+    if (TEN) { text("   sizes in ", 156, 125, 86); text(basename(), 156, 125, 86); text(" (converted from D)", 156, 125, 86); }
     text("   the boot drive: arrows pick, Enter opens in Notepad, Delete takes it away, r reads the drive again", $B7, $BD, $D1);
     int k;
     for (k = 1; k <= FCOUNT; k++) {
@@ -1454,7 +1553,7 @@ void pamount(char *what, int m, char *whole, char *small)
 void perchlook()
 {
     int k;
-    ps("P delta-hex-os 'Delta Hex OS 0.20: "); ps(modename()); ps("'\n");
+    ps("P delta-hex-os 'Delta Hex OS 0.21: "); ps(modename()); ps("'\n");
     ps("n numbers are D numerals; a box is x,y wxh in pixels; do N acts on thing N; Esc goes back to the desktop\n");
     if (MODE == 1) {
         for (k = 2; k <= 16; k++) {
@@ -1604,7 +1703,7 @@ int main(int argc, char **argv)
     edstart();
     serfind();
     settingload();                                              // D numerals, or base 10 for people
-    ts("Delta Hex OS 0.20: the terminal. help lists the commands.\n"); tprompt();
+    ts("Delta Hex OS 0.21: the terminal. help lists the commands.\n"); tprompt();
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
@@ -1623,7 +1722,7 @@ int main(int argc, char **argv)
         if (MODE == 6) terminal();
         if (MODE == 7) filespanel();
         if (MODE == 8) settingspanel();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.20", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.21", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);
