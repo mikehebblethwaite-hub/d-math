@@ -133,3 +133,14 @@ Mike: "add to the operating system the stuff everyone needs first on the list: N
 first (0.09), saving to the boot drive through the firmware. Then Mike: "add a terminal, lets get you into delta in a vm".
 The terminal (0.10) speaks on the serial line too: from 01:48 Claude could type into Delta Hex OS from outside and read
 its answers (help, mem, files, sum, ask, show), all in D numerals.
+
+## A 6000-year-old operating system (19 Nov, ~10:55 to 11:01)
+
+Mike: people choose their numbers "like language like base 10, 13, 16, or binary", and the calendar comes with them:
+"if they choose base 10 they get this calendar, 12 months, weird odd days per month mess; if base 13, D is the Stonehenge
+calendar". The stones' calendar is kept by Mike's family by word of mouth: 13 months of 28 days. Mike: "leap year winter
+and summer solstice days off?" So midwinter is a day off outside the months, closing every year, and in a leap year
+midsummer is one too. "Back then people only had 2 seasons, winter and summer." Delta Hex OS 0.21 keeps time this way.
+
+Mike, 11:00: "6000 year old operating system lol". Claude: "A calendar older than the stones themselves, running on a
+64-bit machine, written in a language that compiles itself. The newest code with the oldest clock."
