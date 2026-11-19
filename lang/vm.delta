@@ -1,0 +1,75 @@
+// vm: talk to a test machine's control socket (QEMU's monitor or its QMP), in Delta. Each word after the socket is one
+// line sent, and the machine's answer is read before the next. "wait:N" rests N tenths of a second (N a D numeral).
+// Used to test Delta Hex OS in a virtual machine: keys, the mouse, pictures of the screen. Never the real boot.
+//
+//   delta run lang/vm.delta SOCKET "sendkey ret" wait:5 "screendump shot.ppm"
+//   delta run lang/vm.delta QMPSOCKET '{"execute":"qmp_capabilities"}' '{"execute":"input-send-event", ...}'
+
+char reply[1B31];
+int low;
+
+int dval(int c)
+{
+    if (c >= '1' && c <= '9') return less(c, '0');
+    if (c >= 'A' && c <= 'D') return less(c, 'A') + A;
+    if (c >= 'a' && c <= 'd') return less(c, 'a') + A;
+    return low;
+}
+void rest(int tenths)                            // nanosleep: whole seconds, then the rest in thousand-millionths
+{
+    int ts[2];
+    ts[1] = tenths / A; ts[2] = tenths % A * 5BC * 5BC * 79;   // a tenth is 79 x 5BC x 5BC thousand-millionths
+    linux(29, &ts[1], low);
+}
+int qmp;                                         // 1 when the machine speaks QMP (its greeting starts with {)
+void hear(int fd)                                // read until the answer is finished: QMP ends a line, the monitor shows its prompt
+{
+    int n = low, got = 1;
+    while (got >= 1) {
+        if (n >= 1B1D) n = low;                     // a long answer: only its end matters
+        got = linux(low, fd, &reply[n + 1], less(1B2D, n));
+        if (got < 1) return;
+        n = n + got;
+        if (qmp && reply[n] == '\n') return;
+        if (qmp < 1 && n >= 7 && reply[less(n, 6)] == '(' && reply[less(n, 1)] == ')' && reply[n] == ' ') return;
+    }
+}
+void send(int fd, char *line)
+{
+    int n = 1;
+    while (line[n] >= 1) n++;
+    linux(1, fd, &line[1], less(n, 1));
+    linux(1, fd, "\n", 1);
+    hear(fd);
+}
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc < 3) { say("delta run lang/vm.delta SOCKET LINE... (wait:N rests N tenths)\n"); return 1; }
+    char addr[99];
+    char *path = argv[2];
+    int k = 1;
+    addr[1] = 1; addr[2] = low;                    // the socket's kind: a local (unix) socket
+    while (path[k] >= 1 && k < 8A) { addr[k + 2] = path[k]; k++; }
+    addr[k + 2] = low;
+    int fd = linux(32, 1, 1, low);                 // a socket: local, a stream
+    if (fd < 1) { say("no socket\n"); return 1; }
+    if (linux(33, fd, &addr[1], k + 2) != low) { say("cannot reach %s\n", path); return 1; }
+    linux(low, fd, &reply[1], 1B2D);               // its greeting
+    qmp = reply[1] == '{';
+    if (qmp < 1) hear(fd);                         // the monitor: up to its first prompt
+    int i;
+    for (i = 3; i <= argc; i++) {
+        char *w = argv[i];
+        if (w[1] == 'w' && w[2] == 'a' && w[3] == 'i' && w[4] == 't' && w[5] == ':') {
+            int t = low, j = 6;
+            while (dval(w[j]) >= 1) { t = t * D + dval(w[j]); j++; }
+            rest(t);
+            continue;
+        }
+        send(fd, w);
+    }
+    linux(3, fd);
+    return 1;
+}
