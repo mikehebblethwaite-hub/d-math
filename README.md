@@ -267,7 +267,9 @@ opens any file (a new name starts a new one); Ctrl+F finds (Enter: the next, a g
 replaces them all. The terminal (the t tile or key): `help`,
 `version`, `mem`, `files`, `show NAME`, `sum 7 + 6`, `ask C v 4 ohm`, `echo`, `clear`, `notepad`, `off`. Everything it writes
 also goes down the serial line, and what is typed on the line comes in as keys: `lang/vm.delta SOCKET serial help mem`
-uses Delta Hex OS from outside, in Delta. Test machines boot from a real FAT32 image (`fat:rw:` misplaces writes).
+uses Delta Hex OS from outside, in Delta. Test machines boot from a real FAT32 image (`fat:rw:` misplaces writes). 0.12: `time`, `write NAME WORDS`, `del NAME`.
+0.13: `run NAME` loads a program from the drive and starts it through the firmware: `run lab.efi` is the lab room on the
+bare machine (`lang/window-efi.delta` gives programs the same window calls as on Linux: the OS's screen, keys, our USB mouse).
 
 **Dragonfly, the engineer's assistant** (Mike, 18 Nov 2026: "Dragonflys need building in Delta Hex OS"). Type two of
 volts, amps, ohms and watts, in D numerals with their units (`C v 4 ohm`, `5 amp B ohm`, `2B w 7 v`; add `6 s` for heat

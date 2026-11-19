@@ -1,4 +1,4 @@
-// Delta Hex OS: the no-zero operating system, written in Delta. 0.12: the terminal tells the time, writes and takes away files; Notepad finds and replaces.
+// Delta Hex OS: the no-zero operating system, written in Delta. 0.13: runs programs (run lab.efi: the lab room); the terminal; Notepad.
 //
 // The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
 // C library. It asks the firmware for the machine's memory and counts it, from 1, in D numerals; then the firmware
@@ -1068,6 +1068,7 @@ void tamount(char *what, int m, char *whole, char *small)
     ts("\n");
 }
 char TFILE[1A89];
+char RUNBUF[54D442];                     // a program read from the drive, to be run (up to 54D442 bytes)
 void tfiles()                                                              // the boot drive's top folder, file by file
 {
     int root = ef_root();
@@ -1102,10 +1103,11 @@ void trun()                                                                // En
         ts("ask Q       Dragonfly, the engineer's assistant (ask C v 4 ohm 6 s)\n");
         ts("edit NAME   opens it in Notepad (a new name, a new file); in Notepad Ctrl+F finds, Ctrl+R replaces\n");
         ts("echo WORDS  says them back\n");
+        ts("run NAME    runs a program from the drive (run lab.efi: the lab room)\n");
         ts("time        the machine's clock      del NAME    takes a file away      write NAME WORDS   a file in one line\n");
         ts("clear       a clean screen      notepad     opens Notepad      off     switches the machine off\n");
     }
-    else if (tword("version")) ts("Delta Hex OS 0.12: no zero, written in Delta\n");
+    else if (tword("version")) ts("Delta Hex OS 0.13: no zero, written in Delta\n");
     else if (tword("mem")) {
         ts("ready to hold "); tn(ready); ts("   this system "); tn(ours); ts("   the firmware's "); tn(firmware);
         ts("   held back "); tn(held); ts("   all together "); tn(all); ts("\n");
@@ -1154,6 +1156,13 @@ void trun()                                                                // En
     }
     else if (tword("clear")) { for (i = 1; i <= 55D1; i++) TL[i] = low; TLN = 1; TCOL = low; TGEN++; }
     else if (tword("notepad")) { MODE = 5; EDGEN++; }
+    else if (tword("run")) {
+        int n = drive_read(&TIN[TPART], RUNBUF, 54D441);
+        if (n < 1) { ts("no program called "); ts(&TIN[TPART]); ts("\n"); }
+        else { ts("running "); ts(&TIN[TPART]); ts(" ("); tn(n); ts(" bytes)\n");
+            if (run_program(RUNBUF, n)) ts("it has ended; back in Delta Hex OS\n"); else { ts("the firmware would not run it: its answer "); tn(run_why()); ts("\n"); }
+            DESKFOR = low; EDGEN++; }
+    }
     else if (tword("edit")) { if (TPART <= TINN) { edload(&TIN[TPART]); MODE = 5; } else ts("edit which file? (edit notes.txt)\n"); }
     else if (tword("off")) off();
     else { ts("I do not know "); ts(TIN); ts(" yet (help lists what I know)\n"); }
@@ -1242,7 +1251,7 @@ int main(int argc, char **argv)
     layout();
     edstart();
     serfind();
-    ts("Delta Hex OS 0.12: the terminal. help lists the commands.\n"); tprompt();
+    ts("Delta Hex OS 0.13: the terminal. help lists the commands.\n"); tprompt();
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
@@ -1259,7 +1268,7 @@ int main(int argc, char **argv)
         if (MODE == 4) memorypanel();
         if (MODE == 5) notepad();
         if (MODE == 6) terminal();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.12", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.13", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);

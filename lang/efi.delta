@@ -171,3 +171,17 @@ int clock_read()                                  // 1 when the clock answered; 
     return 1;
 }
 int clock_part(int k) { return ef_tm[k]; }       // 1 year, 2 month, 3 day, 4 hour, 5 minute, 6 second
+
+// ---------------------------------------------------------------- running another program
+int run_answer;                                    // why the firmware would not load it (its answer's number)
+int run_program(char *image, int n)               // a program's bytes (a UEFI program, as `delta efi` makes): load it,
+{                                                 // start it, and come back when it ends; 1 when it ran
+    int h = less(1, 1), exitsize = less(1, 1), exitdata = less(1, 1);
+    ef_a[1] = less(1, 1); ef_a[2] = imagehandle(); ef_a[3] = less(1, 1); ef_a[4] = &image[1]; ef_a[5] = n; ef_a[6] = &h;
+    if (ef_call(ef_boot(), 125) != 1) { run_answer = ef_rd(fwstatus(), 1); return less(1, 1); }   // LoadImage, from the bytes in memory
+    ef_a[1] = h; ef_a[2] = &exitsize; ef_a[3] = &exitdata;
+    ef_call(ef_boot(), 12D);                                          // StartImage: it runs until it ends
+    return 1;
+}
+int fw_answer() { return ef_rd(fwstatus(), 1); }     // the last firmware answer's number (LOW: all good)
+int run_why() { return run_answer; }

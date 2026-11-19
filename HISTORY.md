@@ -10,6 +10,8 @@ which wrote the code. Times are UK time. This page keeps who chose what, and why
 - **19 Nov 2026, ~01:00: Delta compiled a new version of Delta.** The compiler, written in Delta, gained `#include` (for
   the lab room's objects); the old Delta built the new one, the new one built itself, and the two were byte for byte the
   same (the fixed point held). The first new version of Delta made by Delta, with all 95 tests passing.
+- **19 Nov 2026, ~04:15: Delta Hex OS ran its first program.** From the terminal, `run lab.efi`: the lab room (the same
+  Delta source as in the Linux window, built with `delta efi`), with the candle burning; Esc ended it and the OS carried on.
 - **19 Nov 2026, ~01:48: Claude used Delta Hex OS from outside.** Through the terminal on the machine's serial line,
   driven by a Delta program (`lang/vm.delta`): help, mem, files, sum, ask and show, answered in D numerals.
 

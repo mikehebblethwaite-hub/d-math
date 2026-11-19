@@ -1,0 +1,107 @@
+// window-efi.delta: Delta's window on the machine itself (Delta Hex OS, under the firmware). The same calls as the X11
+// window (window.delta), so a program built with `delta efi` runs on the bare machine unchanged:
+//   window_open(title), window_wide(), window_high(), window_show(pixels), window_key(), window_held(k),
+//   window_mouse_x(), window_mouse_y(), window_buttons(), window_wheel_up(), window_wheel_down()
+// Keys are given as the X11 display numbers them (W is 1C, Esc 9, the arrows 87 8C 89 8A), so programs
+// need not know where they run. The firmware tells of a key going down, never of one coming up: a key counts as held
+// while its repeats keep coming (a few pictures after the last one). The mouse is our own USB driver (as in the OS).
+
+int dl_wW, dl_wH, dl_wfb, dl_wrow, dl_wtick, dl_wkey;
+int dl_wseen[16D];               // the picture after which each key no longer counts as held
+int dl_wmx, dl_wmy, dl_wbl, dl_wbm, dl_wbr, dl_wup, dl_wdown;
+int dl_wusb, dl_wep, dl_wmax, dl_wkind;
+char dl_wusbg[13];
+int dl_wa[6];
+
+void dl_wfindmouse()
+{
+    ef_guid("2B2F68D6-0CD2-44CF-8E8B-BBA20B1B5B75", dl_wusbg);          // the firmware's "USB device" door
+    int bs = ef_boot(), count = less(1, 1), buf = less(1, 1), i;
+    dl_wa[1] = 2; dl_wa[2] = &dl_wusbg[1]; dl_wa[3] = less(1, 1); dl_wa[4] = &count; dl_wa[5] = &buf;
+    if (fwcall(ef_rd(bs + 1AD, 8), &dl_wa[1]) != 1) return;           // every USB device
+    for (i = 1; i <= count; i++) {
+        int h = ef_rd(buf + less(i, 1) * 8, 8), io = less(1, 1);
+        dl_wa[1] = h; dl_wa[2] = &dl_wusbg[1]; dl_wa[3] = &io;
+        if (fwcall(ef_rd(bs + $B9, 8), &dl_wa[1]) != 1) continue;
+        char desc[13];
+        dl_wa[1] = io; dl_wa[2] = &desc[1];
+        if (fwcall(ef_rd(io + 4C, 8), &dl_wa[1]) != 1) continue;     // what kind of device it says it is
+        if (desc[6] != 3 || desc[8] == 1) continue;                      // a pointer: class 3, not a keyboard
+        char ep[13];
+        dl_wa[1] = io; dl_wa[2] = less(1, 1); dl_wa[3] = &ep[1];
+        if (fwcall(ef_rd(io + 57, 8), &dl_wa[1]) != 1) continue;     // where its reports come from
+        dl_wusb = io; dl_wep = ep[3]; dl_wmax = ep[5] + ep[6] * 169;
+        dl_wkind = desc[7] == 1 && desc[8] == 2 ? 1 : 2;                // a boot mouse moves; a tablet places
+        return;
+    }
+}
+void dl_wmouse()
+{
+    if (dl_wusb < 1) return;
+    char data[78];
+    int len = lower(dl_wmax, 77), st = less(1, 1);
+    dl_wa[1] = dl_wusb; dl_wa[2] = dl_wep; dl_wa[3] = &data[1]; dl_wa[4] = &len; dl_wa[5] = 1; dl_wa[6] = &st;
+    if (fwcall(ef_rd(dl_wusb + 1B, 8), &dl_wa[1]) != 1) return;       // a report, if one came within a thousandth
+    int b = data[1];
+    dl_wbl = b % 2; dl_wbr = b / 2 % 2; dl_wbm = b / 4 % 2;
+    if (dl_wkind == 1) {
+        int dx = data[2], dy = data[3];
+        if (dx > 9A) { int a = less(169, dx); dl_wmx = dl_wmx > a ? less(dl_wmx, a) : 1; } else dl_wmx = lower(dl_wmx + dx, dl_wW);
+        if (dy > 9A) { int a = less(169, dy); dl_wmy = dl_wmy > a ? less(dl_wmy, a) : 1; } else dl_wmy = lower(dl_wmy + dy, dl_wH);
+        int w = data[4]; if (w >= 1 && w <= 9A) dl_wup++; if (w > 9A) dl_wdown++;
+    } else {
+        dl_wmx = (data[2] + data[3] * 169) * dl_wW / 11BB8 + 1;
+        dl_wmy = (data[4] + data[5] * 169) * dl_wH / 11BB8 + 1;
+        int w = len >= 6 ? data[6] : less(1, 1);
+        if (w >= 1 && w <= 9A) dl_wup++; if (w > 9A) dl_wdown++;
+    }
+}
+int dl_wx11(int k)                       // a firmware key as the X11 display numbers it
+{
+    char *row1 = "qwertyuiop", *row2 = "asdfghjkl", *row3 = "zxcvbnm";
+    int i;
+    if (k >= 'A' && k <= 'Z') k = k + 26;
+    for (i = 1; row1[i] >= 1; i++) if (k == row1[i]) return 1A + i;     // q is 24
+    for (i = 1; row2[i] >= 1; i++) if (k == row2[i]) return 2B + i;     // a is 38
+    for (i = 1; row3[i] >= 1; i++) if (k == row3[i]) return 3C + i;     // z is 52
+    if (k == 26) return 4D;
+    if (k == $D) return 2A;
+    if (k == 5D9) return 9;                                             // Esc
+    if (k == 5BD) return 87; if (k == 5C1) return 8C;    // up, down
+    if (k == 5C2) return 8A; if (k == 5C3) return 89;    // right, left
+    return less(1, 1);
+}
+void dl_wpump()
+{
+    int k = key();
+    while (k >= 1) {
+        int x = dl_wx11(k);
+        if (x >= 1) { dl_wkey = x; dl_wseen[x] = dl_wtick + 4; }
+        k = key();
+    }
+    dl_wmouse();
+}
+void window_open(char *title)
+{
+    connectall();
+    dl_wfb = screen();
+    dl_wW = screenx(); dl_wH = screeny(); dl_wrow = screenrow() * 4;
+    dl_wmx = dl_wW / 2; dl_wmy = dl_wH / 2;
+    dl_wfindmouse();
+}
+int window_wide() { return dl_wW; }
+int window_high() { return dl_wH; }
+void window_show(char *pixels)
+{
+    char *fb = (char *) dl_wfb;
+    int y;
+    for (y = 1; y <= dl_wH; y++) copy(&fb[less(y, 1) * dl_wrow + 1], &pixels[less(y, 1) * dl_wW * 4 + 1], dl_wW * 4);
+    dl_wtick++;
+}
+int window_key() { dl_wpump(); int k = dl_wkey; dl_wkey = less(1, 1); return k; }
+int window_held(int k) { dl_wpump(); return dl_wseen[k] > dl_wtick; }
+int window_mouse_x() { dl_wpump(); return dl_wmx; }
+int window_mouse_y() { dl_wpump(); return dl_wmy; }
+int window_buttons() { dl_wpump(); return dl_wbl + dl_wbm * 2 + dl_wbr * 4; }
+int window_wheel_up() { int n = dl_wup; dl_wup = less(1, 1); return n; }
+int window_wheel_down() { int n = dl_wdown; dl_wdown = less(1, 1); return n; }

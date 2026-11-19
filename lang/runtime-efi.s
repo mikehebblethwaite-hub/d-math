@@ -29,6 +29,9 @@ f_screenwide:
 f_screenhigh:
     mov eax, 25
     ret
+f_fwstatus:                     # fwstatus(): where the last firmware answer is kept (its low byte is its number)
+    lea rax, [rip+dl_fwstat]
+    ret
 f_imagehandle:                  # imagehandle(): the firmware's handle for this program (its drive is found from it)
     mov rax, [rip+dl_image]
     ret
@@ -49,6 +52,7 @@ f_fwcall:                       # fwcall(fn, args): call a firmware function in 
     mov r8, [rsi+16]
     mov r9, [rsi+24]
     call rdi
+    mov [rip+dl_fwstat], rax    # the firmware's own answer, kept: fwstatus() says where
     mov rsp, rbp
     pop rbp
     test rax, rax
@@ -140,6 +144,7 @@ dl_putd:                        # rdi = number -> D numeral; below 1 shows as ~
 dl_fd:     .quad 1
 dl_unknown: .quad LOW
 dl_image:  .quad LOW
+dl_fwstat:  .quad LOW
 dl_system: .quad LOW
 dl_stack:  .quad LOW
 dl_digits: .ascii "123456789ABCD"
