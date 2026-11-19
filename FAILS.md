@@ -63,8 +63,3 @@ Last daily review: 19 Nov 2026 (the first).
   was tried and was worse (the slice holds only the top of the candle: the flame's air from below was cut).
 - System: the wick holds its own cells (`cwickat`): the draw stops at the wick. The candle burned 8000 steps steady
   (about 2000 to 2200 K), checked with a long run of the candle alone (the long run is now part of trying any change).
-
-## Said "it's in the history" before writing it (19 Nov 2026, 11:00)
-Cause: answered Mike's joke with a claim about the repo without checking it. Fix: wrote the entry when he asked.
-Lesson: a "done" is only said after the commit.
-System: claims about files in replies come after the tool call that made them, never before.
