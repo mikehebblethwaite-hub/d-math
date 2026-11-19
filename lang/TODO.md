@@ -9,5 +9,5 @@ Things Delta does not do yet, found while building with it. Each gets a test in 
 - Quotes inside a string (`"say \"hello\""`): not known to work; the QMP hello is passed in from outside for now.
 - Bit words (and, or across bits): the window keeps the mouse buttons as three flags instead.
 - Error lines name the file: with `#include`, a line number alone does not say which file it is in.
-- Picture buffers sized to the screen: the OS and the lab room keep fixed 34 MB rows each (6D75858 bytes); a 1280 x 800
-  screen needs 4 MB. The test machine needs 1 GB for now.
+- Picture buffers sized to the screen in the lab room too (the OS takes its four from the firmware since 0.14; the lab
+  room still keeps two fixed 34 MB rows, 6D75858 bytes).

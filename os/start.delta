@@ -1,4 +1,4 @@
-// Delta Hex OS: the no-zero operating system, written in Delta. 0.13: runs programs (run lab.efi: the lab room); the terminal; Notepad.
+// Delta Hex OS: the no-zero operating system, written in Delta. 0.14: pictures as big as the screen (from the firmware); runs programs.
 //
 // The machine's own firmware (UEFI) starts this program in 64-bit mode, with nothing underneath it: no Linux, no
 // C library. It asks the firmware for the machine's memory and counts it, from 1, in D numerals; then the firmware
@@ -18,9 +18,9 @@
 #define MID 365B
 
 int W, H, CW;
-char px[6D75858];               // the picture, kept here, then put on the screen in one go
-char bg[6D75858];               // the background, made once
-char desk[6D75858];             // the desktop's tiles, drawn again only when the picked tile changes
+char *px;                       // the picture, kept here, then put on the screen in one go (as big as the screen)
+char *bg;                       // the background, made once
+char *desk;                     // the desktop's tiles, drawn again only when the picked tile changes
 char wc[19B7BB2];               // where ink lies, and how thick
 int Cr[75];
 int S[75];
@@ -49,7 +49,7 @@ int ECUR = 1;                       // where the next letter goes (1: before the
 int ETOP = 1;                       // the first line shown
 int EDGEN = 1, EDSHOWN;             // the text's state: changed (EDGEN moves on), and which state the page shows
 int ESAVED = 1;                     // 1: nothing typed since it was saved (or begun)
-char edl[6D75858];                  // the page, kept while nothing changes
+char *edl;                      // the Notepad page, kept while nothing changes
 #define EROW 1B                 // a line's height in pixels
 #define ETOPY 93                // where the text starts down the screen
 #define EGUT 5D                 // the line numbers' column
@@ -1107,7 +1107,7 @@ void trun()                                                                // En
         ts("time        the machine's clock      del NAME    takes a file away      write NAME WORDS   a file in one line\n");
         ts("clear       a clean screen      notepad     opens Notepad      off     switches the machine off\n");
     }
-    else if (tword("version")) ts("Delta Hex OS 0.13: no zero, written in Delta\n");
+    else if (tword("version")) ts("Delta Hex OS 0.14: no zero, written in Delta\n");
     else if (tword("mem")) {
         ts("ready to hold "); tn(ready); ts("   this system "); tn(ours); ts("   the firmware's "); tn(firmware);
         ts("   held back "); tn(held); ts("   all together "); tn(all); ts("\n");
@@ -1243,6 +1243,9 @@ int main(int argc, char **argv)
     if (got < 1) { say("  the firmware gave no screen\n"); stop(1); }
     char *fb = (char *) got;
     W = screenx(); H = screeny(); CW = W * 4;
+    int psize = (W * H + W * 2 + 8) * 4;                           // a picture as big as the screen, and a little over
+    px = (char *) fw_alloc(psize); bg = (char *) fw_alloc(psize); desk = (char *) fw_alloc(psize); edl = (char *) fw_alloc(psize);
+    if (px < 1 || bg < 1 || desk < 1 || edl < 1) { say("  the firmware had no room for the pictures\n"); stop(1); }
     int rowb = screenrow() * 4;
     ix1 = W; ix2 = 1; iy1 = H; iy2 = 1;
     MX = W / 2; MY = H / 2;
@@ -1251,7 +1254,7 @@ int main(int argc, char **argv)
     layout();
     edstart();
     serfind();
-    ts("Delta Hex OS 0.13: the terminal. help lists the commands.\n"); tprompt();
+    ts("Delta Hex OS 0.14: the terminal. help lists the commands.\n"); tprompt();
     FR = 1;
     while (1) {
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
@@ -1268,7 +1271,7 @@ int main(int argc, char **argv)
         if (MODE == 4) memorypanel();
         if (MODE == 5) notepad();
         if (MODE == 6) terminal();
-        tx = 1B; ty = 1B; text("Delta Hex OS 0.13", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
+        tx = 1B; ty = 1B; text("Delta Hex OS 0.14", $B8, $B8, $BB); text("   no zero, written in Delta", 93, 99, $A8);
         if (mx >= 1) pointer(mx, my);
         int y;
         for (y = 1; y <= H; y++) copy(&fb[less(y, 1) * rowb + 1], &px[at(1, y)], CW);

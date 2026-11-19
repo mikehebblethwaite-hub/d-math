@@ -185,3 +185,10 @@ int run_program(char *image, int n)               // a program's bytes (a UEFI p
 }
 int fw_answer() { return ef_rd(fwstatus(), 1); }     // the last firmware answer's number (LOW: all good)
 int run_why() { return run_answer; }
+int fw_alloc(int bytes)                           // a piece of the machine's memory from the firmware: its place (LOW: none)
+{
+    int p = less(1, 1);
+    ef_a[1] = 2; ef_a[2] = bytes; ef_a[3] = &p;    // 2: memory for this program's own data
+    if (ef_call(ef_boot(), 4C) != 1) return less(1, 1);    // AllocatePool (at 4C)
+    return p;
+}
