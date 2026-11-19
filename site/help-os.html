@@ -19,10 +19,11 @@
     <ol class="steps">
       <li>Make a folder for its drive: <code>mkdir -p esp/EFI/BOOT</code></li>
       <li>Put <a href="files/BOOTX64.EFI">BOOTX64.EFI</a> in <code>esp/EFI/BOOT/</code></li>
-      <li>Start it: <code>qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -drive format=raw,file=fat:rw:esp -m 256 -net none -device qemu-xhci -device usb-tablet</code></li>
+      <li>Start it: <code>qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -drive format=raw,file=fat:rw:esp -m 1024 -net none -device qemu-xhci -device usb-tablet</code></li>
       <li>The desktop is seven hex tiles. Arrows or Tab move, Enter or a click opens a tile, Esc comes back.</li>
       <li><strong>Dragonfly</strong>, the engineer&rsquo;s assistant: type two of volts, amps, ohms and watts, like <code>C v 4 ohm 6 s</code>, then Enter.</li>
       <li><strong>Say</strong>: a D numeral, or a sum like <code>7 + 6</code>, then Enter.</li>
+      <li><strong>Terminal</strong> (the t key): <code>help</code> lists the commands. Put <a href="files/lab.efi">lab.efi</a> next to the EFI folder and <code>run lab.efi</code> opens the lab room.</li>
       <li>Switch it off with the Off tile, or Esc on the desktop. If the window keeps hold of your mouse, Ctrl+Alt+G lets it go.</li>
     </ol>
     <p>To build it yourself from the source: <code>lang/delta efi os/start.delta -o esp/EFI/BOOT/BOOTX64.EFI</code>.
