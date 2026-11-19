@@ -6,7 +6,11 @@ int rest[271A];              // the rest of the air (nitrogen, and the burnt gas
 #define REST 39               // a still cell: oxygen OX and the rest REST: its room is full
 int lift[271A];              // how much push upward a parcel has built (not energy: its warmth against the cooler air above)
 int RISE = 156;
-int AMB = 17, OX = $C, IGN = 48, BURN = 31, VAPOUR = 36, LIFT = 2, LATENT = 3, SOOT = $A;
+// Heat in units where still air (AMB) is 293 K and a cell's heat goes as its temperature. Burning, by Thornton's rule
+// (nearly every fuel gives about 435 kJ for each mole of oxygen it burns with): one unit of oxygen burned warms its cell
+// of 60 units of gas about 213 K, 11 units (BURN). Boiling wax takes little beside that (LATENT 1); soot carries a
+// quarter of the burning's energy away unburnt (SOOT). Wax boils near 660 K (VAPOUR) and its vapour lights near 880 K.
+int AMB = 17, OX = $C, IGN = 48, BURN = 11, VAPOUR = 36, LIFT = 2, LATENT = 1, SOOT = 3;
 int EV;                         // what a unit of vapour holds: its burning, and the heat it took to boil off the wick
 int wax;                        // the candle's wax still solid (units of fuel)
 int burned, sooted;             // units burned; units of soot made
@@ -145,7 +149,12 @@ void cburn()
     }
 }
 
-#define WICKFLOW 3                       // the melted wax a wick's threads lift to each of its cells a step (capillary)
+// The wick's threads lift melted wax (capillary). How much, from a real candle: it burns about 0.1 g of wax a minute.
+// One unit of vapour is the wax that burns with one unit of oxygen: in a 2.4 mm cell (60 units of gas, about 5.8e-7 mol)
+// that is about 9e-8 g of wax (wax burns 38 oxygen molecules for each of its own). A step is about 3.6 ms (hot air passes
+// heat on at about 2e-4 m²/s, and here 1 part in 12 a step to each of 6 neighbours). So the wick lifts about 68 units a
+// step: 1A to each of its 3 cells.
+#define WICKFLOW 1A
 int wh[4];                      // the wick's own heat: it is solid, it does not rise
 void cwick()
 {
