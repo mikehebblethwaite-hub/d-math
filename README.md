@@ -242,7 +242,9 @@ turn the assembly text into the program file.
   glasses of 1821 (`objects/faraday.delta`), the first electric motor at its real size: the wire circling the fixed magnet,
   the free magnet circling the rod, the current blue, the pile's energy shared by resistance and all ending as heat in
   the room's air, its book balanced every step. Things draw with `lab_column`, `lab_tube`, `lab_box`, `lab_glow`, `lab_haze`,
-  `lab_colour` and `lab_alpha` (see-through). `paper/images/lab-faraday.png`.
+  `lab_colour` and `lab_alpha` (see-through). `paper/images/lab-faraday.png`. Third and fourth: the wind tunnel
+  (`objects/tunnel.delta`, the vortex street live) and the wave tank (`objects/tank.delta`: waves move the air, a real
+  buoy reading from `waves.csv` beside the lab if there is one; `window_readfile` reads it on Linux and on the bare machine).
 - Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come). The list of what Delta does not do
   yet: `lang/TODO.md`.
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).

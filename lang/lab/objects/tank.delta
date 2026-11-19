@@ -1,0 +1,199 @@
+// The wave tank, as a thing in the lab room: waves move the air (lang/examples/waves-air.delta, live). A wave-maker at
+// the left makes waves of a real sea's height and period; they run along the surface by the neighbour rule and die on a
+// beach at the right. The air above is hex cells holding a count of air; where the water rises into a cell it has less
+// room, and air only moves from a more crowded cell to a less crowded one. Where the air moves most it glows.
+// The sea: one reading from a buoy file called waves.csv beside the lab (Cefas WaveNet, Open Government Licence: the
+// data is not in the repository), or, with no file, a plain sea of waves 1 m high every 5 seconds.
+
+#define WGW 93                // columns: a wavelength and a half of sea
+#define WGH 48                 // rows from the tank floor to its lid
+#define WSEA $C                // the still water's level, in rows from the floor
+#define WFULL 2A9379          // the air a full cell holds at the room's pressure (fine enough that small flows still count)
+#define WBEACH 24              // the last columns: a beach where the waves give up their energy
+#define WDT 26                 // wsteps a second
+int wlev[$D1], wvel[$D1];   // the surface: its level (WLEVEL + displacement) in 256ths of a row, and how it moves (WVMID + way)
+#define WLEVEL 28D221
+#define WVMID 28D221
+int wair[5BBD];             // air in each cell
+int wfxr[5BBD], wfxl[5BBD], wfyu[5BBD], wfyd[5BBD];   // air moved this wperiod: right, left, up, down
+int wspd[5BBD];             // how much air passed through each cell over the last wperiod (its speed, summed)
+int wrm[5BBD];              // each cell's room this step
+int WPULL;                       // the surface's pull, in thousandths: how fast the waves run
+int wmpc;                        // thousandths of a metre to a cell, set by the sea
+int wsteps, wperiod;
+int wamp, wwavelen;               // the wave-maker's half-height (256ths of a row), the measured wavelength (columns)
+int whm, wtp, wtemp;               // the reading: wave height and wperiod in thousandths, sea temperature in thousandths
+int wtotal;
+int wat(int x, int y) { return less(y, 1) * WGW + x; }
+int wmilli(char *s, int *p)          // a decimal number like 2.14 at s[*p] -> 2140 (thousandths); moves *p past it
+{
+    int v = low, f = low, places = low, k = *p;
+    while (s[k] == ' ') k++;
+    while (s[k] >= '0' && s[k] <= '9') { v = v * $A + less(s[k], '0'); k++; }
+    if (s[k] == '.') { k++; while (s[k] >= '0' && s[k] <= '9') { if (places < 3) { f = f * $A + less(s[k], '0'); places++; } k++; } }
+    while (places < 3) { f = f * $A; places++; }
+    *p = k;
+    return v * 5BC + f;
+}
+int wskipfield(char *s, int k) { while (s[k] >= 1 && s[k] != ',' && s[k] != '\n') k++; if (s[k] == ',') k++; return k; }
+void wwavemaker(int s)
+{
+    int place = (s * 75 / wperiod) % 75 + 1;         // the paddle goes round the hex circle once a wperiod
+    int up = sink(place) >= K;
+    int d = apart(sink(place), K) * wamp / K;
+    wlev[1] = up ? WLEVEL + d : less(WLEVEL, d);
+}
+void wsurface()
+{
+    int x;
+    for (x = 2; x < WGW; x++) {                            // pulled toward its two neighbours' level
+        int two = wlev[x] * 2, nb = wlev[less(x, 1)] + wlev[x + 1];
+        if (nb >= two) wvel[x] = wvel[x] + less(nb, two) * WPULL / 5BC; else wvel[x] = less(wvel[x], less(two, nb) * WPULL / 5BC);
+    }
+    for (x = less(WGW, WBEACH) + 1; x < WGW; x++) {          // the beach: the moving slows, a little more each column in
+        int calm = less(x, less(WGW, WBEACH)) * 2;          // up to 1 part in 62 a step (the beach takes the energy)
+        if (wvel[x] >= WVMID) wvel[x] = less(wvel[x], less(wvel[x], WVMID) * calm / 5BC);
+        else wvel[x] = wvel[x] + less(WVMID, wvel[x]) * calm / 5BC;
+    }
+    for (x = 2; x < WGW; x++) {
+        if (wvel[x] >= WVMID) wlev[x] = wlev[x] + less(wvel[x], WVMID); else wlev[x] = less(wlev[x], less(WVMID, wvel[x]));
+    }
+    wlev[WGW] = wlev[less(WGW, 1)];
+}
+int wseatop(int x)                     // the water's height in the column, in 256ths of a row above the box floor
+{
+    int base = WSEA * 169;
+    if (wlev[x] >= WLEVEL) return base + less(wlev[x], WLEVEL);
+    return less(base, less(WLEVEL, wlev[x]));
+}
+int wroom(int x, int y)                // how much air the cell can hold at the room's pressure (WFULL when no water is in it)
+{
+    int bottom = less(WGH, y) * 169, top = bottom + 169, w = wseatop(x);
+    if (w <= bottom) return WFULL;
+    if (w >= top) return low;
+    return less(top, w) * WFULL / 169;
+}
+
+// ---------------------------------------------------------------- the air: from more crowded to less crowded, only
+void wshare(int i, int ri, int j, int rj, int dir)       // dir: 1 j is to the right, 2 down-left, 3 down-right
+{
+    if (ri < 1 && rj < 1) return;
+    int a = wair[i] * rj, b = wair[j] * ri;                // crowding compared: wair[i]/ri against wair[j]/rj
+    if (a == b) return;
+    int m;
+    if (a > b) {                                         // i is more crowded: some of its air goes to j
+        m = less(a, b) / (ri + rj) * 3 / 4; if (rj < 1) m = low; if (ri < 1) m = wair[i];
+        m = lower(m, less(wair[i], 1));
+        if (m < 1) return;
+        wair[i] = less(wair[i], m); wair[j] = wair[j] + m;
+        if (dir == 1) { wfxr[i] = wfxr[i] + m; wfxr[j] = wfxr[j] + m; }
+        else { wfyd[i] = wfyd[i] + m; wfyd[j] = wfyd[j] + m; if (dir == 2) { wfxl[i] = wfxl[i] + m / 2; wfxl[j] = wfxl[j] + m / 2; } else { wfxr[i] = wfxr[i] + m / 2; wfxr[j] = wfxr[j] + m / 2; } }
+    } else {
+        m = less(b, a) / (ri + rj) * 3 / 4; if (ri < 1) m = low; if (rj < 1) m = wair[j];
+        m = lower(m, less(wair[j], 1));
+        if (m < 1) return;
+        wair[j] = less(wair[j], m); wair[i] = wair[i] + m;
+        if (dir == 1) { wfxl[i] = wfxl[i] + m; wfxl[j] = wfxl[j] + m; }
+        else { wfyu[i] = wfyu[i] + m; wfyu[j] = wfyu[j] + m; if (dir == 2) { wfxr[i] = wfxr[i] + m / 2; wfxr[j] = wfxr[j] + m / 2; } else { wfxl[i] = wfxl[i] + m / 2; wfxl[j] = wfxl[j] + m / 2; } }
+    }
+}
+int wdownleft(int x, int y) { if (y % 2) return x; return less(x, 1); }
+void wairstep()
+{
+    int sweep, x, y;
+    for (y = 1; y <= WGH; y++) for (x = 1; x <= WGW; x++) wrm[wat(x, y)] = wroom(x, y);
+    for (sweep = 1; sweep <= $C; sweep++)             // pressure travels far faster than water: many sweeps a step
+    for (y = 1; y <= WGH; y++) for (x = 1; x <= WGW; x++) {
+        int i = wat(x, y), ri = wrm[i];
+        if (x < WGW) wshare(i, ri, wat(x + 1, y), wrm[wat(x + 1, y)], 1);
+        if (y < WGH) {
+            int dl = wdownleft(x, y);
+            if (dl >= 1) wshare(i, ri, wat(dl, y + 1), wrm[wat(dl, y + 1)], 2);
+            if (dl + 1 <= WGW) wshare(i, ri, wat(dl + 1, y + 1), wrm[wat(dl + 1, y + 1)], 3);
+        }
+    }
+}
+
+// ---------------------------------------------------------------- the picture
+
+
+char WBUF[213D5];
+int WREAD;                                  // 1 when the sea is a real reading
+void tank_start()
+{
+    whm = 5BC; wtp = 2378; wtemp = low; WREAD = low;
+    int n = window_readfile("waves.csv", WBUF, 213C8);
+    if (n >= 1) {
+        WBUF[n + 1] = low;
+        int k = 1;
+        while (WBUF[k] >= 1 && WBUF[k] != $A) k++;                  // the header line
+        while (WBUF[k] == $A) k++;
+        k = wskipfield(WBUF, k);                                         // the time
+        int h = wmilli(WBUF, &k); k = wskipfield(WBUF, k);
+        int t = wmilli(WBUF, &k); k = wskipfield(WBUF, k);
+        int p = wmilli(WBUF, &k);
+        if (h >= 1 && p >= 1) { whm = h; wtemp = t; wtp = p; WREAD = 1; }
+    }
+    wmpc = higher(1, wtp / $A * (wtp / $A) / 2D6);            // the tank fits the sea (as waves-air.delta)
+    wamp = whm * 9B / wmpc;
+    wperiod = $BC; WPULL = 176;
+    int x, y, i;
+    for (x = 1; x <= WGW; x++) { wlev[x] = WLEVEL; wvel[x] = WVMID; }
+    for (y = 1; y <= WGH; y++) for (x = 1; x <= WGW; x++) wair[wat(x, y)] = wroom(x, y);
+    wtotal = low; for (i = 1; i <= WGW * WGH; i++) wtotal = wtotal + wair[i];
+}
+int WBAD;
+void tank_steps(int n)
+{
+    int k, i;
+    for (k = 1; k <= n; k++) {
+        wsteps++;
+        wwavemaker(wsteps); wsurface(); wairstep();
+        if (wsteps % wperiod < 1) {                                       // a period's flow, kept as each cell's speed
+            for (i = 1; i <= WGW * WGH; i++) { wspd[i] = wfxr[i] + wfxl[i] + wfyu[i] + wfyd[i]; wfxr[i] = low; wfxl[i] = low; wfyu[i] = low; wfyd[i] = low; }
+            int t = low; for (i = 1; i <= WGW * WGH; i++) t = t + wair[i];
+            if (t != wtotal && WBAD < 1) WBAD = wsteps;
+        }
+    }
+}
+#define WCELL 15                        // a cell in the room: about a quarter of an inch, so the tank is 34 inches long
+void tank_draw(int x, int z)
+{
+    int x1 = less(x, WGW * WCELL / 2), y1 = 1B, depth = $C4, col, row;
+    lab_alpha(156); lab_colour(86, 3D, 28);
+    lab_box(x1, less(z, depth), x1 + WGW * WCELL, z + depth, 1, y1);                 // its base
+    int most = 1, i;
+    for (i = 1; i <= WGW * WGH; i++) most = higher(most, wspd[i]);
+    for (row = 1; row <= WGH; row = row + 2) for (col = 1; col <= less(WGW, WBEACH); col = col + 2) {   // the moving air
+        int c = wat(col, row), s = wspd[c] * 168 / most;
+        if (s < 24 || wroom(col, row) < 1) continue;
+        lab_colour(s, s * 9 / $A, s * 6 / $A);
+        lab_glow(x1 + col * WCELL, y1 + less(WGH, row) * WCELL * $D / 12, z, WCELL);
+    }
+    lab_alpha($B7); lab_colour(31, 86, $D1);            // the water: each column up to its surface
+    for (col = 1; col <= WGW; col = col + 2) {
+        int top = y1 + wseatop(col) * WCELL * $D / 12 / 169;
+        lab_box(x1 + less(col, 1) * WCELL, less(z, depth), x1 + (col + 1) * WCELL, z + depth, y1, top);
+    }
+    lab_alpha(6); lab_colour(125, 144, 151);                 // the glass round it
+    lab_box(x1, less(z, depth), x1 + WGW * WCELL, z + depth, y1, y1 + WGH * WCELL * $D / 12);
+    lab_alpha(149);
+}
+void tank_panel()
+{
+    lab_line("The wave tank: waves move the air (lang/lab/objects/tank.delta)");
+    if (WREAD) { lab_value("the sea: a buoy's waves, in thousandths of a metre high:", whm, ""); lab_value("every (thousandths of a second)", wtp, ""); lab_line("Contains data from Cefas WaveNet (Open Government Licence)"); }
+    else lab_line("the sea: plain waves 1 m high every 5 s (put a buoy file called waves.csv beside the lab for a real one)");
+    lab_value("steps run", wsteps, "");
+    lab_value("a cell is", wmpc, "thousandths of a metre of real sea");
+    if (WBAD < 1) lab_line("the air book balances: not a breath lost or made");
+    else lab_value("the air book went out at step", WBAD, "");
+}
+
+thing tank {
+    int x, z;
+    void start() { tank_start(); }
+    void step() { tank_steps(2); }
+    void draw() { tank_draw(x, z); }
+    void panel() { tank_panel(); }
+};

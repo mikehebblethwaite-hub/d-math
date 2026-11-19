@@ -4,28 +4,33 @@
 #include "objects/candle.delta"
 #include "objects/faraday.delta"
 #include "objects/tunnel.delta"
+#include "objects/tank.delta"
 
 thing candle candle1;                       // a candle ...
 thing faraday faraday1;                     // Faraday's two glasses ...
 thing tunnel tunnel1;                       // the wind tunnel ...
+thing tank tank1;                           // the wave tank ...
 
 void scene_start()
 {
     candle1.x = MID; candle1.z = MID; candle1.start();              // ... in the middle of the floor
     faraday1.x = MID + FOOT * 2; faraday1.z = MID; faraday1.start(); // ... two feet to its right
     tunnel1.x = less(MID, FOOT * 3); tunnel1.z = MID + FOOT; tunnel1.start();   // ... three feet to its left, a foot back
+    tank1.x = MID; tank1.z = MID + FOOT * 4; tank1.start();          // ... four feet behind the candle
 }
-void scene_step() { candle1.step(); faraday1.step(); tunnel1.step(); }
+void scene_step() { candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
 void scene_draw()
 {
     candle1.draw(); lab_mark(1, candle1.x, 1C1, candle1.z);
     faraday1.draw(); lab_mark(2, faraday1.x, 1C1, faraday1.z);
+    tank1.draw(); lab_mark(4, tank1.x, 1C1, tank1.z);
     tunnel1.draw(); lab_mark(3, tunnel1.x, 1C1, tunnel1.z);
 }
 void scene_panel(int sel)
 {
-    lab_line("in the room: 3 things (click one to see inside it)");
+    lab_line("in the room: 4 things (click one to see inside it)");
     if (sel == 1) candle1.panel();
     if (sel == 2) faraday1.panel();
     if (sel == 3) tunnel1.panel();
+    if (sel == 4) tank1.panel();
 }

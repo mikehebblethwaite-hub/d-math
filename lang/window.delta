@@ -226,3 +226,12 @@ void window_fullscreen()                     // full screen on, or off again (th
     dl_x4(2); dl_x4(full); dl_x4(dl_xlow); dl_x4(1); dl_x4(dl_xlow);                  // 2: change it over; full screen
     dl_xsend();
 }
+int window_readfile(char *name, char *into, int most)   // a file's bytes into the row from place 1; how many (LOW: none)
+{
+    int fd = linux(2, name, dl_xlow, dl_xlow);
+    if (fd < 1) return dl_xlow;
+    int n = dl_xlow, got = 1;
+    while (got >= 1 && n < most) { got = linux(dl_xlow, fd, &into[n + 1], dl_xless(most, n)); if (got >= 1) n = n + got; }
+    linux(3, fd);
+    return n;
+}
