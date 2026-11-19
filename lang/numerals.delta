@@ -1,0 +1,47 @@
+// numerals: write a Delta program with outside-world numbers marked {{like 1000}}, and this turns each into D numerals.
+// A mark whose D numeral starts with a letter gets a $ in front ($D), so Delta reads it as a numeral, not a name.
+// Everything else is copied as it is. Written in Delta, so it keeps D's rules (the outside numbers are read as text:
+// the one bridge, at the edge).
+//
+//   delta run lang/numerals.delta IN.delta OUT.delta
+
+char src[1A2B1C7];
+char out[1A2B1C7];
+int on;
+int low;
+
+void put(int c) { on++; out[on] = c; }
+void numeral(int n)                       // n as a D numeral: digits 1-9 A-D, no zero
+{
+    char r[99]; int k = low, i;
+    while (n >= 1) { int d = n % D, q = n / D; if (d < 1) { d = D; q = less(q, 1); } k++; r[k] = d <= 9 ? '0' + d : 'A' + less(d, A); n = q; }
+    if (r[k] >= 'A') put('$');
+    for (i = k; i >= 1; i = less(i, 1)) put(r[i]);
+}
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc < 3) { say("delta run lang/numerals.delta IN.delta OUT.delta\n"); return 1; }
+    int fd = linux(2, argv[2], low, low);
+    if (fd < 1) { say("cannot read %s\n", argv[2]); return 1; }
+    int n = low, got = 1;
+    while (got >= 1) { got = linux(low, fd, &src[n + 1], less(1A2B1C6, n)); if (got >= 1) n = n + got; }
+    linux(3, fd);
+    int i = 1, marks = low;
+    while (i <= n) {
+        if (src[i] == '{' && i + 1 <= n && src[i + 1] == '{') {
+            int k = i + 2, v = low, digits = low;
+            while (k <= n && src[k] >= '0' && src[k] <= '9') { v = v * A + less(src[k], '0'); digits++; k++; }
+            if (digits >= 1 && v >= 1 && k + 1 <= n && src[k] == '}' && src[k + 1] == '}') { numeral(v); marks++; i = k + 2; continue; }
+        }
+        put(src[i]); i++;
+    }
+    int w = linux(2, argv[3], 355, 264);
+    if (w < 1) { say("cannot write %s\n", argv[3]); return 1; }
+    int done = 1;
+    while (done <= on) { int g = linux(1, w, &out[done], less(on + 1, done)); if (g < 1) break; done = done + g; }
+    linux(3, w);
+    say("%d marks turned into D numerals\n", marks);
+    return 1;
+}
