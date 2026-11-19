@@ -222,6 +222,15 @@ turn the assembly text into the program file.
   the tunnel's walls squeeze the stream as real walls do; the cell touching the post reads low (half its neighbours are
   solid). Not yet: a wake and lift, which need the air's own push kept as it moves (the candle's lesson).
   `paper/images/windtunnel.png`.
+- **The Delta lab room** (`lang/lab/lab.delta`; Mike, 19 Nov 2026: "many objects will go in this lab room like unity or
+  unreal 3d; these objects can have code attached"). A room 20 feet each way, lit by a ceiling lamp, that things are put
+  in. The room is the engine and knows nothing of what is inside the things: each thing is a Delta `thing` with its own
+  code in its own file (`lang/lab/objects/`), and `lang/lab/scene.delta` says what is in the room and where, so adding a
+  thing never changes the room. Things draw with the room's words (`lab_column`, `lab_glow`, `lab_haze`, `lab_colour`)
+  and show what they hold in the room's panel (`lab_line`, `lab_value`). Walk round: W A S D, Q E down and up, the
+  arrows turn, drag to look, the wheel goes nearer, a click picks a thing, H hides the panel, Esc closes. The camera
+  turns by places on the hex circle (no sines), and the room is looked out to its walls pixel by pixel. First thing
+  in it: the candle (`objects/candle.delta`), running live, its energy book balanced every step.
 - Not yet: fractions (heat smaller than 1 per neighbour is `~` until fractions come). The list of what Delta does not do
   yet: `lang/TODO.md`.
 - Tests: `lang/tests/run.sh` (tricks refused, honest programs right).

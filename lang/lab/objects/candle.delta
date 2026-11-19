@@ -1,0 +1,245 @@
+#define CGW 49
+#define CGH 6D
+int hot[271A], oxy[271A], vap[271A], smoke[271A];
+int lift[271A];              // how much push upward a parcel has built (not energy: its warmth against the cooler air above)
+int RISE = 156;
+int AMB = 17, OX = $C, IGN = 48, BURN = 31, VAPOUR = 36, LIFT = 2, LATENT = 3, SOOT = $A;
+int EV;                         // what a unit of vapour holds: its burning, and the heat it took to boil off the wick
+int wax;                        // the candle's wax still solid (units of fuel)
+int burned, sooted;             // units burned; units of soot made
+int skyheat, skyox, skyvap, skysmoke;     // what the sky took (counted)
+int roomheatin, roomheatout, roomoxin, roomoxout, roomvapin;
+int shine;                      // heat sent to the room as shine (counted)   // what the room gave and took at the sides
+int bookstart;                      // the energy at the start: heat + vapour + wax, the vapour and wax counted as heat they hold
+int cell(int x, int y) { return less(y, 1) * CGW + x; }
+
+void hand(int *a, int *b, int n) { if (n >= 1) { *a = less(*a, n); *b = *b + n; } }   // n from a to b
+
+void cspreadpair(int i, int j)
+{
+    if (hot[i] > hot[j]) hand(&hot[i], &hot[j], less(hot[i], hot[j]) / $C); else hand(&hot[j], &hot[i], less(hot[j], hot[i]) / $C);
+    if (oxy[i] > oxy[j]) hand(&oxy[i], &oxy[j], less(oxy[i], oxy[j]) / 8); else hand(&oxy[j], &oxy[i], less(oxy[j], oxy[i]) / 8);
+    if (vap[i] > vap[j]) hand(&vap[i], &vap[j], less(vap[i], vap[j]) / 8); else hand(&vap[j], &vap[i], less(vap[j], vap[i]) / 8);
+    if (smoke[i] > smoke[j]) hand(&smoke[i], &smoke[j], less(smoke[i], smoke[j]) / 39); else hand(&smoke[j], &smoke[i], less(smoke[j], smoke[i]) / 39);
+}
+
+// the hex neighbours: on the same row one each side; on the row below, two (which two depends on the row)
+int cdownleft(int x, int y) { if (y % 2) return x; return less(x, 1); }
+
+void cspread()
+{
+    int x, y;
+    for (y = 1; y <= CGH; y++) for (x = 1; x <= CGW; x++) {
+        int i = cell(x, y);
+        if (x < CGW) cspreadpair(i, cell(x + 1, y));
+        if (y < CGH) {
+            int dl = cdownleft(x, y);
+            if (dl >= 1) cspreadpair(i, cell(dl, y + 1));
+            if (dl + 1 <= CGW) cspreadpair(i, cell(dl + 1, y + 1));
+        }
+    }
+    for (y = 1; y <= CGH; y++) {                    // the still room at each side: AMB heat, OX oxygen, always there
+        int e;
+        for (e = 1; e <= 2; e++) {
+            int i = e == 1 ? cell(1, y) : cell(CGW, y);
+            if (hot[i] > AMB) { int n = less(hot[i], AMB) / 8; hot[i] = less(hot[i], n); roomheatout = roomheatout + n; }
+            else { int n = less(AMB, hot[i]) / 8; hot[i] = hot[i] + n; roomheatin = roomheatin + n; }
+            if (oxy[i] < OX) { int n = less(OX, oxy[i]) / 2; oxy[i] = oxy[i] + n; roomoxin = roomoxin + n; }
+            else { int n = less(oxy[i], OX) / 2; oxy[i] = less(oxy[i], n); roomoxout = roomoxout + n; }
+        }
+    }
+}
+
+void cswap(int i, int j)
+{
+    int t = hot[i]; hot[i] = hot[j]; hot[j] = t;
+    t = oxy[i]; oxy[i] = oxy[j]; oxy[j] = t;
+    t = vap[i]; vap[i] = vap[j]; vap[j] = t;
+    t = smoke[i]; smoke[i] = smoke[j]; smoke[j] = t;
+    t = lift[i]; lift[i] = lift[j]; lift[j] = t;
+}
+
+void ccopycell(int d, int c) { hot[d] = hot[c]; oxy[d] = oxy[c]; vap[d] = vap[c]; smoke[d] = smoke[c]; lift[d] = lift[c]; }
+
+int cupfrom(int x, int y)                // of the two cells above (x, y), the cooler: its x (LOW when there is none)
+{
+    int ul = less(y, 1) % 2 ? less(x, 1) : x;
+    int up = ul;
+    if (ul + 1 <= CGW && (ul < 1 || hot[cell(ul + 1, less(y, 1))] < hot[cell(ul, less(y, 1))])) up = ul + 1;
+    if (up > CGW) return low;
+    return up;
+}
+
+int colx[79];
+void cclimb(int x, int y, int step)      // pressure: a parcel going up lifts the whole column above it; the sky takes the
+{                                        // top one; the room pushes air in along the row to fill the place it left
+    int n = 1, k, yy = y, cx = x;
+    colx[1] = x;
+    while (yy >= 2) { int u = cupfrom(cx, yy); if (u < 1) break; yy = less(yy, 1); cx = u; n++; colx[n] = cx; }
+    int t = cell(colx[n], less(y + 1, n));
+    skyheat = skyheat + hot[t]; skyox = skyox + oxy[t]; skyvap = skyvap + vap[t]; skysmoke = skysmoke + smoke[t];
+    for (k = n; k >= 2; k = less(k, 1)) ccopycell(cell(colx[k], less(y + 1, k)), cell(colx[less(k, 1)], less(y + 2, k)));   // row of k is y + 1 take k
+    int xx;
+    if (step % 2) { for (xx = x; xx >= 2; xx = less(xx, 1)) ccopycell(cell(xx, y), cell(less(xx, 1), y)); xx = 1; }
+    else { for (xx = x; xx < CGW; xx++) ccopycell(cell(xx, y), cell(xx + 1, y)); xx = CGW; }
+    int e = cell(xx, y);                                         // fresh room air comes in at the edge
+    hot[e] = AMB; oxy[e] = OX; vap[e] = 1; smoke[e] = 1; lift[e] = low;
+    roomheatin = roomheatin + AMB; roomoxin = roomoxin + OX; roomvapin = roomvapin + 1;
+}
+
+void crise(int step)
+{
+    int y, xx;
+    for (y = 1; y <= CGH; y++) for (xx = 1; xx <= CGW; xx++) {     // from the top down
+        int x = step % 2 ? xx : less(CGW + 1, xx);              // every other step from the other side: no lean
+        int i = cell(x, y);
+        if (y == 1) {                                          // above the top row is the open sky
+            if (hot[i] > AMB + LIFT) {
+                skyheat = skyheat + hot[i]; skyox = skyox + oxy[i]; skyvap = skyvap + vap[i]; skysmoke = skysmoke + smoke[i];
+                hot[i] = AMB; oxy[i] = OX; vap[i] = 1; smoke[i] = 1; lift[i] = low;   // fresh room air comes in behind it
+                roomheatin = roomheatin + AMB; roomoxin = roomoxin + OX; roomvapin = roomvapin + 1;
+            }
+            continue;
+        }
+        int up = cupfrom(x, y);
+        if (up < 1) continue;
+        int j = cell(up, less(y, 1));
+        if (hot[i] > AMB + LIFT && hot[i] > hot[j]) lift[i] = lift[i] + less(hot[i], AMB);   // the room's weight pushes it up
+        else lift[i] = less(lift[i], lift[i] / 8);             // not lighter now: its push fades, slowly (it is moving)
+        if (lift[i] >= RISE) { lift[i] = less(lift[i], RISE); cclimb(x, y, step); }
+    }
+}
+
+void cglow()                     // every warm cell sends shine to the room; hot gas far more, glowing soot more again
+{
+    int i;
+    for (i = 1; i <= CGW * CGH; i++) if (hot[i] > AMB + 2) {
+        int ex = less(hot[i], AMB);
+        int n = ex * ex / 3845;
+        if (smoke[i] >= 2) n = n + ex * lower(less(smoke[i], 1), 8) / 169;
+        n = lower(n, less(ex, 1));
+        if (n >= 1) { hot[i] = less(hot[i], n); shine = shine + n; }
+    }
+}
+
+void cburn()
+{
+    int i;
+    for (i = 1; i <= CGW * CGH; i++) {
+        if (vap[i] >= 2 && oxy[i] >= 2 && hot[i] >= IGN) {
+            int n = lower(less(vap[i], 1), less(oxy[i], 1));
+            n = lower(n, 3);                                   // one cell burns a little at a time
+            vap[i] = less(vap[i], n); oxy[i] = less(oxy[i], n);
+            hot[i] = hot[i] + n * EV; burned = burned + n;
+            if (oxy[i] < 4) { smoke[i] = smoke[i] + n; sooted = sooted + n; hot[i] = less(hot[i], n * SOOT); }   // short of oxygen: soot keeps some of the energy
+        }
+    }
+}
+
+int wh[4];                      // the wick's own heat: it is solid, it does not rise
+void cwick()
+{
+    int k;
+    for (k = 1; k <= 3; k++) {
+        int i = cell(CGW / 2 + k, less(CGH, 2));
+        int j = cell(CGW / 2 + k, less(CGH, 3));                   // and the air just above it, where the flame sits
+        if (hot[i] > wh[k]) hand(&hot[i], &wh[k], less(hot[i], wh[k]) / 4); else hand(&wh[k], &hot[i], less(wh[k], hot[i]) / 4);
+        if (hot[j] > wh[k]) hand(&hot[j], &wh[k], less(hot[j], wh[k]) / 8); else hand(&wh[k], &hot[j], less(wh[k], hot[j]) / 8);
+        int x, y;                                              // shine: hot gas the wick can see warms it (radiation)
+        for (y = less(CGH, 13); y <= less(CGH, 3); y++) for (x = less(CGW / 2 + k, 2); x <= CGW / 2 + k + 2; x++) {
+            int c = cell(x, y);
+            if (hot[c] > IGN) hand(&hot[c], &wh[k], less(hot[c], IGN) / 31);
+        }
+        if (wh[k] >= VAPOUR && wax >= 2) {
+            int n = lower(3, less(wax, 1));
+            wax = less(wax, n); vap[i] = vap[i] + n;
+            wh[k] = less(wh[k], n * LATENT);                   // boiling the wax takes the wick's heat: it rides in the vapour
+        }
+    }
+}
+
+int sumof(int *a) { int s = low, i; for (i = 1; i <= CGW * CGH; i++) s = s + a[i]; return s; }
+
+// the energy book: heat in the air + what the vapour, wax and soot still hold + what left, against what started + came in
+int ebook() { return sumof(hot) + wh[1] + wh[2] + wh[3] + (sumof(vap) + skyvap) * EV + wax * BURN + sooted * SOOT + skyheat + roomheatout + shine; }
+int ebookin() { return bookstart + roomheatin + roomvapin * EV; }
+int colr, colg, colb;
+void flamecolour(int i)
+{
+    int h = hot[i], s = smoke[i];
+    if (h > 1A1) { colr = 168; colg = 15B; colb = 125; }
+    else if (h > $B7) { colr = 168; colg = towards($D1, 15B, less(h, $B7), $B7); colb = towards(31, 125, less(h, $B7), $B7); }
+    else if (h > 55) { colr = towards(118, 168, less(h, 55), 62); colg = towards(3B, $D1, less(h, 55), 62); colb = 31; }
+    else if (h > AMB + 2) { colr = towards(17, 118, less(h, AMB), 3B); colg = towards(1B, 3B, less(h, AMB), 3B); colb = 31; }
+    else { colr = 17; colg = 1B; colb = 31; }
+    if (s >= 2) {                                              // smoke greys what is behind it, more smoke more grey
+        int a = lower(less(s, 1) * $C, 125);
+        colr = towards(colr, $AA, a, 169); colg = towards(colg, $AA, a, 169); colb = towards(colb, $B2, a, 169);
+    }
+}
+
+
+// ---------------------------------------------------------------- the candle as a thing in the lab room
+int CSTEP;                                  // steps run so far
+int CWRONG;                                   // the step the energy book first went out (LOW: never)
+void candle_start()
+{
+    int i;
+    EV = BURN + LATENT;
+    for (i = 1; i <= CGW * CGH; i++) { hot[i] = AMB; oxy[i] = OX; vap[i] = 1; smoke[i] = 1; lift[i] = low; }
+    wax = 54D442;
+    for (i = 1; i <= 3; i++) { hot[cell(CGW / 2 + i, less(CGH, 2))] = IGN * 3; wh[i] = IGN * 3; }      // the match
+    bookstart = ebook();
+}
+void candle_steps(int n)
+{
+    int k;
+    for (k = 1; k <= n; k++) {
+        CSTEP++;
+        cwick(); cburn(); cglow(); cspread(); crise(CSTEP);
+        if (ebook() != ebookin() && CWRONG < 1) CWRONG = CSTEP;
+    }
+}
+#define CELLW 6                             // a cell is 6 sixty-fourths of an inch across (about 2.4 mm)
+#define CELLH 5                             // and its rows 5 apart (hex rows: root 3 over 2 of a cell)
+#define WAXH 11A                        // the candle stands 3 inches tall
+void candle_draw(int x, int z)
+{
+    lab_colour(152, 147, 12A);
+    lab_column(x, z, 1B, 1, WAXH);                                // the wax: 3/4 inch across
+    lab_colour(31, 28, 24);
+    lab_column(x, z, 1, WAXH, WAXH + $A);                          // the wick
+    int row, col, mid = CGW / 2 + 2;
+    for (row = 1; row <= less(CGH, 2); row++) for (col = 1; col <= CGW; col++) {
+        int i = cell(col, row), h = hot[i], s = smoke[i];
+        if (h <= AMB + 2 && s < 2) continue;
+        int across = col * 2 + (row % 2 ? low : 1);                   // in half cells: odd rows sit half a cell along
+        int wx = across >= mid * 2 ? x + less(across, mid * 2) * CELLW / 2 : less(x, less(mid * 2, across) * CELLW / 2);
+        int wy = WAXH + $A + less(less(CGH, 2), row) * CELLH;
+        if (h > AMB + 2) {
+            heatcolour(lower(168, less(h, AMB) * 168 / 24A));
+            int a = lower(168, less(h, AMB) * 4);
+            lab_colour(HR * a / 168, HG * a / 168, HB * a / 168); lab_glow(wx, wy, z, CELLW * 2);   // light spreads past its cell
+        }
+        if (s >= 2) lab_haze(wx, wy, z, CELLW, 93, lower(125, less(s, 1) * 17));
+    }
+}
+void candle_panel()
+{
+    lab_line("A candle: hex cells of air, moves only (lang/lab/objects/candle.delta)");
+    lab_value("steps run", CSTEP, "");
+    lab_value("wax still solid", wax, "units of fuel");
+    lab_value("burned", burned, "units of vapour");
+    lab_value("left as soot", sooted, "units");
+    lab_value("given to the room as light", shine, "units of heat");
+    if (CWRONG < 1) lab_line("the energy book balances every step: nothing vanished, nothing from nowhere");
+    else lab_value("the energy book went out at step", CWRONG, "");
+}
+
+thing candle {
+    int x, z;                               // where it stands on the floor
+    void start() { candle_start(); }
+    void step() { candle_steps(8); }
+    void draw() { candle_draw(x, z); }
+    void panel() { candle_panel(); }
+};

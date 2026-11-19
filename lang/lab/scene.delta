@@ -1,0 +1,18 @@
+// What is in the lab room, and where. Adding a thing to the room is adding it here: the room itself never changes.
+// Places are in 1/64 inch; the room's middle is MID, a foot is FOOT.
+
+#include "objects/candle.delta"
+
+thing candle candle1;                       // a candle ...
+
+void scene_start()
+{
+    candle1.x = MID; candle1.z = MID; candle1.start();       // ... in the middle of the floor
+}
+void scene_step() { candle1.step(); }
+void scene_draw() { candle1.draw(); lab_mark(1, candle1.x, 1C1, candle1.z); }
+void scene_panel(int sel)
+{
+    lab_line("in the room: 1 thing (click one to see inside it)");
+    if (sel == 1) candle1.panel();
+}

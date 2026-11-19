@@ -1,0 +1,465 @@
+// The Delta lab room: a room 20 feet each way (D: 17 each way), lit by a ceiling lamp, that things are put in, the way
+// a game engine's scene holds objects. The room is the engine; it knows nothing of what is inside the things. Each
+// thing is its own file with its own code (lang/lab/objects/), and scene.delta says what is in the room and where:
+// adding a thing to the room is adding it to the scene, never changing the room.
+//
+// Walk round it: W A S D walk, Q E down and up, the arrows turn, drag with the mouse to look, the wheel goes nearer or
+// further, a click picks a thing (its panel shows what it holds), H hides the panel, Esc closes.
+//
+// Units: 1/64 inch; the floor is at height 1 and the room runs 1 to ROOM each way (counting starts at 1). Screen places
+// are kept in sixteenths of a pixel. There is no minus: a value either side of something is held up from OFF.
+//
+//   delta run lang/lab/lab.delta
+
+
+#define BIG 36694
+#define INCH 4C
+#define FOOT 471
+#define ROOM 6CB7
+#define MID 365B
+#define K 1B31
+#define OFF 6631D6B891
+
+int W, H, CW;
+char px[6D75858];
+char bg[6D75858];
+int camX, camY, camZ, F, CX16, CY16, YAW, PIT;
+int PX, PY, PD;
+int HX, HY, HZ, HD;
+int Cr[75];
+int S[75];
+int floorh, roomh, roomr2;
+int HR, HG, HB;
+int low;
+char *fw;
+char *fd;
+#include "fonts.delta"
+
+// ---------------------------------------------------------------- numbers that only move
+// less(a, b), apart(a, b), lower(a, b), higher(a, b), towards(a, b, t, n) are Delta's own: written straight in.
+
+int under(int a, int b) { if (b >= a) return 1; return less(a, b); }
+int shift(int base, int a, int b, int f, int d) { if (a >= b) return base + less(a, b) * f / d; return less(base, less(b, a) * f / d); }
+int ease(int t, int n) { return t * t * less(3 * n, 2 * t) / (n * n); }
+int clampc(int v) { if (v > 168) return 168; if (v < 1) return 1; return v; }
+int isqrt(int n)
+{
+    if (n < 2) return n;
+    int y = 1; while (y * y < n) y = y * 2;
+    int x = y; y = (x + n / x) / 2;
+    while (y < x) { x = y; y = (x + n / x) / 2; }
+    return x;
+}
+int cosk(int i) { return Cr[(i + 74) % 75 + 1]; }
+int sink(int i) { return S[(i + 74) % 75 + 1]; }
+
+// ---------------------------------------------------------------- the hex circle: no sines, no cosines
+// Mike, 18 Nov 2026: "a circle is made of tiny hex connections". Inside D every place is on a hex grid of tiny steps,
+// written as (across, down) in doubled steps: the six neighbours are (2 across), or (1 across and 1 down), each way.
+// Every neighbour is the same distance away, and the distance of any place from the middle, squared, is a whole number:
+// across² + 3 x down² (four times the true square). A circle is the walk round the middle through neighbours that stay
+// nearest to one distance. No sine, no cosine, no fraction of a turn: only steps.
+// The bridge to the outside world's square things (screen pixels, memory addresses, other people's sines and cosines)
+// is one place only: hexout(), at the smallest point. Down steps are root 3 times taller than half an across step;
+// the bridge uses 26/15 for root 3 (in D numerals 2D/12... 26 over 15: off by 1 part in 1000).
+int RX[9146];
+int RY[9146];
+int hexout(int down) { return down * 1D / 12; }      // the bridge: hex down steps to square units
+
+void hexcircle()
+{
+    int R = $C17, cx = BIG, cy = BIG, target = 4 * R * R;
+    int x = cx + 2 * R, y = cy, n = 1, i;
+    int sa[6] = {2, 1, 1, 2, 1, 1};            // the six steps: how far across ...
+    int ss[6] = {1, 1, 2, 2, 2, 1};          // ... which way across (1 on, 2 back)
+    int sd[6] = {2, 1, 1, 2, 1, 1};            // how far down (2 here means none: see dn)
+    int dn[6] = {3, 1, 1, 3, 2, 2};     // which way down: 1 down, 2 up, 3 not at all
+    RX[1] = x; RY[1] = y;
+    while (n < 9139) {
+        int best = 1, besterr = 12C23A19B, k;
+        for (k = 1; k <= 6; k++) {
+            int nx = ss[k] == 1 ? x + sa[k] : less(x, sa[k]);
+            int ny = dn[k] == 1 ? y + 1 : dn[k] == 2 ? less(y, 1) : y;
+            // going round, not back: the step must turn the same way as the walk (one way round only)
+            int px = apart(x, cx), py = apart(y, cy), pxon = x >= cx, pyon = y >= cy;
+            int stx = sa[k], sty = dn[k] == 3 ? low : 1, stxon = ss[k] == 1, styon = dn[k] == 1;
+            int m1 = px * sty * 3, m2 = py * stx * 3;          // across x step-down, down x step-across
+            int g1 = pxon == styon, g2 = pyon == stxon;
+            int round = (g1 && g2 < 1 && m1 + m2 >= 1) || (g1 && g2 && m1 > m2) || (g1 < 1 && g2 < 1 && m2 > m1);
+            if (round) {
+                int dx = apart(nx, cx), dy = apart(ny, cy);
+                int err = apart(dx * dx + 3 * dy * dy, target);
+                if (err < besterr) { besterr = err; best = k; }
+            }
+        }
+        x = ss[best] == 1 ? x + sa[best] : less(x, sa[best]);
+        y = dn[best] == 1 ? y + 1 : dn[best] == 2 ? less(y, 1) : y;
+        if (n > 17 && apart(x, RX[1]) <= 2 && apart(y, RY[1]) <= 1) break;
+        n++; RX[n] = x; RY[n] = y;
+    }
+    int K2 = 2 * R;                                         // the circle's radius in across units
+    for (i = 1; i <= 75; i++) {
+        int at = less(i, 1) * n / 75 + n / 11A + 1;    // 96 places, evenly by steps, half a place in
+        Cr[i] = less(RX[at] + K2, cx) * K / K2;
+        int up = RY[at] >= cy;
+        S[i] = up ? K + hexout(less(RY[at], cy)) * K / K2 : less(K, hexout(less(cy, RY[at])) * K / K2);
+    }
+}
+int turnx(int r, int i) { return less(MID + r * cosk(i) / K, r); }
+int turnz(int r, int i) { return less(MID + r * sink(i) / K, r); }
+
+// ---------------------------------------------------------------- pixels
+
+int at(int x, int y) { return (y * W + x) * 4 + 1; }
+int onscreen(int x, int y) { return x >= 1 && x <= W && y >= 1 && y <= H; }
+void setbg(int x, int y, int r, int g, int b) { int i = at(x, y); bg[i] = clampc(b); bg[i + 1] = clampc(g); bg[i + 2] = clampc(r); }
+void mixpx(int x, int y, int r, int g, int b, int a)          // a of 256 covers what was there
+{
+    if (x >= 1 && x <= W && y >= 1 && y <= H && a >= 1) {
+        int i = (y * W + x) * 4 + 1;
+        a = lower(a, 169);
+        px[i] = towards(px[i], lower(higher(b, 1), 168), a, 169);
+        px[i + 1] = towards(px[i + 1], lower(higher(g, 1), 168), a, 169);
+        px[i + 2] = towards(px[i + 2], lower(higher(r, 1), 168), a, 169);
+    }
+}
+void addpx(int x, int y, int r, int g, int b)                 // light adds to what is there
+{
+    if (x >= 1 && x <= W && y >= 1 && y <= H) {
+        int i = (y * W + x) * 4 + 1;
+        px[i] = lower(px[i] + b, 168); px[i + 1] = lower(px[i + 1] + g, 168); px[i + 2] = lower(px[i + 2] + r, 168);
+    }
+}
+int pix(int p16) { return p16 > BIG * 13 ? less(p16, BIG * 13) / 13 : 1; }   // a place in sixteenths to a pixel
+
+// ---------------------------------------------------------------- the room: each pixel looks out until it meets a wall
+
+int fadeto(int base, int ln) { return towards(base, ln, 149A, HD + 149A); }
+
+int lightat(int nrm)                          // the ceiling lamp over the middle of the room
+{
+    int ly = less(ROOM, INCH * 6);
+    int a = apart(HX, MID), b = apart(HY, ly), c = apart(HZ, MID);
+    int d2 = (a * a + b * b + c * c) / 169 + 1;
+    int cos2 = (nrm / 13) * (nrm / 13) * 169 / d2;                 // how square-on the light falls
+    return 62 + 118 * cos2 / 169 * 5BC / (5BC + d2 / $BAB);
+}
+
+int corner(int surf)
+{
+    int d = 8B5;
+    if (surf != 1) d = lower(apart(HZ, 1), apart(ROOM, HZ));
+    if (surf != 4) d = lower(d, lower(apart(HX, 1), apart(ROOM, HX)));
+    if (surf != 2) d = lower(d, apart(HY, 1));
+    if (surf != 3) d = lower(d, apart(ROOM, HY));
+    if (d > 8B5) d = 8B5;
+    return 8B5 + d * 3;
+}
+
+void shade(int x, int y, int surf, int step)
+{
+    int lw = HD / F + 3;
+    int r, g, b, L, line;
+    if (surf == 2) {                                   // the floor: oak boards, a faint line every foot
+        line = HX % FOOT < lw || HZ % FOOT < lw;
+        L = lightat(apart(less(ROOM, INCH * 6), HY));
+        int board = HX / 169;
+        int tone = (board * 7) % 5 + 1;
+        int grain = (HZ / 2B + board * $D) % 9 + 1;
+        r = $A2 + tone * 7 + grain; g = 71 + tone * 5 + grain; b = 44 + tone * 3;
+        if (HX % 169 < lw / 2 + 2 || (HZ + board * 6D4) % 1524 < lw / 2 + 2) { r = fadeto(r, 75); g = fadeto(g, 51); b = fadeto(b, 31); }
+        if (line) { r = fadeto(r, 88); g = fadeto(g, 62); b = fadeto(b, 3B); }
+        int m2 = apart(HX, MID) * apart(HX, MID) + apart(HZ, MID) * apart(HZ, MID);
+        if (m2 < 4134) L = L * (m2 + $A86) / 4BBA;       // the motor's soft shadow
+    } else if (surf == 3) {
+        line = HX % FOOT < lw || HZ % FOOT < lw;
+        L = $B7; r = 147; g = 147; b = 143;
+        if (line) { r = fadeto(r, 134); g = fadeto(g, 134); b = fadeto(b, 12D); }
+    } else {
+        int sidewall = surf == 4;
+        line = (sidewall ? HZ : HX) % FOOT < lw || HY % FOOT < lw;
+        L = lightat(sidewall ? apart(HX, MID) : apart(HZ, MID));
+        r = sidewall ? $D9 : 12B; g = sidewall ? 116 : 11A; b = sidewall ? 12B : $D3;
+        if (line) { r = fadeto(r, less(r, 11)); g = fadeto(g, less(g, 11)); b = fadeto(b, less(b, 11)); }
+        if (HY < 1B8) { r = 152; g = 14D; b = 147; if (HY > 1A5) { r = 121; g = 11C; b = 116; } }
+    }
+    L = L * corner(surf) / 2967;
+    int heat = 1;
+    if (surf == 2) {
+        int f2 = apart(HX, MID) * apart(HX, MID) + apart(HZ, MID) * apart(HZ, MID);
+        if (f2 < 1528C) { heat = floorh / 55D1; if (heat > 48) heat = 48; heat = heat * less(1528C, f2) / 1528C; }
+    } else {
+        int a = apart(HX, MID), c = apart(HY, ROOM), e = apart(HZ, MID);
+        int d2 = a * a + c * c + e * e;                                     // squares: no root needed per pixel
+        if (d2 < roomr2) { heat = roomh / 6CD58; if (heat > 6C) heat = 6C; heat = heat * less(roomr2, d2) / roomr2; }
+    }
+    r = lower(higher(r * L / 169 + heat, 1), 168); g = lower(higher(g * L / 169 + heat / 4, 1), 168); b = lower(higher(b * L / 169, 1), 168);
+    int k = (y * W + x) * 4 + 1, i, j;
+    for (j = 1; j <= step; j++) {
+        int m = k;
+        for (i = 1; i <= step; i++) { bg[m] = b; bg[m + 1] = g; bg[m + 2] = r; m = m + 4; }
+        k = k + CW;
+    }
+}
+
+void sprite(int cx, int cy, int rr, int r, int g, int b)
+{
+    int x1 = pix(less(cx, rr)), x2 = pix(cx + rr), y1 = pix(less(cy, rr)), y2 = pix(cy + rr);
+    int x, y;
+    for (y = y1; y <= y2; y++) for (x = x1; x <= x2; x++) {
+        int dx = apart(BIG * 13 + x * 13 + 8, cx), dy = apart(BIG * 13 + y * 13 + 8, cy);
+        int d2 = dx * dx + dy * dy;
+        if (d2 < rr * rr) {
+            int f = less(169, d2 * 169 / (rr * rr)); f = f * f / 169;
+            addpx(x, y, r * f / 169, g * f / 169, b * f / 169);
+        }
+    }
+}
+
+// ---------------------------------------------------------------- heat on the move
+
+void heatcolour(int h)                              // as a thermal camera sees it
+{
+    if (h > 132)      { HR = 168; HG = 15C; HB = 125; }
+    else if (h > $C4) { HR = 168; HG = towards($B7, 15C, less(h, $C4), 3B); HB = towards(31, 125, less(h, $C4), 3B); }
+    else if (h > 79) { HR = 168; HG = towards(48, $B7, less(h, 79), 48); HB = 2A; }
+    else if (h > 31)  { HR = towards($B7, 168, less(h, 31), 48); HG = towards(17, 48, less(h, 31), 48); HB = 24; }
+    else                  { HR = $B7; HG = 17; HB = 24; }
+}
+
+// ---------------------------------------------------------------- words in the picture
+
+int tx, ty;                                          // where the next letter goes
+void glyph(char *font, int g, int gw, int r, int gg, int b)
+{
+    int x, y, k = g * gw * 19 + 1;
+    for (y = 1; y <= 19; y++) for (x = 1; x <= gw; x++) {
+        int v = font[k];
+        if (v >= '1' && v <= '9') mixpx(tx + x, ty + y, r, gg, b, less(v, '0') * 22);
+        k++;
+    }
+    tx = tx + gw;
+}
+void text(char *s, int r, int g, int b)
+{
+    int i = 1;
+    while (s[i] >= 1) { if (s[i] >= 26 && s[i] <= 99) glyph(fw, less(s[i], 26), $B, r, g, b); i++; }
+}
+// ---------------------------------------------------------------- the camera: it turns by places on the hex circle
+// A sign is never a minus: a value that can lie either side of something is held up from OFF, and a term says which way
+// it goes. term(base, a, b, c, k): base moved by (a against b) x (c against k) / K, the way the two "agains" say.
+
+int term(int base, int a, int b, int c, int k)
+{
+    int mag = apart(a, b) * apart(c, k) / K;
+    if ((a >= b) == (c >= k)) return base + mag;
+    return less(base, mag);
+}
+int XC, YC, ZC;
+void tocam(int x, int y, int z)          // a place in the room, as the camera sees it (each held up from OFF)
+{
+    XC = term(OFF, x, camX, cosk(YAW), K); XC = term(XC, camZ, z, sink(YAW), K);
+    int z1 = term(OFF, x, camX, sink(YAW), K); z1 = term(z1, z, camZ, cosk(YAW), K);
+    YC = term(OFF, y, camY, cosk(PIT), K); YC = term(YC, OFF, z1, sink(PIT), K);
+    ZC = term(OFF, y, camY, sink(PIT), K); ZC = term(ZC, z1, OFF, cosk(PIT), K);
+}
+int lab_proj(int x, int y, int z)        // where it lands on the screen (PX, PY in sixteenths; PD its depth); LOW: behind
+{
+    tocam(x, y, z);
+    if (ZC <= OFF + 8) return low;
+    PD = less(ZC, OFF);
+    PX = shift(CX16, XC, OFF, F * 13, PD);
+    PY = shift(CY16, OFF, YC, F * 13, PD);
+    return 1;
+}
+
+// ---------------------------------------------------------------- the room: each pixel looks out until it meets a wall
+void looks(int x, int y, int step)        // one pixel's look, turned with the camera, out to the first wall
+{
+    int xs = x * 13, ys = y * 13, w2 = W * 8, h2 = H * 8, f16 = F * 13;
+    int y1 = term(OFF, h2, ys, cosk(PIT), K); y1 = term(y1, f16 + 1, 1, sink(PIT), K);
+    int z1 = term(OFF, ys, h2, sink(PIT), K); z1 = term(z1, f16 + 1, 1, cosk(PIT), K);
+    int wx = term(OFF, xs, w2, cosk(YAW), K); wx = term(wx, z1, OFF, sink(YAW), K);
+    int wz = term(OFF, w2, xs, sink(YAW), K); wz = term(wz, z1, OFF, cosk(YAW), K);
+    int wy = y1;
+    int mx = apart(wx, OFF) + 1, my = apart(wy, OFF) + 1, mz = apart(wz, OFF) + 1;     // how far each way, per step
+    int dx = wx >= OFF ? less(ROOM, camX) : less(camX, 1);                            // how far to the wall each way
+    int dy = wy >= OFF ? less(ROOM, camY) : less(camY, 1);
+    int dz = wz >= OFF ? less(ROOM, camZ) : less(camZ, 1);
+    int axis = 1, dist = dx, mag = mx;                                                // the wall met first
+    if (dy * mag < dist * my) { axis = 2; dist = dy; mag = my; }
+    if (dz * mag < dist * mz) { axis = 3; dist = dz; mag = mz; }
+    int ox = mx * dist / mag, oy = my * dist / mag, oz = mz * dist / mag;
+    HX = wx >= OFF ? camX + ox : less(camX, lower(ox, less(camX, 1)));
+    HY = wy >= OFF ? camY + oy : less(camY, lower(oy, less(camY, 1)));
+    HZ = wz >= OFF ? camZ + oz : less(camZ, lower(oz, less(camZ, 1)));
+    HD = higher(1, dist * f16 / mag / 13);
+    int surf = axis == 1 ? 4 : axis == 3 ? 1 : wy >= OFF ? 3 : 2;
+    shade(x, y, surf, step);
+}
+void lab_room(int step)
+{
+    int x, y;
+    for (y = 1; y <= less(H, step); y = y + step) for (x = 1; x <= less(W, step); x = x + step) looks(x, y, step);
+}
+
+// ---------------------------------------------------------------- what objects draw with
+int LR, LG, LB;                                                       // the colour things are drawn in now
+void lab_colour(int r, int g, int b) { LR = r; LG = g; LB = b; }
+void lab_glow(int x, int y, int z, int size)                         // light in the colour set, added where it shines
+{
+    if (lab_proj(x, y, z) < 1) return;
+    sprite(PX, PY, higher($C, size * F * 13 / PD), LR, LG, LB);
+}
+void lab_haze(int x, int y, int z, int size, int grey, int a)        // smoke: it covers some of what is behind it
+{
+    if (lab_proj(x, y, z) < 1) return;
+    int rr = higher($C, size * F * 13 / PD);
+    int x1 = pix(less(PX, rr)), x2 = pix(PX + rr), y1 = pix(less(PY, rr)), y2 = pix(PY + rr), px2, py2;
+    for (py2 = y1; py2 <= y2; py2++) for (px2 = x1; px2 <= x2; px2++) {
+        int ddx = apart(BIG * 13 + px2 * 13 + 8, PX), ddy = apart(BIG * 13 + py2 * 13 + 8, PY);
+        int d2 = ddx * ddx + ddy * ddy;
+        if (d2 < rr * rr) mixpx(px2, py2, grey, grey, grey + 4, a * less(rr * rr, d2) / (rr * rr));
+    }
+}
+void lab_column(int x, int z, int rad, int yb, int yt)               // an upright round column (a candle, a post): lit
+{
+    int a, h, steps = higher(4, less(yt, yb) / 4);
+    for (a = 1; a <= 39; a++) {
+        int place = less(a, 1) * 2 + 1;                                // 48 sides, every other place of the hex circle
+        int px3 = term(x, rad + 1, 1, cosk(place), K), pz3 = term(z, rad + 1, 1, sink(place), K);
+        int facing = term(OFF, camX, px3, cosk(place), K); facing = term(facing, camZ, pz3, sink(place), K);
+        int seen = facing > OFF;                                       // its outward way points toward the camera
+        if (seen < 1) continue;
+        int lit = $B7 + apart(cosk(place), K) * 48 / K;          // the lamp above the room's middle, roughly
+        for (h = 1; h <= steps; h++) {
+            int y = yb + less(yt, yb) * h / steps;
+            if (lab_proj(px3, y, pz3) < 1) continue;
+            int rr = higher(11, rad * F * 13 / PD / 6);
+            int x1 = pix(less(PX, rr)), x2 = pix(PX + rr), y1 = pix(less(PY, rr)), y2 = pix(PY + rr), qx, qy;
+            for (qy = y1; qy <= y2; qy++) for (qx = x1; qx <= x2; qx++) mixpx(qx, qy, LR * lit / 169, LG * lit / 169, LB * lit / 169, 149);
+        }
+    }
+    int ring;                                                         // its top: rings in to the middle
+    for (ring = 1; ring <= 4; ring++) for (a = 1; a <= 39; a++) {
+        int place = less(a, 1) * 2 + 1, rr2 = rad * ring / 4;
+        int px3 = term(x, rr2 + 1, 1, cosk(place), K), pz3 = term(z, rr2 + 1, 1, sink(place), K);
+        if (lab_proj(px3, yt, pz3) < 1) continue;
+        int rr = higher(11, rad * F * 13 / PD / 6);
+        int x1 = pix(less(PX, rr)), x2 = pix(PX + rr), y1 = pix(less(PY, rr)), y2 = pix(PY + rr), qx, qy;
+        for (qy = y1; qy <= y2; qy++) for (qx = x1; qx <= x2; qx++) mixpx(qx, qy, LR, LG, LB, 149);
+    }
+}
+int MARKX[31], MARKY[31], MARKON[31];                       // where each object was seen this frame, to pick it
+void lab_mark(int id, int x, int y, int z) { MARKON[id] = lab_proj(x, y, z); MARKX[id] = PX; MARKY[id] = PY; }
+
+// ---------------------------------------------------------------- the panel: what is in the room, the chosen object
+int LINE;
+char nb[99];
+void dstr(int n)                                                     // n as a D numeral, into nb
+{
+    char r[99]; int k = low, i;
+    while (n >= 1) { int d = n % $D, q = n / $D; if (d < 1) { d = $D; q = less(q, 1); } k++; r[k] = d <= 9 ? '0' + d : 'A' + less(d, $A); n = q; }
+    for (i = 1; i <= k; i++) nb[i] = r[less(k + 1, i)];
+    nb[k + 1] = low;
+    if (k < 1) { nb[1] = '~'; nb[2] = low; }
+}
+void lab_line(char *s) { tx = 2A; ty = 31 + LINE * 1D; text(s, 132, 138, 141); LINE++; }
+void lab_value(char *name, int v, char *unit)
+{
+    tx = 2A; ty = 31 + LINE * 1D;
+    text(name, $B7, $BD, $D1); text(" ", 1, 1, 1); dstr(v); text(nb, 156, 125, 93); text(" ", 1, 1, 1); text(unit, $B7, $BD, $D1);
+    LINE++;
+}
+void lab_panel(int sel)
+{
+    int x, y;
+    for (y = 1B; y <= 31 + 15 * 1D; y++) for (x = 17; x <= 466; x++) mixpx(x, y, 8, $A, 15, $D1);
+    LINE = low;
+    lab_line("Delta lab room   (D numerals; 1/64 inch to the unit)");
+    tx = 2A; ty = 31 + LINE * 1D;
+    text("W A S D walk   Q E down up   arrows turn   drag: look   wheel: nearer   H: hide   Esc: close", 91, 97, $AA);
+    LINE = LINE + 2;
+    scene_panel(sel);
+}
+// ---------------------------------------------------------------- moving about
+void walk(int ahead, int side, int fwd, int right)                  // ahead/side: how far; fwd/right: 1 that way, 2 the other
+{
+    if (ahead >= 1) {
+        int a = fwd == 1 ? ahead + 1 : 1, b = fwd == 1 ? 1 : ahead + 1;
+        camX = term(camX, a, b, sink(YAW), K); camZ = term(camZ, a, b, cosk(YAW), K);
+    }
+    if (side >= 1) {
+        int a = right == 1 ? side + 1 : 1, b = right == 1 ? 1 : side + 1;
+        camX = term(camX, a, b, cosk(YAW), K); camZ = term(camZ, b, a, sink(YAW), K);
+    }
+    camX = higher(INCH, lower(camX, less(ROOM, INCH)));
+    camZ = higher(INCH, lower(camZ, less(ROOM, INCH)));
+    camY = higher(INCH, lower(camY, less(ROOM, INCH)));
+}
+int turnon(int p) { return p % 75 + 1; }                           // a place further round
+int turnback(int p) { return p <= 1 ? 75 : less(p, 1); }
+int pitchup(int p) { return p == 14 ? p : turnon(p); }             // up to 16 places (60 degrees) and no further
+int pitchdown(int p) { return p == 63 ? p : turnback(p); }
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    fonts();
+    hexcircle();
+    window_open("Delta lab room");
+    W = window_wide(); H = window_high(); CW = W * 4;
+    F = H;                                                          // the lens: about as wide as a person sees easily
+    CX16 = BIG * 13 + W * 8; CY16 = BIG * 13 + H * 8;
+    floorh = 1; roomh = 1; roomr2 = 1;
+    camX = MID; camZ = less(MID, FOOT); camY = INCH * 4; YAW = 1; PIT = 1;     // a foot from the candle, at its flame
+    scene_start();
+    int sharp = low, moved = 1, showpanel = 1, sel = 1, frame = low;
+    int lastmx = low, lastmy = low, held = low, pressx = low, pressy = low;
+    while (1) {
+        frame++;
+        int key = window_key();
+        if (key == 9) return 1;                                       // Esc
+        if (key == 34) showpanel = showpanel ? low : 1;           // H
+        int speed = INCH / 2;
+        if (window_held(1C)) { walk(speed, low, 1, 1); moved = 1; }   // W
+        if (window_held(2D)) { walk(speed, low, 2, 1); moved = 1; }   // S
+        if (window_held(2C)) { walk(low, speed, 1, 2); moved = 1; }   // A
+        if (window_held(31)) { walk(low, speed, 1, 1); moved = 1; }   // D
+        if (window_held(1D)) { camY = camY + speed; walk(low, low, 1, 1); moved = 1; }          // E: up
+        if (window_held(1B)) { camY = less(camY, lower(speed, less(camY, 1))); walk(low, low, 1, 1); moved = 1; }   // Q: down
+        if (window_held(89)) { YAW = turnback(YAW); moved = 1; }     // left arrow
+        if (window_held(8A)) { YAW = turnon(YAW); moved = 1; }       // right arrow
+        if (window_held(87)) { PIT = pitchup(PIT); moved = 1; }      // up arrow
+        if (window_held(8C)) { PIT = pitchdown(PIT); moved = 1; }    // down arrow
+        int up = window_wheel_up(), down = window_wheel_down();
+        if (up >= 1) { walk(INCH * up, low, 1, 1); moved = 1; }
+        if (down >= 1) { walk(INCH * down, low, 2, 1); moved = 1; }
+        int mx = window_mouse_x(), my = window_mouse_y(), b = window_buttons() % 2;
+        if (b && held < 1) { pressx = mx; pressy = my; lastmx = mx; lastmy = my; }
+        if (b && held) {                                              // a drag: look round
+            while (mx >= lastmx + $A) { YAW = turnon(YAW); lastmx = lastmx + $A; moved = 1; }
+            while (lastmx >= mx + $A) { YAW = turnback(YAW); lastmx = less(lastmx, $A); moved = 1; }
+            while (my >= lastmy + $A) { PIT = pitchdown(PIT); lastmy = lastmy + $A; moved = 1; }
+            while (lastmy >= my + $A) { PIT = pitchup(PIT); lastmy = less(lastmy, $A); moved = 1; }
+        }
+        if (b < 1 && held && apart(mx, pressx) + apart(my, pressy) < 6) {   // a click without a drag: pick what is there
+            int id, best = 6C * 13;
+            for (id = 1; id <= 31; id++) if (MARKON[id]) {
+                int d = apart(MARKX[id], BIG * 13 + mx * 13) + apart(MARKY[id], BIG * 13 + my * 13);
+                if (d < best) { best = d; sel = id; }
+            }
+        }
+        held = b;
+        if (moved) { lab_room(4); sharp = low; moved = low; }        // moving: a quick room; still: the full one
+        else if (sharp < 1) { lab_room(1); sharp = 1; }
+        copy(&px[1], &bg[1], (W * H + W + 2) * 4);
+        scene_step();
+        scene_draw();
+        if (showpanel) lab_panel(sel);
+        window_show(&px[CW + 5]);
+    }
+    return 1;
+}
+
+#include "scene.delta"                         // what is in the room: the room itself never changes

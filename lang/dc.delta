@@ -185,13 +185,16 @@ void lexrange(int i, int e)
             while (src[i] == ' ') i++;
             int w = i; while (isal(src[i])) i++;
             int dw = intern(&src[w], less(i, w));
-            if (dw == kinclude) {                    // #include "file": noted now, read in after this file
+            if (dw == kinclude) {                    // #include "file": its words go in right here
                 while (src[i] == ' ') i++;
                 if (src[i] == '"' && ninc < 3B) {
                     i++;
                     int q = 1; ninc++;
                     while (i <= e && src[i] != '"' && src[i] != '\n' && q < 1B4) { incbuf[less(ninc, 1) * 1B5 + q] = src[i]; q++; i++; }
                     incbuf[less(ninc, 1) * 1B5 + q] = low;
+                    int keepline = line;
+                    lexinc(ninc);
+                    line = keepline;
                 }
                 while (i <= e && src[i] != '\n') i++;
             }
@@ -1539,9 +1542,9 @@ void lexinc(int r)                                    // read one #include'd fil
     int n = readfile(p, &src[st], less(999998, st));
     if (n < 1) { say("dc: cannot read %s (#include)\n", p); stop(2); }
     src[st + n] = low;
+    srcn = st + n;                                    // marked as taken first: a file it includes goes after it
     line = 1;
     lexrange(st, st + less(n, 1));
-    srcn = st + n;
 }
 void lexlib(char *nm)                                 // read one of Delta's own libraries in
 {
@@ -1589,9 +1592,7 @@ int main(int argc, char **argv)
     k = 1; slash = low;
     while (path[k] >= 1) { mainhere[k] = path[k]; if (path[k] == '/') slash = k; k++; }
     mainhere[slash + 1] = low;
-    lexrange(1, srcn);
-    int ir = 1;
-    while (ir <= ninc) { lexinc(ir); ir++; }      // included files (and what they include), after the program
+    lexrange(1, srcn);                                 // included files are read in where they are named
     int userend = ntok;
     int i;
     for (i = 1; i <= userend; i++) if (tk[i] == TID) {
