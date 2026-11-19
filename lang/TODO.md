@@ -17,3 +17,8 @@ Things Delta does not do yet, found while building with it. Each gets a test in 
 - Speed: Delta uses one core and its compiler writes plain machine code (every value through memory, nothing kept in
   registers). The lab room runs about 6 to 7 pictures a second at 1280 x 800 on coop-one. Two ways up, before any new
   hardware: threads (each thing in the room on its own core) and a better code generator (registers, fewer moves).
+- Photos in Delta Hex OS default to .pngi (Mike, 19 Nov 2026: "default operating photos are pngi format"): a picture is
+  kept as a media pack (~/coop-kit/MEDIA-PACK.md idea, public form to write here): the PNG exactly as made, plus Perch's
+  words for it, bound by the PNG's hash. The OS already says its own screen as Perch words (Ctrl+P look), so a picture of
+  the screen carries its words from the source, not guessed from pixels. Needs: a PNG writer in Delta (stored deflate
+  blocks, CRC-32, Adler-32), SHA-256 in Delta, then a "photo" command and key that writes NAME.pngi to the boot drive.
