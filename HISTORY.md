@@ -3,6 +3,14 @@
 D and Delta were made on 18 November 2026 by Mike J Hebblethwaite, talking with Claude (an AI made by Anthropic),
 which wrote the code. Times are UK time. This page keeps who chose what, and why, as it happened.
 
+## Milestones
+
+- **18 Nov 2026, 14:43: Delta compiled Delta.** The Delta compiler (dc) and assembler and linker (da), written in Delta,
+  built themselves, byte for byte the same when rebuilt by themselves. Python and the GNU tools retired.
+- **19 Nov 2026, ~01:00: Delta compiled a new version of Delta.** The compiler, written in Delta, gained `#include` (for
+  the lab room's objects); the old Delta built the new one, the new one built itself, and the two were byte for byte the
+  same (the fixed point held). The first new version of Delta made by Delta, with all 95 tests passing.
+
 ## Move `>` and decompose `D>` (11:15 to 11:17)
 
 Mike asked: "so 1 - 1, where did it go? The operator for that should be? 1<d or D>1 or what? Where 1 apple, move one
