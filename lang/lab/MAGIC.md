@@ -1,0 +1,42 @@
+# The lab's magic ledger: what is not real yet, and what would make it real
+
+Mike, 20 Nov 2026: "me and you will work our hardest to duplicate the real world into Delta D ... magic, waste and
+supply we aim to remove as much as possible as we build; our goal is no shrug."
+
+Every stand-in in the lab is listed here. Each new tool adds its magic to this list; each one made real is struck through
+with the date and moved to "Made real" at the foot, and the lab's words stop calling it magic. The Shrug (D's own: a loss
+not yet traced) comes down as this list does.
+
+## Supply (where things come from)
+| Magic | Where | What would make it real |
+|---|---|---|
+| Magic water (pure, endless) | washroom taps and cistern, the bench sink, microscope's fresh water | a mains supply model: a pipe from outside, its pressure and warmth (UK mains ~10 C in November), metered; real tap water carries minerals (a drop leaves a faint ring) |
+| Magic mains (230 V AC) | the lab's lamp, the multimeter on the lamp | a supply model: the house's ring main, the lamp's real filament (resistance rises as it warms), the meter reading AC as it is |
+| Magic plant (heat for the floor tiles) | the hex piped floor | a boiler or heat pump model: fuel or electricity in, warmth out, its losses in the air's book |
+| Magic delivery (a sample to the slide, a seed to the thread) | microscope, seed beaker | Dan or Dragonfly carry it: a pipette, a tweezer, a walk to the tank (the lab's hands) |
+
+## Waste (where things go)
+| Magic | Where | What would make it real |
+|---|---|---|
+| Magic waste (drain) | washroom, bench sink, the vent's water | a drain model: pipes to a sewer outside the lab, the water and its warmth counted leaving |
+| Magic waste (air) and air back "round the doors" | the vent | the outside's air in its own book: what the fan pushes out arrives outside; what comes in through the gaps is counted at each gap |
+| Magic coolant (Dan's) | washroom | Dan's real cooling: this machine's fans and their airflow, from its own sensors |
+
+## Stand-ins in the models
+| Magic | Where | What would make it real |
+|---|---|---|
+| The air's moisture, "half full" | microscope drying, seed beaker | moisture in the air's cells: breath, drops, the tank and the kettle add it; the outside brings it in (real readings when we have a sensor) |
+| All the salt settles on the seed | seed beaker | the real beaker beside it under the Perch eye (salt real v lab): measure the share that crusts the walls, then model it |
+| The paper cover's "about a tenth" | seed beaker | measured, in the same real-v-lab test |
+| The outside's warmth (a first model) | outside | real readings: a thermometer on the coop or a public weather feed for the place |
+| A magic sea (plain waves when no buoy file) | wave tank | the Cefas buoy file always present (the archive is on coop-one: ~/sand/models/sea) |
+| Dan's body | presence | Dan's real body is this machine: its watts, warmth and fans (already real: the watts) |
+
+## Links (attachments, inputs, outputs)
+| Magic | Where | What would make it real |
+|---|---|---|
+| Probes with no leads | oscilloscope, multimeter | Mike, 19 Nov: links may stay magic in the lab ("magic remote, no wires"); keep, but say so |
+| The view to the panel | microscope | a camera on the eyepiece (Perch's eye) |
+
+## Made real
+(none yet: the first one struck from this list goes here, with its date)
