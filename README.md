@@ -282,6 +282,8 @@ it draws, never from the pixels; numbers in D numerals. `do N` acts on thing N.
 with the numbers: base 10 brings the old count (12 months of 28 to 31 days); D brings the stones' calendar, kept by
 Mike's family by word of mouth: 13 months of 28 days (every month four weeks exactly), midwinter day off to close the
 year, and in a leap year midsummer day off too. `time` says today in it; Settings shows it.
+A Delta program's order: its globals first (`int low;` before anything that uses it), then its #includes (paths relative
+to the including file), then its functions; a global is declared before its first use.
 A row handed on as &X[k] counts from there: its place 1 is X[k] (rows count from 1, so &X[1] is the whole row).
 0.22: user accounts (Mike: "the deltahexos user accounts security system, let them sync to pod as a standard thing").
 Nothing opens before someone signs in; the first start makes the first account. `accounts.txt` keeps, for each name, a
