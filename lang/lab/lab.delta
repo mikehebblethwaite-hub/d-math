@@ -10,6 +10,10 @@
 // are kept in sixteenths of a pixel. There is no minus: a value either side of something is held up from OFF.
 //
 //   delta run lang/lab/lab.delta
+//
+// Rule (FAILS 19 Nov 2026): a place on the picture worked out from something far off is held up first (as the microscope
+// holds its cubes from MHELD) or made with lo / sterm, never a take-away that can go below the edge; every new view is
+// tried once with its things outside it, on the test screen, before it is called done.
 
 
 #define BIG 36694
