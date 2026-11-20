@@ -5,7 +5,7 @@ Every error and mistake building D and Delta, kept so it is not made twice. Newe
 Once a day (Mike, 19 Nov 2026) these fails are read and each lesson becomes a new system: a test, a check, a tool or a
 rule in the compiler, so the same fail cannot happen again. Each entry says which system it became, or "system: not yet".
 
-Last daily review: 19 Nov 2026 (the first).
+Last daily review: 20 Nov 2026 00:15 (the second).
 
 ## Delta Hex OS: the mouse "did not work" (0.05 to 0.07), but it did
 - Cause: the test moved the mouse with QEMU's monitor `mouse_move`, which sends relative moves; the test machine has a
@@ -77,6 +77,8 @@ Last daily review: 19 Nov 2026 (the first).
 - Fix: places held up from MHELD before the shift; a cube off the field is skipped.
 - Lesson: a place on the picture worked out from a far-off thing must be held up (or use sterm/lo); test every view
   with things outside it, not only inside.
+- System (20 Nov): the rule in the lab's header: picture places from far-off things are held up (MHELD, lo, sterm); each new view
+  is tried once with its things outside it on the test screen before it is called done.
 
 ## 2026-11-19: Delta Hex OS reset itself every 5 minutes (since it began)
 - Cause: UEFI arms a 5-minute watchdog when it starts a program; the OS never switched it off, so the machine reset
@@ -84,6 +86,8 @@ Last daily review: 19 Nov 2026 (the first).
 - Fix: watchdog_off() (SetWatchdogTimer, time LOW) at the OS's start and in window_open for programs it runs (lab.efi).
 - Lesson: a reset with no Delta message is the firmware, not a refusal (Delta's refusals halt, they never reset); time
   how long after boot it happens before hunting in new code.
+- System (20 Nov): lang/runtime-efi.s switches the watchdog off before main, so EVERY Delta program on the bare machine has it
+  (tested: an OS built without its own call stayed up past 6 minutes).
 
 ## 2026-11-19: first accounts draft let a name reach outside its folder (caught before testing)
 - Cause: uread fell back to the drive's top for any name, and names could hold \ or ..: `show ..\tester\hello.txt`,
@@ -91,3 +95,13 @@ Last daily review: 19 Nov 2026 (the first).
 - Fix: plainname() refuses folder signs, : and a leading dot; only .efi programs come from the top. Tested as a second
   person: every trick refused.
 - Lesson: for anything security, write the tricks list before the code and test each one, as a different user.
+
+- System (20 Nov): os/tests/accounts.py (with vm.sh): the tricks list as a test, run as a second person, plus the disk read from
+  outside (no password on it; Python's own PBKDF2/HMAC/ChaCha20 open a sealed file). Run it after any accounts or guard change.
+## 2026-11-19: the first seal scrambled one place early (Delta's &X[k])
+- Cause: in Delta, &X[k] hands over a row whose place 1 is X[k] (rows count from 1). I passed &SEALBUF[6] for a nonce at 7-18
+  and &SEALBUF[18] for bytes from 19: the nonce took the mark's last letter and the last byte of every file stayed plain.
+- Fix: &SEALBUF[7] and &SEALBUF[19]; found by reading the sealed bytes on the disk (xxd), not by the round trip, which worked.
+- Lesson: a round trip proves only that two halves agree; check the bytes against an outside reader (Python's crypto).
+- System: os/tests/accounts.py opens the OS's sealed file with Python's own ChaCha20; the README's Delta section says what
+  &X[k] means.

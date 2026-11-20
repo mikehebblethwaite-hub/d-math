@@ -11,6 +11,15 @@ _start:                         # the firmware calls us: rcx = this program's ha
     mov [rip+dl_image], rcx
     mov [rip+dl_system], rdx
     mov [rip+dl_stack], rsp
+    sub rsp, 40                 # the watchdog off before anything else (FAILS 19 Nov 2026: the firmware reset every Delta
+    mov rax, [rdx+96]           # program after 5 minutes): boot services (system table +96), SetWatchdogTimer (+256),
+    mov rax, [rax+256]          # its time LOW = never; 32 bytes of room for it, the stack 16-byte even at the call
+    xor ecx, ecx
+    xor edx, edx
+    xor r8, r8
+    xor r9, r9
+    call rax
+    add rsp, 40
     call f_main
     mov rsp, [rip+dl_stack]
     xor eax, eax                # the firmware's word for all good is LOW
