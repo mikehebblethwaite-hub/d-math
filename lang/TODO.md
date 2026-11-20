@@ -44,3 +44,10 @@ Things Delta does not do yet, found while building with it. Each gets a test in 
   (3) change password (re-seal), the first account looks after the others (remove, reset), lock after idle.
 - The serial line drops letters on long Perch looks (seen 19 Nov: a look cut off mid-line, desktop boxes run together):
   serput should wait for the line to be ready.
+- No shrug (Mike, 20 Nov 2026: duplicate the real world in Delta D; "all" of these, from Claude's list):
+  1. One book for the whole lab: every joule, gram of water and salt, in and out, balanced every step; any leak shows as a
+     numbered Shrug to chase (the objects' own books feed it).
+  2. Real sensors to check against: temperature + humidity indoors and outside, wired to the coops; they replace the
+     air's magic moisture and the outside's warmth model (lang/lab/MAGIC.md).
+  3. One agreed clock: lab time v real time (about 8:1 now) v Dragonfly's inner clock (10:1); every log carries both.
+  4. Things that move: air momentum (a real draught), then weight, falling, pouring (brine into the beaker, a dropped seed).
