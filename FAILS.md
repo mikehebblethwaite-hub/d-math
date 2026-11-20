@@ -105,3 +105,12 @@ Last daily review: 20 Nov 2026 00:15 (the second).
 - Lesson: a round trip proves only that two halves agree; check the bytes against an outside reader (Python's crypto).
 - System: os/tests/accounts.py opens the OS's sealed file with Python's own ChaCha20; the README's Delta section says what
   &X[k] means.
+
+## 2026-11-20: the compiler crashed on a broken input list (found by Dragonfly's larva)
+- Cause: dc's function reader skipped to a row's closing ] (and to the inputs' closing )) without looking for the end of
+  the program, and filled its 9 input places before checking "more than 6": `int main(int r[k = 5;` ran it off the end.
+- Fix: both loops stop at the end with "expected ']'" / "expected ')' to close the inputs"; the 7th input is refused first.
+  The OS builds to the same bytes with the old and the new compiler.
+- Lesson: a compiler meets babble as well as programs: every loop that skips words must stop at the end.
+- System: lang/tests/run.sh "a broken input list (no crash)"; Dragonfly's learn loop keeps any program that crashes dc in
+  ~/dragonfly/crashes/ (a fuzzer for free, every round).

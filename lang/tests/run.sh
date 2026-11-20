@@ -203,6 +203,9 @@ hmac-1 b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7
 pbkdf2-1 120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b
 pbkdf2-4096 c5e478d59288c841aa530db6845c4c8d962893a001ce4e11a4963873aa98134a'
 if [ "$got" = "$want" ]; then echo "ok honest: guard: SHA-256, HMAC, PBKDF2 match the standards"; pass=$((pass+1)); else echo "FAIL honest: guard: [$got]"; bad=$((bad+1)); fi
+# a broken row in a function's inputs is refused, never a crash (FAILS 20 Nov 2026: found by Dragonfly's larva)
+printf 'int main(int r[k = 5;\n}\n' > "$T/broken.delta"; got=$($DELTA build "$T/broken.delta" -o "$T/broken" 2>&1); rc=$?
+if [ $rc = 2 ] && grep -q "expected" <<<"$got"; then echo "ok refused: a broken input list (no crash)"; pass=$((pass+1)); else echo "FAIL refuse: broken input list: rc $rc [$got]"; bad=$((bad+1)); fi
 # ChaCha20 against RFC 8439's own example (section 2.4.2): the sunscreen sentence, key 1..32 (from LOW), nonce ..4A.., count 1
 got=$($DELTA run chacha-check.delta 2>&1); rm -f chacha-check
 if grep -q "^chacha 6e2e359a2568f98041ba0728dd0d6981e97e7aec1d4360c20a27afccfd9fae0bf91b65c5524733ab8f593dabcd62b3571639d624e65152ab8f530c359f0861d807ca0dbf500d6a6156a38e088a22b65e52bc514d16ccf806818ce91ab77937365af90bbf74a35be6b40b8eedf2785e42874d$" <<<"$got" && grep -q "^back Ladies and Gentlemen" <<<"$got"; then echo "ok honest: guard: ChaCha20 matches RFC 8439"; pass=$((pass+1)); else echo "FAIL honest: chacha: [$got]"; bad=$((bad+1)); fi

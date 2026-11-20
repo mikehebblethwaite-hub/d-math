@@ -1352,11 +1352,13 @@ void function(int own)
     int pn[9], pt[9], np = low;
     if (own >= 1) { np = 1; pn[1] = kself; pt[1] = mkty(3 + own, 1, low, low, low, low); }
     while (at(')') < 1) {
+        if (tk[P] == TEND || tk[P] == TSTOP) fail("expected ')' to close the inputs");   // never run past the end (FAILS 20 Nov: found by Dragonfly's larva)
         if (atk(kvoid) && atop(P + 1, ')')) { P++; break; }
         int pb = basetype(), ps = low;
         while (at('*')) { P++; ps++; }
         int nmp = name();
-        while (at('[')) { P++; while (at(']') < 1) P++; P++; ps++; }
+        while (at('[')) { P++; while (at(']') < 1) { if (tk[P] == TEND || tk[P] == TSTOP) fail("expected ']'"); P++; } P++; ps++; }
+        if (np >= 7) fail("more than 6 inputs is not in Delta yet");                   // before the 9 places are full
         np++; pn[np] = nmp; pt[np] = mkty(pb, ps, low, low, low, low);
         if (isthing(pt[np])) { say("Delta line %d: give a thing by its place: thing %s *%s\n", line, &pool[thn[less(pb, 3)]], &pool[nmp]); stop(2); }
         if (at(')') < 1) need(',', "expected ','");
