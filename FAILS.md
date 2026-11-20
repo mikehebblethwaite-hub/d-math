@@ -114,3 +114,6 @@ Last daily review: 20 Nov 2026 00:15 (the second).
 - Lesson: a compiler meets babble as well as programs: every loop that skips words must stop at the end.
 - System: lang/tests/run.sh "a broken input list (no crash)"; Dragonfly's learn loop keeps any program that crashes dc in
   ~/dragonfly/crashes/ (a fuzzer for free, every round).
+- Second find, minutes later: an unclosed list of values (`int a = {{1, 2;`) ran the brace-list reader off the end the same
+  way. Fixed with every loop of that kind (the brace lists, the thing reader's two skips, a stray ')' taking the count
+  below nothing); test "an unclosed list of values (no crash)".

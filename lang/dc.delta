@@ -1174,12 +1174,14 @@ void bracelist()
 {
     P++;
     while (at('}') < 1) {
+        if (tk[P] == TEND || tk[P] == TSTOP) fail("expected '}' to close the list");   // never past the end (FAILS 20 Nov)
         if (at('{')) bracelist();
         else {
             int st = P, depth = low;
             while (depth >= 1 || (at(',') < 1 && at('}') < 1)) {
+                if (tk[P] == TEND || tk[P] == TSTOP) fail("expected '}' to close the list");
                 if (at('(') || at('{')) depth++;
-                if (at(')') || at('}')) depth = less(depth, 1);
+                if ((at(')') || at('}')) && depth >= 1) depth = less(depth, 1);
                 P++;
             }
             nival++; ivals[nival] = st;
@@ -1417,9 +1419,9 @@ void thingdef()
             if (at('(')) {                           // a function of this thing: made after its parts
                 nm++; ms[nm] = start;
                 nf++; fnm[nf] = fn; fown[nf] = k; frt[nf] = mkty(base, stars, low, low, low, low);
-                while (at('{') < 1) P++;
+                while (at('{') < 1) { if (tk[P] == TEND || tk[P] == TSTOP) fail("expected '{'"); P++; }
                 int depth = low;
-                while (1) { if (at('{')) depth++; if (at('}')) depth = less(depth, 1); P++; if (depth < 1) break; }
+                while (1) { if (tk[P] == TEND || tk[P] == TSTOP) fail("expected '}'"); if (at('{')) depth++; if (at('}') && depth >= 1) depth = less(depth, 1); P++; if (depth < 1) break; }
                 break;
             }
             int nd = low, d[4];
