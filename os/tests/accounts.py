@@ -39,6 +39,8 @@ vt.typ("tester\n"); vt.typ(PW1 + "\n"); vt.typ(PW1 + "\n"); vt.mon("sendkey ret"
 check("first account made and signed in", until("the desktop"))
 vt.typ("t"); time.sleep(1.5)
 run("write hello.txt salt grows in cubes")
+run("show hello.txt")
+check("honest: tester reads its own file (and the look sees the terminal)", "salt grows" in vt.look())
 run("account other " + PW2, 70)
 run("signout", 3)
 check("signed out shows the sign-in", mode() == "Sign in")
@@ -49,9 +51,16 @@ vt.typ(PW2 + "\n")
 check("second person signs in", until("the desktop"))
 vt.typ("t"); time.sleep(1.5)
 # 3. the tricks, as the second person: each must leave the first person's file unread
+# each read trick's answer is read back as words (review 20 Nov: before, only a picture): nothing of tester's may show, and
+# the answer must be a refusal. The terminal starts fresh at each sign-in, so any "salt grows" here is a leak.
 for c in ["show ..\\tester\\hello.txt", "show users\\tester\\hello.txt", "show accounts.txt",
           "write ..\\tester\\evil.txt x", "del ..\\tester\\hello.txt", "show hello.txt"]:
+    if c.startswith("show "): run("clear", 2)      # one answer on screen, so the look is short (serial drops letters on long ones)
     run(c)
+    if c.startswith("show "):
+        o = vt.look()
+        refused = "no file called" in o or "refused" in o
+        check("trick refused, nothing leaked: " + c, refused and "salt grows" not in o and "'tester " not in o)
 vt.mon("screendump " + vt.S + "tricks.ppm"); time.sleep(1.5)
 run("off", 4)
 subprocess.run(["pkill", "-A", "-f", "qemu-system-x86_64 -name deltatest"])

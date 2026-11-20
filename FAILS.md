@@ -117,3 +117,11 @@ Last daily review: 20 Nov 2026 00:15 (the second).
 - Second find, minutes later: an unclosed list of values (`int a = {{1, 2;`) ran the brace-list reader off the end the same
   way. Fixed with every loop of that kind (the brace lists, the thing reader's two skips, a stray ')' taking the count
   below nothing); test "an unclosed list of values (no crash)".
+
+## 20 Nov 2026: review of the day's work (multimeter, dc, OS tests): what it found
+- The multimeter kept showing current after Faraday's motor stopped (its "flat" test was not the model's own test), and
+  its pile watts were the chemistry's 8.7 W, not volts x amps at the ends (3.65 W). Fixed: one test, from the model.
+- dc took more than 3 row sizes and wrote past its own row d[4]: now refused in all three places; tests.
+- The OS accounts test only photographed the read tricks' answers: now each answer is read back as words (cleared first:
+  the serial line drops letters on long looks, which failed my first try at this). All 16 checks pass.
+- Lesson: a test that only saves a picture is not a test; a reading must come from the same rule as the thing it reads.

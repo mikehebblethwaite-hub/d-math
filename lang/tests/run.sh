@@ -208,6 +208,11 @@ printf 'int main(int r[k = 5;\n}\n' > "$T/broken.delta"; got=$($DELTA build "$T/
 if [ $rc = 2 ] && grep -q "expected" <<<"$got"; then echo "ok refused: a broken input list (no crash)"; pass=$((pass+1)); else echo "FAIL refuse: broken input list: rc $rc [$got]"; bad=$((bad+1)); fi
 printf 'int main(int argc, char **argv)\n{\n    int a = {{1, 2;\n}\n' > "$T/broken2.delta"; got=$($DELTA build "$T/broken2.delta" -o "$T/broken2" 2>&1); rc=$?
 if [ $rc = 2 ] && grep -q "expected" <<<"$got"; then echo "ok refused: an unclosed list of values (no crash)"; pass=$((pass+1)); else echo "FAIL refuse: unclosed list: rc $rc [$got]"; bad=$((bad+1)); fi
+# more than 3 row sizes is refused in all three places, never written past the compiler's own row (review 20 Nov 2026)
+for k in 'int main(int argc, char **argv)\n{\n    int a[2][2][2][2];\n    return 1;\n}\n' 'int g[2][2][2][2][2][2][2][2];\nint main(int argc, char **argv)\n{\n    return 1;\n}\n' 'thing pt { int a[2][2][2][2]; };\nint main(int argc, char **argv)\n{\n    return 1;\n}\n'; do
+  printf "$k" > "$T/rows.delta"; got=$($DELTA build "$T/rows.delta" -o "$T/rows" 2>&1); rc=$?
+  if [ $rc = 2 ] && grep -q "more than 3 row sizes" <<<"$got"; then echo "ok refused: more than 3 row sizes"; pass=$((pass+1)); else echo "FAIL refuse: 4+ row sizes: rc $rc [$got]"; bad=$((bad+1)); fi
+done
 # ChaCha20 against RFC 8439's own example (section 2.4.2): the sunscreen sentence, key 1..32 (from LOW), nonce ..4A.., count 1
 got=$($DELTA run chacha-check.delta 2>&1); rm -f chacha-check
 if grep -q "^chacha 6e2e359a2568f98041ba0728dd0d6981e97e7aec1d4360c20a27afccfd9fae0bf91b65c5524733ab8f593dabcd62b3571639d624e65152ab8f530c359f0861d807ca0dbf500d6a6156a38e088a22b65e52bc514d16ccf806818ce91ab77937365af90bbf74a35be6b40b8eedf2785e42874d$" <<<"$got" && grep -q "^back Ladies and Gentlemen" <<<"$got"; then echo "ok honest: guard: ChaCha20 matches RFC 8439"; pass=$((pass+1)); else echo "FAIL honest: chacha: [$got]"; bad=$((bad+1)); fi

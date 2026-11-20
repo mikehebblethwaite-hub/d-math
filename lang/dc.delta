@@ -1210,7 +1210,7 @@ void declaration()
         d[1] = low; d[2] = low; d[3] = low;
         while (at('[')) {
             P++;
-            nd++;
+            if (nd >= 3) fail("more than 3 row sizes is not in Delta yet"); nd++;
             if (at(']')) open = 1;
             else { if (tk[P] != TNUM) fail("a row size must be a number"); d[nd] = tv[P]; P++; }
             need(']', "expected ']'");
@@ -1426,7 +1426,7 @@ void thingdef()
             }
             int nd = low, d[4];
             d[1] = low; d[2] = low; d[3] = low;
-            while (at('[')) { P++; nd++; if (tk[P] != TNUM) fail("a row size must be a number"); d[nd] = tv[P]; P++; need(']', "expected ']'"); }
+            while (at('[')) { P++; if (nd >= 3) fail("more than 3 row sizes is not in Delta yet"); nd++; if (tk[P] != TNUM) fail("a row size must be a number"); d[nd] = tv[P]; P++; need(']', "expected ']'"); }
             int ft = mkty(base, stars, nd, d[1], d[2], d[3]);
             if (isthing(ft) && less(base, 3) == k) { say("Delta line %d: a thing cannot hold itself (hold a place: thing %s *)\n", line, &pool[tname]); stop(2); }
             if (findfield(k, fn) >= 1) { say("Delta line %d: '%s' is already a part of %s\n", line, &pool[fn], &pool[tname]); stop(2); }
@@ -1456,7 +1456,7 @@ void globaldecl()
         int nm = name();
         int nd = low, d[4];
         d[1] = low; d[2] = low; d[3] = low;
-        while (at('[')) { P++; nd++; if (tk[P] != TNUM) fail("a row size must be a number"); d[nd] = tv[P]; P++; need(']', "expected ']'"); }
+        while (at('[')) { P++; if (nd >= 3) fail("more than 3 row sizes is not in Delta yet"); nd++; if (tk[P] != TNUM) fail("a row size must be a number"); d[nd] = tv[P]; P++; need(']', "expected ']'"); }
         if (findglobal(nm) >= 1) failname("'", nm, "' is already here");
         ng++; gn[ng] = nm; gt[ng] = mkty(base, stars, nd, d[1], d[2], d[3]); ghas[ng] = low;
         if (at('=')) {

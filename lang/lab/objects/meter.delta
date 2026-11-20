@@ -3,7 +3,8 @@
 // Click it; Y picks what the probes touch, U what it measures (volts, amps, ohms, watts). Every reading says where it
 // comes from: the lab's own model, this machine's own sensors, or magic.
 //   Faraday's pile and wire: the model (motor.delta's values): a pile of 1.5 V with 0.15 ohm inside, the whole circuit
-//     0.26 ohm, so 5.8 A and 8.7 W while the pile has chemistry left; the wire 0.009 ohm.
+//     0.26 ohm, so 5.8 A while the pile has chemistry left: 8.7 W from its chemistry, 3.65 W out at its two ends (the
+//     rest warms the pile inside); the wire 0.009 ohm.
 //   The lab's lamp: 60 W on magic mains (230 V AC, the lab has no mains model): 0.26 A, 881 ohm hot.
 //   Dan's processors: this machine's own sensors (amdgpu): the package's watts, and the two rails it reports, the
 //     graphics core (vddgfx) and the northbridge (vddnb). It has no current sensor, so the meter shows no amps for Dan.
@@ -15,7 +16,7 @@ char RBUF[31];
 int readmv(char *f) { int n = window_readfile(f, RBUF, 24), v = low, i; for (i = 1; i <= n; i++) if (RBUF[i] >= '0' && RBUF[i] <= '9') v = v * $A + less(RBUF[i], '0'); return v; }
 char *mtname() { return MTGT == 1 ? "Faraday's pile (across its two ends)" : MTGT == 2 ? "Faraday's hanging wire" : MTGT == 3 ? "the lab's lamp (magic mains)" : "Dan's processors (this machine)"; }
 char *mmname() { return MMODE == 1 ? "volts" : MMODE == 2 ? "amps" : MMODE == 3 ? "ohms" : "watts"; }
-int pileon() { return fchem > $BAB; }  // the pile still has chemistry (the model's book)
+int pileon() { return fchem > $C2523 / 8; }  // the pile still drives the motor: the model's own test (faraday_steps' each)
 // a reading in thousandths (millivolts, milliamps, milliohms, milliwatts); LOW with a reason in MWHY when there is none
 char *MWHY;
 int mread()
@@ -23,10 +24,10 @@ int mread()
     MWHY = "";
     if (MTGT == 1) {
         if (MMODE == 3) return 16D;                                     // the whole circuit
-        if (!pileon()) { MWHY = "the pile is flat: no chemistry left"; return MMODE == 1 ? 1 : low; }
+        if (!pileon()) { MWHY = "the pile is flat: no chemistry left"; return low; }
         if (MMODE == 1) return 396;                                     // 1.5 V less 5.8 A x 0.15 ohm inside it
         if (MMODE == 2) return 2842;
-        return 3C63;
+        return 1881;                                                    // across its ends: 630 mV x 5.8 A (8.7 W less 5.05 W inside)
     }
     if (MTGT == 2) {
         if (MMODE == 3) return 9;
@@ -41,8 +42,8 @@ int mread()
         if (MMODE == 3) return 24ACD3;
         return 213D5;
     }
-    if (MMODE == 1) return VGFX;
-    if (MMODE == 4) return WATTS + 1;
+    if (MMODE == 1) { if (VGFX < 1) MWHY = "this machine's rail sensor could not be read (/sys/class/hwmon/hwmon1/in0_input)"; return VGFX; }
+    if (MMODE == 4) { if (WATTS < 1) MWHY = "this machine's power sensor could not be read"; return WATTS >= 1 ? WATTS + 1 : low; }
     MWHY = MMODE == 2 ? "this machine has no current sensor: no amps for Dan" : "no ohms on a working processor (it is not a plain resistance)";
     return low;
 }
@@ -68,7 +69,7 @@ void meter_panel()
     int v = mread();
     if (v >= 1) lab_value(MMODE == 1 ? "  reading, millivolts" : MMODE == 2 ? "  reading, milliamps" : MMODE == 3 ? "  reading, milliohms" : "  reading, milliwatts", v, MTGT == 3 && MMODE <= 2 ? "(AC)" : "");
     if (MWHY[1] >= 1) lab_line(MWHY);
-    if (MTGT == 4 && MMODE == 1) lab_value("  the other rail (the northbridge, vddnb), millivolts", VNB, "");
+    if (MTGT == 4 && MMODE == 1 && VNB >= 1) lab_value("  the other rail (the northbridge, vddnb), millivolts", VNB, "");
     lab_line(mfrom());
 }
 void meter_keys(int key, int picked)
