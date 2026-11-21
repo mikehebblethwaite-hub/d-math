@@ -82,7 +82,7 @@ void scene_draw()                         // farthest first, the painter's way, 
 void scene_panel(int sel)
 {
     if (FLOOR > 1) {
-        lab_line(FLOOR == 3 ? "floor 3: SPACE, two floors above the lab;  Page Down: the lift down" : "floor 2: ATMOSPHERE TESTS, the floor above the lab;  Page Up: space, Page Down: the lab");
+        lab_line(FLOOR == 3 ? "floor 3: SPACE, above 100 km (low Earth orbit; the space station flies at about 400 km);  Page Down: the lift down" : "floor 2: ATMOSPHERE TESTS, the sky from the ground to 100 km (1 ft = 5 km);  Page Up: space, Page Down: the lab");
         lab_line("the lift: back left corner (Page Up, Page Down). MAGIC: you can walk through it; these floors have no air cells of their own yet");
         if (FLOOR == 2) balloon_panel();
         if (FLOOR == 3) { lightsheet_panel(); wingnut_panel(); }

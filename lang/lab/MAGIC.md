@@ -47,6 +47,8 @@ not yet traced) comes down as this list does.
 | The air on floors 2 and 3 is the lab's | the lab's floors | each floor its own air cells |
 | A bit of salt holds 1 in 3 on a step, 1 in 40 alone (rough guesses) | saltplay, saltcube | measured attachment from the real seed beaker under the Perch eye |
 | The weather balloon is a perfect ball all the way up (only its size changes) | atmosphere room, balloon | a rubber skin that stretches, the lift gas pushing harder at the top than the bottom: the launch pear shape and the rounding out should come by themselves; Mike's own sightings of real ones are the check (asked 21 Nov 11:17) |
+| The Earth's spin left out of gravity (the pull is 9.820 at the ground, measured 9.81) | atmos, balloon | the Earth's turning: the outward push at each latitude |
+| The space room's floating: free fall around the Earth, not "no gravity" (the pull at 400 km is still 88.5% of the ground's) | space room | an orbit drawn: the room and everything in it falling round the Earth together |
 
 ## Links (attachments, inputs, outputs)
 | Magic | Where | What would make it real |
@@ -55,4 +57,5 @@ not yet traced) comes down as this list does.
 | The view to the panel | microscope | a camera on the eyepiece (Perch's eye) |
 
 ## Made real
-(none yet: the first one struck from this list goes here, with its date)
+- 21 Nov 2026: gravity was a fixed 9.81 everywhere (atmos, balloon). Now it is worked out from the Earth's mass at each
+  height (Mike: "make sure the earths mass acts on it"), and the mass is a setting: the gravity changer.

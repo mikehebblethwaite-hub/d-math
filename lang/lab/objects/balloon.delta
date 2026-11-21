@@ -1,11 +1,14 @@
 // The weather balloon in the atmosphere room (floor 2; Mike 21 Nov 2026: "do me a rising balloon expands as it reaches the
 // upper atmosphere then pops in real atmosphere see what it does in ours"). The same column of air as lang/lab/runs/atmos.delta
-// (which matched: it bursts at 30,580 m), worked out live as it climbs: each 10 m up the pressure drops by the weight of that air;
+// (which matched: it bursts at 30,580 m), worked out live as it climbs, gravity from the Earth's mass at each height: each 10 m up the pressure drops by the weight of that air;
 // air full of water vapour cools as it rises (water condensing gives warmth back); above 11 km the sky's warmth is MEASURED
 // (standard atmosphere), not worked out. The balloon: rubber, 2 m across at launch, bursts at its maker's size, 8.63 m; it rises
-// about 5 m a second; each picture is 30 seconds of flight (MAGIC: time sped up). It hovers in the middle of the room while the
-// panel says how high it is (MAGIC: the room does not go 30 km up); drawn a fifth of its size.
+// about 5 m a second; each picture is 30 seconds of flight (MAGIC: time sped up). The atmosphere room stands for the sky from
+// the ground to 100 km, where space is said to begin (Mike: "make sure your room is the right height"): its 20 ft are those
+// 100 km, 1 ft for every 5 km (MAGIC: the drawing scale), so the balloon climbs through the room; drawn a fifth of its size.
 #define BLEVEL 17CB892A
+int GMASS = 5BC;                              // the Earth's mass in thousandths of its own (the gravity changer)
+int gpull(int zm) { int r = (141DB2C + zm) / 5BC; return $DC577 * GMASS * 5BC / r / r * 5BC; }   // the Earth's pull at height zm: G x its mass / (distance from its middle)^2, in micrometres a second squared (GM = 398,600 km3/s2 x GMASS thousandths)
 int BZ, BP, BT, BAL, BPOP, BBURSTZ, BRISEN = 1;
 int bheat(int tmk) { return tmk >= 97437 ? less(6974A8, less(tmk, 97437) * $DD4 / 5BC) : 6974A8 + less(97437, tmk) * $DD4 / 5BC; }
 int bvapour(int tmk)
@@ -22,11 +25,11 @@ void balloon_step()
     if (BPOP >= 1) { BPOP++; if (BPOP > 31) balloon_start(); return; }
     int k;
     for (k = 1; k <= 12; k++) {                   // 30 s at 5 m/s: fifteen steps of 10 m
-        int dp = BP / 5BC * 13A8 / 3A27 * 5BC / (BT / 5BC);
+        int dp = BP / 5BC * (gpull(BZ) * 141B / 1DC187A) / 3A27 * 5BC / (BT / 5BC);
         if (BZ < 4D12) {
             int es = bvapour(BT), rs = es / 5BC * 18A162 / (less(BP, es) / 5BC), L = bheat(BT) / 5BC, tk = BT / 5BC;
             int num = 28D221 + L * rs / (191 * tk) * 5BC, den = 28D221 + L * L * rs / 5BC * 38B * 5BC / (5C4 * 191 * tk * tk / 5BC);
-            BT = less(BT, 35578 * (num / 5BC) / (den / 5BC) / 5BC);
+            BT = less(BT, gpull(BZ) * $A / 5C4 * (num / 5BC) / (den / 5BC) / 5BC);
         } else if (BZ >= 9146 && BZ < 11747) BT = BT + $A; else if (BZ >= 11747) BT = BT + 22;
         BP = less(BP, dp); BZ = BZ + $A;
         if (bacross() >= 3BDB) { BPOP = 1; BBURSTZ = BZ; return; }
@@ -34,7 +37,8 @@ void balloon_step()
 }
 void balloon_draw()
 {
-    int cx = MID, cz = MID + FOOT * 4, cy = FOOT * 4, i;
+    int cx = MID, cz = MID + FOOT * 4, i;
+    int cy = FOOT * 2 + BZ / 5BC * FOOT / 5;                     // 1 ft up the room for every 5 km of sky, from 2 ft over the floor
     if (BPOP >= 1) {                                  // the pop: shreds of rubber flying out
         lab_colour(149, 62, 55);
         for (i = 1; i <= $C; i++) { int sp = BPOP * 1B, a = i * 7 % $C + 1;
@@ -64,5 +68,6 @@ void balloon_panel()
     lab_value("  how high, metres", BZ, ""); lab_value("  the air's pressure, pascals", BP / 5BC, "");
     lab_value("  the air's warmth, thousandths of a degree over the lowest", BT, ""); lab_value("  across, millimetres", BPOP ? 3BDB : bacross(), "");
     if (BBURSTZ) lab_value("  the last one burst at, metres", BBURSTZ, "");
-    lab_line("  MAGIC: it hovers here while the panel climbs; drawn a fifth of its size; above 11 km the warmth is measured, not worked out");
+    lab_line("  this room is the sky from the ground to 100 km (space starts at the top): 1 ft = 5 km (MAGIC: the drawing scale); drawn a fifth of its size");
+    lab_line("  above 11 km the warmth is measured, not worked out");
 }

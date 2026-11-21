@@ -1,6 +1,7 @@
 // atmos: the atmosphere room's tests (21 Nov 2026; known answers written in lang/lab/TRACK.md BEFORE this was built).
 // A column of air built up 10 m at a time from the ground (sea level, 1013.25 hPa, 15 C), from measured constants only:
-// g 9.81 m/s2, air 28.97 g a mole, the gas constant 8.314, air's warmth per kg 1005 J/kg K, dry air's own gas constant 287,
+// gravity from the Earth's mass at each height (G x mass = 398,600 km3/s2, the Earth 6,371 km to its middle; Mike: "make sure the
+// earths mass acts on it"; its mass can be changed: the gravity changer), air 28.97 g a mole, the gas constant 8.314, air's warmth per kg 1005 J/kg K, dry air's own gas constant 287,
 // water vapour's 461.5, water's heat of boiling 2,501,000 J/kg at freezing falling 2,370 J/kg per degree warmer.
 //   Pressure: each 10 m up it drops by the weight of that 10 m of air (how heavy air is, from the gas law, times g).
 //   Cooling: a parcel of air rising pushes outward as the pressure drops and that work costs its warmth (dry: g / air's warmth
@@ -10,7 +11,9 @@
 //   A balloon: the same air inside, at the air's warmth and pressure (the gas law).
 // No pi, no curves, no exp: every one stepped. Prints in D numerals.
 #define DZ {{10}}
-int low;
+int low, GMASS = {{1000}};                    // the Earth's mass in thousandths of its own (the gravity changer: Mike); 12 = the Moon's
+int gpull(int zm) { int r = ({{6371000}} + zm) / {{1000}}; return {{398600}} * GMASS * {{1000}} / r / r * {{1000}}; }   // the Earth's pull at height zm: G x its mass / (distance from its middle)^2, in micrometres a second squared (GM = 398,600 km3/s2 x GMASS thousandths)
+
 int heatL(int tmk) { return tmk >= {{273150}} ? less({{2501000}}, less(tmk, {{273150}}) * {{2370}} / {{1000}}) : {{2501000}} + less({{273150}}, tmk) * {{2370}} / {{1000}}; }   // J/kg
 int vapour(int tmk)                               // water's push to escape as vapour (milli-pascals) at this warmth, stepped from 100 C
 {
@@ -24,21 +27,24 @@ int vapour(int tmk)                               // water's push to escape as v
     while (t + {{50}} < tmk) { int k = heatL(t) * {{1000}} / {{4615}} * {{10}} / (t / {{100}}) * {{1000}} / (t / {{100}}); e = e + e / {{1000}} * k / {{10000}} * {{100}}; t = t + {{100}}; }
     return e;
 }
+int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + {{10}} : low; if (d < 1) break; v = v * {{13}} + d; i++; } return v; }
 int main(int argc, char **argv)
 {
     low = less(1, 1);
+    if (argc >= 2) GMASS = pnum(argv[2]);
+    say("the Earth's mass: %d thousandths of its own; its pull at the ground %d micrometres a second squared, at 30 km %d, at 400 km %d\n", GMASS, gpull(1), gpull({{30000}}), gpull({{400000}}));
     int col;
     for (col = 1; col <= 2; col++) {                 // 1: dry air rising; 2: air full of water vapour rising
         int z = low, p = {{101325000}}, t = {{288150}}, half = low, h5 = low, t5 = low, p88 = low, t88 = low, t1 = low, t9 = low;
         while (z < {{11000}}) {
-            int dp = p / {{1000}} * {{2842}} / {{8314}} * {{1000}} / (t / {{1000}});   // the weight of 10 m of air: p g M dz / (R T)
-            int dt = {{97612}} / {{1000}};                                              // dry: g dz / cp = 0.0976 K (millikelvin)
+            int dp = p / {{1000}} * (gpull(z) * {{2897}} / {{10000000}}) / {{8314}} * {{1000}} / (t / {{1000}});   // the weight of 10 m of air: p g M dz / (R T), g from the Earth's mass
+            int dt = gpull(z) * {{10}} / {{1005}} / {{1000}};                            // dry: g dz / cp (millikelvin)
             if (col == 2) {                                                             // moist: water condensing gives warmth back
                 int es = vapour(t), rs = es / {{1000}} * {{622000}} / (less(p, es) / {{1000}});   // its water, millionths of a kg a kg of air
                 int L = heatL(t) / {{1000}}, tk = t / {{1000}};
                 int num = {{1000000}} + L * rs / ({{287}} * tk) * {{1000}};                            // 1 + L r / (Rd T), in millionths
                 int den = {{1000000}} + L * L * rs / {{1000}} * {{622}} * {{1000}} / ({{1005}} * {{287}} * tk * tk / {{1000}});   // 1 + L^2 r e / (cp Rd T^2)
-                dt = {{97612}} * (num / {{1000}}) / (den / {{1000}}) / {{1000}};
+                dt = gpull(z) * {{10}} / {{1005}} * (num / {{1000}}) / (den / {{1000}}) / {{1000}};
             }
             p = less(p, dp); t = less(t, dt); z = z + DZ;
             if (half < 1 && p * 2 <= {{101325000}}) half = z;
@@ -59,12 +65,11 @@ int main(int argc, char **argv)
     // warmth and pressure (the rubber's own squeeze is small: left out, MAGIC).
     int z = low, p = {{101325000}}, t = {{288150}}, burst = low, pb = low, tb = low;
     while (z < {{45000}} && burst < 1) {
-        int dp = p / {{1000}} * {{2842}} / {{8314}} * {{1000}} / (t / {{1000}});
-        int dt = {{97612}} / {{1000}};
+        int dp = p / {{1000}} * (gpull(z) * {{2897}} / {{10000000}}) / {{8314}} * {{1000}} / (t / {{1000}});
         if (z < {{11000}}) {
             int es = vapour(t), rs = es / {{1000}} * {{622000}} / (less(p, es) / {{1000}}), L = heatL(t) / {{1000}}, tk = t / {{1000}};
             int num = {{1000000}} + L * rs / ({{287}} * tk) * {{1000}}, den = {{1000000}} + L * L * rs / {{1000}} * {{622}} * {{1000}} / ({{1005}} * {{287}} * tk * tk / {{1000}});
-            t = less(t, {{97612}} * (num / {{1000}}) / (den / {{1000}}) / {{1000}});
+            t = less(t, gpull(z) * {{10}} / {{1005}} * (num / {{1000}}) / (den / {{1000}}) / {{1000}});
         } else if (z >= {{20000}} && z < {{32000}}) t = t + {{10}}; else if (z >= {{32000}}) t = t + {{28}};
         p = less(p, dp); z = z + DZ;
         // its size: across^3 grows as (ground pressure / pressure) x (warmth / ground warmth)

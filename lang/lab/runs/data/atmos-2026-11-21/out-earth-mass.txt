@@ -1,0 +1,11 @@
+the Earth's mass: 5BC thousandths of its own; its pull at the ground 1D5A968 micrometres a second squared, at 30 km 1D27B19, at 400 km 1A552A3
+DRY air rising: the air's pressure is half the ground's at 2549 m; at 5,500 m it is 194B5 Pa; at 8,850 m (Everest) D2C3 Pa
+  it cools 4552 thousandths of a degree in the first km, 4552 thousandths a km on average over 9 km (6D55D thousandths of a degree over the lowest at 9 km)
+  water boils on Everest at 24CC6 thousandths of a degree over freezing (3D5 tenths C)
+  a sealed balloon at 5,500 m is 9C2 thousandths of its size at the ground
+air FULL OF WATER VAPOUR rising: the air's pressure is half the ground's at 2695 m; at 5,500 m it is 1A1A8 Pa; at 8,850 m (Everest) 115A8 Pa
+  it cools 227B thousandths of a degree in the first km, 2D54 thousandths a km on average over 9 km (7CB44 thousandths of a degree over the lowest at 9 km)
+  water boils on Everest at 25BA4 thousandths of a degree over freezing (41C tenths C)
+  a sealed balloon at 5,500 m is A67 thousandths of its size at the ground
+checks: water's push to escape at 15 C, A3A Pa (measured 1,705); at 100 C, 37173 Pa (the ground's air, so it boils)
+THE BALLOON: 2 m across at the ground, it burst at DC87 m up, 8.63 m across, where the air's pressure is 593 Pa (9 thousandths of the ground's), 79556 thousandths of a degree over the lowest

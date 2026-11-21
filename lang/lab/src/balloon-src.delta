@@ -1,11 +1,14 @@
 // The weather balloon in the atmosphere room (floor 2; Mike 21 Nov 2026: "do me a rising balloon expands as it reaches the
 // upper atmosphere then pops in real atmosphere see what it does in ours"). The same column of air as lang/lab/runs/atmos.delta
-// (which matched: it bursts at 30,580 m), worked out live as it climbs: each 10 m up the pressure drops by the weight of that air;
+// (which matched: it bursts at 30,580 m), worked out live as it climbs, gravity from the Earth's mass at each height: each 10 m up the pressure drops by the weight of that air;
 // air full of water vapour cools as it rises (water condensing gives warmth back); above 11 km the sky's warmth is MEASURED
 // (standard atmosphere), not worked out. The balloon: rubber, 2 m across at launch, bursts at its maker's size, 8.63 m; it rises
-// about 5 m a second; each picture is 30 seconds of flight (MAGIC: time sped up). It hovers in the middle of the room while the
-// panel says how high it is (MAGIC: the room does not go 30 km up); drawn a fifth of its size.
+// about 5 m a second; each picture is 30 seconds of flight (MAGIC: time sped up). The atmosphere room stands for the sky from
+// the ground to 100 km, where space is said to begin (Mike: "make sure your room is the right height"): its 20 ft are those
+// 100 km, 1 ft for every 5 km (MAGIC: the drawing scale), so the balloon climbs through the room; drawn a fifth of its size.
 #define BLEVEL {{101325000}}
+int GMASS = {{1000}};                              // the Earth's mass in thousandths of its own (the gravity changer)
+int gpull(int zm) { int r = ({{6371000}} + zm) / {{1000}}; return {{398600}} * GMASS * {{1000}} / r / r * {{1000}}; }   // the Earth's pull at height zm: G x its mass / (distance from its middle)^2, in micrometres a second squared (GM = 398,600 km3/s2 x GMASS thousandths)
 int BZ, BP, BT, BAL, BPOP, BBURSTZ, BRISEN = 1;
 int bheat(int tmk) { return tmk >= {{273150}} ? less({{2501000}}, less(tmk, {{273150}}) * {{2370}} / {{1000}}) : {{2501000}} + less({{273150}}, tmk) * {{2370}} / {{1000}}; }
 int bvapour(int tmk)
@@ -22,11 +25,11 @@ void balloon_step()
     if (BPOP >= 1) { BPOP++; if (BPOP > {{40}}) balloon_start(); return; }
     int k;
     for (k = 1; k <= {{15}}; k++) {                   // 30 s at 5 m/s: fifteen steps of 10 m
-        int dp = BP / {{1000}} * {{2842}} / {{8314}} * {{1000}} / (BT / {{1000}});
+        int dp = BP / {{1000}} * (gpull(BZ) * {{2897}} / {{10000000}}) / {{8314}} * {{1000}} / (BT / {{1000}});
         if (BZ < {{11000}}) {
             int es = bvapour(BT), rs = es / {{1000}} * {{622000}} / (less(BP, es) / {{1000}}), L = bheat(BT) / {{1000}}, tk = BT / {{1000}};
             int num = {{1000000}} + L * rs / ({{287}} * tk) * {{1000}}, den = {{1000000}} + L * L * rs / {{1000}} * {{622}} * {{1000}} / ({{1005}} * {{287}} * tk * tk / {{1000}});
-            BT = less(BT, {{97612}} * (num / {{1000}}) / (den / {{1000}}) / {{1000}});
+            BT = less(BT, gpull(BZ) * {{10}} / {{1005}} * (num / {{1000}}) / (den / {{1000}}) / {{1000}});
         } else if (BZ >= {{20000}} && BZ < {{32000}}) BT = BT + {{10}}; else if (BZ >= {{32000}}) BT = BT + {{28}};
         BP = less(BP, dp); BZ = BZ + {{10}};
         if (bacross() >= {{8630}}) { BPOP = 1; BBURSTZ = BZ; return; }
@@ -34,7 +37,8 @@ void balloon_step()
 }
 void balloon_draw()
 {
-    int cx = MID, cz = MID + FOOT * 4, cy = FOOT * 4, i;
+    int cx = MID, cz = MID + FOOT * 4, i;
+    int cy = FOOT * 2 + BZ / {{1000}} * FOOT / 5;                     // 1 ft up the room for every 5 km of sky, from 2 ft over the floor
     if (BPOP >= 1) {                                  // the pop: shreds of rubber flying out
         lab_colour({{230}}, {{80}}, {{70}});
         for (i = 1; i <= {{12}}; i++) { int sp = BPOP * {{24}}, a = i * {{7}} % {{12}} + 1;
@@ -64,5 +68,6 @@ void balloon_panel()
     lab_value("  how high, metres", BZ, ""); lab_value("  the air's pressure, pascals", BP / {{1000}}, "");
     lab_value("  the air's warmth, thousandths of a degree over the lowest", BT, ""); lab_value("  across, millimetres", BPOP ? {{8630}} : bacross(), "");
     if (BBURSTZ) lab_value("  the last one burst at, metres", BBURSTZ, "");
-    lab_line("  MAGIC: it hovers here while the panel climbs; drawn a fifth of its size; above 11 km the warmth is measured, not worked out");
+    lab_line("  this room is the sky from the ground to 100 km (space starts at the top): 1 ft = 5 km (MAGIC: the drawing scale); drawn a fifth of its size");
+    lab_line("  above 11 km the warmth is measured, not worked out");
 }
