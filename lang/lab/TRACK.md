@@ -47,8 +47,8 @@ The sea from its surface (the wave tank's sea) down to its deepest, about 11 km;
 
 | # | Known result (what really happens) | Lab's answer | Match? | Run |
 |---|---|---|---|---|
-| 1 | Water's pressure grows by about one more air pressure for every 10 m down | not run yet | - | - |
-| 2 | A balloon taken down is half its size by 10 m, a third by 20 m, a quarter by 30 m (the gas squeezed) | not run yet | - | - |
-| 3 | At the deepest (about 11 km) the pressure is about 1,100 times the air's at the surface | not run yet | - | - |
-| 4 | Polystyrene cups sent down on deep-sea dives come back shrunk to a fraction of their size (their air squeezed out) | not run yet | - | - |
+| 1 | Water's pressure grows by about one more air pressure for every 10 m down | 1.99 at 10 m, 2.99 at 20 m, 3.98 at 30 m, 10.9 at 100 m | MATCH | runs/deep.delta |
+| 2 | A balloon taken down is half its size by 10 m, a third by 20 m, a quarter by 30 m (the gas squeezed) | 501, 334, 251 thousandths | MATCH | runs/deep.delta |
+| 3 | At the deepest (about 11 km) the pressure is about 1,100 times the air's at the surface | 1,122 times (a little high: the water held at 15 C, MAGIC) | MATCH | runs/deep.delta |
+| 4 | Polystyrene cups sent down on deep-sea dives come back shrunk to a fraction of their size (their air squeezed out) | at 11 km: 3% of its size, 31% of its height (foam 97% air, measured densities) | MATCH | runs/deep.delta |
 

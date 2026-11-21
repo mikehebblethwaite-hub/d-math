@@ -28,7 +28,7 @@
       <tr><td>1</td><td>Wing nut / T-handle spun about its middle axis turns over and over (Dzhanibekov, 1985 in orbit; also on Earth, Mike at home)</td><td>space room</td><td>easiest and hardest axes steady; middle turned over 10 times in 200,000 steps</td><td>MATCH</td><td>runs/wingnut.delta</td></tr>
       <tr><td>2</td><td>A candle flame with no gravity: round (a sphere), dimmer, blue (little or no yellow soot), and it may go out as the air round it is used up (shuttle, ISS and drop tower candle tests)</td><td>space room</td><td>no gravity: round, 32 x 31 mm (with gravity 81 x 23); burns about 3% as much; the same share burned short of oxygen (363 v 348 thousandths); still burning at 9 s</td><td>ROUND: MATCH. DIMMER: MATCH. BLUE: MISS (the soot rule knows nothing of cooling yet). GOES OUT: not run long enough</td><td>runs/candlespace.delta</td></tr>
       <tr><td>3</td><td>Crystals grown in orbit come out larger and more perfect than on the ground (no convection, no settling)</td><td>space room</td><td>salt round a seed, 5 runs each: in orbit 78% full, nearly square (long/short 1.07); on Earth (brine moving down) 65% full, a lopsided column (2.28) growing toward the incoming brine; no overlap</td><td>MORE PERFECT: MATCH. LARGER: not tested yet</td><td>runs/saltplay.delta (2nd input: drift)</td></tr>
-      <tr><td>4</td><td>Liquid in free fall pulls itself into a ball; a floating ball of water wobbles when touched (ISS water demos)</td><td>space room</td><td>not run yet</td><td>-</td><td>-</td></tr>
+      <tr><td>4</td><td>Liquid in free fall pulls itself into a ball; a floating ball of water wobbles when touched (ISS water demos)</td><td>space room</td><td>from a square: nearly round (1.16 edge to edge from round, the square 1.41), wobbled 23 times when poked and came back round; with gravity on a floor it slumps (1.4 wide) and a poke spreads it to a puddle (4 wide)</td><td>BALL: MATCH. WOBBLE: MATCH</td><td>runs/waterball.delta</td></tr>
     </table>
   </section>
   <section><h2>Floor 2: atmosphere tests</h2>
@@ -53,6 +53,18 @@
       <tr><td>3</td><td>Faraday's 1821 rotations: a wire turns round a magnet in mercury, and a magnet round a wire</td><td>checked 21 Nov: the turning is DRAWN at set speeds; only the energy book is worked out</td><td>NOT A TEST YET (magic, in MAGIC.md with what would make it real)</td><td>lab objects/faraday.delta</td></tr>
       <tr><td>4</td><td>Basalt cooling cracks into columns, most of them six-sided (Giant's Causeway)</td><td>from a scatter, 3 in every 4 columns six-sided, fives and sevens in equal numbers (paper 5.3); no hexagon drawn</td><td>MATCH, but checked AFTER the run (the run came days before this row was written)</td><td>causeway.delta</td></tr>
       <tr><td>5</td><td>Steel quenched from red hot is hard and brittle (it snaps); tempered (reheated gently) it gets its give back and bends (Mike, 11:56: "metal blade hardening"; written before any run)</td><td>not run yet</td><td>-</td><td>-</td></tr>
+    </table>
+  </section>
+  <section><h2>Below the lab: the deep</h2>
+    <p>The sea from its surface (the wave tank&rsquo;s sea) down to about 11 km. Known answers written before the run; the
+      column built 10 m at a time from sea water&rsquo;s measured density and gravity from the Earth&rsquo;s mass. Code:
+      <code>lang/lab/runs/src/deep-src.delta</code>.</p>
+    <table>
+      <tr><th>#</th><th>Known result (what really happens)</th><th>Lab's answer</th><th>Match?</th><th>Run</th></tr>
+      <tr><td>1</td><td>Water's pressure grows by about one more air pressure for every 10 m down</td><td>1.99 at 10 m, 2.99 at 20 m, 3.98 at 30 m, 10.9 at 100 m</td><td>MATCH</td><td>runs/deep.delta</td></tr>
+      <tr><td>2</td><td>A balloon taken down is half its size by 10 m, a third by 20 m, a quarter by 30 m (the gas squeezed)</td><td>501, 334, 251 thousandths</td><td>MATCH</td><td>runs/deep.delta</td></tr>
+      <tr><td>3</td><td>At the deepest (about 11 km) the pressure is about 1,100 times the air's at the surface</td><td>1,122 times (a little high: the water held at 15 C, MAGIC)</td><td>MATCH</td><td>runs/deep.delta</td></tr>
+      <tr><td>4</td><td>Polystyrene cups sent down on deep-sea dives come back shrunk to a fraction of their size (their air squeezed out)</td><td>at 11 km: 3% of its size, 31% of its height (foam 97% air, measured densities)</td><td>MATCH</td><td>runs/deep.delta</td></tr>
     </table>
   </section>
   <nav class="pager"><a href="index.html">Back to D</a> <a href="space.html">The space room</a></nav>

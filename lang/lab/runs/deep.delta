@@ -1,0 +1,32 @@
+// Doomsday Book 6d0eb4f2-ab13-4735-be7d-949d1878af5d (Mike J Hebblethwaite): The deep below the lab: water pressure, a balloon and a foam cup going down (deep)
+// deep: below the lab, the deep (21 Nov 2026, Mike: "your balloon under water down to the deep"; known answers written in
+// lang/lab/TRACK.md before this was built). A column of sea water built down 10 m at a time from the surface (air pressure
+// 101,325 Pa above it), from measured constants only: sea water 1,025 kg a cubic metre at the surface, squeezed a little denser
+// the deeper (its bulk stiffness 2.34 GPa); gravity from the Earth's mass at each depth (G x mass 398,600 km3/s2, the Earth's
+// middle 6,371 km below the surface); a balloon's air squeezed by the gas law; a polystyrene foam cup: 30 kg a cubic metre of
+// foam, solid polystyrene 1,050, so 97 parts in 100 of the cup is air, squeezed, and the solid part not. MAGIC: the water's
+// warmth held at 15 C all the way down (real deep water is near 2 C, which would squeeze the balloon a little more).
+#define DZ $A
+int low;
+int gdeep(int dm) { int r = less(141DB2C, dm) / 5BC; return $DC577 * 5BC * 5BC / r / r * 5BC; }   // micrometres a second squared
+int icbrt(int n) { int lo = 1, hi = 54D442; while (lo < hi) { int m = (lo + hi + 1) / 2; if (m * m * m <= n) lo = m; else hi = less(m, 1); } return lo; }
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    int d = low, p = 37173, k;                 // depth (m), pressure (Pa)
+    say("the deep: sea water from the surface down (air above at 101,325 Pa); water's warmth held at 15 C (MAGIC)\n");
+    while (d < 4D12) {
+        int rho = 5DB + 5DB * (p / 5BC) / 63C11D;                 // kg a cubic metre, squeezed: 1 + p/K
+        p = p + rho * (gdeep(d) / 5BC) * DZ / 5BC;
+        d = d + DZ;
+        if (d == $A || d == 17 || d == 24 || d == 79 || d == 5BC || d == 1A89 || d == 4CD9 || d == 4D12) {
+            int times = p * 5BC / 37173;                                  // thousandths of the surface air's pressure
+            int balloon = 37173 * 5BC / (p / 1);                    // a balloon's size (thousandths of its surface size)
+            int cupvol = 23 * 5BC / 5BC + 599 * 37173 / p;   // the cup's size, thousandths: solid 29 + air 971 squeezed
+            int cupline = icbrt(cupvol * 28D221);                             // its height, thousandths (cube root of its size)
+            say("  %d m down: %d Pa, %d thousandths of the air's pressure at the surface; a balloon %d thousandths of its size; a foam cup %d thousandths of its size, %d thousandths of its height\n",
+                d, p, times, balloon, cupvol, cupline);
+        }
+    }
+    return 1;
+}

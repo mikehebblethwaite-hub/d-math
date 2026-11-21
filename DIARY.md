@@ -139,3 +139,9 @@ MATCH. Run: lang/lab/runs/waterball.delta (Doomsday Book e00f7613-f653-4ce9-93a3
 making deep?" Not yet. The deep is placed below the lab, a label like the sky: the sea from the wave tank's surface to about
 11 km down. Its four known answers were written in lang/lab/TRACK.md at 12:24, before any run (pressure one more air every
 10 m; a balloon half its size by 10 m, a quarter by 30 m; about 1,100 times at the deepest; polystyrene cups shrinking).
+
+**1E.** The deep, run after its known answers were written (1D): sea water built down 10 m at a time from its measured
+density (squeezed denser with depth) and gravity from the Earth's mass. Pressure 1.99 times the surface air at 10 m, 2.99
+at 20, 3.98 at 30, 1,122 at 11 km; a balloon 501, 334, 251 thousandths of its size at 10, 20, 30 m; a foam cup (97% air) 3%
+of its size and 31% of its height at 11 km. All four MATCH. The water held at 15 C all the way down (magic; real deep water
+near 2 C) makes the deepest pressure a little high. Run: lang/lab/runs/deep.delta (Doomsday Book 6d0eb4f2-ab13-4735-be7d-949d1878af5d).
