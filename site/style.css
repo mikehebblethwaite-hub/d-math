@@ -125,3 +125,6 @@ th { color: var(--stone-dim); font-weight: 400; }
 .pager a[rel="next"] { font-weight: 700; }
 .helplist li { margin-bottom: 1.25rem; }
 .helplist a { font-weight: 700; font-size: 1.15rem; }
+
+figcaption.ddb { font-size: 0.8rem; opacity: 0.75; margin-top: 0.3rem; }
+figcaption.ddb code { overflow-wrap: anywhere; }
