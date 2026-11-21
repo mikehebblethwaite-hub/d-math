@@ -31,6 +31,13 @@ not yet traced) comes down as this list does.
 | The outside's warmth (a first model) | outside | real readings: a thermometer on the coop or a public weather feed for the place |
 | A magic sea (plain waves when no buoy file) | wave tank | the Cefas buoy file always present (the archive is on coop-one: ~/sand/models/sea) |
 | Dan's body | presence | Dan's real body is this machine: its watts, warmth and fans (already real: the watts) |
+| How fast a warm ball wall flattens (one number per ball) | pingfunnel raft runs | the blind helper's wall rule (pingblind, celluloid, per wall) is the first step; then Mike's real bench: measure a wall's flat disc after a timed heat |
+| Balls set in hex by hand | pingfunnel raft runs | scattered starts (pingblind); sealed blind rule: no hex (FAIL, 21 Nov) |
+| A hand on the rig: the tray shaken 0.05 g, 20 a second | pingblind part 2 | how Mike really nudges his rig (taps, nozzle moves): watch him on the bench, then model what he does |
+| Mass forms where the light is brightest | lightmass, the space room's light sheet | a rule for light becoming mass that comes out of the run itself, not put in |
+| The lift between the floors (not drawn) | the lab's floors | a lift shaft and stairs, drawn |
+| The air on floors 2 and 3 is the lab's | the lab's floors | each floor its own air cells |
+| A bit of salt holds 1 in 3 on a step, 1 in 40 alone (rough guesses) | saltplay, saltcube | measured attachment from the real seed beaker under the Perch eye |
 
 ## Links (attachments, inputs, outputs)
 | Magic | Where | What would make it real |
