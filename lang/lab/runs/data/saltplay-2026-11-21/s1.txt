@@ -1,0 +1,3 @@
+bits in the brine at once 1: grown 149A cells; its square 4A by 48; full 62 hundredths (gaps inside the square 435)
+  faces reach (middle, all four) 88 cells; corners reach (along the diagonals, all four) 73 cells; a full square's corners reach as far as its faces
+  corners and faces level: a filled square

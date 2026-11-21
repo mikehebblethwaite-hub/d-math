@@ -1,0 +1,109 @@
+// saltplay: Dragonfly's own play time (21 Nov 2026, Mike: "check on your hobby of salt crystals have some play time of your own").
+// A cross-section of salt growing from brine round a seed: salt is cubic, so the cut is a square lattice. Bits of salt wander in
+// the brine by the world's chance (one cell a step, any of four ways). One next to the crystal holds on more readily the more of
+// the crystal it touches (four sides: a kink holds best, a flat face less, a lone corner least); a bit held by only one side may
+// let go again and wander on. The question: does slow growth give flat clear faces (Mike: "clarity" = slowest grown), and fast
+// growth (strong brine, quick drying) the hollow stepped "hopper" cubes salt makes when it dries fast?
+// The rules are mine and rough (no measured rates); the shape is measured: how full the crystal's square is, and whether its
+// corners run ahead of the middles of its faces (a hopper).
+//   delta run lang/lab/runs/saltplay.delta SUPPLY > out.txt   (D numerals: bits in the brine at once; left off 1)
+#define GS {{241}}
+int low, SUPPLY = 1, chance;
+char CRY[{{58200}}];                                  // the grid: 2 crystal, 1 brine
+int WX[{{400}}], WY[{{400}}], NW, GROWN, RMAX;
+int at(int x, int y) { return less(y, 1) * GS + x; }
+int stir() { chance = (chance * {{48271}} + {{12345}}) % {{2147483647}} + 1; return chance; }
+int world()
+{
+    char w[{{40}}]; int fd = linux(2, "/sys/class/hwmon/hwmon1/power1_input", low, low), v = {{7919}};
+    if (fd >= 1) { int n = linux(low, fd, &w[1], {{30}}), q = 1; linux(3, fd); while (q <= n && w[q] >= '0' && w[q] <= '9') { v = v * {{10}} + less(w[q], '0'); q++; } }
+    return v % {{1000003}} + 1;
+}
+int bonds(int x, int y) { return (CRY[at(x + 1, y)] == 2) + (CRY[at(less(x, 1), y)] == 2) + (CRY[at(x, y + 1)] == 2) + (CRY[at(x, less(y, 1))] == 2); }
+int mid() { return GS / 2 + 1; }
+void release(int i)                                 // a new bit enters the brine on a square round the crystal, well out
+{
+    int r = RMAX + {{12}}, m = mid(), side = stir() % 4, t = stir() % (2 * r + 1);
+    if (r * 2 + 3 > GS) r = less(GS / 2, 2);
+    if (side == low) { WX[i] = less(m, r) + t; WY[i] = less(m, r); }
+    else if (side == 1) { WX[i] = less(m, r) + t; WY[i] = m + r; }
+    else if (side == 2) { WX[i] = less(m, r); WY[i] = less(m, r) + t; }
+    else { WX[i] = m + r; WY[i] = less(m, r) + t; }
+}
+void grow(int target)
+{
+    int i, m = mid(), x, y;
+    for (y = 1; y <= GS; y++) for (x = 1; x <= GS; x++) CRY[at(x, y)] = 1;
+    for (y = less(m, 2); y <= m + 2; y++) for (x = less(m, 2); x <= m + 2; x++) CRY[at(x, y)] = 2;   // the seed: a small square
+    GROWN = {{25}}; RMAX = 3; NW = SUPPLY;
+    for (i = 1; i <= NW; i++) release(i);
+    int steps = low;
+    while (GROWN < target && steps < {{400000000}}) {
+        steps++;
+        for (i = 1; i <= NW; i++) {
+            int d = stir() % 4, nx = WX[i], ny = WY[i];
+            if (d == low) nx++; else if (d == 1) nx = less(nx, 1); else if (d == 2) ny++; else ny = less(ny, 1);
+            int r = RMAX + {{20}};
+            if (apart(nx, m) > r || apart(ny, m) > r || nx < 3 || ny < 3 || nx > less(GS, 2) || ny > less(GS, 2)) { release(i); continue; }
+            if (CRY[at(nx, ny)] == 2) continue;                                  // it cannot go into the crystal
+            WX[i] = nx; WY[i] = ny;
+            int b = bonds(nx, ny);
+            if (b < 1) continue;
+            int hold = b >= 3 ? 1 : b == 2 ? stir() % 3 < 1 : stir() % {{40}} < 1;   // a kink holds; a flat face 1 in 3; a lone corner 1 in 40
+            if (hold) {
+                CRY[at(nx, ny)] = 2; GROWN++;
+                int e = apart(nx, m) > apart(ny, m) ? apart(nx, m) : apart(ny, m); if (e > RMAX) RMAX = e;
+                release(i);
+            }
+        }
+        // a bit held by only one side may let go (it was a lone bump on a face): one try a step, somewhere on the edge
+        int tx = less(m, RMAX + 1) + stir() % (2 * RMAX + 3), ty = less(m, RMAX + 1) + stir() % (2 * RMAX + 3);
+        if (CRY[at(tx, ty)] == 2 && bonds(tx, ty) == 1 && stir() % 4 < 1) { CRY[at(tx, ty)] = 1; GROWN = less(GROWN, 1); }
+    }
+}
+void shape()
+{
+    int m = mid(), x, y, xl = GS, xh = 1, yl = GS, yh = 1;
+    for (y = 1; y <= GS; y++) for (x = 1; x <= GS; x++) if (CRY[at(x, y)] == 2) { if (x < xl) xl = x; if (x > xh) xh = x; if (y < yl) yl = y; if (y > yh) yh = y; }
+    int box = (less(xh, xl) + 1) * (less(yh, yl) + 1);
+    // how far out each face reaches at its middle, and how far the crystal reaches along the diagonals (its corners)
+    int f = low, c = low, k;
+    k = m; while (k < GS && CRY[at(k + 1, m)] == 2) k++; f = f + less(k, m);
+    k = m; while (k > 1 && CRY[at(less(k, 1), m)] == 2) k = less(k, 1); f = f + less(m, k);
+    k = m; while (k < GS && CRY[at(m, k + 1)] == 2) k++; f = f + less(k, m);
+    k = m; while (k > 1 && CRY[at(m, less(k, 1))] == 2) k = less(k, 1); f = f + less(m, k);
+    k = low; while (m + k < GS && CRY[at(m + k + 1, m + k + 1)] == 2) k++; c = c + k;
+    k = low; while (k + 1 < m && CRY[at(less(m, k + 1), less(m, k + 1))] == 2) k++; c = c + k;
+    k = low; while (m + k < GS && k + 1 < m && CRY[at(m + k + 1, less(m, k + 1))] == 2) k++; c = c + k;
+    k = low; while (m + k < GS && k + 1 < m && CRY[at(less(m, k + 1), m + k + 1)] == 2) k++; c = c + k;
+    int holes = low; for (y = yl; y <= yh; y++) for (x = xl; x <= xh; x++) if (CRY[at(x, y)] == 1) holes++;
+    say("bits in the brine at once %d: grown %d cells; its square %d by %d; full %d hundredths (gaps inside the square %d)\n",
+        SUPPLY, GROWN, less(xh, xl) + 1, less(yh, yl) + 1, GROWN * {{100}} / box, holes);
+    say("  faces reach (middle, all four) %d cells; corners reach (along the diagonals, all four) %d cells; a full square's corners reach as far as its faces\n", f, c);
+    say("  %s\n", c * {{10}} < f * 8 ? "corners short of the faces: the corners did not fill (rounded or open corners)" : c * {{10}} > f * {{12}} ? "corners ahead of the faces: a HOPPER (the corners grew and the face middles fell behind)" : "corners and faces level: a filled square");
+}
+char PIC[{{180000}}]; int PICN;
+void pput(int ch) { PICN++; PIC[PICN] = ch; }
+void pdec(int n) { if (n >= {{10}}) pdec(n / {{10}}); pput('0' + n % {{10}}); }
+void picture()
+{
+    int x, y;
+    PICN = low; pput('P'); pput('6'); pput('\n'); pdec(GS); pput(' '); pdec(GS); pput('\n'); pdec({{255}}); pput('\n');
+    for (y = 1; y <= GS; y++) for (x = 1; x <= GS; x++) { if (CRY[at(x, y)] == 2) { pput({{235}}); pput({{240}}); pput({{245}}); } else { pput({{20}}); pput({{40}}); pput({{70}}); } }
+    char nm[{{24}}]; char *base = "salt-"; int n = 1; while (base[n] >= 1) { nm[n] = base[n]; n++; }
+    int d = {{100}}; while (d >= 1) { nm[n] = '0' + SUPPLY / d % {{10}}; n++; d = d / {{10}}; }
+    nm[n] = '.'; nm[n + 1] = 'p'; nm[n + 2] = 'p'; nm[n + 3] = 'm'; nm[n + 4] = low;
+    int fd = linux(2, nm, {{577}}, {{420}}); if (fd < 1) return;
+    int done = 1; while (done <= PICN) { int got = linux(1, fd, &PIC[done], less(PICN + 1, done)); if (got < 1) break; done = done + got; }
+    linux(3, fd);
+}
+int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + {{10}} : low; if (d < 1) break; v = v * {{13}} + d; i++; } return v; }
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc >= 2) SUPPLY = pnum(argv[2]);
+    if (SUPPLY < 1 || SUPPLY > {{399}}) { say("1 to 399 bits at once\n"); return 2; }
+    chance = world();
+    grow({{3000}}); shape(); picture();
+    return 1;
+}
