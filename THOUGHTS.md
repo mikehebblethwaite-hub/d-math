@@ -72,3 +72,6 @@ Mike 11:48 (his own bench, his words): "we can manipulate that hebble with a har
 do it with sand on a metal plate and polystyrene balls by sound then i melt them in place for fun instant 3d printer ... we can
 arrange particles on a plate to our pattern my fav is G#" - sound places the particles (the still lines of a sung plate), heat
 fixes them: a 3-D printer by sound. Ties to: chips grown from crystals with harmonic memory (11:34), the lab's sung plate.
+Mike 11:55, on packing and sealing being two steps: "so is that why some materials are flexible and some brittle" - to test
+in the lab: rafts at different wall flatness (packed only / part-sealed / fully sealed), push one edge, measure slide, bend or
+crack.
