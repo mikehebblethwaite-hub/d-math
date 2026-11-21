@@ -66,7 +66,8 @@ not yet traced) comes down as this list does.
 | The diving plate's slope (45 degrees) and the snapping limit (650 C) are chosen | plates | the slope from the plate's weight against the rock's push; the limit from rock strength by warmth |
 | FAULT: the lab's cold balls pack into hex (up to 30-41 of 100 six round one) where Mike's real cold rigs never did | pingfunnel, pingblind | cold balls that behave as his real ones: measured celluloid-on-celluloid grip, the real flow between balls; checked against his bench (no hex cold) BEFORE any more ball tests |
 | MISSING (begun 21 Nov: the flame's light onto the wax in candle2, by rings of cells): radiant heat elsewhere (the sun's light) | the sky, the space room | light carrying heat from hot things to what they shine on: needed for a candle to melt its pool with gravity, for sunlight warming the sky (the ozone) and the sea |
-| The wick's wax boils off by a share each step, not by the heat that reaches it | candlespace | vapour = the heat reaching the wick top / wax's heat of boiling |
+| The wick's wax boils off by a share each step, not by the heat that reaches it | candlespace (candle2 does it by the heat) | vapour = the heat reaching the wick top / wax's heat of boiling |
+| The match: a stand-in flame, 85 W, its heat into the wick and the air round its tip, the air never past 1,800 K | candle2 | a match that burns its own wood (and is struck) |
 | The wick: carries heat like solid wax, sits in a flat slice with 3 faces in the flame | candle2 | a thin cotton wick (its own carrying), the flame round its tip on every side (a round slice, or 3-D), wax arriving at its tip and boiling (holding it near boiling heat) |
 
 ## Links (attachments, inputs, outputs)
