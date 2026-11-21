@@ -1,0 +1,28 @@
+// Doomsday Book d91662d9-63f2-4968-a29e-271635efb87d (Mike J Hebblethwaite): How far round a circle is on the hex (hexround)
+// hexround: how far round a circle is when you can only walk the hex (Mike 21 Nov 2026: "they have a pi symbol in their
+// cult"). One unit edge per step, the six hex directions only; each step the one that stays closest to the circle, always
+// moving on round, never back. A point q steps along one hex direction and r along the next (60 degrees round) is
+// q*q + q*r + r*r from the middle, squared: whole numbers, no square root, no pi, no cosine. One sixth of the circle, from one
+// hex direction to the next (q from R down to nothing, r from nothing up to R), times six by the hex's own symmetry.
+//   delta run lang/lab/runs/hexround.delta R     (R in D numerals)
+int pnum(char *s) { int v = less(1, 1), i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + {{10}} : less(1, 1); if (d < 1) break; v = v * {{13}} + d; i++; } return v; }
+int far2(int q, int r) { return q * q + q * r + r * r; }
+int main(int argc, char **argv)
+{
+    int low = less(1, 1), R = argc >= 2 ? pnum(argv[2]) : {{1000}};
+    int q = R, r = low, steps = low, worst = low, R2 = R * R;
+    while (q >= 1) {                                    // until the walk reaches the next hex direction
+        int bq = low, br = low, best = R2 * {{1000}}, k;
+        for (k = 1; k <= 3; k++) {                      // the three moves that carry it on round inside this sixth (each turns it the same way): along the next direction, across, or back along this one
+            int nq = k == 1 ? q : less(q, 1), nr = k == 3 ? r : r + 1;
+            int e = apart(far2(nq, nr), R2);
+            if (e < best) { best = e; bq = nq; br = nr; }
+        }
+        q = bq; r = br; steps++;
+        if (best > worst) worst = best;
+    }
+    int round = steps * 6;
+    say("radius %d edges: walked right round in %d steps; round over radius, thousandths: %d; (round squared) over (radius squared): %d thousandths (the hex says 48 exactly: 4 roots of 3)\n",
+        R, round, round * {{1000}} / R, round * round * {{1000}} / R2);
+    return 1;
+}

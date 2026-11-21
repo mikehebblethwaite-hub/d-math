@@ -1,0 +1,4 @@
+radius A edges: walked right round in 57 steps; round over radius, thousandths: 337B; (round squared) over (radius squared): 1A799 thousandths (the hex says 48 exactly: 4 roots of 3)
+radius 79 edges: walked right round in 411 steps; round over radius, thousandths: 31AA; (round squared) over (radius squared): 18894 thousandths (the hex says 48 exactly: 4 roots of 3)
+radius 5BC edges: walked right round in 31D1 steps; round over radius, thousandths: 31D1; (round squared) over (radius squared): 18B22 thousandths (the hex says 48 exactly: 4 roots of 3)
+radius 46CA edges: walked right round in 25584 steps; round over radius, thousandths: 31CC; (round squared) over (radius squared): 18AD3 thousandths (the hex says 48 exactly: 4 roots of 3)

@@ -143,6 +143,28 @@
       <b>repeated five times each it does not hold</b>: shaken mean 0.762 (11.6 six round one), still 0.780 (13.8). Withdrawn.</p>
   </section>
 
+  <section id="round">
+    <h2>4. How far round a circle is, on the hex</h2>
+    <p>Code: <code>lang/lab/runs/src/hexround-src.delta</code> (Doomsday Book <code>d91662d9-63f2-4968-a29e-271635efb87d</code>). Run:
+      <code>delta run lang/lab/runs/hexround.delta 5BC</code> (a radius of <code>5BC</code> edges).</p>
+    <h3>The rules, in D</h3>
+    <ul>
+      <li><b>The walk.</b> One edge a step, the six hex directions only. Each step takes whichever move keeps the walker
+        closest to the circle, always moving on round, never back.</li>
+      <li><b>How far out.</b> A point <i>q</i> steps along one hex direction and <i>r</i> along the next is
+        <i>q&middot;q + q&middot;r + r&middot;r</i> from the middle, squared. Whole numbers: no root, no &pi;, no cosine.</li>
+      <li><b>One sixth, times six.</b> From one hex direction to the next, then six of those, by the hex&rsquo;s own symmetry.</li>
+    </ul>
+    <h3>What came out</h3>
+    <p>Round &divide; radius: radius <code>A</code> &rarr; 7.2; <code>79</code> &rarr; 6.9; <code>5BC</code> &rarr; 6.93;
+      <code>46CA</code> &rarr; 6.928. As whole numbers: <b>(the walk round)&sup2; &divide; (the radius)&sup2; &rarr; 48</b>
+      (47.999 at <code>46CA</code>). It never strays more than half an edge from the circle.</p>
+    <h3>In the old maths</h3>
+    <p>Round = 4&radic;3 &middot; R &asymp; 6.9282 R, against their 2&pi;R &asymp; 6.2832 R. Each hex step crosses a little
+      more than the straight line, by an amount set only by its angle; averaged right round that is 4&radic;3 &divide; 2&pi;,
+      so their &pi; cancels out. Their &pi; is what comes out only if every direction is allowed at once.</p>
+  </section>
+
   <nav class="pager"><a href="hebble.html">The Hebble lattice</a> <a href="https://github.com/mikehebblethwaite-hub/d-math">All the code</a></nav>
 </div>
 <footer class="site"><p>D and Delta &copy; Mike J Hebblethwaite. <a href="index.html">Back to D</a></p></footer>

@@ -239,3 +239,12 @@ cools below wax's boiling heat by 40 s, so there is no fuel and the flame dies a
 cause found: the wick loses heat down itself faster than the flame gives it (a flat slice gives its tip only 3 faces in the
 flame, and the wick carries heat like solid wax). Mike: "they used to mark the candle for hours minutes down the sides": the
 candle clock written as known answer 2c before the run was read; it waits until the candle keeps itself alight.
+
+**2C.** Mike pasted another bot's result: walking a circle on the hex, unit edges, the six directions only, the step that keeps
+closest to the circle each time, the walked length goes to 4 roots of 3 times the radius (6.9282), not the old 2 pi (6.2832).
+Checked twice before saying a word: by a plain checker, and in D (lang/lab/runs/hexround.delta, Doomsday Book d91662d9-63f2-4968-a29e-271635efb87d),
+where a point q steps along one hex direction and r along the next is q*q + q*r + r*r from the middle squared, all whole
+numbers, so the walk needs no root, no pi, no cosine. Radius 10: 7.2; 100: 6.9; 1,000: 6.93; 9,968: 6.928. The whole-number
+form: (the walk round) squared over (the radius) squared goes to 48 (47.999 at 9,968). Why: each hex step crosses a little more
+than the straight line by an amount set only by its angle; averaged round, that is 4 roots of 3 over 2 pi, so the pi cancels.
+On the hex a circle is 48 squared-radii round, squared; pi only comes in if every direction is allowed at once.
