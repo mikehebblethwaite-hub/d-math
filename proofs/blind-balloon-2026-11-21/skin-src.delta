@@ -1,0 +1,467 @@
+// skin: the shape of a latex weather balloon from launch to the stratosphere, worked out blind from rubber physics.
+//
+// THE BALLOON (as made)
+//   A sphere of natural-rubber latex, 1.3 m across unstretched (radius 0.65 m), skin 0.2 mm thick unstretched.
+//   Rubber density 920 kg/m3, so the skin weighs about 0.98 kg (worked out below from the made surface).
+//   The neck at the bottom is a rigid ring 5 cm in radius (the filler/tie), held where it was made: the rubber
+//   there keeps its made size round the ring. The load hangs from this ring.
+//
+// THE RUBBER LAW (Gent, an incompressible hyperelastic law that is neo-Hookean at small stretch and stiffens as the
+// rubber's chains run out of slack):   W = -(mu/2) Jm ln(1 - (I1 - 3)/Jm),  I1 = l1^2 + l2^2 + 1/(l1 l2)^2
+//   mu = 0.35 MPa (small-strain shear modulus of soft natural latex), Jm = 97 (the Gent chain-limit for natural rubber,
+//   fitted to Treloar's classic natural rubber data). l1 = stretch along the meridian (neck to top), l2 = round the
+//   ring. Plane stress, thin skin; thickness goes as t0 / (l1 l2). Only the forces are needed, so no log is taken:
+//     dW/dl1 = mu G (l1 - 1/(l1^3 l2^2)),  G = Jm / (Jm - I1 + 3)     (and the same with 1 and 2 swapped)
+//   Rubber temperature effects (it gets stiffer and less stretchy in the cold) are left out: the same law all the way.
+//
+// BREAKING: natural latex breaks at about 700% elongation pulled one way (l = 8). Rubber breaks when its chains run
+//   out, which goes with I1, not with one stretch alone. So breaking is taken as I1 >= 64.25 (the I1 of l = 8 one way).
+//   Pulled equally both ways (as a balloon mostly is) that is l = 5.65; pulled one way (next to the neck) it is l = 8.
+//   This is the lower end for good latex at room heat; cold rubber at -55 C is if anything less stretchy.
+//
+// HELIUM AND LOAD
+//   Load 0.3 kg. Helium chosen so the gross lift at launch (displaced air minus helium) is 10% above load + rubber:
+//   gross 1.10 x (0.3 + 0.977) kg = 1.405 kg, which is 56.3 mol of helium (0.225 kg). That amount is then fixed.
+//   Air 28.964 g/mol, helium 4.0026 g/mol, gas constant 8.314 J/mol/K, g = 9.81 m/s2. Helium is at the outside
+//   temperature at each height (given), and an ideal gas.
+//
+// THE METHOD (a stack of rings, settled by damped motion: "dynamic relaxation")
+//   The made sphere is cut into 80 rings (nodes) from the top pole to the neck ring, closer together near the neck,
+//   where the stretch changes fastest. The made sphere's points are found by turning a unit pointer round in
+//   ten-thousandth steps (no sine table, no pi is given: pi is measured as the number of steps to a quarter turn).
+//   Between two neighbouring rings the skin is a short cone. From each cone's present length and mean radius against
+//   its made length and radius come its two stretches; the rubber law gives its two tensions. Forces on the rings:
+//     - meridian tension pulling each ring toward its two neighbours,
+//     - hoop tension pulling each ring in toward the axis,
+//     - the gas pressure difference pushing out square to the skin,
+//     - the rubber's own weight pulling down.
+//   The pressure difference is not the same everywhere: inside and outside both fall with height, the helium's
+//   weight makes its pressure fall slowly, the air's much faster, so the difference grows toward the top:
+//     dp(depth) = dp(at the gas's middle) + (rho_air - rho_helium) g (depth of middle - depth)
+//   The amount of helium is fixed, so the pressure at the gas's middle is the one where p V = n R T holds
+//   (the gas law with the mean pressure = pressure at the volume's middle, true for a straight pressure fall).
+//   Each ring moves by the force on it (with a mass set from its own stiffness so all move at a steady pace) and is
+//   slowed each step; when nothing moves any more, every ring is in balance: that is the shape.
+//   The top ring stays on the axis; the neck ring stays put. The force the neck ring has to hold is printed: it is the
+//   pull of the load plus the spare lift (and the gas pushing on the neck plug). In real flight the spare lift is
+//   taken by air drag on the rising balloon; here it is taken at the neck instead (drag is not modelled).
+//   Volumes per radian round the axis are used so the 2 pi cancels in the force balance; the true volume uses the
+//   measured pi.
+//
+// ASSUMPTIONS, in plain words: axisymmetric (no wind, no spin); still air (no drag on the skin); a smooth membrane of
+//   even made thickness (no thick neck or seam); rubber law the same at all temperatures; no creep or ageing; helium
+//   at outside temperature; no gas leaks through the skin; the neck ring is rigid and 5 cm in radius; the load is a
+//   point pull at the ring.
+//
+// NUMBERS: integers only. One unit = ten millionths. Lengths are in units of the made radius (0.65 m), tensions in
+//   units of mu t0 (70 N/m), pressures in mu t0 / R0 (107.69 Pa). Values that can point either way live above a large
+//   rest level LV and their way is read by comparing with it.
+//
+// OUTPUT (D numerals): for each height its height top to neck, widest width (mm), ratio x1000, where the widest point
+//   is (x1000 of the way up from the neck), the largest stretch (x1000), which way and where, the top stretch, I1, the
+//   gas pressure difference at the top and bottom (mPa), the neck pull and the spare lift, and whether it broke.
+//   A picture per height: shape-<km>.ppm (side view outline, black; a dotted circle of the same widest width, grey).
+
+#define SC {{10000000}}
+#define LV {{1000000000000000}}
+#define BG {{1000000000}}
+#define NN {{80}}
+#define NF {{20000}}
+#define ZB {{1000000000}}
+#define ZT {{500000000}}
+#define PW {{360}}
+#define PH {{480}}
+
+int low;
+int csn[{{20001}}], snn[{{20001}}];
+int rn[{{90}}], zn[{{90}}], lr[{{90}}], rr[{{90}}];
+int rx[{{90}}], zx[{{90}}], vr[{{90}}], vz[{{90}}], fr[{{90}}], fz[{{90}}], ms[{{90}}];
+int la[{{90}}], lb[{{90}}], ia[{{90}}];
+int twopi, area, mskin, mload, nmol;
+int lamp, dpc, vol, zmid, errv, neckf, gradn, vtar;
+char pic[{{520000}}];
+int pn;
+char nm[{{40}}];
+
+int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+
+// ---- signed values: stored as LV + x ----
+int sg(int x) { return LV + x; }
+int ispos(int a) { return a >= LV; }
+int mg(int a) { if (a >= LV) return less(a, LV); return less(LV, a); }
+int mk(int m, int p) { if (p) return LV + m; return less(LV, m); }
+int ad(int a, int b) { return less(a + b, LV); }
+int sb(int a, int b) { return less(a + LV, b); }
+int ml(int a, int b) { return mk(mg(a) * mg(b) / SC, ispos(a) == ispos(b)); }
+int mlp(int a, int u) { return mk(mg(a) * u / SC, ispos(a)); }
+int dvp(int a, int u) { return mk(mg(a) * SC / u, ispos(a)); }
+int half(int a) { return mk(mg(a) / 2, ispos(a)); }
+int pm(int a, int b) { return a * b / SC; }
+int pd(int a, int b) { return a * SC / b; }
+int pmb(int a, int b) { if (a < {{3000000000}} && b < {{3000000000}}) return a * b / SC; return (a / {{1000}}) * (b / {{10000}}); }   // for big products
+
+// ---- the made sphere: turn a pointer in steps of 1/10000 of a radian ----
+int quarter;
+int build_sphere()
+{
+    int ch = {{999999995}}, sh = {{100000}};    // turning by 1/10000: cos and sin by their first terms (exact here)
+    int k = 1;
+    csn[1] = BG; snn[1] = low;
+    while (k < NF) {
+        int cc = csn[k] * ch, ss = snn[k] * sh;
+        if (cc < ss) break;                     // the next step would pass the quarter turn
+        int c2 = less(cc, ss) / BG;
+        int s2 = (snn[k] * ch + csn[k] * sh) / BG;
+        int nr = isqrt(c2 * c2 + s2 * s2);
+        k++;
+        csn[k] = c2 * BG / nr; snn[k] = s2 * BG / nr;
+    }
+    quarter = k;
+    // pi = 2 x (steps to the last point + the small angle left, which is its cosine since its sine is 1)
+    twopi = 4 * (less(k, 1) * {{1000}} + csn[k] / {{100}});
+    return k;
+}
+
+// point at fine index k (1 = top pole) on the made sphere: radius and depth below the top (units)
+int ref_r(int k) { if (k <= quarter) return snn[k] / {{100}}; return snn[less(2 * quarter, k)] / {{100}}; }
+int ref_z(int k) { if (k <= quarter) return less(BG, csn[k]) / {{100}}; return (BG + csn[less(2 * quarter, k)]) / {{100}}; }
+
+void make_rings()
+{
+    int aneck = {{769231}};                     // neck ring radius 5 cm / 65 cm, in units
+    int kn = 1;
+    while (snn[kn] / {{100}} < aneck) kn++;
+    int kend = less(2 * quarter, kn);            // the neck, mirrored onto the lower half
+    int send = less(kend, 1);
+    int i;
+    for (i = low; i <= NN; i++) {
+        // graded: f(u) = 1.7 u - 0.7 u^2, rings closer near the neck
+        int k = 1 + send * less({{17}} * i * NN, 7 * i * i) / ({{10}} * NN * NN);
+        rn[i + 1] = ref_r(k); zn[i + 1] = ref_z(k);
+    }
+    rn[1] = low; zn[1] = low;
+    area = low;
+    for (i = 1; i <= NN; i++) {
+        int dr = apart(rn[i + 1], rn[i]), dz = apart(zn[i + 1], zn[i]);
+        lr[i] = isqrt(dr * dr + dz * dz);
+        rr[i] = (rn[i] + rn[i + 1]) / 2;
+        area = area + pm(rr[i], lr[i]);
+    }
+}
+
+// ---- gas sums for a height: p in Pa, tk in kelvin ----
+int pout, tout;
+int pin_mpa() { int m = pout * {{1000}}; int e = mlp(dpc, {{107692}}) ; return less(m + e, LV); }    // e in mPa (signed)
+int set_gas()
+{
+    int pinm = pin_mpa();
+    // helium volume for the fixed helium amount (m3, units) then per radian over R0^3
+    int nrt = nmol * {{8314}} / {{1000000}} * tout;           // mJ
+    int vreal = nrt * SC / pinm;
+    vtar = pd(vreal, pm(twopi, {{2746250}}));
+    // air and helium density (kg/m3, units) and the pressure-difference slope with depth
+    int rhoa = pout * {{28964}} * {{10000}} / ({{8314}} * tout);
+    int rhoh = pinm * {{40026}} / ({{8314}} * tout);
+    gradn = less(rhoa, rhoh) * {{592114}} / SC;
+    return vreal;
+}
+
+// ---- one step of the ring forces ----
+int jm;
+void forces()
+{
+    int i;
+    int nodes = NN + 1;
+    for (i = 1; i <= nodes; i++) { fr[i] = LV; fz[i] = LV; ms[i] = low; }
+    // volume and its middle (per radian)
+    vol = LV; int mom = LV;
+    for (i = 1; i <= NN; i++) {
+        int dz = less(LV + zx[i + 1], zx[i]);
+        int q = (pm(rx[i], rx[i]) + pm(rx[i], rx[i + 1]) + pm(rx[i + 1], rx[i + 1])) / 6;
+        int v = mlp(dz, q);
+        vol = ad(vol, v);
+        mom = ad(mom, mlp(v, less((zx[i] + zx[i + 1]) / 2, ZT)));
+    }
+    zmid = ZT + pd(mg(mom), mg(vol));
+    errv = dvp(sb(sg(vtar), vol), vtar);
+    dpc = ad(lamp, ml(sg({{50000000}}), errv));     // K = 5
+    for (i = 1; i <= NN; i++) {
+        int dr = less(LV + rx[i + 1], rx[i]), dz = less(LV + zx[i + 1], zx[i]);
+        int ln = isqrt(mg(dr) * mg(dr) + mg(dz) * mg(dz));
+        if (ln < 1) ln = 1;
+        int rm = (rx[i] + rx[i + 1]) / 2;
+        if (rm < 1) rm = 1;
+        int l1 = pd(ln, lr[i]), l2 = pd(rm, rr[i]);
+        int p12 = pm(l1, l2);
+        int inv = pd(SC, pm(p12, p12));
+        int i1 = pm(l1, l1) + pm(l2, l2) + inv;
+        int top = (jm + 3) * SC;
+        if (i1 > less(top, {{5000000}})) i1 = less(top, {{5000000}});
+        int gg = pd(jm * SC, less(top, i1));
+        la[i] = l1; lb[i] = l2; ia[i] = i1;
+        int q1 = pd(SC, pm(pm(pm(l1, l1), l1), pm(l2, l2)));
+        int q2 = pd(SC, pm(pm(pm(l2, l2), l2), pm(l1, l1)));
+        int w1 = mlp(sb(sg(l1), sg(q1)), gg), w2 = mlp(sb(sg(l2), sg(q2)), gg);
+        // meridian pull along the cone
+        int fa = mlp(w1, rr[i]);
+        int ux = dvp(dr, ln), uz = dvp(dz, ln);
+        int far = ml(fa, ux), faz = ml(fa, uz);
+        fr[i] = ad(fr[i], far); fz[i] = ad(fz[i], faz);
+        fr[i + 1] = sb(fr[i + 1], far); fz[i + 1] = sb(fz[i + 1], faz);
+        // hoop pull toward the axis
+        int fh = half(mlp(w2, lr[i]));
+        fr[i] = sb(fr[i], fh); fr[i + 1] = sb(fr[i + 1], fh);
+        // gas pressure difference at this cone's depth
+        int zm = (zx[i] + zx[i + 1]) / 2;
+        int dp = ad(dpc, mlp(sb(sg(zmid), sg(zm)), gradn));
+        int f = half(mlp(dp, rm));
+        int pr = ml(f, dz), pz = ml(f, dr);
+        fr[i] = ad(fr[i], pr); fr[i + 1] = ad(fr[i + 1], pr);
+        fz[i] = sb(fz[i], pz); fz[i + 1] = sb(fz[i + 1], pz);
+        // rubber weight
+        int wt = pm(pm(rr[i], lr[i]), {{167611}}) / 2;
+        fz[i] = fz[i] + wt; fz[i + 1] = fz[i + 1] + wt;
+        // stiffness for the ring masses
+        int l14 = pm(pm(l1, l1), pm(l1, l1)), l24 = pm(pm(l2, l2), pm(l2, l2));
+        int t1 = SC + 3 * pd(SC, l14) + 4 * pm(gg, pm(l1, l1)) / jm;
+        int t2 = SC + 3 * pd(SC, l24) + 4 * pm(gg, pm(l2, l2)) / jm;
+        int ka = pmb(pmb(pd(rr[i], lr[i]), gg), t1);
+        int kh = pmb(pmb(pd(lr[i], rr[i]), gg), t2) / 2;
+        ms[i] = ms[i] + ka + kh; ms[i + 1] = ms[i + 1] + ka + kh;
+    }
+    neckf = fz[nodes];
+    fr[1] = LV; fr[nodes] = LV; fz[nodes] = LV;
+}
+
+int lastmove;
+int settle(int steps)
+{
+    int s, i, nodes = NN + 1, most = low;
+    for (i = 1; i <= nodes; i++) { vr[i] = LV; vz[i] = LV; }
+    for (s = 1; s <= steps; s++) {
+        forces();
+        most = low;
+        for (i = 1; i <= nodes; i++) {
+            int m = ms[i] / 2;
+            if (m < 1) m = 1;
+            vr[i] = ad(mk(mg(vr[i]) * {{95}} / {{100}}, ispos(vr[i])), dvp(fr[i], m));
+            vz[i] = ad(mk(mg(vz[i]) * {{95}} / {{100}}, ispos(vz[i])), dvp(fz[i], m));
+            if (mg(vr[i]) > most) most = mg(vr[i]);
+            if (mg(vz[i]) > most) most = mg(vz[i]);
+            int nr = rx[i] + vr[i];
+            if (nr < LV + 1) nr = LV + 1;
+            rx[i] = less(nr, LV);
+            zx[i] = less(zx[i] + vz[i], LV);
+        }
+        rx[1] = low;
+        lamp = ad(lamp, mlp(errv, {{500000}}));     // the mean pressure creeps to where the gas law holds
+        lastmove = most;
+        if (s > {{2000}} && most <= 3 && mg(errv) <= {{30}}) return s;
+    }
+    return s;
+}
+
+// ---- picture ----
+void put(int c) { pn++; pic[pn] = c; }
+void putdec(int n) { if (n >= {{10}}) putdec(n / {{10}}); put({{48}} + n % {{10}}); }
+int lerp(int a, int b, int t, int n) { if (b >= a) return a + less(b, a) * t / n; return less(a, less(a, b) * t / n); }
+void dot(int x, int y, int c)
+{
+    if (x < 1 || y < 1 || x > PW || y > PH) return;
+    int at = (less(y, 1) * PW + less(x, 1)) * 3;
+    pic[pn + at + 1] = c; pic[pn + at + 2] = c; pic[pn + at + 3] = c;
+}
+void line(int xa, int ya, int xb, int yb, int c)
+{
+    int n = apart(xa, xb); if (apart(ya, yb) > n) n = apart(ya, yb);
+    if (n < 1) n = 1;
+    int t;
+    for (t = low; t <= n; t++) dot(lerp(xa, xb, t, n), lerp(ya, yb, t, n), c);
+}
+void picture(int km, int jw)
+{
+    int i, nodes = NN + 1;
+    pn = low;
+    put('P'); put('6'); put('\n'); putdec(PW); put(' '); putdec(PH); put('\n'); putdec({{255}}); put('\n');
+    int head = pn;
+    for (i = 1; i <= PW * PH * 3; i++) pic[head + i] = {{255}};
+    pn = head;
+    // scale: balloon top to neck fills 70% of the picture height
+    int hh = less(zx[nodes], zx[1]);
+    int span = {{336}};
+    int cx = PW / 2, ty = {{40}};
+    // grey dotted circle with the same widest width, centred at the widest point
+    int rw = rx[jw];
+    int cyw = ty + less(zx[jw], zx[1]) * span / hh;
+    int rp = rw * span / hh;
+    int a;
+    for (a = 1; a <= rp; a++) {
+        if (a % 3 == 1) {
+            int b = isqrt(less(rp * rp, a * a));
+            dot(cx + a, cyw + b, {{170}}); dot(cx + a, less(cyw, b), {{170}});
+            if (cx > a) { dot(less(cx, a), cyw + b, {{170}}); dot(less(cx, a), less(cyw, b), {{170}}); }
+            dot(cx + b, cyw + a, {{170}}); dot(cx + b, less(cyw, a), {{170}});
+            if (cx > b) { dot(less(cx, b), cyw + a, {{170}}); dot(less(cx, b), less(cyw, a), {{170}}); }
+        }
+    }
+    for (i = 1; i <= NN; i++) {
+        int xa = rx[i] * span / hh, xb = rx[i + 1] * span / hh;
+        int ya = ty + less(zx[i], zx[1]) * span / hh, yb = ty + less(zx[i + 1], zx[1]) * span / hh;
+        line(cx + xa, ya, cx + xb, yb, {{1}});
+        if (cx > xa && cx > xb) line(less(cx, xa), ya, less(cx, xb), yb, {{1}});
+    }
+    // neck ring, load line and load
+    int ny = ty + span;
+    int nx = rx[nodes] * span / hh;
+    line(less(cx, nx), ny, cx + nx, ny, {{1}});
+    line(cx, ny, cx, ny + {{50}}, {{90}});
+    line(less(cx, 8), ny + {{50}}, cx + 8, ny + {{50}}, {{1}});
+    line(less(cx, 8), ny + {{62}}, cx + 8, ny + {{62}}, {{1}});
+    line(less(cx, 8), ny + {{50}}, less(cx, 8), ny + {{62}}, {{1}});
+    line(cx + 8, ny + {{50}}, cx + 8, ny + {{62}}, {{1}});
+    pn = head + PW * PH * 3;
+    // name shape-<km>.ppm
+    int k = 1;
+    nm[k] = 's'; k++; nm[k] = 'h'; k++; nm[k] = 'a'; k++; nm[k] = 'p'; k++; nm[k] = 'e'; k++; nm[k] = '-'; k++;
+    if (km >= {{10}}) { nm[k] = {{48}} + km / {{10}}; k++; }
+    nm[k] = {{48}} + km % {{10}}; k++;
+    nm[k] = '.'; k++; nm[k] = 'p'; k++; nm[k] = 'p'; k++; nm[k] = 'm'; k++; nm[k] = low;
+    int fd = linux(2, &nm[1], {{577}}, {{420}});
+    if (fd < 1) { say("cannot write %s\n", &nm[1]); return; }
+    int done = 1;
+    while (done <= pn) { int got = linux(1, fd, &pic[done], less(pn + 1, done)); if (got < 1) return; done = done + got; }
+    linux(3, fd);
+}
+
+// ---- solve and report one height ----
+int lastnet, lastkm, broke, floatsaid;
+int solve(int km, int p, int tk, int draw)
+{
+    pout = p; tout = tk;
+    int nodes = NN + 1, i;
+    // first guess: scale the last shape about the neck so its volume matches the gas
+    set_gas();
+    forces();
+    int sc;
+    // cube root by a few Newton steps on the volume ratio
+    int ratio = pd(vtar, mg(vol));
+    int cr = SC, it;
+    for (it = 1; it <= {{40}}; it++) cr = (2 * cr + pd(ratio, pm(cr, cr))) / 3;
+    sc = cr;
+    for (i = 1; i < nodes; i++) {
+        rx[i] = pm(rx[i], sc);
+        int dn = less(zx[nodes], zx[i]);
+        zx[i] = less(zx[nodes], pm(dn, sc));
+    }
+    int steps = settle({{60000}});
+    int vreal = set_gas();
+    forces();
+    // measures
+    int hh = less(zx[nodes], zx[1]);
+    int jw = 1;
+    for (i = 1; i <= nodes; i++) if (rx[i] > rx[jw]) jw = i;
+    // widest point refined by a parabola through the three rings round it
+    int zw = zx[jw];
+    if (jw > 1 && jw < nodes) {
+        int ra = rx[less(jw, 1)], rb = rx[jw], rc = rx[jw + 1];
+        int den = less(2 * rb, ra + rc);              // >= 0 at a top
+        if (den > 1) {
+            // offset in ring steps = (ra - rc) / (2 den), signed; move z by that fraction of the ring spacing
+            int off = dvp(sb(sg(rc), sg(ra)), 2 * den);      // signed, in units of SC
+            if (ispos(off)) zw = zx[jw] + pm(mg(off), less(zx[jw + 1], zx[jw]));
+            else zw = less(zx[jw], pm(mg(off), less(zx[jw], zx[less(jw, 1)])));
+        }
+    }
+    int upw = less(zx[nodes], zw) * {{1000}} / hh;
+    int big = 1, which = 1, imax = low;
+    for (i = 1; i <= NN; i++) {
+        int bi = la[i]; if (lb[i] > bi) bi = lb[i];
+        int bb = la[big]; if (lb[big] > bb) bb = lb[big];
+        if (bi > bb) big = i;
+        if (ia[i] > imax) imax = ia[i];
+    }
+    int bigl = la[big], merid = 1;
+    if (lb[big] > bigl) { bigl = lb[big]; merid = low; }
+    int zbig = (zx[big] + zx[big + 1]) / 2;
+    int upbig = less(zx[nodes], zbig) * {{100000}} / hh;
+    // the body: the largest stretch more than 10% of the way up from the neck
+    int bodyl = low, bodyat = low;
+    for (i = 1; i <= NN; i++) {
+        int zz = (zx[i] + zx[i + 1]) / 2;
+        int up = less(zx[nodes], zz) * {{1000}} / hh;
+        if (up >= {{100}}) {
+            int bi = la[i]; if (lb[i] > bi) bi = lb[i];
+            if (bi > bodyl) { bodyl = bi; bodyat = up; }
+        }
+    }
+    // pressure difference at top and at the neck (mPa)
+    int dtop = ad(dpc, mlp(sb(sg(zmid), sg(zx[1])), gradn));
+    int dbot = ad(dpc, mlp(sb(sg(zmid), sg(zx[nodes])), gradn));
+    int pu = {{107692}};
+    // neck pull (mN), spare lift (mg): gross lift from displaced air minus helium, less rubber and load
+    int pull = pm(pm(mg(neckf), twopi), {{455000000}}) / {{10000}};
+    int pinm = pin_mpa();
+    int gross = nmol / {{1000}} * less({{289640}} * (pout * {{1000}} / {{100}}) / (pinm / {{100}}), {{40026}}) / {{10000}};
+    int need = mskin + mload;
+    say("%d km: outside %d Pa, %d K; helium %d litres; settled in %d steps (last ring move %d ten-millionths)\n", km, p, tk, vreal / {{10000}}, steps, lastmove);
+    say("   height top to neck %d mm, widest width %d mm, height/width %d thousandths\n",
+        hh * {{650}} / SC, 2 * rx[jw] * {{650}} / SC, hh * {{1000}} / (2 * rx[jw]));
+    say("   widest point %d thousandths of the way up from the neck\n", upw);
+    if (merid) say("   largest stretch %d thousandths along the meridian, at %d hundred-thousandths of the way up (by the neck)\n", bigl / {{10000}}, upbig);
+    else say("   largest stretch %d thousandths round the ring, at %d hundred-thousandths of the way up\n", bigl / {{10000}}, upbig);
+    say("   body (above the lowest tenth): largest stretch %d thousandths at %d thousandths up; top pole %d; ring stretch at widest %d\n",
+        bodyl / {{10000}}, bodyat, la[1] / {{10000}}, pd(rx[jw], rn[jw]) / {{10000}});
+    say("   largest I1 %d thousandths (breaks at %d)\n", imax / {{10000}}, {{64250}});
+    say("   gas over outside pressure at top: %d mPa; at neck: %d mPa", mg(mlp(dtop, pu)), mg(mlp(dbot, pu)));
+    if (ispos(dbot)) say(" (both above outside)\n"); else say(" (the neck figure is BELOW outside)\n");
+    say("   neck ring holds %d mN (load weight %d mN)\n", pull, mload * {{981}} / {{100000}});
+    if (gross >= need) say("   gross lift %d g, spare lift %d g: still rising\n", gross / {{1000}}, less(gross, need) / {{1000}});
+    else say("   gross lift %d g, SHORT by %d g: it cannot rise this high (it floats lower)\n", gross / {{1000}}, less(need, gross) / {{1000}});
+    if (imax >= {{642500000}}) { say("   BROKEN: the rubber has reached its breaking stretch\n"); broke = 1; }
+    else say("   not broken\n");
+    if (draw) picture(km, jw);
+    return gross >= need;
+}
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    jm = {{97}};
+    build_sphere();
+    make_rings();
+    say("quarter turn after %d steps; pi measured in ten-millionths %d\n", quarter, twopi / 2);
+    // rubber and helium
+    mskin = {{77740}} * pm(twopi, area) / SC;            // mg: 920 kg/m3 x 0.2 mm x 0.65^2 m2 x 2 pi x area
+    mload = {{300000}};
+    int gross = {{11}} * (mskin + mload) / {{10}};
+    nmol = gross * {{1000000}} / {{249614}} * {{10}};      // micromoles: gross / (28.964 - 4.0026 g/mol)
+    say("rubber %d g, load %d g, gross lift at launch %d g, helium %d mmol (%d g)\n",
+        mskin / {{1000}}, mload / {{1000}}, gross / {{1000}}, nmol / {{1000}}, nmol / {{1000}} * {{40026}} / {{10000000}});
+    int i, nodes = NN + 1;
+    for (i = 1; i <= nodes; i++) { rx[i] = rn[i]; zx[i] = ZB + zn[i]; }
+    lamp = sg({{5000000}}); dpc = lamp;
+    int km[9] = {1, 6, {{11}}, {{16}}, {{21}}, {{26}}, {{31}}, {{36}}};     // km + 1
+    int pa[9] = {{{101325}}, {{54000}}, {{26500}}, {{12100}}, {{5500}}, {{2550}}, {{1200}}, {{575}}};
+    int tk[9] = {{{288}}, {{256}}, {{223}}, {{217}}, {{217}}, {{222}}, {{227}}, {{237}}};
+    broke = low;
+    for (i = 1; i <= 8; i++) {
+        if (broke) break;
+        solve(less(km[i], 1), pa[i], tk[i], 1);
+    }
+    // beyond 35 km (my own inputs): keep lowering the outside pressure by a tenth each time at 240 K, held there
+    // as if carried up, until the rubber breaks. Height from the pressure by the air's own weight:
+    // dh = (R T / (M g)) ln(p1/p2); ln(10/9) worked out by its series 2(x + x^3/3 + x^5/5 + x^7/7), x = 1/19.
+    int x = SC / {{19}};
+    int x2 = pm(x, x);
+    int lnr = 2 * (x + pm(x, x2) / 3 + pm(pm(x, x2), x2) / 5 + pm(pm(pm(x, x2), x2), x2) / 7);
+    int hm = {{35000}} * SC, p = {{575}} * SC, step = low;
+    while (broke < 1 && step < {{20}}) {
+        step++;
+        p = p * 9 / {{10}};
+        hm = hm + pm(lnr, {{8314}} * {{240}} * SC / {{284137}}) * {{1000}};   // R T/(M g) in m: 8.314 x 240 / (0.028964 x 9.81)
+        say("-- beyond: about %d m (scale-height estimate)\n", hm / SC);
+        solve(hm / SC / {{1000}}, p / SC, {{240}}, low);
+    }
+    say("done\n");
+    return 1;
+}

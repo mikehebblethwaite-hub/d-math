@@ -1,0 +1,94 @@
+quarter turn after 71C4 steps; pi measured in ten-millionths 667C5D9
+rubber 59D g, load 1A1 g, gross lift at launch 83B g, helium 1C769 mmol (143 g)
+~ km: outside 37173 Pa, 192 K; helium 7B1 litres; settled in 4C71 steps (last ring move 3 ten-millionths)
+   height top to neck 846 mm, widest width 7D7 mm, height/width 61A thousandths
+   widest point 2D8 thousandths of the way up from the neck
+   largest stretch 6A1 thousandths along the meridian, at 97 hundred-thousandths of the way up (by the neck)
+   body (above the lowest tenth): largest stretch 634 thousandths at 82 thousandths up; top pole 633; ring stretch at widest 625
+   largest I1 1528 thousandths (breaks at 23324)
+   gas over outside pressure at top: 1D53B mPa; at neck: 169A5 mPa (both above outside)
+   neck ring holds 1D6C mN (load weight 1455 mN)
+   gross lift 83A g, spare lift 99 g: still rising
+   not broken
+5 km: outside 1B76B Pa, 169 K; helium CDC litres; settled in BAC steps (last ring move 3 ten-millionths)
+   height top to neck 995 mm, widest width 971 mm, height/width 5D4 thousandths
+   widest point 2CB thousandths of the way up from the neck
+   largest stretch 89D thousandths along the meridian, at 51 hundred-thousandths of the way up (by the neck)
+   body (above the lowest tenth): largest stretch 75D thousandths at 5BA thousandths up; top pole 75D; ring stretch at widest 746
+   largest I1 18AC thousandths (breaks at 23324)
+   gas over outside pressure at top: 47876 mPa; at neck: 42D23 mPa (both above outside)
+   neck ring holds 24C2 mN (load weight 1455 mN)
+   gross lift 837 g, spare lift 96 g: still rising
+   not broken
+A km: outside BDA6 Pa, 142 K; helium 1A1B litres; settled in BAC steps (last ring move 1 ten-millionths)
+   height top to neck B8D mm, widest width B71 mm, height/width 5CB thousandths
+   widest point 2C8 thousandths of the way up from the neck
+   largest stretch B49 thousandths along the meridian, at 38 hundred-thousandths of the way up (by the neck)
+   body (above the lowest tenth): largest stretch 922 thousandths at 5BA thousandths up; top pole 922; ring stretch at widest 8B6
+   largest I1 23C4 thousandths (breaks at 23324)
+   gas over outside pressure at top: 49D83 mPa; at neck: 46B97 mPa (both above outside)
+   neck ring holds 249A mN (load weight 1455 mN)
+   gross lift 833 g, spare lift 92 g: still rising
+   not broken
+12 km: outside 567A Pa, 139 K; helium 3A16 litres; settled in BAC steps (last ring move 3 ten-millionths)
+   height top to neck 11C4 mm, widest width 11AC mm, height/width 5C6 thousandths
+   widest point 2C6 thousandths of the way up from the neck
+   largest stretch 123A thousandths along the meridian, at 27 hundred-thousandths of the way up (by the neck)
+   body (above the lowest tenth): largest stretch BD3 thousandths at 5BA thousandths up; top pole BD3; ring stretch at widest B59
+   largest I1 3A13 thousandths (breaks at 23324)
+   gas over outside pressure at top: 41693 mPa; at neck: 3C827 mPa (both above outside)
+   neck ring holds 233D mN (load weight 1455 mN)
+   gross lift 829 g, spare lift 88 g: still rising
+   not broken
+17 km: outside 2671 Pa, 139 K; helium 832B litres; settled in BB3 steps (last ring move 3 ten-millionths)
+   height top to neck 163A mm, widest width 1634 mm, height/width 5BD thousandths
+   widest point 2C4 thousandths of the way up from the neck
+   largest stretch 17CC thousandths along the meridian, at 1A hundred-thousandths of the way up (by the neck)
+   body (above the lowest tenth): largest stretch 1255 thousandths at 5BA thousandths up; top pole 1255; ring stretch at widest 11AB
+   largest I1 6519 thousandths (breaks at 23324)
+   gas over outside pressure at top: 35996 mPa; at neck: 3484A mPa (both above outside)
+   neck ring holds 2161 mN (load weight 1455 mN)
+   gross lift 819 g, spare lift 78 g: still rising
+   not broken
+1C km: outside 1212 Pa, 141 K; helium 14C28 litres; settled in BAC steps (last ring move ~ ten-millionths)
+   height top to neck 1BB7 mm, widest width 1BC5 mm, height/width 5B9 thousandths
+   widest point 2C2 thousandths of the way up from the neck
+   largest stretch 223B thousandths along the meridian, at 11 hundred-thousandths of the way up (by the neck)
+   body (above the lowest tenth): largest stretch 167D thousandths at 5BA thousandths up; top pole 167D; ring stretch at widest 1627
+   largest I1 B1DB thousandths (breaks at 23324)
+   gas over outside pressure at top: 2CC2D mPa; at neck: 2C3B2 mPa (both above outside)
+   neck ring holds 1C26 mN (load weight 1455 mN)
+   gross lift 7CB g, spare lift 5A g: still rising
+   not broken
+24 km: outside 714 Pa, 146 K; helium 2BA52 litres; settled in BAC steps (last ring move ~ ten-millionths)
+   height top to neck 25A8 mm, widest width 25CD mm, height/width 5B6 thousandths
+   widest point 2C1 thousandths of the way up from the neck
+   largest stretch 2A78 thousandths along the meridian, at 8 hundred-thousandths of the way up (by the neck)
+   body (above the lowest tenth): largest stretch 1BB8 thousandths at 5BA thousandths up; top pole 1BB8; ring stretch at widest 1B7D
+   largest I1 15362 thousandths (breaks at 23324)
+   gas over outside pressure at top: 2A9A2 mPa; at neck: 2A4B6 mPa (both above outside)
+   neck ring holds 188A mN (load weight 1455 mN)
+   gross lift 78D g, spare lift 1C g: still rising
+   not broken
+29 km: outside 353 Pa, 153 K; helium 5AA41 litres; settled in BAC steps (last ring move 2 ten-millionths)
+   height top to neck 3143 mm, widest width 3183 mm, height/width 5B4 thousandths
+   widest point 2BD thousandths of the way up from the neck
+   largest stretch 3691 thousandths along the meridian, at 3 hundred-thousandths of the way up (by the neck)
+   body (above the lowest tenth): largest stretch 2568 thousandths at 79 thousandths up; top pole 2558; ring stretch at widest 2535
+   largest I1 221DA thousandths (breaks at 23324)
+   gas over outside pressure at top: 2B5B8 mPa; at neck: 2B312 mPa (both above outside)
+   neck ring holds 133C mN (load weight 1455 mN)
+   gross lift 713 g, SHORT by 5A g: it cannot rise this high (it floats lower)
+   not broken
+-- beyond: about 13362 m (scale-height estimate)
+29 km: outside 2DA Pa, 156 K; helium 65433 litres; settled in BAC steps (last ring move 1 ten-millionths)
+   height top to neck 3294 mm, widest width 32D8 mm, height/width 5B4 thousandths
+   widest point 2BD thousandths of the way up from the neck
+   largest stretch 3813 thousandths along the meridian, at 3 hundred-thousandths of the way up (by the neck)
+   body (above the lowest tenth): largest stretch 2681 thousandths at 79 thousandths up; top pole 2667; ring stretch at widest 2646
+   largest I1 23B31 thousandths (breaks at 23324)
+   gas over outside pressure at top: 2BDAA mPa; at neck: 2BB35 mPa (both above outside)
+   neck ring holds 121D mN (load weight 1455 mN)
+   gross lift 6C6 g, SHORT by 77 g: it cannot rise this high (it floats lower)
+   BROKEN: the rubber has reached its breaking stretch
+done
