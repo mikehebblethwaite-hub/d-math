@@ -52,3 +52,15 @@ The sea from its surface (the wave tank's sea) down to its deepest, about 11 km;
 | 3 | At the deepest (about 11 km) the pressure is about 1,100 times the air's at the surface | 1,122 times (real measurements about 1,070: about 4% high, because water's stiffness is kept at its surface value; corrected reason, diary 1F) | MATCH | runs/deep.delta |
 | 4 | Polystyrene cups sent down on deep-sea dives come back shrunk to a fraction of their size (their air squeezed out) | at 11 km: 3% of its size, 31% of its height (foam 97% air, measured densities) | MATCH | runs/deep.delta |
 
+## Below the deep: the crust (written 21 Nov 2026 ~12:30, before any run; Mike: "the one under the ocean ... the lava temps from crust will be important")
+
+Under the sea floor and the land: rock down to where it melts. Its warmth must come out of the run (Mike: fixed temps are
+magic): heat flowing up from inside and made in the rock itself, carried only so fast by rock.
+
+| # | Known result (what really happens) | Lab's answer | Match? | Run |
+|---|---|---|---|---|
+| 1 | Rock gets warmer going down, about 25-30 C for every km in continental crust | not run yet | - | - |
+| 2 | In the deepest mines (about 4 km down) the rock is about 60 C | not run yet | - | - |
+| 3 | Lava (basalt) comes out at about 1,100-1,200 C | not run yet | - | - |
+| 4 | Hot water from vents on the deep sea floor stays liquid at about 400 C (the deep's pressure keeps it from boiling) | not run yet | - | - |
+
