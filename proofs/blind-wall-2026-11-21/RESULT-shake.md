@@ -16,3 +16,7 @@ hot: 0.914 and 0.925, with 39 and 45 of 100 balls six round one (still, the best
 pack; the heat flattens the walls of whatever pack there is. Packing hex and sealing into a raft are two different steps.
 Said plainly: the two cold shaken runs (sealed 0.914, vented 0.740) are the same physics when cold (a vent does nothing cold)
 with a different world's chance: single runs vary a great deal. The next test of this runs several of each.
+
+NOTE added 21 Nov 2026 13:36 (Mike: "the cold tests of balls to hex was bogus"): the cold controls here pack more hex than
+Mike's real cold rigs ever did (they never made hex). Every comparison above rests on that faulty cold control. Kept as
+recorded; see DIARY.md 29.

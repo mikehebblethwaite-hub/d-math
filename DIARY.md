@@ -211,3 +211,13 @@ ground (MATCH) and 289.8 at 11 km (CLOSE); Denver boils at 94.6 C (MATCH); sound
 2.009 s (MATCH); the sea floor 5.3 km deep at 50 million years (CLOSE). My slips on the way, all caught by the numbers being
 wrong and fixed before recording: gravity rounded to whole units, a lost factor of a thousand and a wrong count in the
 pendulum, the sea floor's units.
+
+**29.** Mike: "the cold tests of balls to hex was bogus". Yes. His cold rigs never made hex (REAL-CHECKS.md), yet the lab's cold
+runs on the flat holed tray packed up to 30 of 100 balls six round one with the tray still, and 41 in one shaken run. The
+lab's cold packing is more orderly than real cold balls ever are: a fault in the lab, not a finding. It undermines every
+comparison in the blind wall test (12, 13, 24), which all measured heat against those cold controls. Earlier (08:10) the
+funnel model was given ball-on-ball grip (0.3, a rough guide) so that cold balls jam as his rig did; the flat-tray runs show
+that grip, or the flow's pull between neighbours, still lets cold balls order. Before any more ball tests: make the cold
+balls behave as his real ones did (no hex cold), from measured values (celluloid on celluloid grip, the real flow between
+balls), and check that first, written down before. The blind test results stay recorded, marked as resting on a faulty
+cold control.

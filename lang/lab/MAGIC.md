@@ -64,6 +64,7 @@ not yet traced) comes down as this list does.
 | The rock above the diving plate (the wedge) does not flow or melt | plates | the wedge dragged down by the plate and hot rock flowing in behind; water from the plate lowering its melting point: the volcanoes' heat |
 | FIXED TEMPS: the plates' surface held at 0 C and the deep rock at 1,350 C | plates | the Earth's inner heat flowing out (the core and the rock's own radioactive warmth) |
 | The diving plate's slope (45 degrees) and the snapping limit (650 C) are chosen | plates | the slope from the plate's weight against the rock's push; the limit from rock strength by warmth |
+| FAULT: the lab's cold balls pack into hex (up to 30-41 of 100 six round one) where Mike's real cold rigs never did | pingfunnel, pingblind | cold balls that behave as his real ones: measured celluloid-on-celluloid grip, the real flow between balls; checked against his bench (no hex cold) BEFORE any more ball tests |
 
 ## Links (attachments, inputs, outputs)
 | Magic | Where | What would make it real |

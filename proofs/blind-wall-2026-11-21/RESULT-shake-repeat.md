@@ -10,3 +10,7 @@ part-2 run (0.914) was such a one. Part 2's "finding" is withdrawn.
 FAULT (FAILS.md): runs started seconds apart took the same world's chance (the machine's power reading), so repeats are not
 all independent (about 3 distinct shaken, 2 distinct still). The test is weaker than planned; it still does not support
 shaking. From now on each run's chance is the world's reading stirred with its own run number.
+
+NOTE added 21 Nov 2026 13:36 (Mike: "the cold tests of balls to hex was bogus"): the cold controls here pack more hex than
+Mike's real cold rigs ever did (they never made hex). Every comparison above rests on that faulty cold control. Kept as
+recorded; see DIARY.md 29.

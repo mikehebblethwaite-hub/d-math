@@ -14,3 +14,7 @@ ordered more than the sealed one, but the cold balls with the Henry ordered MORE
 order comes from the Henry pulling scattered balls together, not from the heat.
 Said plainly too: the two cold controls (sealed 0.718, vented 0.820) are the same physics (a vent does nothing cold) with a
 different world's chance, so one run each varies by about 0.1. Future tests: several runs each, and compare averages.
+
+NOTE added 21 Nov 2026 13:36 (Mike: "the cold tests of balls to hex was bogus"): the cold controls here pack more hex than
+Mike's real cold rigs ever did (they never made hex). Every comparison above rests on that faulty cold control. Kept as
+recorded; see DIARY.md 29.

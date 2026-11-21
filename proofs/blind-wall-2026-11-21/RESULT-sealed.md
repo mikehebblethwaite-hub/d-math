@@ -15,3 +15,7 @@ Why, from the numbers: sealed walls barely flatten under the blind rule (mean fl
 5 = 0.005 without), so the balls stay round and jam where they land; the Henry's pull holds them in place rather than letting
 them settle. Hot without the Henry ordered a little more (0.787) by settling, still no hex (3 with six neighbours).
 Note: psi6 counts balls with only 2 neighbours, which can score high on their own; the start values (0.59-0.66) show it.
+
+NOTE added 21 Nov 2026 13:36 (Mike: "the cold tests of balls to hex was bogus"): the cold controls here pack more hex than
+Mike's real cold rigs ever did (they never made hex). Every comparison above rests on that faulty cold control. Kept as
+recorded; see DIARY.md 29.
