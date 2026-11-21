@@ -1,0 +1,118 @@
+// Doomsday Book 587e0536-3bad-4d76-ae17-949669525221 (Mike J Hebblethwaite): A candle that feeds itself, in real energy, with the flame's light (candle2)
+// candle2: a candle that feeds itself, in real energy (21 Nov 2026; known answers 2a, 2b in lang/lab/TRACK.md written before;
+// Mike's wax data lang/lab/data/candle_wax_wick_data.json). A slice in 1 mm cells, 1 ms steps (as candlespace), but every
+// cell's warmth is real energy over its own heat held: air 1,206 J per cubic metre per degree, wax 2,250,000 (900 kg/m3 x 2,500
+// J/kg K: about 1,900 times air). Heat crosses between cells by each one's own carrying (air 0.026, wax 0.24 W/m K).
+// Burning: wax vapour and oxygen, hot enough (700 K), burn; wax gives 46 MJ a kilogram; of that, 20 parts in 100 leave as light
+// (a candle flame's measured share) and land on the wax by distance: from each burning cell, the light spreads over the square
+// rings of cells round it (8 x d cells at d mm), so a wax cell d mm away gets 1/(8d) of it (no pi: the rings are counted).
+// The wax melts at its melting point (Mike's data) taking 200 kJ a kilogram; the wick draws molten wax (faster for a high-draw
+// wax); the wick's top boils it off only as fast as heat reaches it (wax vapour takes 360 kJ a kilogram, boils from 643 K).
+// Lit by a match held 2 s. MAGIC (fixed temps): the room's air at 20 C at the edges. Published values: heats, carryings,
+// 46 MJ/kg, 20% light, 200 and 360 kJ/kg, 643 K boiling, 700 K burning.
+//   delta run lang/lab/runs/candle2.delta GRAVITY WAX > out.txt  (2 gravity, 1 none; WAX 1-7 as Mike's data)
+#define NX 49
+#define NY 7A
+#define WX 25
+#define WY 2A
+int low, GRAV = 2, WAX = 1, STEPN;
+int T[2A8C], F[2A8C], OX[2A8C], T2[2A8C], F2[2A8C], O2[2A8C], R[2A8C], ISW[2A8C], MELTJ[2A8C];   // T mK; F vapour (units of 10^-15 kg); OX millionths; ISW 1 wax; MELTJ nanojoules taken to melt (melted at 180,000,000)
+int WSTORE;                                         // molten wax held in the wick (10^-15 kg units)
+int waxmelt(int w) { int a[8] = {$B4119, $B9A13, $B49D1, $BA2D2, $B883C, $ADB93, $C6D2D}; return a[w]; }
+int waxdraw(int w) { int a[8] = {3, 2, 2, 1, 2, 3, 1}; return a[w]; }
+char *waxname(int w) { if (w == 1) return "paraffin (low melt, container)"; if (w == 2) return "paraffin (high melt, pillar)"; if (w == 3) return "soy"; if (w == 4) return "beeswax"; if (w == 5) return "palm"; if (w == 6) return "coconut"; return "gel"; }
+int at(int x, int y) { return less(y, 1) * NX + x; }
+int amb() { return $A357D; }
+int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+int iswick(int x, int y) { return x == WX && y >= less(WY, 4) && y <= WY; }
+int molten(int c) { return ISW[c] && MELTJ[c] >= 2B3A3B9B; }
+void give(int c, int nj)                            // nanojoules into a cell: air or wax, melting first if wax at its melting point
+{
+    if (!ISW[c]) { T[c] = T[c] + nj / 71A; return; }        // air: 1.206 microjoules a degree per cell = 1,206 nJ per K -> mK = nJ x 1000 / 1206000
+    if (T[c] >= waxmelt(WAX) && MELTJ[c] < 2B3A3B9B) { MELTJ[c] = MELTJ[c] + nj; if (MELTJ[c] > 2B3A3B9B) { int over = less(MELTJ[c], 2B3A3B9B); MELTJ[c] = 2B3A3B9B; T[c] = T[c] + over / $D41; } return; }
+    T[c] = T[c] + nj / $D41;                    // wax: 2.25 millijoules a degree per cell = 2,250,000 nJ per K -> mK = nJ / 2,250
+}
+void take(int c, int nj) { int d = ISW[c] ? nj / $D41 : nj / 71A; T[c] = T[c] > d + 36694 ? less(T[c], d) : 36694; }
+void step()
+{
+    int x, y, k;
+    // heat crossing between neighbours: each pair by the lower carrying of the two (air 26 nJ per ms per degree across a 1 mm face, wax 240)
+    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) { T2[at(x, y)] = T[at(x, y)]; }
+    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {
+        int c = at(x, y), n2[3], q; n2[1] = at(x + 1, y); n2[2] = at(x, y + 1);
+        for (q = 1; q <= 2; q++) {
+            int d = n2[q], carry = ISW[c] && ISW[d] ? 156 : 1D;          // nJ per ms per K
+            int dt = apart(T[c], T[d]) / 5BC, nj = dt * carry;            // whole degrees x carry
+            if (nj < 1) continue;
+            if (T[c] > T[d]) { take(c, nj); give(d, nj); } else { take(d, nj); give(c, nj); }
+        }
+    }
+    // the gases spread (air only)
+    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {
+        int c = at(x, y); if (ISW[c]) continue;
+        int n = at(x, y + 1), s = at(x, less(y, 1)), e = at(x + 1, y), w = at(less(x, 1), y);
+        F2[c] = (F[c] * 37 + (ISW[n] ? F[c] : F[n]) + (ISW[s] ? F[c] : F[s]) + (ISW[e] ? F[c] : F[e]) + (ISW[w] ? F[c] : F[w])) / 3B;
+        O2[c] = (OX[c] * 37 + (ISW[n] ? OX[c] : OX[n]) + (ISW[s] ? OX[c] : OX[s]) + (ISW[e] ? OX[c] : OX[e]) + (ISW[w] ? OX[c] : OX[w])) / 3B;
+    }
+    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) { int c = at(x, y); if (!ISW[c]) { F[c] = F2[c]; OX[c] = O2[c]; } }
+    if (GRAV >= 2) for (y = less(NY, 1); y >= 3; y = less(y, 1)) for (x = 2; x <= less(NX, 1); x++) {   // warm air rises (relative to the room's)
+        int c = at(x, y), b = at(x, less(y, 1)); if (ISW[c] || ISW[b] || T[b] <= amb() + 9146) continue;
+        int up = isqrt(less(T[b], amb()) * 5A6 / amb()); if (up > 6C) up = 6C;
+        F[c] = (F[c] * less(79, up) + F[b] * up) / 79; OX[c] = (OX[c] * less(79, up) + OX[b] * up) / 79; T[c] = (T[c] * less(79, up) + T[b] * up) / 79;
+    }
+    for (x = 1; x <= NX; x++) { OX[at(x, NY)] = 7477B; T[at(x, NY)] = amb(); F[at(x, NY)] = 1; }
+    for (y = 1; y <= NY; y++) { int c1 = at(1, y), c2 = at(NX, y); if (!ISW[c1]) { OX[c1] = 7477B; T[c1] = amb(); F[c1] = 1; } if (!ISW[c2]) { OX[c2] = 7477B; T[c2] = amb(); F[c2] = 1; } }
+    if (STEPN <= $BAB) for (k = less(WY, 1); k <= WY + 1; k++) if (T[at(WX, k)] < 3D6998) T[at(WX, k)] = 3D6998;   // the match, held 2 s
+    // the wick draws molten wax from the pool cells touching its foot
+    for (x = less(WX, 1); x <= WX + 1; x++) { int c = at(x, less(WY, 5)); if (molten(c)) WSTORE = WSTORE + waxdraw(WAX) * 54D442; }
+    if (WSTORE > 1B696A7936) WSTORE = 1B696A7936;                          // a wick holds at most about 20 mg
+    // the wick's top boils off what the heat reaching it can boil: its warmth above 643 K, over wax vapour's 360 kJ/kg
+    { int c = at(WX, WY); if (T[c] > 196897 && WSTORE >= 1) {
+        int nj = less(T[c], 196897) / 5BC * $D41;                  // the heat above boiling, as the wick holds it (nJ)
+        int units = nj / 219 * 5BC;                                   // 360 kJ/kg = 360 nJ per 10^-12 kg = 0.36 nJ per unit (10^-15 kg)
+        if (units > WSTORE) units = WSTORE;
+        WSTORE = less(WSTORE, units); T[c] = less(T[c], units * 219 / 5BC / $D41 * 5BC > less(T[c], 196897) ? less(T[c], 196897) : units * 219 / 5BC / $D41 * 5BC);
+        int up = at(WX, WY + 1); F[up] = F[up] + units; } }
+    // burning: 46 MJ/kg = 46 nJ per unit; 80 parts in 100 warm the cell, 20 leave as light onto the wax
+    int light = low;
+    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {
+        int c = at(x, y); R[c] = low; if (ISW[c]) continue;
+        if (T[c] < 1B67D2 || F[c] < 79 || OX[c] < 1A1) continue;
+        int air = OX[c] / 3, b = (F[c] < air ? F[c] : air) / 5 + 1;          // units burning this ms (oxygen: about 3 parts a part of wax, a rough guide)
+        F[c] = less(F[c], b); OX[c] = less(OX[c], OX[c] < 3 * b ? OX[c] : 3 * b); R[c] = b;
+        give(c, b * 37 * 62 / 79); light = light + b * 37 * 17 / 79;
+        if (T[c] > 626B61) T[c] = 626B61;
+    }
+    if (light >= 1) {                                // the light lands on the wax's top cells by distance (rings of 8 x d cells)
+        for (x = less(WX, 11); x <= WX + 11; x++) {
+            int c = at(x, less(WY, 5)), got = low, y2, x2;
+            for (y2 = WY; y2 <= WY + 24; y2++) for (x2 = less(WX, $A); x2 <= WX + $A; x2++) { int b2 = R[at(x2, y2)]; if (b2 < 1) continue;
+                int d = apart(x2, x) > apart(y2, less(WY, 5)) ? apart(x2, x) : apart(y2, less(WY, 5)); if (d < 1) d = 1;
+                got = got + b2 * 37 * 17 / 79 / (8 * d); }
+            give(c, got);
+        }
+    }
+}
+int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + $A : low; if (d < 1) break; v = v * $D + d; i++; } return v; }
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc >= 2) GRAV = pnum(argv[2]); if (argc >= 3) WAX = pnum(argv[3]);
+    int i, x, y, t;
+    for (i = 1; i <= NX * NY; i++) { F[i] = 1; OX[i] = 7477B; T[i] = amb(); ISW[i] = low; MELTJ[i] = low; }
+    for (y = 2; y <= less(WY, 5); y++) for (x = less(WX, 11); x <= WX + 11; x++) { int c = at(x, y); ISW[c] = 1; OX[c] = 1; }   // the candle: wax 29 mm across, up to the wick's foot
+    for (y = less(WY, 4); y <= WY; y++) { int c = at(WX, y); ISW[c] = 1; OX[c] = 1; }   // the wick (holds wax: treated as wax for heat)
+    WSTORE = $C349BA483;                                                        // the wick soaked before lighting: about 10 mg of wax (a real wick holds about that)
+    int burn = low, last = low;
+    for (t = 1; t <= 63C12; t++) {                                             // three minutes
+        STEPN = t; step();
+        int b2 = low; for (i = 1; i <= NX * NY; i++) b2 = b2 + R[i];
+        if (t > 61867) burn = burn + b2; last = b2;
+        if (t % 4723 < 1) { int pool = low; for (x = less(WX, 11); x <= WX + 11; x++) if (molten(at(x, less(WY, 5)))) pool++;
+            say("  at %d ms: wick top %d mK, wick holds %d, burning %d, molten pool %d mm\n", t, T[at(WX, WY)], WSTORE, b2, pool); }
+    }
+    int pool = low; for (x = less(WX, 11); x <= WX + 11; x++) if (molten(at(x, less(WY, 5)))) pool++;
+    say("candle2 %s, wax %s (melts at %d mK): after 3 minutes the molten pool is %d mm across; burning in the last 5 s %d; still burning: %s\n",
+        GRAV >= 2 ? "WITH gravity" : "with NO gravity", waxname(WAX), waxmelt(WAX), pool, burn, last >= 1 ? "yes" : "NO");
+    return 1;
+}

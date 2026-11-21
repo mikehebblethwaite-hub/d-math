@@ -230,3 +230,12 @@ the wick's own wax is used (under a second) and the pool never melts: watched ev
 missing physics: the lab has no radiant heat (a real flame melts its pool mostly by its glow shining down; here heat only
 creeps through air, and gravity sweeps it up), and the wick's vapour is not limited by the heat reaching it. MISS, recorded
 with its causes; radiation is now the lab's next big piece (also for sunlight on the sky and the sea).
+
+**2B.** Candle 2 (lang/lab/runs/candle2.delta, Doomsday Book 587e0536-3bad-4d76-ae17-949669525221): every cell in real energy (wax holds about 1,900 times the
+heat of air), the flame's light (20% of its heat, a measured share) landing on the wax by rings of cells (no pi), the wick
+boiling off what the heat reaching it can boil, a real soaked wick (10 mg), a match held 2 s. With gravity, 3 minutes: the
+light DOES start a molten pool at about 50 s (3 mm by 3 minutes, as a real candle takes a minute or two), but the wick's top
+cools below wax's boiling heat by 40 s, so there is no fuel and the flame dies at about 110 s: 2a still a MISS, now with its
+cause found: the wick loses heat down itself faster than the flame gives it (a flat slice gives its tip only 3 faces in the
+flame, and the wick carries heat like solid wax). Mike: "they used to mark the candle for hours minutes down the sides": the
+candle clock written as known answer 2c before the run was read; it waits until the candle keeps itself alight.

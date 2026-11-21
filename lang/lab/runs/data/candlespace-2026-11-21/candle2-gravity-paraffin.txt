@@ -1,0 +1,20 @@
+  at 4723 ms: wick top 3222BC mK, wick holds ~, burning 8D94, molten pool ~ mm
+  at 9146 ms: wick top 256486 mK, wick holds ~, burning 7459, molten pool ~ mm
+  at D869 ms: wick top 1D131D mK, wick holds ~, burning 7A46, molten pool ~ mm
+  at 1528C ms: wick top 19B6C1 mK, wick holds ~, burning 6A88, molten pool ~ mm
+  at 199B2 ms: wick top 1771CB mK, wick holds 1B696A7936, burning 6CD6, molten pool 1 mm
+  at 213D5 ms: wick top 16177A mK, wick holds 1B696A7936, burning 7334, molten pool 1 mm
+  at 25B28 ms: wick top 14D46D mK, wick holds 1B696A7936, burning 7362, molten pool 1 mm
+  at 2A54B ms: wick top 146D86 mK, wick holds 1B696A7936, burning 7361, molten pool 1 mm
+  at 31C71 ms: wick top 141692 mK, wick holds 1B696A7936, burning 7345, molten pool 1 mm
+  at 36694 ms: wick top 139692 mK, wick holds 1B696A7936, burning 1B8A, molten pool 1 mm
+  at 3ADB7 ms: wick top 12D385 mK, wick holds 1B696A7936, burning ~, molten pool 1 mm
+  at 427DA ms: wick top 12313D mK, wick holds 1B696A7936, burning ~, molten pool 1 mm
+  at 4722D ms: wick top 119D58 mK, wick holds 1B696A7936, burning ~, molten pool 1 mm
+  at 4B953 ms: wick top 1183A8 mK, wick holds 1B696A7936, burning ~, molten pool 1 mm
+  at 53376 ms: wick top 11661C mK, wick holds 1B696A7936, burning ~, molten pool 2 mm
+  at 57A99 ms: wick top 1148B4 mK, wick holds 1B696A7936, burning ~, molten pool 3 mm
+  at 5C4BC ms: wick top 11321C mK, wick holds 1B696A7936, burning ~, molten pool 3 mm
+  at 63C12 ms: wick top 111857 mK, wick holds 1B696A7936, burning ~, molten pool 3 mm
+candle2 WITH gravity, wax paraffin (low melt, container) (melts at B4119 mK): after 3 minutes the molten pool is 3 mm across; burning in the last 5 s ~; still burning: NO
+done
