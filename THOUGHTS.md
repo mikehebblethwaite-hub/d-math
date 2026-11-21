@@ -80,3 +80,10 @@ Mike 12:40 (product idea): "wildcard searches of i data is such a useful thing o
 words inside the packs' info (what is IN a lifetime of photos, videos and sounds, not their file names), with wildcards, on
 the owner's own machine. Mike also: "I hate individually going through thousands of photos and video" - so sorting is by
 GROUP on evidence (camera data, Gemma's description) with one "go", every move logged and undoable; the owner decides.
+
+## The rip (Mike, 21 Nov 2026 14:39)
+"back when i used to investigate cavitation the "rip" is important and i found it in a mosfet spike too". Said while we
+talked of balloons popping in slow motion (the skin tearing faster than the air inside can move). The same rip in three
+places Mike has seen it: a cavitation bubble, a balloon's skin, a MOSFET's switching spike. Lab use: the balloon's pop is
+to be built as a real rip (now drawn shreds: magic), and checked against Mike's two balloon films; then the same rip looked
+for in the lab's other sudden releases.
