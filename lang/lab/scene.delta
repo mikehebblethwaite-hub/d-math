@@ -38,7 +38,7 @@ void scene_start()
     tank1.x = MID; tank1.z = ROOM + FOOT * 5; tank1.start();         // ... in the wave room, five feet past the wall between
     lightsheet_start();                                              // the light sheet, on the floor of the space room (floor 3)
     wingnut_start();                                                 // the wing nut, floating over it
-    balloon_start();                                                 // the weather balloon, on floor 2
+    balloon_start(); sky_start();                                    // the weather balloon and the sky's column, on floor 2
 }
 void scene_step() { if (FLOOR == 2) balloon_step(); if (FLOOR == 3) { lightsheet_step(); wingnut_step(); } if (FLOOR > 1) return; washroom1.step(); scope1.step(); microscope1.step(); seedcup1.step(); meter1.step(); pingpong1.step(); candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
 void lift_draw()                                         // the lift between the floors, in the back left corner of each (Mike: the space room two floors up)
@@ -55,7 +55,7 @@ void scene_draw()                         // farthest first, the painter's way, 
     lift_draw();
     if (FLOOR > 1) {                                                 // the floors above: their own things only
         int m; for (m = 1; m <= 31; m++) MARKON[m] = low;
-        if (FLOOR == 2) balloon_draw();
+        if (FLOOR == 2) { sky_draw(); balloon_draw(); }
         if (FLOOR == 3) { lightsheet_draw(); wingnut_draw(); }
         return;
     }
@@ -84,7 +84,7 @@ void scene_panel(int sel)
     if (FLOOR > 1) {
         lab_line(FLOOR == 3 ? "floor 3: SPACE, above 100 km (low Earth orbit; the space station flies at about 400 km);  Page Down: the lift down" : "floor 2: ATMOSPHERE TESTS, the sky from the ground to 100 km (1 ft = 5 km);  Page Up: space, Page Down: the lab");
         lab_line("the lift: back left corner (Page Up, Page Down). MAGIC: you can walk through it; these floors have no air cells of their own yet");
-        if (FLOOR == 2) balloon_panel();
+        if (FLOOR == 2) { balloon_panel(); sky_panel(); }
         if (FLOOR == 3) { lightsheet_panel(); wingnut_panel(); }
         return;
     }

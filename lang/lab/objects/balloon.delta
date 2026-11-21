@@ -71,3 +71,43 @@ void balloon_panel()
     lab_line("  this room is the sky from the ground to 100 km (space starts at the top): 1 ft = 5 km (MAGIC: the drawing scale); drawn a fifth of its size");
     lab_line("  above 11 km the warmth is measured, not worked out");
 }
+
+// The sky's column on the back wall (Mike: "temperatures and pressures change in the atmosphere"): ground to 100 km, worked out
+// once at the start by the same rules (to 11 km the column full of water vapour; above, MEASURED warmth: the standard
+// atmosphere, level to 20 km, warmer 1 a km to 32, 2.8 a km to 47, level to 51, cooler 2.8 a km to 71, 2 a km to 86, then level);
+// each km a glow coloured by its warmth (blue cold, red warm), its size by the air's pressure.
+int SKYT[7B], SKYP[7B];
+int slg2(int n) { int k = 1; while (n >= 2) { n = n / 2; k++; } return k; }
+void sky_start()
+{
+    int z = low, p = BLEVEL, t = $A11D5, km = 1;
+    SKYT[1] = t; SKYP[1] = p;
+    while (z < 36694) {
+        int dp = p / 5BC * (gpull(z) * 141B / 1DC187A) / 3A27 * 5BC / (t / 5BC);
+        if (z < 4D12) {
+            int es = bvapour(t), rs = es / 5BC * 18A162 / (less(p, es) / 5BC), L = bheat(t) / 5BC, tk = t / 5BC;
+            int num = 28D221 + L * rs / (191 * tk) * 5BC, den = 28D221 + L * L * rs / 5BC * 38B * 5BC / (5C4 * 191 * tk * tk / 5BC);
+            t = less(t, gpull(z) * $A / 5C4 * (num / 5BC) / (den / 5BC) / 5BC);
+        } else if (z >= 9146 && z < 11747) t = t + $A; else if (z >= 11747 && z < 18515) t = t + 22;
+        else if (z >= 1A2A1 && z < 26417) t = less(t, 22); else if (z >= 26417 && z < 2D1B5) t = less(t, 17);
+        p = p > dp ? less(p, dp) : 1; z = z + $A;
+        if (z % 5BC < 1) { km++; SKYT[km] = t; SKYP[km] = p; }
+    }
+}
+void sky_draw()
+{
+    int k;
+    for (k = 1; k <= 7A; k++) {
+        int t = SKYT[k], warm = t > 63C12 ? less(t, 63C12) : 1;          // over 180 K, thousandths
+        int r = warm * 168 / 3ADB7; if (r > 168) r = 168;
+        int b = 168 > r ? less(168, r) : 1;
+        lab_colour(r, 48 + r / 4, b);
+        int size = slg2(SKYP[k] / 5BC + 1) * INCH / 2 + INCH / 2;
+        lab_glow(MID, 1 + less(k, 1) * FOOT / 5, less(ROOM, FOOT), size);       // up the back wall's middle: 1 ft for every 5 km
+    }
+}
+void sky_panel()
+{
+    lab_line("  the sky up the back wall, every 10 km: warmth (thousandths of a degree over the lowest) and pressure (Pa); above 47 km the warmth is MEASURED");
+    int k; for (k = 1; k <= 7A; k = k + $A) { lab_value("    km", less(k, 1) > low ? less(k, 1) : 1, ""); lab_value("      warmth", SKYT[k], ""); lab_value("      pressure", SKYP[k] / 5BC + 1, ""); }
+}

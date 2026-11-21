@@ -71,3 +71,43 @@ void balloon_panel()
     lab_line("  this room is the sky from the ground to 100 km (space starts at the top): 1 ft = 5 km (MAGIC: the drawing scale); drawn a fifth of its size");
     lab_line("  above 11 km the warmth is measured, not worked out");
 }
+
+// The sky's column on the back wall (Mike: "temperatures and pressures change in the atmosphere"): ground to 100 km, worked out
+// once at the start by the same rules (to 11 km the column full of water vapour; above, MEASURED warmth: the standard
+// atmosphere, level to 20 km, warmer 1 a km to 32, 2.8 a km to 47, level to 51, cooler 2.8 a km to 71, 2 a km to 86, then level);
+// each km a glow coloured by its warmth (blue cold, red warm), its size by the air's pressure.
+int SKYT[{{102}}], SKYP[{{102}}];
+int slg2(int n) { int k = 1; while (n >= 2) { n = n / 2; k++; } return k; }
+void sky_start()
+{
+    int z = low, p = BLEVEL, t = {{288150}}, km = 1;
+    SKYT[1] = t; SKYP[1] = p;
+    while (z < {{100000}}) {
+        int dp = p / {{1000}} * (gpull(z) * {{2897}} / {{10000000}}) / {{8314}} * {{1000}} / (t / {{1000}});
+        if (z < {{11000}}) {
+            int es = bvapour(t), rs = es / {{1000}} * {{622000}} / (less(p, es) / {{1000}}), L = bheat(t) / {{1000}}, tk = t / {{1000}};
+            int num = {{1000000}} + L * rs / ({{287}} * tk) * {{1000}}, den = {{1000000}} + L * L * rs / {{1000}} * {{622}} * {{1000}} / ({{1005}} * {{287}} * tk * tk / {{1000}});
+            t = less(t, gpull(z) * {{10}} / {{1005}} * (num / {{1000}}) / (den / {{1000}}) / {{1000}});
+        } else if (z >= {{20000}} && z < {{32000}}) t = t + {{10}}; else if (z >= {{32000}} && z < {{47000}}) t = t + {{28}};
+        else if (z >= {{51000}} && z < {{71000}}) t = less(t, {{28}}); else if (z >= {{71000}} && z < {{86000}}) t = less(t, {{20}});
+        p = p > dp ? less(p, dp) : 1; z = z + {{10}};
+        if (z % {{1000}} < 1) { km++; SKYT[km] = t; SKYP[km] = p; }
+    }
+}
+void sky_draw()
+{
+    int k;
+    for (k = 1; k <= {{101}}; k++) {
+        int t = SKYT[k], warm = t > {{180000}} ? less(t, {{180000}}) : 1;          // over 180 K, thousandths
+        int r = warm * {{255}} / {{110000}}; if (r > {{255}}) r = {{255}};
+        int b = {{255}} > r ? less({{255}}, r) : 1;
+        lab_colour(r, {{60}} + r / 4, b);
+        int size = slg2(SKYP[k] / {{1000}} + 1) * INCH / 2 + INCH / 2;
+        lab_glow(MID, 1 + less(k, 1) * FOOT / 5, less(ROOM, FOOT), size);       // up the back wall's middle: 1 ft for every 5 km
+    }
+}
+void sky_panel()
+{
+    lab_line("  the sky up the back wall, every 10 km: warmth (thousandths of a degree over the lowest) and pressure (Pa); above 47 km the warmth is MEASURED");
+    int k; for (k = 1; k <= {{101}}; k = k + {{10}}) { lab_value("    km", less(k, 1) > low ? less(k, 1) : 1, ""); lab_value("      warmth", SKYT[k], ""); lab_value("      pressure", SKYP[k] / {{1000}} + 1, ""); }
+}
