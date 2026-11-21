@@ -32,3 +32,11 @@ each gap's air passes the gap, then its hole (two openings one after the other).
 no plate ~1 Pa, nothing; 1 mm holes 374 Pa, 22% flat; 0.5 mm holes 3,947 Pa, every gap shut by 7 min (1,095/1,444 hex);
 0.3 mm holes 10,435 Pa, every gap shut by 4 min (1,128 hex). Fine holes under every three let one Henry do what took
 178 Henrys over an open tray (data/2026-11-21-plate-*.txt). For the real rig: a plate with fine holes in hex under the balls.
+
+## the release ledger (Mike: "wonder if the hex formed is the releasing of what we think is electrons ... add the release ledger")
+pingfield now books, for every gap: the air its closing squeezed out (its 64 mm2 x 40 mm column), the pull's work on its
+walls (pull x volume), and the second it shut; at the end: the spread of the packets and how they came in time.
+40 x 40: plate 0.3 mm + one Henry: all 3,042 gaps, ~2.4 ml and 24.8-26.5 mJ each (+-3%), all in a 20 s burst (98-117 s,
+up to 363 a second); open tray + 178 Henrys: ~2.3 ml, 10.6-14.3 mJ (+-15%), a 15 s burst (up to 438 a second).
+Honest: the near-equal size is partly the model's (every gap the same size); the burst after a long hold is not set by
+any rule: the gaps set each other off.

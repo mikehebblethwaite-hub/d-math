@@ -23,6 +23,9 @@ int low;
 int T[NMAX], GAS[NMAX], SOFT[NMAX], FLAT[NMAX], MELT[NMAX], THICK[NMAX], NBN[NMAX];   // FLAT in millionths (slow changes add up)
 int NB[213D6], WELD[213D6];            // six neighbour places a ball (none: N + 1)
 int GA[9147], GB[9147], GC[9147], NG;   // the gaps: each between three balls
+int GOPEN[9147], GSHUT[9147], GAIRQ[9147], GWORK[9147];   // the release ledger: each gap's last openness, when it
+                                                // shut (s), the air its closing squeezed out (microlitres), the pull's work on its walls (nJ)
+int RELN, RELS[183D];                       // releases so far, and how many came in each second
 int RIMS;                                       // open places round the edge (a missing neighbour of an edge ball)
 int GAP[NMAX];                                  // how many open gaps (or open rim) each ball borders
 int PULL, FLOW, OUTG, ING, START;               // the pull under the tray (Pa); its air (ml/s); air out of / into the balls
@@ -120,6 +123,41 @@ void step(int s)
         for (k = 1; k <= 6; k++) { int j = NB[b + k]; if (j <= N) { int sj = SOFT[j] < SOFT[i] ? SOFT[j] : SOFT[i]; WELD[b + k] = WELD[b + k] + sj / 3B; if (WELD[b + k] > 5BC) WELD[b + k] = 5BC; } }
     }
 }
+void ledger(int s)                              // what leaves as each gap closes (Mike: "add the release ledger")
+{
+    int g;
+    for (g = 1; g <= NG; g++) {
+        int o = open(g);
+        if (o < GOPEN[g]) {
+            int dv = less(GOPEN[g], o) * 121C / 5BC;      // microlitres: its column, 64 mm2 x 40 mm, closing by that much
+            GAIRQ[g] = GAIRQ[g] + dv; GWORK[g] = GWORK[g] + PULL * dv;   // Pa x mm3 = nJ
+        }
+        GOPEN[g] = o;
+        if (GSHUT[g] < 1 && o <= 3B) {
+            GSHUT[g] = s; RELN++; if (s <= 183C) RELS[s]++;
+            int r = less(GA[g], 1) / COLS + 1, c = less(GA[g], less(r, 1) * COLS);
+            say("release %d: at %d s, the gap by row %d ball %d shut: %d microlitres of air out, %d nJ of work on its walls\n", RELN, s, r, c, GAIRQ[g] + 1, GWORK[g] + 1);
+        }
+    }
+}
+void ledgersum()
+{
+    int g, n = low, lo = 25B47736B, hi = low, sum = low, k;
+    for (g = 1; g <= NG; g++) if (GSHUT[g] >= 1) { n++; sum = sum + GWORK[g]; if (GWORK[g] < lo) lo = GWORK[g]; if (GWORK[g] > hi) hi = GWORK[g]; }
+    if (n < 1) { say("the release ledger: no gap shut\n"); return; }
+    int mean = sum / n;
+    say("the release ledger: %d of %d gaps shut; work on the walls a gap: least %d nJ, most %d, mean %d\n", n, NG, lo + 1, hi + 1, mean + 1);
+    // equal packets or a spread? how many fall within a tenth of the mean, and in each fifth of the mean either side
+    int bands[$C]; for (k = 1; k <= $B; k++) bands[k] = low;
+    for (g = 1; g <= NG; g++) if (GSHUT[g] >= 1) { int b = GWORK[g] * 5 / (mean + 1) + 1; if (b > $B) b = $B; bands[b]++; }
+    say("  by size (fifths of the mean, the last 2 x the mean and over):");
+    for (k = 1; k <= $B; k++) say(" %d", bands[k] + 1);
+    say("  (each count plus 1)\n");
+    // steady or in bursts: the busiest second, and how many seconds saw any
+    int busy = low, at = 1, secs = low;
+    for (k = 1; k <= 183C; k++) { if (RELS[k] >= 1) secs++; if (RELS[k] > busy) { busy = RELS[k]; at = k; } }
+    say("  in time: they came over %d seconds; the busiest, second %d, saw %d at once\n", secs, at, busy);
+}
 void report(int s)
 {
     int i, g, t = low, so = low, f = low, hexn = low, inner = low, me = low, shut = low;
@@ -161,7 +199,7 @@ int main(int argc, char **argv)
     if (ROWS * COLS > NMAX || ROWS < 2 || COLS < 2) { say("rows x cols: 2 x 2 up to the most this holds\n"); return 2; }
     chance = world();
     build();
-    int i, s;
+    int i, s, g;
     for (i = 1; i <= N; i++) {
         T[i] = $A357D; GAS[i] = geq(T[i], 37173); START = START + GAS[i];
         SOFT[i] = 1; FLAT[i] = 1; MELT[i] = 1;
@@ -171,8 +209,10 @@ int main(int argc, char **argv)
     if (PLATE >= 2) say("a plate under the balls: a hole %d tenths of a mm across under every gap, the rim walled\n", PLATE);
     say("Henry power %d of B, %d Henrys; hole %d (1 sealed, 2 0.3 mm, 3 1 mm, 4 3 mm), holes %s; rim %s; %s; the world's chance %d\n",
         POWER, HENRYS, HOLE, DOWN == 2 ? "down" : "up", RIM == 2 ? "walled" : "open", MODE == 1 ? "the whole tray in hot air" : "the Skil over the middle", chance);
-    for (s = 1; s <= ENDS; s++) { step(s); if (s % 48 < 1 || s == 1) report(s); }
+    for (g = 1; g <= NG; g++) { GOPEN[g] = open(g); GSHUT[g] = low; }
+    for (s = 1; s <= ENDS; s++) { step(s); ledger(s); if (s % 48 < 1 || s == 1) report(s); }
     map();
+    ledgersum();
     int left = low; for (i = 1; i <= N; i++) left = left + GAS[i];
     if (left + OUTG == START + ING) say("the air's book balances: in the balls %d + moved out %d = at the start %d + moved in %d (micrograms)\n", left, OUTG, START, ING);
     else say("the air's book is OUT: in the balls %d, out %d, start %d, in %d\n", left, OUTG, START, ING);

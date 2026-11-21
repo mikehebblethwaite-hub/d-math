@@ -11,14 +11,19 @@
 // each knock (4 microNewtons for each micrometre a second they close in), and the tray's rim holds them. A ball over the
 // hole stops most of the air (a twentieth leaks past) and the Henry's pull holds it there. They start scattered by the
 // world's chance (the box's own watts, mixed) and still; then they are let go. A quarter of a millisecond a step.
+// Rebuilt toward the real (Mike: "keep rebuilding the rig to be real to the real world flow"): where balls touch they grip
+// (sliding past each other meets up to GRIP thousandths of how hard they press: 0.3 for plastic on plastic, a rough guide;
+// 9th input, 1 for nearly none).
 //
-//   delta run lang/lab/runs/pingfunnel.delta BALLS DEGREES TRAY_MM HOLE_MM SECONDS HENRY POWER > out.txt
-//   (D numerals; left off: 7A balls (100), 1 degree, tray 1A3 mm across the middle to the rim (250), hole 24 mm (30),
+//   delta run lang/lab/runs/pingfunnel.delta BALLS TENTHS_OF_A_DEGREE TRAY_MM HOLE_MM SECONDS HENRY POWER > out.txt
+//   (D numerals; left off: 7A balls (100), A tenths (1 degree), tray 1A3 mm across the middle to the rim (250), hole 24 mm (30),
 //    seconds 1A (23), Henry 2 (on; 1 off), power B)
 #define NMAX 149A
 #define VB 733B8298841                    // velocities are kept above VB (no negatives in D: VB is standing still)
 #define FB 733B8298841                    // and forces above FB
-int low, N = 79, ANG = 1, TRAYMM = 163, HOLEMM = 24, SECS = 1A, HENRY = 2, POWER = $B;
+int GRIP = 1A1;                                 // ball on ball grip, thousandths of how hard they press (0.3, a rough guide)
+int low, N = 79, ANG = $A,                 // ANG in tenths of a degree
+ TRAYMM = 163, HOLEMM = 24, SECS = 1A, HENRY = 2, POWER = $B;
 int X[NMAX], Y[NMAX], VX[NMAX], VY[NMAX], FX[NMAX], FY[NMAX], NC[NMAX], NEXT[NMAX], SEAT[NMAX];   // SEAT: sucked down into the hole
 int HEAD[4723], GW;                        // the grid: cells a ball wide, each holding a chain of balls
 int CX, CY, RT, RH, DIA = 8396851;          // the tray's middle, its rim, the hole (nanometres); a ball across
@@ -37,6 +42,12 @@ int slope(int d)                                 // the rise of a slope of d deg
     int s[37] = {7C36, 12B67, 1AA8B, 2599B, 2D894, 38768, 43617, 4B468, 56285, 5DD67, 68AD8, 73833, 7B4DC, 86165, 8DA62, 985CB, $A2DD2, $AA867, $B5259, $BC8A3, $C716A, $D167C, $D8AD3, 113196, 11A491, 1246BB, 12B844, 1358C3, 13C891, 146777, 14D574, 15727D, 15DB94, 1676AB, 16DDC3, 1776D3, 17DBD6, 1872C7, 18D5A3, 196763, 19C7D1, 1A5748, 1AB565, 1B4253, 1B9ADB};
     return s[d];
 }
+int slopet(int t)                                  // the rise for t tenths of a degree, read between the whole degrees
+{
+    int d = t / $A, f = t % $A, a = d >= 1 ? slope(d) : low, b = slope(d + 1);
+    return a + less(b, a) * f / $A;
+}
+int liet(int t) { int d = t / $A, f = t % $A, a = d >= 1 ? lie(d) : 28D221, b = lie(d + 1); return less(a, less(a, b) * f / $A); }
 int lie(int d)
 {
     int c[37] = {28D135, 28CB73, 28C6D9, 28BD99, 28B585, 28A899, 2899D9, 288976, 28773D, 286336, 284A5A, 2832B2, 281667, 27C852, 27A86D, 2786C3, 27637C, 273B73, 2714A3, 26B941, 268C1B, 265D3B, 262CA1, 25CA79, 25969D, 25613D, 25272D, 24BB71, 248136, 244254, 23D1CC, 238CD6, 234972, 22D472, 228AD9, 224311, 21C687, 2178A3, 212966, 1DA8A6, 1D5698, 1CD33D, 1C7B6D, 1C255B, 1B9ADB};
@@ -113,6 +124,23 @@ void forces()
                             if (neg > pos) f = f + less(neg, pos) / dd * 4;               // closing: the knock loses some
                             else { int damp = less(pos, neg) / dd * 4; f = f > damp ? less(f, damp) : low; }
                             if (f >= 1) push(i, f, way(px, py), ax, ay, d);
+                            // the grip where they touch: their sliding past each other (what is left of i's speed less j's once the
+                            // closing along the line is taken out) meets up to GRIP thousandths of how hard they press
+                            if (GRIP >= 1 && f >= 1) {
+                                int vn = pos >= neg ? less(pos, neg) / dd : less(neg, pos) / dd, out = pos >= neg;   // along the line, + away
+                                int mx = vn * ux / dd, my = vn * uy / dd;                 // that part of the relative speed, each way
+                                int tx = rvx, ty = rvy;                                   // relative speed (above VB), less its part along the line
+                                if (out == px) tx = less(tx, mx); else tx = tx + mx;
+                                if (out == py) ty = less(ty, my); else ty = ty + my;
+                                int ax2 = apart(tx, VB), ay2 = apart(ty, VB), vt = isqrt(ax2 * ax2 + ay2 * ay2);
+                                if (vt >= 1) {
+                                    int ft = vt * 4, most = f * GRIP / 5BC;          // a soft brake, up to the grip's limit
+                                    if (ft > most) ft = most;
+                                    int gx = ft * ax2 / vt, gy = ft * ay2 / vt;
+                                    FX[i] = tx >= VB ? less(FX[i], gx) : FX[i] + gx;     // against its sliding
+                                    FY[i] = ty >= VB ? less(FY[i], gy) : FY[i] + gy;
+                                }
+                            }
                         }
                     }
                 }
@@ -177,9 +205,9 @@ int main(int argc, char **argv)
     low = less(1, 1);
     if (argc >= 2) N = pnum(argv[2]); if (argc >= 3) ANG = pnum(argv[3]); if (argc >= 4) TRAYMM = pnum(argv[4]);
     if (argc >= 5) HOLEMM = pnum(argv[5]); if (argc >= 6) SECS = pnum(argv[6]); if (argc >= 7) HENRY = pnum(argv[7]);
-    if (argc >= 8) POWER = pnum(argv[8]);
-    if (ANG < 1 || ANG > 36 || N > NMAX || N < 2) { say("1 to 3C degrees (45), 2 or more balls\n"); return 2; }
-    SINA = slope(ANG); COSA = lie(ANG);
+    if (argc >= 8) POWER = pnum(argv[8]); if (argc >= 9) GRIP = pnum(argv[9]);
+    if (ANG < 1 || ANG > 27B || N > NMAX || N < 2) { say("1 to 26B tenths of a degree (44 degrees), 2 or more balls\n"); return 2; }
+    SINA = slopet(ANG); COSA = liet(ANG);
     GRAV = $BD96 * SINA / 28D221 + 1;            // microNewtons down the slope: 2.7 g x 9.81 x the rise
     ROLL = $BD96 * COSA / 28D221 * 3 / 5BC + 1;   // rolling on the tray: 3 thousandths of its weight on it
     RT = TRAYMM * 28D221; RH = HOLEMM * 146777;
@@ -197,9 +225,9 @@ int main(int argc, char **argv)
         placed++; X[placed] = x; Y[placed] = y; VX[placed] = VB; VY[placed] = VB;
     }
     N = placed;
-    say("ping pong funnel: %d balls on a cone tray at %d degrees, %d mm to the rim, a %d mm hole; Henry %s, power %d of B; the world's chance %d\n",
+    say("ping pong funnel: %d balls on a cone tray at %d tenths of a degree, %d mm to the rim, a %d mm hole; Henry %s, power %d of B; the world's chance %d\n",
         N, ANG, TRAYMM, HOLEMM, HENRY >= 2 ? "on" : "off", POWER, chance);
-    say("each ball: %d microNewtons down the slope, %d held back by rolling on the tray\n", GRAV, ROLL);
+    say("each ball: %d microNewtons down the slope, %d held back by rolling on the tray; grip ball on ball %d thousandths\n", GRAV, ROLL, GRIP);
     int step, s = low;
     for (step = 1; step <= SECS * 1A89; step++) {
         if (step % 24A == 1) henry();
