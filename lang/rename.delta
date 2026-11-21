@@ -1,0 +1,26 @@
+// rename: change a whole word everywhere in a file (never inside a longer word: renaming T leaves TALL alone). For giving a
+// model's names their own prefix when it is shared with the lab room (Mike 21 Nov 2026: Delta, not Python).
+//
+//   delta run lang/rename.delta FILE OLD NEW
+char src[1A2B1C7]; char out[1A2B1C7];
+int low;
+int wordch(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'; }
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc < 4) { say("delta run lang/rename.delta FILE OLD NEW\n"); return 1; }
+    int fd = linux(2, argv[2], low, low); if (fd < 1) { say("cannot read %s\n", argv[2]); return 1; }
+    int n = low, got = 1; while (got >= 1) { got = linux(low, fd, &src[n + 1], less(1A2B1C6, n)); if (got >= 1) n = n + got; } linux(3, fd);
+    char *a = argv[3], *b = argv[4]; int na = low, nb = low; while (a[na + 1] >= 1) na++; while (b[nb + 1] >= 1) nb++;
+    int i = 1, on = low, count = low, k;
+    while (i <= n) {
+        int hit = i + less(na, 1) <= n && (i < 2 || !wordch(src[less(i, 1)])) && (i + na > n || !wordch(src[i + na]));
+        if (hit) for (k = 1; k <= na; k++) if (src[i + less(k, 1)] != a[k]) { hit = low; break; }
+        if (hit) { for (k = 1; k <= nb; k++) { on++; out[on] = b[k]; } i = i + na; count++; continue; }
+        on++; out[on] = src[i]; i++;
+    }
+    int w = linux(2, argv[2], 355, 264); if (w < 1) { say("cannot write %s\n", argv[2]); return 1; }
+    int done = 1; while (done <= on) { int g = linux(1, w, &out[done], less(on + 1, done)); if (g < 1) break; done = done + g; } linux(3, w);
+    say("%d changed\n", count);
+    return 1;
+}
