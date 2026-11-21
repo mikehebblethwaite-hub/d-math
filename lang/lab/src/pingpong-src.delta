@@ -7,8 +7,10 @@
 // (0.4 mm x 1100 kg/m3 x 1400 J/kg/degree) and takes heat from the air by h: 80 watts a square metre a degree in the gun's
 // jet, 7 in still air, more in a draught (the usual sphere-in-air figures, rough guides); the air inside obeys the gas rule
 // (pressure x room = amount x 287 x warmth) and leaves or comes back through the hole by the orifice rule (0.6 x the hole's
-// open area x the root of 2 x 1.2 kg/m3 x the push); the gun: 400 litres a minute (0.0067 kg/s), its power the air it
-// heats (6.7 watts a degree, at most 2000 W), its warmth falling past five nozzle widths (20 mm nozzle); the draught from
+// open area x the root of 2 x 1.2 kg/m3 x the push); the gun: Mike's own, a Skil 8007 MA (his photos 21 Nov 2026; Skil's
+// page: 2000 W, five fan steps 250 to 500 litres a minute, 50 to 650 C, a 20 mm reduction nozzle in the box, used here):
+// its power the air it heats (5 to 10 watts a degree, at most
+// 2000 W, so at 500 l/min it gives no more than about 220 C, at 250 about 420 C, whatever it is set to), its warmth falling past five nozzle widths (20 mm nozzle); the draught from
 // an open window or door by the stack rule (0.6 x the root of 2 x g x height x the warmth difference / the warmth).
 // Rough guides: the plastic is pliable from 90 C, fully soft by 120 C, and from 125 C it melts (sags, drips through a gap
 // or a hole; Mike: "too hot they will melt and drip ... go to the goldilocks temp of pliable"); touching soft balls fuse where they touch (a twentieth
@@ -32,11 +34,13 @@ int PPTW[{{12}}];                             // each ball's shell warmth (thous
 int PPGAS[{{12}}];                             // the air inside each ball, micrograms
 int PPSOFT[{{12}}], PPFLAT[{{12}}], PPDENT[{{12}}], PPEXP[{{12}}];   // softness, flat faces (hex), caved-in top, its share of the jet: thousandths
 int PPA[{{24}}], PPB[{{24}}], PPWELD[{{24}}], PPAIRS;   // touching pairs and how far fused (thousandths)
-int PPGUN, PPGUNT = {{573150}}, PPGUNH = 4, PPHOLE = 2, PPSTEPS, PPSTOP;   // the gun on; its air 300 C; its nozzle 4 in above; the hole
+int PPFAN = 5, PPGUN, PPGUNT = {{573150}}, PPGUNH = 4, PPHOLE = 2, PPSTEPS, PPSTOP;   // the gun on; its air 300 C; its nozzle 4 in above; the hole
 int PPOUT, PPIN, PPDRAUGHT, PPMOST, PPSUCK, PPPUSH;
 int PPHENRY, PPDOWN, PPGAP, PPFLOW, PPHL = {{11}}, PPMELT[{{12}}];   // PPHL: the Henry's power 1 to 11; how far each ball has melted (thousandths)                // the Henry on; holes face down; the pull in the gaps (pascals); its flow (ml a second)   // air moved out to the room / back in (micrograms); draught mm/s; the most of each
 int pphole() { return PPHOLE == 1 ? 1 : PPHOLE == 2 ? {{71}} : PPHOLE == 3 ? {{785}} : {{7069}}; }   // open area, thousandths of a mm2: sealed (a crack), 0.3 mm, 1 mm, 3 mm drill holes
 int ppT() { int t = AT[acell(PPX, BTOP + {{300}}, PPZ)]; return t >= {{200000}} ? t : {{293150}}; }   // 20 C until the room's air is there        // the room's air over the tray
+int ppwk() { return {{503}} + less(PPFAN, 1) * {{125}}; }               // the gun: watts a degree x100 (fan 1 to 5: 250 to 500 l/min)
+int ppgunout() { int room = roomt(1, 3), most = room + {{2000}} * {{100000}} / ppwk(); return PPGUNT < most ? PPGUNT : most; }   // what 2000 W can give
 int ppress(int i) { return PPGAS[i] * PPTW[i] / {{1000}} * {{287}} / {{33500}}; }   // pascals: amount x 287 x warmth / room inside
 int pgeq(int t) { return {{101325}} * {{33500}} / {{287}} * {{1000}} / t; }   // the amount that would match the room's pressure
 int ppmean(int *v) { int i, s = low; for (i = 1; i <= PPN; i++) s = s + v[i]; return s / PPN; }
@@ -97,11 +101,11 @@ int ppjetT(int i)                            // the air the ball sits in: the ro
     if (PPGUN < 1 || PPSTOP) { PPEXP[i] = 1; return room; }
     int x = PPGUNH * {{25}} + {{40}};                                  // nozzle to the ball's top and on to its middle, mm
     int w = x / {{10}} + {{10}};                                      // the jet's half width there, mm (rough guide)
-    int shift = x * PPDRAUGHT / {{20000}};                              // the draught bends the jet (it leaves the nozzle at 20 m/s)
+    int shift = x * PPDRAUGHT / ({{13000}} + less(PPFAN, 1) * {{3300}});   // the draught bends the jet (it leaves the 20 mm nozzle at 13 to 26 m/s)
     int d = isqrt(apart(PPBX[i], PPX) * apart(PPBX[i], PPX) + apart(PPBZ[i], PPZ) * apart(PPBZ[i], PPZ)) * {{254}} / {{640}} + shift;   // mm off the jet's line
     PPEXP[i] = {{1000}} * w * w / (w * w + d * d) + 1;
     int keep = higher(1, {{100000}} / x); if (keep > {{1000}}) keep = {{1000}};   // its warmth falls past five nozzle widths (100 mm)
-    int hot = PPGUNT > room ? less(PPGUNT, room) * keep / {{1000}} * PPEXP[i] / {{1000}} : low;
+    int gt = ppgunout(), hot = gt > room ? less(gt, room) * keep / {{1000}} * PPEXP[i] / {{1000}} : low;
     return room + hot;
 }
 void pingpong_step()
@@ -111,7 +115,7 @@ void pingpong_step()
     PPDRAUGHT = ppdraught(); pphenry();
     for (i = 1; i <= PPN; i++) {
         int air = ppjetT(i);
-        int h = {{7}} + PPDRAUGHT * {{13}} / {{1000}} + (PPGUN && PPSTOP < 1 ? {{73}} * PPEXP[i] / {{1000}} + (PPHENRY ? {{40}} : low) : low);   // watts a m2 a degree
+        int h = {{7}} + PPDRAUGHT * {{13}} / {{1000}} + (PPGUN && PPSTOP < 1 ? ({{58}} + less(PPFAN, 1) * 6) * PPEXP[i] / {{1000}} + (PPHENRY ? {{40}} : low) : low);   // watts a m2 a degree
         if (air > PPTW[i]) PPTW[i] = PPTW[i] + less(air, PPTW[i]) * h / {{616}};
         else PPTW[i] = less(PPTW[i], less(PPTW[i], air) * h / {{616}});
         if (PPTW[i] > {{443150}} && PPGUN) PPSTOP = 1;                   // 170 C: celluloid's fire point: stopped by magic
@@ -139,7 +143,7 @@ void pingpong_step()
         PPWELD[k] = PPWELD[k] + s / {{50}}; if (PPWELD[k] > {{1000}}) PPWELD[k] = {{1000}};
     }
 }
-int ppgunW() { if (PPGUN < 1 || PPSTOP) return 1; int room = ppT(); int w = PPGUNT > room ? less(PPGUNT, room) * {{67}} / {{10000}} : 1; return w > {{2000}} ? {{2000}} : w; }   // watts
+int ppgunW() { if (PPGUN < 1 || PPSTOP) return 1; int room = roomt(1, 3), gt = ppgunout(); int w = gt > room ? less(gt, room) / {{1000}} * ppwk() / {{100}} + 1 : 1; return w > {{2000}} ? {{2000}} : w; }   // watts
 void pingpong_air() { if (PPGUN && PPSTOP < 1) air_heat(PPX, BTOP + {{200}}, PPZ, ppgunW() * {{1000}}); }   // the gun's heat goes into the room's air
 void pingpong_draw()
 {
@@ -163,8 +167,14 @@ void pingpong_draw()
     lab_colour({{60}}, {{60}}, {{64}}); lab_box(PPX + {{340}}, less(PPZ, {{90}}), PPX + {{500}}, PPZ + {{90}}, BTOP, BTOP + {{24}});   // the stand's foot
     lab_colour({{150}}, {{152}}, {{158}}); lab_column(PPX + {{420}}, PPZ, {{12}}, BTOP + {{24}}, top + {{580}});                     // its post
     lab_box(PPX, less(PPZ, {{12}}), PPX + {{420}}, PPZ + {{12}}, top + {{540}}, top + {{564}});                                       // its arm, over the tray
-    lab_colour({{200}}, {{90}}, {{30}}); lab_column(PPX, PPZ, {{70}}, top + {{220}}, top + {{520}});   // its body
-    lab_colour({{40}}, {{40}}, {{44}}); lab_column(PPX, PPZ, {{26}}, top, top + {{220}});              // its nozzle
+    // Mike's Skil 8007, hung nozzle down (from his photos): silver nozzle, red ring, black body, grey back with its screen,
+    // a grey handle out to the side with the red switch
+    lab_colour({{185}}, {{185}}, {{190}}); lab_column(PPX, PPZ, {{24}}, top, top + {{120}});          // the nozzle
+    lab_colour({{185}}, {{35}}, {{35}}); lab_column(PPX, PPZ, {{50}}, top + {{120}}, top + {{190}});  // the red ring
+    lab_colour({{38}}, {{38}}, {{42}}); lab_column(PPX, PPZ, {{62}}, top + {{190}}, top + {{470}});   // the black body
+    lab_colour({{150}}, {{152}}, {{156}}); lab_column(PPX, PPZ, {{66}}, top + {{470}}, top + {{520}});   // the grey back (its screen faces up)
+    lab_colour({{95}}, {{97}}, {{100}}); lab_box(less(PPX, {{240}}), less(PPZ, {{22}}), less(PPX, {{60}}), PPZ + {{22}}, top + {{300}}, top + {{420}});   // the handle
+    lab_colour({{200}}, {{40}}, {{40}}); lab_box(less(PPX, {{200}}), less(PPZ, {{24}}), less(PPX, {{160}}), PPZ + {{24}}, top + {{330}}, top + {{360}});   // its red switch
     if (PPGUN && PPSTOP < 1 && PPGUNT > {{673150}}) { lab_colour({{255}}, {{120}}, {{40}}); lab_glow(PPX, top, PPZ, {{20}}); }   // a hot nozzle glows
 }
 int ppflatok(int i, int j, int wx, int wz)    // 1 when the place is on ball i's side of its flat face toward ball j
@@ -193,7 +203,10 @@ void pingpong_panel()
     lab_line("Mike's ping pong balls under a hot air gun (lang/lab/objects/pingpong.delta)");
     lab_line(PPN == 3 ? "  P: three balls in a triangle (P again: seven, one in the middle)" : "  P: seven balls, one in the middle (P again: three)");
     lab_line(PPGUN ? (PPSTOP ? "  Y: the gun is stopped: a ball reached 170 C, celluloid's fire point (stopped by magic)" : "  Y: the gun is ON, blowing down on the balls") : "  Y: the gun is off");
-    tvalue("  U hotter, I cooler: the gun's air (10 C steps)", PPGUNT);
+    lab_line("  the gun: Mike's Skil 8007 MA, 2000 W, 50 to 650 C");
+    tvalue("  U hotter, I cooler: set to (10 C steps)", PPGUNT);
+    tvalue("    what comes out (2000 W can only heat so much air)", ppgunout());
+    ppv("  M: its fan, 1 to 5 (250 to 500 litres a minute; 20 mm nozzle)", PPFAN, "");
     ppv("  J: its nozzle above the balls, inches", PPGUNH, "");
     if (PPGUN) ppv("  the gun's power, watts", ppgunW(), "(its air heats the room too)");
     lab_line(PPHOLE == 1 ? "  G: no hole (sealed)" : PPHOLE == 2 ? "  G: a 0.3 mm hole in each ball" : PPHOLE == 3 ? "  G: a 1 mm hole in each ball" : "  G: a 3 mm hole in each ball");
@@ -251,12 +264,13 @@ void pingpong_keys(int key, int picked)
 {
     if (picked != 9) return;
     if (key == {{29}}) { PPGUN = PPGUN ? low : 1; PPSTOP = low; }                               // Y
-    if (key == {{30}} && PPGUNT < {{873150}}) PPGUNT = PPGUNT + {{10000}};                              // U: up to 600 C
+    if (key == {{30}} && PPGUNT < {{923150}}) PPGUNT = PPGUNT + {{10000}};                              // U: up to 600 C
     if (key == {{31}} && PPGUNT > {{333150}}) PPGUNT = less(PPGUNT, {{10000}});                         // I: down to 50 C
     if (key == {{33}}) { PPN = PPN == 3 ? 7 : 3; pingpong_start(); }                              // P
     if (key == {{42}}) PPHOLE = PPHOLE % 4 + 1;                                                       // G
     if (key == {{44}}) PPGUNH = PPGUNH % 6 + 1;
     if (key == {{57}}) PPHENRY = PPHENRY ? low : 1;
+    if (key == {{58}}) PPFAN = PPFAN % 5 + 1;                                                     // M: the gun's fan, 1 to 5
     if (key == {{53}} && PPHL < {{11}}) PPHL++;                                                    // X: the Henry stronger
     if (key == {{52}} && PPHL > 1) PPHL = less(PPHL, 1);                                          // Z: weaker                                                   // N: the Henry
     if (key == {{56}}) PPDOWN = PPDOWN ? low : 1;                                             // B: the holes up or down                                                       // J: 1 to 6 inches
@@ -268,7 +282,7 @@ void pq(char *s) { int i = 1; while (s[i] >= 1) { PNOTE2[PN2] = s[i]; PN2++; i++
 void pqv(int v) { dstr(v); pq(nb); }
 void pingpong_note()
 {
-    PN2 = 1; pq("pingpong balls "); pqv(PPN); pq(PPGUN ? (PPSTOP ? " gun-stopped-170C" : " gun-on") : " gun-off"); pq(" gun-mK "); pqv(PPGUNT);
+    PN2 = 1; pq("pingpong balls "); pqv(PPN); pq(PPGUN ? (PPSTOP ? " gun-stopped-170C" : " gun-on") : " gun-off"); pq(" gun-mK "); pqv(PPGUNT); pq(" gun-out-mK "); pqv(ppgunout()); pq(" fan "); pqv(PPFAN);
     pq(" nozzle-in "); pqv(PPGUNH); pq(" hole "); pqv(PPHOLE); pq(" s "); pqv(PPSTEPS + 1); pq(" draught-mm/s "); pqv(PPDRAUGHT + 1);
     pq(" ball1-mK "); pqv(PPTW[1]); pq(" ball1-Pa "); pqv(ppress(1)); pq(" soft "); pqv(ppmean(PPSOFT)); pq(" flat "); pqv(ppmean(PPFLAT));
     pq(PPHENRY ? " henry-on gap-Pa " : " henry-off gap-Pa "); pqv(PPGAP + 1); pq(PPDOWN ? " holes-down" : " holes-up"); pq(" dent "); pqv(ppmean(PPDENT)); pq(" melt "); pqv(ppmean(PPMELT)); pq(" henry-power "); pqv(PPHL); pq(" maxpush "); pqv(PPPUSH + 1); pq(" maxsuck "); pqv(PPSUCK + 1); pq(" out-ug "); pqv(PPOUT + 1); pq(" in-ug "); pqv(PPIN + 1);
