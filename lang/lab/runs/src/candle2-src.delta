@@ -98,8 +98,11 @@ void step()
     for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {
         int c = at(x, y); R[c] = low; if (ISW[c]) continue;
         if (T[c] < {{700000}} || F[c] < {{100}} || OX[c] < {{300}}) continue;
-        int air = OX[c] / 3, b = (F[c] < air ? F[c] : air) / 5 + 1;          // units burning this ms (oxygen: about 3 parts a part of wax, a rough guide)
-        F[c] = less(F[c], b); OX[c] = less(OX[c], OX[c] < 3 * b ? OX[c] : 3 * b); R[c] = b;
+        // a diffusion flame (as a candle's is): where wax vapour and oxygen meet hot enough they burn at once; all that can
+        // burn, burns; the flame's speed is how fast they reach each other. Wax takes 3.4 kg of oxygen a kg (paraffin, measured):
+        // a unit of wax takes 2.58 millionths of the cell's oxygen share (1 millionth of a 1 mm cell's air holds 1.32 units of oxygen)
+        int air = OX[c] * {{100}} / {{258}}, b = F[c] < air ? F[c] : air; if (b < 1) continue;
+        F[c] = drop(F[c], b); OX[c] = drop(OX[c], b * {{258}} / {{100}}); R[c] = b;
         give(c, b * {{46}} * {{80}} / {{100}}); light = light + b * {{46}} * {{20}} / {{100}};
         if (T[c] > {{2300000}}) T[c] = {{2300000}};
     }
