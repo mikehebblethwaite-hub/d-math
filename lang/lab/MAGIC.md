@@ -68,6 +68,7 @@ not yet traced) comes down as this list does.
 | MISSING (begun 21 Nov: the flame's light onto the wax in candle2, by rings of cells): radiant heat elsewhere (the sun's light) | the sky, the space room | light carrying heat from hot things to what they shine on: needed for a candle to melt its pool with gravity, for sunlight warming the sky (the ozone) and the sea |
 | The wick's wax boils off by a share each step, not by the heat that reaches it | candlespace (candle2 does it by the heat) | vapour = the heat reaching the wick top / wax's heat of boiling |
 | The match: a stand-in flame, 85 W, its heat into the wick and the air round its tip, the air never past 1,800 K | candle2 | a match that burns its own wood (and is struck) |
+| Cells of 1 mm round the wick: the flame's heat crosses a whole mm of gas to reach it (a real flame's edge is 0.2-0.5 mm away), so the early flame cannot hold its wick at boiling alone | candle2 | finer cells round the wick (0.25-0.5 mm), as the zoom-in rule allows |
 | The wick: carries heat like solid wax, sits in a flat slice with 3 faces in the flame | candle2 | a thin cotton wick (its own carrying), the flame round its tip on every side (a round slice, or 3-D), wax arriving at its tip and boiling (holding it near boiling heat) |
 
 ## Links (attachments, inputs, outputs)

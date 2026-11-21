@@ -1,0 +1,13 @@
+  at BAB ms: wick top 1282A3 mK, wick holds C349BA483 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning ~, molten pool ~ mm
+    the wick's foot (left, under, right): A357D A357D A357D mK, melted ~ ~ ~; the wick's bottom A357D mK
+  at 1A89 ms: wick top 18A4C9 mK, wick holds C349BA483 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning ~, molten pool ~ mm
+    the wick's foot (left, under, right): A357D A357D A357D mK, melted ~ ~ ~; the wick's bottom A357D mK
+  the match taken away at 2547 ms (the wick caught at 1C57 ms)
+  at 2967 ms: wick top 191331 mK, wick holds B667583D5 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 1C329, molten pool ~ mm
+    the wick's foot (left, under, right): AA5CB AA481 AA62C mK, melted ~ ~ ~; the wick's bottom AC15A mK
+  at 3845 ms: wick top 17A695 mK, wick holds B667583D5 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning B234, molten pool ~ mm
+    the wick's foot (left, under, right): AA139 A9CBC AA16A mK, melted ~ ~ ~; the wick's bottom ACA46 mK
+  at 4723 ms: wick top 167B74 mK, wick holds B667583D5 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning ~, molten pool ~ mm
+    the wick's foot (left, under, right): A996B A98A1 A9987 mK, melted ~ ~ ~; the wick's bottom ACA46 mK
+  at 55D1 ms: wick top 155795 mK, wick holds B667583D5 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning ~, molten pool ~ mm
+    the wick's foot (left, under, right): A996B A98A1 A9987 mK, melted ~ ~ ~; the wick's bottom ACA46 mK

@@ -289,3 +289,10 @@ pool to lie as a real liquid level.
 for a wall of wick, so each mm of slice has about 10 mm2 of wick in the flame; a real round wick has about 15-55 mm2 in all
 (by its size). Per area of wick in the flame the lab burns 3.7 W a mm2; a real candle 1.5-5. Inside the real range: 2e is NOT
 A TEST as written. A fair one needs a real wick's size measured (Mike's data names the kinds of wick, not their sizes).
+
+**33.** Mike's four waxes for 2b, the match taken away 1 s after the wick catches, as a hand would: all four caught at about
+4.3 s and all four went out by 10 s with their wicks still nine tenths full. Not the fuel: the early flame cannot hold its own
+wick at boiling. Held 10 s, the same candle lived (31) because the match bridged the time until the pool formed. The cause I
+think most likely, not yet shown: 1 mm cells, so the flame's heat must cross a whole mm of gas to the wick, where a real
+flame's edge sits a fifth to a half of a mm away. 2b waits for finer cells round the wick. Also made: lang/rename.delta, a
+whole-word rename in Delta, to share the candle's core with the room.
