@@ -15,6 +15,11 @@ the seed beaker's growing salt, the washroom's who-needs-it, and the wave tank w
 from a real sea buoy's file and stir the air: real random air flow, never computer random). Make a thing a daemon in `scene.delta` when its experiment
 must keep running unwatched.
 
+**Zoom in, sized to fit** (Mike, 21 Nov 2026: "when we study we zoom into an area of interest and the size is variable to what
+we can handle"): a study never runs the whole world. It cuts a slice round the area of interest (a column of sky, a slice
+across a trench, a sheet of light, a tray of balls), as big as the boxes can run in reasonable time, and as fine as the
+question needs. The world's data checks the slice a sample at a time.
+
 Everything not yet real is called **magic**, said on the panel and listed in [MAGIC.md](MAGIC.md) with what would make it
 real. Fails are kept in `../../FAILS.md`.
 
