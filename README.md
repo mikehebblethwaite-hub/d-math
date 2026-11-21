@@ -16,6 +16,13 @@ The icon is our 0: a circle holding 3 dots, the unknown things left in it, like 
 
 How each symbol came about, and who chose it: [HISTORY.md](HISTORY.md).
 
+## The Delta lab: results you can rerun
+
+The lab ([lang/lab/](lang/lab/README.md)) models the world the D way and keeps its results here, with every run's
+command, its data, the plans stamped before the blind tests, and the fails. Published, with the calculations in D and in
+the old maths: [the Hebble lattice](https://deltahexos.com/hebble.html) (the ping pong raft, mass from just light),
+[the space room](https://deltahexos.com/space.html) (the wing nut flip), [the calculations](https://deltahexos.com/calcs.html).
+
 ## Symbols
 
 | Meaning      | Type | Example                                  |
