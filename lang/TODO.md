@@ -51,3 +51,12 @@ Things Delta does not do yet, found while building with it. Each gets a test in 
      air's magic moisture and the outside's warmth model (lang/lab/MAGIC.md).
   3. One agreed clock: lab time v real time (about 8:1 now) v Dragonfly's inner clock (10:1); every log carries both.
   4. Things that move: air momentum (a real draught), then weight, falling, pouring (brine into the beaker, a dropped seed).
+
+## A database in Delta OS (Mike, 21 Nov 2026: "we so need a database system in Delta OS")
+Our own store, the D way (first need: Dragonfly's catalogue of looked-at media, coop-seen, today on MySQL on the coops):
+- nothing is ever deleted: a record is MOVED (to old, or to the one that replaces it), the card-stack rule (no zero exists);
+- an append-only log chained by fingerprints (like the Doomsday Book register, coop-named), so any change shows; rows rebuild
+  from the log;
+- keys and numbers in D numerals: what the language cannot hold (zero, minus) the store cannot either;
+- media packs (.pngi, .mp4i, .mp3i, .hexi) as first-class records, their info searchable by words;
+- several copies agreeing by HEAD, as the register's followers do.
