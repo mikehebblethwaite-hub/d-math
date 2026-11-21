@@ -150,3 +150,9 @@ mix, move): each a crash avoided before it ran.
 - Fix (not tuning to the known answer): the step is set from real air (1 ms on 1 mm cells: spreading 2e-5 m2/s = a fiftieth to
   each neighbour a step; rising at root(9.81 x 0.01 x warmer/air) m/s = ~0.4-0.5 cell a step). Picture store 60,000 -> 130,000.
 - Lesson: set a run's step from the real speeds first; never let anything move a whole cell in one step.
+
+## 21 Nov 2026 11:45 UK: frames from two YouTube balloon films pushed to the public repo
+- What: I copied frame strips from Mike's two downloaded balloon films (other people's work) into proofs/ and pushed them.
+- Fix: removed from the tree at once; still in git history (a rewrite of public history is Mike's call). Films kept as
+  private .mp4i packs.
+- Lesson: anything from someone else's media stays private; only our own words about it go in public files.
