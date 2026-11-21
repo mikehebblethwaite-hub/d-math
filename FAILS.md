@@ -196,3 +196,11 @@ in this 1 mm slice, given as heat. Slips: I typed a 20 s run length in D wrong (
 numerals.delta), and first wrote the match's 8.5 W as 8,500 nJ a ms (it is 8,500,000): caught before running. Lesson: run
 lengths and energies go through numerals.delta and a units line, never by hand. Also a label had an old number written in
 its words (10^-15): oldnumbers.delta read it as D, rightly; labels say units in words now.
+
+## 21 Nov 2026 14:41: candle2 built on two thousand-fold unit errors (mine)
+Written this afternoon: air's heat per 1 mm cell used as if 1,206 nJ a degree meant mK = nJ/1206 (it is nJ x 1000/1206), so
+air soaked up heat like wax (flames with cold air beside them); and the wick's heat over boiling counted with 2,250 nJ a
+degree (it is 2,250,000), so it boiled a thousandth of what it should. Every candle2 result before 14:41 (the wick cooling, the
+flame going out with gravity, "the wick loses heat down itself") rests on these. Found only when a run's vapour was compared
+by hand with a real candle's (about 1.7 mg of wax a second). Lesson: every new model gets a units check against one plain real
+number BEFORE its first run (a candle burns about 7 g an hour, about 80 W), written in its header.

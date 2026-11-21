@@ -35,11 +35,11 @@ int iswick(int x, int y) { return x == WX && y >= less(WY, 4) && y <= WY; }
 int molten(int c) { return ISW[c] && MELTJ[c] >= {{180000000}}; }
 void give(int c, int nj)                            // nanojoules into a cell: air or wax, melting first if wax at its melting point
 {
-    if (!ISW[c]) { T[c] = T[c] + nj / {{1206}}; return; }        // air: 1.206 microjoules a degree per cell = 1,206 nJ per K -> mK = nJ x 1000 / 1206000
+    if (!ISW[c]) { T[c] = T[c] + nj * {{1000}} / {{1206}}; return; }   // air: 1,206 J a cubic metre a degree, so a 1 mm cell takes 1,206 nJ a degree: mK = nJ x 1000 / 1206
     if (T[c] >= waxmelt(WAX) && MELTJ[c] < {{180000000}}) { MELTJ[c] = MELTJ[c] + nj; if (MELTJ[c] > {{180000000}}) { int over = less(MELTJ[c], {{180000000}}); MELTJ[c] = {{180000000}}; T[c] = T[c] + over / {{2250}}; } return; }
     T[c] = T[c] + nj / {{2250}};                    // wax: 2.25 millijoules a degree per cell = 2,250,000 nJ per K -> mK = nJ / 2,250
 }
-void take(int c, int nj) { int d = ISW[c] ? nj / {{2250}} : nj / {{1206}}; T[c] = T[c] > d + {{100000}} ? less(T[c], d) : {{100000}}; }
+void take(int c, int nj) { int d = ISW[c] ? nj / {{2250}} : nj * {{1000}} / {{1206}}; T[c] = T[c] > d + {{100000}} ? less(T[c], d) : {{100000}}; }
 void step()
 {
     int x, y, k;
@@ -87,9 +87,9 @@ void step()
     // the wick boils off what the heat reaching it can boil, all along its part above the pool (a real wick's whole exposed
     // length gives off vapour, so the flame wraps it): each wick cell over 643 K, its heat above boiling over wax vapour's 360 kJ/kg
     for (k = less(WY, 4); k <= WY; k++) { int c = at(WX, k); if (T[c] <= {{643000}} || WSTORE < 1) continue;
-        int units = less(T[c], {{643000}}) / {{1000}} * {{2250}} * {{1000}} / {{360}};   // nJ over boiling -> units (0.36 nJ each)
+        int units = less(T[c], {{643000}}) / {{1000}} * {{2250000}} / {{360}} * {{1000}};   // the heat over boiling (a wick cell holds 2,250,000 nJ a degree) -> units of vapour (0.36 nJ each)
         if (units > WSTORE) units = WSTORE;
-        WSTORE = less(WSTORE, units); T[c] = less(T[c], units * {{360}} / {{2250}});
+        WSTORE = less(WSTORE, units); T[c] = less(T[c], units * {{360}} / {{2250000}});
         int sl = at(less(WX, 1), k), sr = at(WX + 1, k);
         if (k == WY) { int up = at(WX, WY + 1); F[up] = F[up] + units / 3; F[sl] = F[sl] + units / 3; F[sr] = F[sr] + units / 3; }
         else { F[sl] = F[sl] + units / 2; F[sr] = F[sr] + units / 2; } }
