@@ -46,6 +46,7 @@ not yet traced) comes down as this list does.
 | The ceilings between the floors block air, smoke and light | the lab's floors | Mike, 21 Nov: "the rooms are just borders of explanation ... not actual barriers unless we do ceiling tests, roof tests": one column of air from the lab floor up through the atmosphere room into space; the candle's smoke rises up into the atmosphere room; the sun's radiation comes in at the top of the space room and down through the air. A ceiling or roof is solid only in a ceiling or roof test |
 | The air on floors 2 and 3 is the lab's | the lab's floors | each floor its own air cells |
 | A bit of salt holds 1 in 3 on a step, 1 in 40 alone (rough guesses) | saltplay, saltcube | measured attachment from the real seed beaker under the Perch eye |
+| The weather balloon is a perfect ball all the way up (only its size changes) | atmosphere room, balloon | a rubber skin that stretches, the lift gas pushing harder at the top than the bottom: the launch pear shape and the rounding out should come by themselves; Mike's own sightings of real ones are the check (asked 21 Nov 11:17) |
 
 ## Links (attachments, inputs, outputs)
 | Magic | Where | What would make it real |
