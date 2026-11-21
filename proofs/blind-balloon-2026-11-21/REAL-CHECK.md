@@ -1,4 +1,5 @@
-# Real check: two real weather balloon films (Mike's last downloads, 21 Nov 2026, read off his phone; frames kept here)
+# Real check: two real weather balloon films (Mike's last downloads, 21 Nov 2026, read off his phone; the films and their
+# frames are other people's work: kept privately as .mp4i packs on the coops, not published here)
 
 Mike: "Balloon results are no good" and, rather than say what he saw (it would sway the lab), he gave two films:
 "GoPro High Altitude Weather Balloon to 105,000 FT" and "Weather Balloon Popping 18 Miles Up". Read from the frames:
