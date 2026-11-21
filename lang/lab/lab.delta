@@ -139,6 +139,7 @@ int WINOPEN;                                // LOW shut, or 1 to 5
 int TALL = 2136;                             // the person's height: 6 ft (Mike); place.txt "tall N" (inches, D) sets it
 int POSE = 1;                               // 1 standing, 2 crouching, 3 lying down (C or Ctrl)
 int PAGE = 1;                               // which page the panel shows (Tab turns them; a click shows the thing's)
+int FLOOR = 1;                              // which floor (Mike 21 Nov 2026): 1 the lab, 2 atmosphere tests above it, 3 space above that; Page Up / Page Down, the lift
 int DANNEED, DANRAD;                        // Dan needs the toilet; the warmth his radiator gives the air (the washroom)
 #include "air.delta"                        // one air for both rooms, the things and the bodies
 #include "outside.delta"                    // the place and the time of year the lab is set to: the sun, the outside
@@ -243,9 +244,18 @@ void shade(int x, int y, int surf, int step)
         if (surf == 1 && HZ == ROOM && wallpaint(HX, HY)) { r = PR; g = PG; b = PB; }
         if (surf == 4 && HX <= 1 && LEGROOM == 1 && HZ + FRAME >= OZ1 && HZ <= OZ2 + FRAME && wallpaint(less(HZ + DX1, OZ1), HY)) { r = PR; g = PG; b = PB; }
     }
+    if (FLOOR == 2) {                                  // atmosphere tests: pale sky walls, a light floor
+        if (surf == 2) { r = CC; g = D1; b = D7; } else { r = DB; g = 12A; b = 14B; }
+    }
+    if (FLOOR == 3) {                                  // space: black all round, the stars as points; no lamp (lit evenly, faintly)
+        r = A; g = A; b = 15; if (surf == 2) { r = 15; g = 17; b = 22; }
+        int hs = (HX / INCH * 37B2 + HY / INCH * 38891 + HZ / INCH * 366778) % 5C8;
+        if (surf != 2 && hs < 3) { r = 151; g = 151; b = 15B; }
+        L = 169;
+    }
     L = L * corner(surf) / 2967;
     int heat = 1;
-    if (LEGROOM == 2) { }
+    if (LEGROOM == 2 || FLOOR > 1) { }
     else if (surf == 2) {
         int f2 = apart(HX, MID) * apart(HX, MID) + apart(HZ, MID) * apart(HZ, MID);
         if (f2 < 1528C) { heat = floorh / 55D1; if (heat > 48) heat = 48; heat = heat * less(1528C, f2) / 1528C; }
@@ -1007,6 +1017,8 @@ int main(int argc, char **argv)
         if (WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n' && DANNEED) { dangoes(); moved = 1; }   // Dan walks to the toilet
         outside_keys(key); if (key == 27 || key == 28 || key == 29 || key == 38 || key == 39) moved = 1;
         if (key == 26) { DOOROPEN = DOOROPEN ? low : 1; moved = 1; }   // O: the door between, open or shut
+        if (key == 88 && FLOOR < 3) { FLOOR++; moved = 1; }              // Page Up: the lift up a floor (atmosphere, then space)
+        if (key == 8D && FLOOR > 1) { FLOOR = less(FLOOR, 1); moved = 1; }   // Page Down: the lift down a floor
         if (key >= $A && key <= 11) { int n = less(key, 9); WINOPEN = WINOPEN == n ? low : n; moved = 1; }   // 1 to 5: the window open that much; again: shut
         int speed = INCH / 2;
         if (window_held(1C)) { walk(speed, low, 1, 1); moved = 1; }   // W

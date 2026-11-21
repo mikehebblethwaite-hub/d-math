@@ -13,6 +13,7 @@
 #include "objects/meter.delta"
 #include "objects/dangoes.delta"
 #include "objects/pingpong.delta"
+#include "objects/lightsheet.delta"
 
 thing candle candle1;                       // a candle ...
 thing faraday faraday1;                     // Faraday's two glasses ...
@@ -33,10 +34,16 @@ void scene_start()
     tunnel1.x = less(MID, FOOT * 3); tunnel1.z = MID + FOOT; tunnel1.start();   // ... three feet to its left, a foot back
     washroom1.start(); microscope1.start(); pingpong1.start();
     tank1.x = MID; tank1.z = ROOM + FOOT * 5; tank1.start();         // ... in the wave room, five feet past the wall between
+    lightsheet_start();                                              // the light sheet, on the floor of the space room (floor 3)
 }
-void scene_step() { washroom1.step(); scope1.step(); microscope1.step(); seedcup1.step(); meter1.step(); pingpong1.step(); candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
+void scene_step() { if (FLOOR == 3) lightsheet_step(); if (FLOOR > 1) return; washroom1.step(); scope1.step(); microscope1.step(); seedcup1.step(); meter1.step(); pingpong1.step(); candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
 void scene_draw()                         // farthest first, the painter's way, so near things cover far ones
 {
+    if (FLOOR > 1) {                                                 // the floors above: their own things only
+        int m; for (m = 1; m <= 31; m++) MARKON[m] = low;
+        if (FLOOR == 3) lightsheet_draw();
+        return;
+    }
     washroom1.draw();
     bench1.draw(); vent_draw(); scope1.draw(); lab_mark(5, SCX, BTOP + 12C, (SCZ1 + SCZ2) / 2);
     microscope1.draw(); lab_mark(6, MSX, BTOP + 1C1, MSZ);
@@ -59,6 +66,12 @@ void scene_draw()                         // farthest first, the painter's way, 
 }
 void scene_panel(int sel)
 {
+    if (FLOOR > 1) {
+        lab_line(FLOOR == 3 ? "floor 3: SPACE, two floors above the lab;  Page Down: the lift down" : "floor 2: ATMOSPHERE TESTS, the floor above the lab (nothing in it yet);  Page Up: space, Page Down: the lab");
+        lab_line("MAGIC: the lift between the floors is not drawn; the air shown on floor 1 is the lab's");
+        if (FLOOR == 3) lightsheet_panel();
+        return;
+    }
     lab_line(PAGE == 1 ? "Tab: [the room]  outside  washroom and bench  the thing you clicked"
            : PAGE == 2 ? "Tab: the room  [outside]  washroom and bench  the thing you clicked"
            : PAGE == 3 ? "Tab: the room  outside  [washroom and bench]  the thing you clicked"
@@ -66,6 +79,7 @@ void scene_panel(int sel)
     if (PAGE == 1) {
         lab_line(camZ > ROOM ? "you are in the wave room;  O: the door between, 1 to 5: the window" : "you are in the lab;  O: the door between, 1 to 5: the window");
         lab_line(DOOROPEN ? "the door between: open" : "the door between: shut");
+        lab_line("Page Up: the lift to floor 2 (atmosphere tests) and floor 3 (space)");
         if (WINOPEN >= 1) lab_value("the window: open, fifths of the way", WINOPEN, ""); else lab_line("the window: shut");
         lab_line("the air (1 ft hex cells, both rooms; a second a step, so faster than real time; T shows it):");
         tvalue("  the lab", roomt(1, 3)); tvalue("    at its floor", roomt(1, 1)); tvalue("    at its ceiling", roomt(1, 2));

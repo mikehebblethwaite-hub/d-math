@@ -1,0 +1,97 @@
+// The light sheet, on the floor of the space room (floor 3, two floors above the lab; 21 Nov 2026, Mike: "separate lab room for
+// space ... two rooms up above lab"; "we can model it as how mass begins from just light"). The same as the headless run
+// lang/lab/runs/lightmass.delta, small enough to run live: a sheet of hex cells about 6 ft across lying on the floor, each cell
+// holding how far it is lifted; a wave is passed from each cell to its six neighbours, step by step. Light comes in along every
+// other side of the sheet (three sides, a third of the way round from each other), each side driven by a weight on a spring
+// that swings by itself. No circle formulas, no pi: the swing is whatever the spring gives.
+// Drawn: each cell glows by how bright the light there has been lately; white glows where it is brightest.
+// MAGIC (marked): mass forms where the crossing light is brightest (the white glows are where mass would be).
+#define LR2 1D                          // cells from the middle to a side
+#define LW 46                           // the store's width (2 x LR2 + 6)
+#define LEVEL 12C23A19C
+#define LCELL 75                        // a cell is 1 1/2 inches (96 sixty-fourths)
+int LH[1717], LV[1717], LEN[1717], LMASS[1717];
+int LSW, LSV, LSTEPS, LEMAX, LMASSN, LSON = 1;
+int lix(int q, int r) { return less(r, 1) * LW + q; }
+int lin(int q, int r) { int m = LR2 + 2; return q >= 2 && r >= 2 && q <= 2 * LR2 + 2 && r <= 2 * LR2 + 2 && q + r >= m + 2 && q + r <= less(3 * m, 2); }
+int lside(int q, int r) { int m = LR2 + 2; if (q == 2) return 1; if (r == 2) return 2; if (q + r == less(3 * m, 2)) return 6; return low; }   // the three driven sides
+int lrim(int q, int r)
+{
+    int m = LR2 + 2, a = less(q, 2), b = less(2 * LR2 + 2, q), c = less(r, 2), d = less(2 * LR2 + 2, r), e = less(q + r, m + 2), f = less(less(3 * m, 2), q + r);
+    int lo = a; if (b < lo) lo = b; if (c < lo) lo = c; if (d < lo) lo = d; if (e < lo) lo = e; if (f < lo) lo = f; return lo;
+}
+int loq(int k) { int a[7] = {3, 3, 2, 1, 1, 2}; return a[k]; }
+int lor(int k) { int a[7] = {2, 1, 1, 2, 3, 3}; return a[k]; }
+int lsx(int q, int r) { return less(MID + (2 * q + r) * LCELL / 2, (3 * LR2 + 6) * LCELL / 2); }   // the cell's place on the floor
+int lsz(int r) { return less(MID + r * LCELL * $A33 / $BAB, (LR2 + 2) * LCELL * $A33 / $BAB); }
+void lightsheet_start()
+{
+    int i; for (i = 1; i <= LW * LW; i++) { LH[i] = LEVEL; LV[i] = LEVEL; LEN[i] = 1; LMASS[i] = low; }
+    LSW = LEVEL + 36694; LSV = LEVEL; LSTEPS = low; LEMAX = 1;
+}
+void lightsheet_tick()                            // one step of the light
+{
+    int q, r, k;
+    int out = apart(LSW, LEVEL), push = out * $DB / 4723;         // the springs: pushed back by how far out they are
+    if (LSW >= LEVEL) LSV = less(LSV, push); else LSV = LSV + push;
+    LSW = LSV >= LEVEL ? LSW + less(LSV, LEVEL) : less(LSW, less(LEVEL, LSV));
+    for (r = 2; r <= 2 * LR2 + 2; r++) for (q = 2; q <= 2 * LR2 + 2; q++) {
+        if (!lin(q, r) || lside(q, r)) continue;
+        int c = lix(q, r), sum = low, n = low;
+        for (k = 1; k <= 6; k++) { int nq = less(q + loq(k), 2), nr = less(r + lor(k), 2); if (lin(nq, nr)) { sum = sum + LH[lix(nq, nr)]; n++; } }
+        int tgt = LH[c] * n;
+        if (sum >= tgt) LV[c] = LV[c] + less(sum, tgt) / 8; else LV[c] = less(LV[c], less(tgt, sum) / 8);
+        int rd = lrim(q, r);
+        if (rd < 6) { int a = apart(LV[c], LEVEL) * less(6, rd) / 24; LV[c] = LV[c] >= LEVEL ? less(LV[c], a) : LV[c] + a; }
+    }
+    for (r = 2; r <= 2 * LR2 + 2; r++) for (q = 2; q <= 2 * LR2 + 2; q++) {
+        if (!lin(q, r)) continue;
+        int c = lix(q, r);
+        if (lside(q, r)) { LH[c] = LSW; continue; }
+        LH[c] = LV[c] >= LEVEL ? LH[c] + less(LV[c], LEVEL) : less(LH[c], less(LEVEL, LV[c]));
+        int d = apart(LH[c], LEVEL) / 79, e = d * d / 5BC + 1;
+        LEN[c] = less(LEN[c], LEN[c] / 125) + e / 125 + 1;            // how bright lately: a slow running mean
+    }
+    LSTEPS++;
+}
+void lightsheet_step()
+{
+    if (!LSON) return;
+    int t; for (t = 1; t <= 4; t++) lightsheet_tick();
+    if (LSTEPS % 31 < 4) {                     // now and then: the brightest, and where mass forms (MAGIC: the brightest points)
+        int q, r, a, b; LEMAX = 1; LMASSN = low;
+        for (r = 2; r <= 2 * LR2 + 2; r++) for (q = 2; q <= 2 * LR2 + 2; q++) if (lin(q, r) && lrim(q, r) >= 8 && LEN[lix(q, r)] > LEMAX) LEMAX = LEN[lix(q, r)];
+        for (r = 2; r <= 2 * LR2 + 2; r++) for (q = 2; q <= 2 * LR2 + 2; q++) {
+            int c = lix(q, r); LMASS[c] = low;
+            if (!lin(q, r) || lrim(q, r) < 8 || LEN[c] * 2 < LEMAX) continue;
+            int top = 1;
+            for (b = 1; b <= 5; b++) for (a = 1; a <= 5; a++) { if (a == 3 && b == 3) continue; int nq = less(q + a, 3), nr = less(r + b, 3);
+                if (lin(nq, nr) && apart(a + b, 6) <= 2 && LEN[lix(nq, nr)] > LEN[c]) top = low; }
+            if (top) { LMASS[c] = 1; LMASSN++; }
+        }
+    }
+}
+void lightsheet_draw()
+{
+    int q, r;
+    for (r = 2; r <= 2 * LR2 + 2; r++) for (q = 2; q <= 2 * LR2 + 2; q++) {
+        if (!lin(q, r)) continue;
+        int c = lix(q, r), x = lsx(q, r), z = lsz(r);
+        if (lab_proj(x, 31, z) < 1) continue;
+        int v = LEN[c] / (LEMAX / 125 + 1); if (v > 125) v = 125;
+        int sx = pix(PX), sy = pix(PY);
+        if (onscreen(sx, sy) && onscreen(sx + 1, sy + 1)) {
+            addpx(sx, sy, v + 6, v * 7 / $A + 4, v / 4 + 17); addpx(sx + 1, sy, v + 6, v * 7 / $A + 4, v / 4 + 17);
+            addpx(sx, sy + 1, v + 6, v * 7 / $A + 4, v / 4 + 17); addpx(sx + 1, sy + 1, v + 6, v * 7 / $A + 4, v / 4 + 17);
+        }
+        if (LMASS[c]) { lab_colour(163, 163, 156); lab_glow(x, 48, z, LCELL); }
+    }
+}
+void lightsheet_panel()
+{
+    lab_line("the light sheet (on the floor): light from three sides, passed cell to cell on a hex sheet");
+    lab_line("  no circle formulas: springs swing by themselves, the wave goes neighbour to neighbour");
+    lab_value("  steps of light so far", LSTEPS, "");
+    lab_value("  where mass forms now (white: MAGIC, where the light is brightest)", LMASSN, "points");
+    lab_line("  the headless run with the numbers: lang/lab/runs/lightmass.delta");
+}
