@@ -13,7 +13,10 @@
 // world's chance (the box's own watts, mixed) and still; then they are let go. A quarter of a millisecond a step.
 // Rebuilt toward the real (Mike: "keep rebuilding the rig to be real to the real world flow"): where balls touch they grip
 // (sliding past each other meets up to GRIP thousandths of how hard they press: 0.3 for plastic on plastic, a rough guide;
-// 9th input, 1 for nearly none).
+// 9th input, 1 for nearly none). Waves (Mike: particles in waves, dependent on neighbours): the tray shaken side to side,
+// its strongest push SHAKEG thousandths of g (10th input; 1 still) at SHAKEHZ beats a second (11th) for SHAKES seconds (12th),
+// then still so they settle; the push passing ball to ball. The flow's lock (13th: 2 on, 1 off) and the hole moved off the
+// cone's low point (14th: mm + 1), from Mike's real rig and video (sand/NOTES.md, 16 Nov 2026).
 //
 //   delta run lang/lab/runs/pingfunnel.delta BALLS TENTHS_OF_A_DEGREE TRAY_MM HOLE_MM SECONDS HENRY POWER > out.txt
 //   (D numerals; left off: 7A balls (100), A tenths (1 degree), tray 1A3 mm across the middle to the rim (250), hole 24 mm (30),
@@ -21,6 +24,8 @@
 #define NMAX {{3000}}
 #define VB {{1000000000000}}                    // velocities are kept above VB (no negatives in D: VB is standing still)
 #define FB {{1000000000000}}                    // and forces above FB
+int SHAKEG = 1, SHAKEHZ = {{20}}, SHAKES = {{1000}}, STEPNOW;   // ... and for SHAKES seconds, then still (to settle)          // the tray shaken side to side: its strongest push, thousandths of g (1: still); beats a second
+int LOCK = 2, HOFF = 1, HX, HY, VAIR[NMAX];         // the flow's lock between neighbours (2 on, 1 off); the hole moved off the cone's low point (mm, 1 = not)
 int GRIP = {{300}};                                 // ball on ball grip, thousandths of how hard they press (0.3, a rough guide)
 int low, N = {{100}}, ANG = {{10}},                 // ANG in tenths of a degree
  TRAYMM = {{250}}, HOLEMM = {{30}}, SECS = {{23}}, HENRY = 2, POWER = {{11}};
@@ -41,6 +46,12 @@ int slope(int d)                                 // the rise of a slope of d deg
 {
     int s[{{46}}] = {{{17452}}, {{34899}}, {{52336}}, {{69756}}, {{87156}}, {{104528}}, {{121869}}, {{139173}}, {{156434}}, {{173648}}, {{190809}}, {{207912}}, {{224951}}, {{241922}}, {{258819}}, {{275637}}, {{292372}}, {{309017}}, {{325568}}, {{342020}}, {{358368}}, {{374607}}, {{390731}}, {{406737}}, {{422618}}, {{438371}}, {{453990}}, {{469472}}, {{484810}}, {{500000}}, {{515038}}, {{529919}}, {{544639}}, {{559193}}, {{573576}}, {{587785}}, {{601815}}, {{615661}}, {{629320}}, {{642788}}, {{656059}}, {{669131}}, {{681998}}, {{694658}}, {{707107}}};
     return s[d];
+}
+int swing(int deg)                                 // how far round a beat is: the rise for 1 to 360 degrees round, millionths (sign apart)
+{
+    int q = deg % {{180}}; if (q > {{90}}) q = less({{180}}, q);
+    if (q < 1) return low; if (q == {{90}}) return {{1000000}};
+    return q <= {{45}} ? slope(q) : lie(less({{90}}, q));
 }
 int slopet(int t)                                  // the rise for t tenths of a degree, read between the whole degrees
 {
@@ -80,22 +91,31 @@ void forces()
     for (c = 1; c <= GW * GW; c++) HEAD[c] = N + 1;
     for (i = 1; i <= N; i++) { c = cellof(X[i], Y[i]); NEXT[i] = HEAD[c]; HEAD[c] = i; FX[i] = FB; FY[i] = FB; NC[i] = low; }
     BLOCKED = low;
+    int shakef = low, shakeplus = 1;
+    if (SHAKEG >= 2 && STEPNOW <= SHAKES * {{4000}}) {                                              // the tray pushed side to side: every ball feels it (2.7 g x the push)
+        int deg = (STEPNOW % ({{4000}} / SHAKEHZ + 1)) * {{360}} / ({{4000}} / SHAKEHZ + 1) % {{360}} + 1;
+        shakef = {{26487}} * SHAKEG / {{1000}} * swing(deg) / {{1000000}};
+        shakeplus = deg <= {{180}};
+    }
     for (i = 1; i <= N; i++) {
         int dx = apart(CX, X[i]), dy = apart(CY, Y[i]), r = isqrt(dx * dx + dy * dy);
         int inx = CX > X[i], iny = CY > Y[i];                       // the way in, toward the hole
-        if (r <= RH) BLOCKED = 1;
-        if (r > DIA / {{100}}) {
-            push(i, GRAV, way(inx, iny), dx, dy, r);                       // down the cone
-            if (QAIR >= 1) {                                          // the Henry's air drawn in to the hole
-                int rr = r > RH ? r : RH;
-                int v = QAIR * {{3609000}} / (rr / {{1000}}) / {{1000}};   // mm a second
-                if (v > {{30000}}) v = {{30000}};
-                push(i, v * v / {{1000}} * {{3545}} / {{10000}}, way(inx, iny), dx, dy, r);
-            }
-            // over the hole with the Henry pulling: sucked DOWN into it (seated, held), only centred gently like a ball in a dip
-            SEAT[i] = r <= RH && SUCK >= {{1000}};
-            if (SEAT[i]) push(i, r * {{10}}, way(inx, iny), dx, dy, r);
+        if (shakef >= 1) FX[i] = shakeplus ? FX[i] + shakef : less(FX[i], shakef);
+        if (r > DIA / {{100}}) push(i, GRAV, way(inx, iny), dx, dy, r);   // down the cone, to its low point
+        int hx = apart(HX, X[i]), hy = apart(HY, Y[i]), rh = isqrt(hx * hx + hy * hy);   // and the hole (moved, perhaps)
+        int hinx = HX > X[i], hiny = HY > Y[i];
+        if (rh <= RH) BLOCKED = 1;
+        VAIR[i] = low;
+        if (QAIR >= 1) {                                              // the Henry's air drawn in to the hole
+            int rr = rh > RH ? rh : RH;
+            int v = QAIR * {{3609000}} / (rr / {{1000}}) / {{1000}};   // mm a second
+            if (v > {{30000}}) v = {{30000}};
+            VAIR[i] = v;
+            if (rh > DIA / {{100}}) push(i, v * v / {{1000}} * {{3545}} / {{10000}}, way(hinx, hiny), hx, hy, rh);
         }
+        // over the hole with the Henry pulling: sucked DOWN into it (seated, held), only centred gently like a ball in a dip
+        SEAT[i] = rh <= RH && SUCK >= {{1000}};
+        if (SEAT[i] && rh > DIA / {{100}}) push(i, rh * {{10}}, way(hinx, hiny), hx, hy, rh);
         int edge = less(RT, DIA / 2);
         if (r > edge) push(i, less(r, edge) * {{10}}, way(inx, iny), dx, dy, r);   // the rim pushes it back
         // the balls it touches (its own cell and the eight round it)
@@ -107,8 +127,16 @@ void forces()
             while (j <= N) {
                 if (j != i) {
                     int ax = apart(X[i], X[j]), ay = apart(Y[i], Y[j]);
-                    if (ax < DIA && ay < DIA) {
+                    if (ax < DIA + {{2000000}} && ay < DIA + {{2000000}}) {
                         int d = isqrt(ax * ax + ay * ay);
+                        // the flow's lock (Mike: "they lock together ... because of the flow"): air squeezing between them runs faster
+                        // (about 3 x the air past them: a rough guide), its pressure drops by half its density x speed squared, and
+                        // the still air outside pushes them together over about 110 mm2 of each
+                        if (LOCK >= 2 && d < DIA + {{2000000}} && VAIR[i] >= 1) {
+                            int u = VAIR[i] * 3;                                   // mm a second through the gap
+                            int fl = {{66}} * (u / {{100}}) * (u / {{100}}) / {{100}};   // microNewtons (66 x u(m/s) squared)
+                            if (fl >= 1) push(i, fl, way(X[j] >= X[i], Y[j] >= Y[i]), ax, ay, d);   // toward j
+                        }
                         if (d < DIA) {
                             if (d * {{100}} < DIA * {{102}}) NC[i]++;
                             int px = X[i] >= X[j], py = Y[i] >= Y[j];        // the way out, away from j
@@ -205,13 +233,14 @@ int main(int argc, char **argv)
     low = less(1, 1);
     if (argc >= 2) N = pnum(argv[2]); if (argc >= 3) ANG = pnum(argv[3]); if (argc >= 4) TRAYMM = pnum(argv[4]);
     if (argc >= 5) HOLEMM = pnum(argv[5]); if (argc >= 6) SECS = pnum(argv[6]); if (argc >= 7) HENRY = pnum(argv[7]);
-    if (argc >= 8) POWER = pnum(argv[8]); if (argc >= 9) GRIP = pnum(argv[9]);
+    if (argc >= 8) POWER = pnum(argv[8]); if (argc >= 9) GRIP = pnum(argv[9]); if (argc >= {{10}}) SHAKEG = pnum(argv[{{10}}]); if (argc >= {{11}}) SHAKEHZ = pnum(argv[{{11}}]); if (argc >= {{12}}) SHAKES = pnum(argv[{{12}}]); if (argc >= {{13}}) LOCK = pnum(argv[{{13}}]); if (argc >= {{14}}) HOFF = pnum(argv[{{14}}]);
     if (ANG < 1 || ANG > {{440}} || N > NMAX || N < 2) { say("1 to 26B tenths of a degree (44 degrees), 2 or more balls\n"); return 2; }
     SINA = slopet(ANG); COSA = liet(ANG);
     GRAV = {{26487}} * SINA / {{1000000}} + 1;            // microNewtons down the slope: 2.7 g x 9.81 x the rise
     ROLL = {{26487}} * COSA / {{1000000}} * 3 / {{1000}} + 1;   // rolling on the tray: 3 thousandths of its weight on it
     RT = TRAYMM * {{1000000}}; RH = HOLEMM * {{500000}};
     CX = RT + DIA * 2; CY = CX; GW = (CX * 2) / DIA + 3;
+    HX = CX + less(HOFF, 1) * {{1000000}}; HY = CY;                 // the hole moved this many mm off the low point (Mike moved the Henry's nozzle by hand)
     if (GW * GW >= {{10000}}) { say("the tray is too wide for the grid\n"); return 2; }
     chance = world();
     int i, j, placed = low, tries = low;
@@ -227,11 +256,12 @@ int main(int argc, char **argv)
     N = placed;
     say("ping pong funnel: %d balls on a cone tray at %d tenths of a degree, %d mm to the rim, a %d mm hole; Henry %s, power %d of B; the world's chance %d\n",
         N, ANG, TRAYMM, HOLEMM, HENRY >= 2 ? "on" : "off", POWER, chance);
-    say("each ball: %d microNewtons down the slope, %d held back by rolling on the tray; grip ball on ball %d thousandths\n", GRAV, ROLL, GRIP);
+    say("the flow lock %s; the hole %d mm off the cone's low point\n", LOCK >= 2 ? "on" : "off", less(HOFF, 1));
+    say("each ball: %d microNewtons down the slope, %d held back by rolling on the tray; grip ball on ball %d thousandths; shaken %d thousandths of g at %d a second\n", GRAV, ROLL, GRIP, SHAKEG, SHAKEHZ);
     int step, s = low;
     for (step = 1; step <= SECS * {{4000}}; step++) {
         if (step % {{400}} == 1) henry();
-        forces(); roll();
+        STEPNOW = step; forces(); roll();
         if (step % {{4000}} < 1) { s++; report(s); }
     }
     map();

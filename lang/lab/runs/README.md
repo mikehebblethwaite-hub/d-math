@@ -40,3 +40,12 @@ walls (pull x volume), and the second it shut; at the end: the spread of the pac
 up to 363 a second); open tray + 178 Henrys: ~2.3 ml, 10.6-14.3 mJ (+-15%), a 15 s burst (up to 438 a second).
 Honest: the near-equal size is partly the model's (every gap the same size); the burst after a long hold is not set by
 any rule: the gaps set each other off.
+
+## funnel, rebuilt toward the real (21 Nov 2026, data/funnel-2026-11-21/)
+Angle now in tenths of a degree. Half-degree sweep 1.0-2.0, no grip, 3 scatters each (summary.txt): from ~1.1 degrees most
+runs order (~60 of 101 hex) but some scatters jam (22, 27, 7): order depends on how they arrive. Rebuilt with real grip
+(ball on ball 0.3 of how hard they press; 9th input): at 2 degrees it jams (7 hex). Added: shaking the tray side to side
+(10th-12th: strength in thousandths of g, beats a second, seconds then still), the flow's lock between neighbours (air
+squeezing between them, half rho u squared over ~110 mm2; 13th) and the hole moved off the cone's low point (14th; Mike
+moved the Henry's nozzle by hand). With grip none of these freed the jam at 2 degrees (0-3 hex). Question for Mike's
+memory of the bench: did his rigs jam or raft into hex? That sets whether the grip is right.

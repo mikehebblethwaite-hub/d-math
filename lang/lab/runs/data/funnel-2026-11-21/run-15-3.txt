@@ -1,0 +1,47 @@
+ping pong funnel: 79 balls on a cone tray at 15 tenths of a degree, 1A3 mm to the rim, a 24 mm hole; Henry on, power B of B; the world's chance 7A62D76
+each ball: 4BD microNewtons down the slope, 62 held back by rolling on the tray
+1 s  rolling 76 of 79  fastest 52 mm/s  hex (six touching) ~  middle to ball, mean B5 mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+2 s  rolling 76 of 79  fastest 58 mm/s  hex (six touching) 1  middle to ball, mean B2 mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+3 s  rolling 3D of 79  fastest 18 mm/s  hex (six touching) 15  middle to ball, mean B1 mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+4 s  rolling 73 of 79  fastest 51 mm/s  hex (six touching) ~  middle to ball, mean AB mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+5 s  rolling 1 of 79  fastest 6 mm/s  hex (six touching) 46  middle to ball, mean AB mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+6 s  rolling ~ of 79  fastest 1 mm/s  hex (six touching) 46  middle to ball, mean AB mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+7 s  rolling ~ of 79  fastest 1 mm/s  hex (six touching) 46  middle to ball, mean AB mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+8 s  rolling ~ of 79  fastest 1 mm/s  hex (six touching) 46  middle to ball, mean AB mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+the tray from above (# six touching, o four or five, . fewer, H over the hole; a letter a ball, 10 mm across, 17 mm down):
+
+
+
+
+
+                               .
+                        .          o
+                 .          o          o  .
+                     o          #   #
+               o         o   #          o
+                  #   #          #         o   .
+            .  #          #          #  #
+                   #   #      #   #         #
+             o  #          #          #         o
+          .         #          #   #     #   #
+             #          #   #         #          .
+                 #   #          #         #   o
+           o  #          #          #  #
+                  #          H   #         o
+            o         #   #          #         .
+               #   #          #         #   o
+            o          #   #      #  #
+                #   #          #         o
+          .  o          #          #  #      .
+                 #          #   o         o
+                     #   o         o
+              .   o          o         o
+                      o          .  .
+                   .      .
+
+
+
+
+
+
+
