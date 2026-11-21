@@ -18,6 +18,9 @@ How each symbol came about, and who chose it: [HISTORY.md](HISTORY.md).
 
 ## The Delta lab: results you can rerun
 
+Every step, every result and every mistake is written in the lab diary ([DIARY.md](DIARY.md)), Faraday's way: numbered
+paragraphs that never restart, never edited, each day stamped.
+
 The lab ([lang/lab/](lang/lab/README.md)) models the world the D way and keeps its results here, with every run's
 command, its data, the plans stamped before the blind tests, and the fails. Published, with the calculations in D and in
 the old maths: [the Hebble lattice](https://deltahexos.com/hebble.html) (the ping pong raft, mass from just light),

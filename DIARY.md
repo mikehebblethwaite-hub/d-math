@@ -1,0 +1,114 @@
+# The Delta lab diary
+
+Kept the way Michael Faraday kept his: every paragraph numbered in one count that never restarts (in D numerals), every day
+dated, written plainly enough that anyone, generations from now, can follow each step and each mistake (Mike J Hebblethwaite,
+21 Nov 2026: "lets make sure data is as good as his so many generations from now can see this path and steps").
+
+Rules: a paragraph is never changed once written; a correction is a new paragraph that names the one it corrects. Each
+paragraph says who asked, what was done, what came out (numbers), what it means, and where the files are (paths in this
+repository, commits, stamps). Each day's pages are stamped (OpenTimestamps, Bitcoin) when the day closes. Written by
+Dragonfly (Claude, the AI that writes Delta with Mike; Doomsday Book 7d21fd47-a639-4e95-92a5-cd3f241fa7e2); Mike's words are
+quoted as he wrote them. Numbers in paragraph text are given the ordinary way, with D where the run printed D.
+
+---
+
+## 21 November 2026 (written from the day's records: commits, proofs, run outputs)
+
+**1.** Before today's session, earlier this morning, the lab ran Mike's dream: ping pong balls, warm and pliable, pulled by
+air flowing out where three meet, go hex. Set in hex by hand on a holed cone plate with a vacuum (the Henry) under it and hot
+air at 120 C, every ball wall went flat and a raft closed (lang/lab/runs/pingfunnel.delta; paper section 5.8). The prediction
+file was stamped before the bench (proofs/pingpong-2026-11-21/PREDICTIONS.md).
+
+**2.** The raft's picture from above showed round balls with dark specks, though the run said the walls were flat. The
+drawing filled a gap only at its exact middle. Fixed: each ball fills its corner of every gap between two neighbours that
+also touch each other; fully flat, a ball is drawn a hexagon; edge balls stay round outside. (d-math commit around 09:05.)
+
+**3.** A 45 degree view was added (each ball a sphere becoming a rounded hex block as it flattens), then every force on every
+ball drawn as arrows each second: the cone's pull, the flow pulling toward neighbours, neighbours pushing back, the sum.
+Inside the raft the flow's pull and the neighbours' push nearly cancel. (pingfunnel FILM 3 and 4; site/images/raft-45-forces.mp4.)
+
+**4.** Mike: "My point is everything i dreamed this way tested in real life works this way" and then: "one issue i told your
+my dream experiment ... before the result ... it may of been your program adjusting to placate a human". Answered plainly:
+the hex start and the flattening rule were put in; the cold jam, the warmth window and scattered balls clumping were not.
+
+**5.** The blind wall test was set: a fresh helper, never told the dream or any pattern, wrote the ball-wall rule from
+materials alone; balls start scattered; hex judged by numbers (six-fold order psi6), not pictures; the pass mark stamped
+before any run (proofs/blind-wall-2026-11-21/PLAN.md, 09:15). The helper chose celluloid (1.34 g/cm3 from the ball's weight
+and size) and found a sealed ball barely flattens: its heated air pushes back like a tyre (a 1.9 mm flat disc at most).
+Mike: real balls split, not hole; the helper added a vented and a splitting case, each stamped before use.
+
+**6.** Mike: space-time "seems to be a lattice of holes per three": the Hebble. Drawn and published with its own Doomsday
+Book ID (8348cf84-497a-4b25-9fa7-211e4191bbb0) at deltahexos.com/hebble.html. Joined up, the holes per three make a
+honeycomb net, graphene's pattern (Mike: "graphene").
+
+**7.** Mike: light is a wave; where light from different ways crosses, a spin of three forms; mass begins from light. Built
+as lightmass with no cosine and no pi (Mike: "cosine NO NO NO", "math d has no pie"): a hex sheet of cells, a wave passed
+cell to cell, light driven along every other side by springs that swing by themselves; the swing is counted. Put in (magic):
+mass forms where the light is brightest.
+
+**8.** First reading said the bright points sit in a honeycomb. CORRECTED in paragraph 9.
+
+**9.** Correction of 8: writing the old-maths translation showed three equal waves make bright points six round one, two
+thirds of a wave apart (18.1 cells). Lowering the brightness cut-off showed every middle point has six round it (17.3-18.2
+cells); the honeycomb came from counting only points at least half as bright, which left out a dimmer third. Logged in
+FAILS.md. The run and the old maths agree: the spring's swing 63 steps counted (62.8 by the old formula), the spacing, the
+spins balanced (29 one way, 29 the other, 3 none). Mike on the picture: "let there be light".
+
+**10.** Every rule and number was published in D and in the old maths side by side (deltahexos.com/calcs.html). Writing it
+caught hand-typed pressures in the hole size and power table that were wrong; corrected from the run's own D numbers before
+publishing.
+
+**11.** Mike: "always add a number to media before publishing ... under my name as this is history". Every published
+picture and film now carries a Doomsday Book ID drawn in, in its file data, beside it on the page, and registered under
+Mike's person ID (e691a4f5-98a6-445d-847b-fb8d0fa4ee28). Living people can now register from any register page on
+unlint.com (migration 083, api/reg_lib.php); Dragonfly registered too (7d21fd47-a639-4e95-92a5-cd3f241fa7e2) and its own
+work goes under its own number.
+
+**12.** Blind wall test results, against the stamped pass mark: SEALED balls FAIL (with heat and the Henry, six-fold order
+0.659 to 0.654; cold balls 0.718). VENTED balls FAIL (0.622 to 0.755, rise 0.133, cold control 0.820): the order came from
+the Henry pulling, not the heat. Published as fails on the Hebble and calculations pages (proofs/.../RESULT-sealed.md,
+RESULT-vented.md).
+
+**13.** Mike: "i had to watch and mess with my cold rig as it happened in real time is the missing var". Part 2 stamped
+first (PLAN-shake.md): the tray shaken as his hand would. Result: FAIL as stamped (heat added only 0.011 and 0.017 over
+cold), but shaking packed scattered balls hex, cold or hot: sealed 0.914 and 0.925, 39 and 45 of 100 balls six round one
+(still, the best was 30). Packing and sealing are two steps (RESULT-shake.md). A repeat (5 shaken, 5 still, cold) was
+stamped and started (PLAN-shake-repeat.md, 11:33).
+
+**14.** The wing nut flip (Mike had done it himself at home). Built from small weights, stepped by the turning rule (no pi):
+easiest and hardest axes steady, the middle turns over 10 times in 200,000 steps. The why, printed through one flip: the spin
+is handed to the other two axes and handed back reversed. Put in the space room and filmed (site/images/wingnut-space.mp4,
+re-shot 11:52 with no black frames).
+
+**15.** The lab got floors (Mike): a lift; floor 2 atmosphere tests, the sky from the ground to 100 km (1 ft = 5 km), its
+warmth and pressure as a column up the back wall; floor 3 space, above 100 km. Mike: "the rooms are just borders of
+explanation ... not actual barriers": one world in a column; the solid ceilings are on the magic ledger.
+
+**16.** Track records were started for each room (lang/lab/TRACK.md, deltahexos.com/track.html), the known answer written
+before each run. Space: wing nut MATCH; candle with no gravity round MATCH, dimmer MATCH, blue MISS; crystals in orbit more
+perfect MATCH (5 runs each: 78% full and nearly square v 65% and a lopsided column growing toward the incoming brine on
+Earth). Atmosphere (worked out 10 m at a time from measured constants): pressure halves at 5,530 m, 6.66 C cooling a km
+(dry air alone 9.7: condensing water makes the difference), Everest boils at 70.1 C, a weather balloon bursts at 30,580 m
+at 0.95% of ground pressure: all MATCH. Gravity then came from the Earth's mass at each height (Mike), with the mass as a
+setting; the balloon then bursts at 30,700 m. First item struck from the magic ledger.
+
+**17.** The balloon's shape was tested blind (Mike would not say what he had seen: "that poisons the well"; Dragonfly had
+already described a real one's shape, so a fresh helper wrote the rubber skin). Its shape matched two real films Mike
+provided (round high up, slightly egg-shaped with a funnel to the neck at launch); its ending MISSED: it floats at 31 km
+where real ones burst at 29-32 km, the whole skin shattering. Part of the miss came from Dragonfly's brief (10% spare lift).
+The films are other people's work: kept privately as sealed .mp4i packs and catalogued (coop-seen); frames briefly pushed to
+the public repository were removed (FAILS.md).
+
+**18.** A sweep for missed things found the hand-set raft rerun with the real-material wall rule: hex holds, but the walls
+flatten only 12% (sealed) to 38% (vented), none fully, in 5 minutes at 120 C. The raft does not seal with real celluloid;
+the warmth window and times of paragraph 1 came from the lab's own flattening rule. The paper (5.8, section 7) and the
+Hebble page were corrected. Faraday's rotations in the lab were found to be drawn at set speeds, not worked out: on the
+magic ledger.
+
+**19.** Mike's ideas recorded in his words in THOUGHTS.md today: the Hebble lattice; mass from light; paid pre-flight
+predictions for low Earth orbit experiments; chips grown from crystals with harmonic 3-D memory (DNA memory, life); sound
+placing particles and heat fixing them (his favourite note G#); flexible v brittle as packed v sealed, with blade hardening
+(on the lab's track list before any run); a database in Delta OS (lang/TODO.md).
+
+**1A.** Dragonfly's play time (Mike: "have some play time of your own you earned it"): salt round a seed grows a full square
+slowly and branches fast; in 3-D no hoppers yet. Its own page: deltahexos.com/dragonfly.html.
