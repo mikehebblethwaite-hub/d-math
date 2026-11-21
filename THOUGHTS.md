@@ -65,3 +65,6 @@ rooms are just borders of explanation for our reference not actual barriers unle
 - the lab is ONE world in a column: lab, atmosphere, space; floors are labels, not walls.
 Mike 11:33: "I have good news for you then as the results show a thought is existence" - in D a thought is always something:
 his dreamed picture moved into the lab and made real things there (runs, pictures, a finding about hands packing hex).
+Mike 11:34: "we have not grown your new chips from crystals yet using harmonic 3d memories for dna memory also known as life"
+- the aim: chips GROWN as crystals (slow growth = perfect, the salt runs), holding memory in three dimensions set by harmonics
+(as the sung plate set still points), a DNA-like memory; Mike: DNA memory = life (memory mike-dna-memory-real, Perch BIOS).
