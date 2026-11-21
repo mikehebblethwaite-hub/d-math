@@ -1067,6 +1067,7 @@ int main(int argc, char **argv)
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
         scene_step();
         if (frame % 8 < 1) outside_now();
+        if (FLOOR == 1) {                                             // the lab's air runs only while you are on the lab's floor (Mike: no CPU out of focus)
         for (wi = 1; wi <= ACELLS; wi++) ASOLID[wi] = low;
         scene_air();                                                  // the things, the bodies and the lamps in the air
         air_body(camX, camZ, camY + INCH * 4, WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n' ? DANRAD : 5BC * 5BC / $A);   // the one looking
@@ -1074,6 +1075,7 @@ int main(int argc, char **argv)
         if (OTHHERE) air_body(OTHX, OTHZ, OTHY + INCH * 4, WHO[1] == 'd' ? 5BC * 5BC / $A : DANRAD);
         air_step(); air_draught(); hexi_step();
         if (frame % 2B < 1) { air_note(); scope_note(); microscope_note(); seedcup_note(); meter_note(); pingpong_note(); }                                // the air in words, for bots
+        }
         scene_draw();
         if (frame % 8 < 1) presence_write(frame);                    // where I stand, for the others
         if (frame % 4 < 1) presence_read(other);

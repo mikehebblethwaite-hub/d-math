@@ -40,7 +40,23 @@ void scene_start()
     wingnut_start();                                                 // the wing nut, floating over it
     balloon_start(); sky_start();                                    // the weather balloon and the sky's column, on floor 2
 }
-void scene_step() { if (FLOOR == 2) balloon_step(); if (FLOOR == 3) { lightsheet_step(); wingnut_step(); } if (FLOOR > 1) return; washroom1.step(); scope1.step(); microscope1.step(); seedcup1.step(); meter1.step(); pingpong1.step(); candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
+int inbubble(int x, int z) { return lab_far(x, z) < (FOOT * C) * (FOOT * C); }   // within 12 ft of whoever is looking (Mike: "a bubble around the player")
+void scene_step()                         // only what is in focus runs (Mike: no CPU for things not in focus); daemons keep time anywhere
+{
+    if (FLOOR == 2) balloon_step();
+    if (FLOOR == 3) { lightsheet_step(); wingnut_step(); }
+    seedcup1.step();                                                 // DAEMON: the growing salt keeps its time on every floor
+    if (FLOOR > 1) return;
+    washroom1.step();                                                // DAEMON: who needs the washroom, wherever you stand
+    if (inbubble(SCX, (SCZ1 + SCZ2) / 2)) scope1.step();
+    if (inbubble(MSX, MSZ)) microscope1.step();
+    if (inbubble(MTX, MTZ)) meter1.step();
+    if (inbubble(PPX, PPZ)) pingpong1.step();
+    if (inbubble(candle1.x, candle1.z)) candle1.step();
+    if (inbubble(faraday1.x, faraday1.z)) faraday1.step();
+    if (inbubble(tunnel1.x, tunnel1.z)) tunnel1.step();
+    if (inbubble(tank1.x, tank1.z)) tank1.step();
+}
 void lift_draw()                                         // the lift between the floors, in the back left corner of each (Mike: the space room two floors up)
 {
     int x1 = 1 + INCH, x2 = FOOT * 4, z1 = less(ROOM, FOOT * 4), z2 = less(ROOM, INCH), top = less(ROOM, INCH);

@@ -8,6 +8,12 @@ cosine. Two halves:
   Run: `lang/delta run lang/lab/lab.delta` (W A S D walk, arrows turn, Tab the panel, Esc close).
 - **The runs** (`runs/`): the same rules, headless and large, writing only data. These are the results.
 
+**Only what is in focus runs** (Mike, 21 Nov 2026, the game makers' bubble round the player): on the lab floor, things
+within 12 ft of whoever is looking step each frame, the rest sleep; the lab's air runs only while you are on its floor; the
+upper floors run only while you are on them. **Daemons** keep their own time anywhere, for slow experiments that need it:
+the seed beaker's growing salt, and the washroom's who-needs-it. Make a thing a daemon in `scene.delta` when its experiment
+must keep running unwatched.
+
 Everything not yet real is called **magic**, said on the panel and listed in [MAGIC.md](MAGIC.md) with what would make it
 real. Fails are kept in `../../FAILS.md`.
 
