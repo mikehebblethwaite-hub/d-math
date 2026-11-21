@@ -1,4 +1,5 @@
-// rename: change a whole word everywhere in a file (never inside a longer word: renaming T leaves TALL alone). For giving a
+// rename: change a whole word everywhere in a file's code (never inside a longer word: renaming T leaves TALL alone; never in
+// comments or quoted words). For giving a
 // model's names their own prefix when it is shared with the lab room (Mike 21 Nov 2026: Delta, not Python).
 //
 //   delta run lang/rename.delta FILE OLD NEW
@@ -14,6 +15,9 @@ int main(int argc, char **argv)
     char *a = argv[3], *b = argv[4]; int na = low, nb = low; while (a[na + 1] >= 1) na++; while (b[nb + 1] >= 1) nb++;
     int i = 1, on = low, count = low, k;
     while (i <= n) {
+        if (src[i] == '/' && i + 1 <= n && src[i + 1] == '/') { while (i <= n && src[i] != A) { on++; out[on] = src[i]; i++; } continue; }   // a comment: copied as it is
+        if (src[i] == '"') { on++; out[on] = src[i]; i++; while (i <= n && src[i] != '"') { if (src[i] == 71) { on++; out[on] = src[i]; i++; } on++; out[on] = src[i]; i++; } if (i <= n) { on++; out[on] = src[i]; i++; } continue; }   // words in quotes: copied as they are
+        if (src[i] == 2D && i + 2 <= n) { int q = src[i + 1] == 71 ? 4 : 3; while (q >= 1 && i <= n) { on++; out[on] = src[i]; i++; q = less(q, 1); } continue; }   // a character in single quotes
         int hit = i + less(na, 1) <= n && (i < 2 || !wordch(src[less(i, 1)])) && (i + na > n || !wordch(src[i + na]));
         if (hit) for (k = 1; k <= na; k++) if (src[i + less(k, 1)] != a[k]) { hit = low; break; }
         if (hit) { for (k = 1; k <= nb; k++) { on++; out[on] = b[k]; } i = i + na; count++; continue; }

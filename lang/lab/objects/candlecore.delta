@@ -1,0 +1,131 @@
+// candlecore: the candle that feeds itself, in real energy (from candle2, 21 Nov 2026: track 2a MATCH). Shared by the run
+// (lang/lab/runs/candle2.delta) and the lab room's candle (lang/lab/objects/candle.delta), so what Mike watches in the room is
+// exactly what was tested. A slice in 1 mm cells, 1 ms steps; every cell's warmth is real energy over its own heat held (air
+// 1,206 J per cubic metre per degree, wax 2,250,000); heat crosses by each one's carrying (air 0.026 W/m K, rising as warmth
+// to the 0.75 power; wax 0.24); gases mix as warmth to the 1.75 power; a diffusion flame (all that can burn, burns; wax takes
+// 3.4 kg of oxygen a kg), 46 MJ a kg, 20 parts in 100 leaving as light onto the wax by counted rings (no pi); the wax melts
+// at its melting point (Mike's data) taking 200 kJ a kg; the wick drinks the melted pool at its foot and boils off what the
+// heat reaching it can boil (360 kJ a kg, from 643 K). Lit by a match (a hot gas, about 85 W, a tenth of it in this slice,
+// never past 1,800 K) held as a hand holds it: until the wick catches, then cnHOLDMS ms more, giving up at 10 s.
+// MAGIC: the room's air at 20 C at the edges; the match is a stand-in; 1 mm cells round the wick; the pool is endless; the
+// wick's draw from the data's words. Every name starts cn. The includer declares `int low` and sets it before cnstart().
+#define cnNX 49
+#define cnNY 7A
+#define cnWX 25
+#define cnWY 2A
+int cnGRAV = 2, cnWAX = 1, cnSTEPN;
+int cnT[2A8C], cnF[2A8C], cnOX[2A8C], cnT2[2A8C], cnF2[2A8C], cnO2[2A8C], cnR[2A8C], cnISW[2A8C], cnMELTJ[2A8C];   // T mK; F vapour (units of 10^-15 kg); OX millionths; ISW 1 wax; MELTJ nanojoules taken to melt (melted at 180,000,000)
+int cnMATCHON = 1, cnLIT, cnWSTORE, cnHOLDMS = 5BC;                 // WSTORE: molten wax held in the wick (units of a thousandth of a millionth of a millionth of a kg); HOLDMS: how long the hand holds the match after the wick catches
+int cnwaxmelt(int w) { int a[8] = {$B4119, $B9A13, $B49D1, $BA2D2, $B883C, $ADB93, $C6D2D}; return a[w]; }
+int cnwaxdraw(int w) { int a[8] = {3, 2, 2, 1, 2, 3, 1}; return a[w]; }
+char *cnwaxname(int w) { if (w == 1) return "paraffin (low melt, container)"; if (w == 2) return "paraffin (high melt, pillar)"; if (w == 3) return "soy"; if (w == 4) return "beeswax"; if (w == 5) return "palm"; if (w == 6) return "coconut"; return "gel"; }
+int cnat(int x, int y) { return less(y, 1) * cnNX + x; }
+int cnamb() { return $A357D; }
+int cnisqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+int cndrop(int a, int b) { return a > b ? less(a, b) : 1; }   // take b away, leaving at least the least there is
+int cnwarmpow(int tmk, int which)                     // (warmth / 293 K) to the 0.75 power (which 1) or the 1.75 power (which 2), in thousandths, by square roots
+{
+    int r = tmk * 5BC / $A357D; if (r < 1) r = 1;
+    int s1 = cnisqrt(r * 5BC), p75 = s1 * cnisqrt(s1 * 5BC) / 5BC;
+    return which == 1 ? p75 : r * p75 / 5BC;
+}
+int cniswick(int x, int y) { return x == cnWX && y >= less(cnWY, 4) && y <= cnWY; }
+int cnmolten(int c) { return cnISW[c] && cnMELTJ[c] >= 2B3A3B9B; }
+void cngive(int c, int nj)                            // nanojoules into a cell: air or wax, melting first if wax at its melting point
+{
+    if (!cnISW[c]) { cnT[c] = cnT[c] + nj * 5BC / 71A; return; }   // air: 1,206 J a cubic metre a degree, so a 1 mm cell takes 1,206 nJ a degree: mK = nJ x 1000 / 1206
+    if (cnT[c] >= cnwaxmelt(cnWAX) && cnMELTJ[c] < 2B3A3B9B) { cnMELTJ[c] = cnMELTJ[c] + nj; if (cnMELTJ[c] > 2B3A3B9B) { int over = less(cnMELTJ[c], 2B3A3B9B); cnMELTJ[c] = 2B3A3B9B; cnT[c] = cnT[c] + over / $D41; } return; }
+    cnT[c] = cnT[c] + nj / $D41;                    // wax: 2.25 millijoules a degree per cell = 2,250,000 nJ per K -> mK = nJ / 2,250
+}
+void cntake(int c, int nj) { int d = cnISW[c] ? nj / $D41 : nj * 5BC / 71A; cnT[c] = cnT[c] > d + 36694 ? less(cnT[c], d) : 36694; }
+void cnstep()
+{
+    int x, y, k;
+    // heat crossing between neighbours: each pair by the lower carrying of the two (air 26 nJ per ms per degree across a 1 mm face, wax 240)
+    for (y = 2; y <= less(cnNY, 1); y++) for (x = 2; x <= less(cnNX, 1); x++) { cnT2[cnat(x, y)] = cnT[cnat(x, y)]; }
+    for (y = 2; y <= less(cnNY, 1); y++) for (x = 2; x <= less(cnNX, 1); x++) {
+        int c = cnat(x, y), n2[3], q; n2[1] = cnat(x + 1, y); n2[2] = cnat(x, y + 1);
+        for (q = 1; q <= 2; q++) {
+            int d = n2[q], carry = cnISW[c] && cnISW[d] ? 156 : 1D * cnwarmpow(cnT[c] / 2 + cnT[d] / 2, 1) / 5BC;   // nJ per ms per K; air carries heat better hot (measured: as warmth to the 0.75 power)
+            int dt = apart(cnT[c], cnT[d]) / 5BC, nj = dt * carry;            // whole degrees x carry
+            if (nj < 1) continue;
+            if (cnT[c] > cnT[d]) { cntake(c, nj); cngive(d, nj); } else { cntake(d, nj); cngive(c, nj); }
+        }
+    }
+    // the gases spread (air only), faster the hotter (measured: gases mix as warmth to the 1.75 power, oxygen in air 0.00002
+    // square metres a second at 20 C, so 0.02 of the difference crosses each face each ms); in 3 smaller steps to stay steady
+    int sub;
+    for (sub = 1; sub <= 3; sub++) {
+        for (y = 2; y <= less(cnNY, 1); y++) for (x = 2; x <= less(cnNX, 1); x++) { int c = cnat(x, y); cnF2[c] = cnF[c]; cnO2[c] = cnOX[c]; }
+        for (y = 2; y <= less(cnNY, 1); y++) for (x = 2; x <= less(cnNX, 1); x++) {
+            int c = cnat(x, y), q; if (cnISW[c]) continue;
+            for (q = 1; q <= 2; q++) { int d = q == 1 ? cnat(x + 1, y) : cnat(x, y + 1); if (cnISW[d]) continue;
+                int f = 17 * cnwarmpow(cnT[c] / 2 + cnT[d] / 2, 2) / 149A; if (f > 156) f = 156;   // thousandths a face
+                int fl = apart(cnF[c], cnF[d]) * f / 5BC, ol = apart(cnOX[c], cnOX[d]) * f / 5BC;
+                if (cnF[c] > cnF[d]) { cnF2[c] = cndrop(cnF2[c], fl); cnF2[d] = cnF2[d] + fl; } else { cnF2[d] = cndrop(cnF2[d], fl); cnF2[c] = cnF2[c] + fl; }
+                if (cnOX[c] > cnOX[d]) { cnO2[c] = cndrop(cnO2[c], ol); cnO2[d] = cnO2[d] + ol; } else { cnO2[d] = cndrop(cnO2[d], ol); cnO2[c] = cnO2[c] + ol; } } }
+        for (y = 2; y <= less(cnNY, 1); y++) for (x = 2; x <= less(cnNX, 1); x++) { int c = cnat(x, y); if (!cnISW[c]) { cnF[c] = cnF2[c] > 1 ? cnF2[c] : 1; cnOX[c] = cnO2[c] > 1 ? cnO2[c] : 1; } }
+    }
+    if (cnGRAV >= 2) for (y = less(cnNY, 1); y >= 3; y = less(y, 1)) for (x = 2; x <= less(cnNX, 1); x++) {   // warm air rises (relative to the room's)
+        int c = cnat(x, y), b = cnat(x, less(y, 1)); if (cnISW[c] || cnISW[b] || cnT[b] <= cnamb() + 9146) continue;
+        int up = cnisqrt(less(cnT[b], cnamb()) * 5A6 / cnamb()); if (up > 6C) up = 6C;
+        cnF[c] = (cnF[c] * less(79, up) + cnF[b] * up) / 79; cnOX[c] = (cnOX[c] * less(79, up) + cnOX[b] * up) / 79; cnT[c] = (cnT[c] * less(79, up) + cnT[b] * up) / 79;
+    }
+    for (x = 1; x <= cnNX; x++) { cnOX[cnat(x, cnNY)] = 7477B; cnT[cnat(x, cnNY)] = cnamb(); cnF[cnat(x, cnNY)] = 1; }
+    for (y = 1; y <= cnNY; y++) { int c1 = cnat(1, y), c2 = cnat(cnNX, y); if (!cnISW[c1]) { cnOX[c1] = 7477B; cnT[c1] = cnamb(); cnF[c1] = 1; } if (!cnISW[c2]) { cnOX[c2] = 7477B; cnT[c2] = cnamb(); cnF[c2] = 1; } }
+    // the match (see the header): its heat goes into the air round the wick's tip (both sides and over), never past 1,800 K
+    if (cnMATCHON) { int mc[4], m; mc[1] = cnat(less(cnWX, 1), cnWY); mc[2] = cnat(cnWX + 1, cnWY); mc[3] = cnat(cnWX, cnWY + 1);
+        for (m = 1; m <= 3; m++) { int c = mc[m]; cngive(c, 782839); if (cnT[c] > 4AD3B7) cnT[c] = 4AD3B7; } }
+    // the wick draws molten wax from the pool cells touching its foot
+    for (x = less(cnWX, 1); x <= cnWX + 1; x++) { int c = cnat(x, less(cnWY, 5)); if (cnmolten(c)) cnWSTORE = cnWSTORE + cnwaxdraw(cnWAX) * 54D442; }
+    if (cnWSTORE > 1B696A7936) cnWSTORE = 1B696A7936;                          // a wick holds at most about 20 mg
+    // the wick boils off what the heat reaching it can boil, all along its part above the pool (a real wick's whole exposed
+    // length gives off vapour, so the flame wraps it): each wick cell over 643 K, its heat above boiling over wax vapour's 360 kJ/kg
+    for (k = less(cnWY, 4); k <= cnWY; k++) { int c = cnat(cnWX, k); if (cnT[c] <= 196897 || cnWSTORE < 1) continue;
+        int units = less(cnT[c], 196897) / 5BC * 5DA17C / 219 * 5BC;   // the heat over boiling (a wick cell holds 2,250,000 nJ a degree) -> units of vapour (0.36 nJ each)
+        if (units > cnWSTORE) units = cnWSTORE;
+        cnWSTORE = less(cnWSTORE, units); cnT[c] = less(cnT[c], units * 219 / 5DA17C);
+        int sl = cnat(less(cnWX, 1), k), sr = cnat(cnWX + 1, k);
+        if (k == cnWY) { int up = cnat(cnWX, cnWY + 1); cnF[up] = cnF[up] + units / 3; cnF[sl] = cnF[sl] + units / 3; cnF[sr] = cnF[sr] + units / 3; }
+        else { cnF[sl] = cnF[sl] + units / 2; cnF[sr] = cnF[sr] + units / 2; } }
+    // burning: 46 MJ/kg = 46 nJ per unit; 80 parts in 100 warm the cell, 20 leave as light onto the wax
+    int light = low;
+    for (y = 2; y <= less(cnNY, 1); y++) for (x = 2; x <= less(cnNX, 1); x++) {
+        int c = cnat(x, y); cnR[c] = low; if (cnISW[c]) continue;
+        if (cnT[c] < 1B67D2 || cnF[c] < 79 || cnOX[c] < 1A1) continue;
+        // a diffusion flame (as a candle's is): where wax vapour and oxygen meet hot enough they burn at once; all that can
+        // burn, burns; the flame's speed is how fast they reach each other. Wax takes 3.4 kg of oxygen a kg (paraffin, measured):
+        // a unit of wax takes 2.58 millionths of the cell's oxygen share (1 millionth of a 1 mm cell's air holds 1.32 units of oxygen)
+        int air = cnOX[c] * 79 / 16B, b = cnF[c] < air ? cnF[c] : air; if (b < 1) continue;
+        cnF[c] = cndrop(cnF[c], b); cnOX[c] = cndrop(cnOX[c], b * 16B / 79); cnR[c] = b;
+        cngive(c, b * 37 * 62 / 79); light = light + b * 37 * 17 / 79;
+        if (cnT[c] > 626B61) cnT[c] = 626B61;
+    }
+    if (light >= 1) {                                // the light lands on the wax's top cells by distance (rings of 8 x d cells)
+        for (x = less(cnWX, 11); x <= cnWX + 11 + 5; x++) {          // the pool's top row, then the 5 wick cells (the wick is in the light too)
+            int ty = x <= cnWX + 11 ? less(cnWY, 5) : less(cnWY, 4) + less(x, cnWX + 12), tx = x <= cnWX + 11 ? x : cnWX;
+            int c = cnat(tx, ty), got = low, y2, x2;
+            for (y2 = cnWY; y2 <= cnWY + 24; y2++) for (x2 = less(cnWX, $A); x2 <= cnWX + $A; x2++) { int b2 = cnR[cnat(x2, y2)]; if (b2 < 1) continue;
+                int d = apart(x2, tx) > apart(y2, ty) ? apart(x2, tx) : apart(y2, ty); if (d < 1) d = 1;
+                got = got + b2 * 37 * 17 / 79 / (8 * d); }
+            cngive(c, got);
+        }
+    }
+}
+void cnstart()                                         // the candle set up: wax 29 mm across up to the wick's foot; the wick, soaked (about 10 mg)
+{
+    int i, x, y;
+    for (i = 1; i <= cnNX * cnNY; i++) { cnF[i] = 1; cnOX[i] = 7477B; cnT[i] = cnamb(); cnISW[i] = low; cnMELTJ[i] = low; cnR[i] = low; }
+    for (y = 2; y <= less(cnWY, 5); y++) for (x = less(cnWX, 11); x <= cnWX + 11; x++) { int c = cnat(x, y); cnISW[c] = 1; cnOX[c] = 1; }
+    for (y = less(cnWY, 4); y <= cnWY; y++) { int c = cnat(cnWX, y); cnISW[c] = 1; cnOX[c] = 1; }
+    cnWSTORE = $C349BA483; cnMATCHON = 1; cnLIT = low; cnSTEPN = low;
+}
+int cnburning() { int i, b = low; for (i = 1; i <= cnNX * cnNY; i++) b = b + cnR[i]; return b; }
+int cnpool() { int x, p = low; for (x = less(cnWX, 11); x <= cnWX + 11; x++) if (cnmolten(cnat(x, less(cnWY, 5)))) p++; return p; }
+int cntick()                                           // one millisecond; says 1 the moment the match is taken away
+{
+    cnSTEPN++; cnstep();
+    if (cnLIT < 1 && cnburning() >= 1) cnLIT = cnSTEPN;      // caught: burning of its own (a real wick's tip sits at boiling, so a warmth test never fires)
+    if (cnMATCHON && ((cnLIT >= 1 && cnSTEPN > cnLIT + cnHOLDMS) || cnSTEPN > 4723)) { cnMATCHON = low; return 1; }
+    return low;
+}
