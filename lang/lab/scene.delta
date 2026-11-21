@@ -55,7 +55,7 @@ void scene_step()                         // only what is in focus runs (Mike: n
     if (inbubble(candle1.x, candle1.z)) candle1.step();
     if (inbubble(faraday1.x, faraday1.z)) faraday1.step();
     if (inbubble(tunnel1.x, tunnel1.z)) tunnel1.step();
-    if (inbubble(tank1.x, tank1.z)) tank1.step();
+    tank1.step();                                                    // DAEMON while the lab's air runs: the real sea's waves (buoy file) stir the air: real random air flow (Mike)
 }
 void lift_draw()                                         // the lift between the floors, in the back left corner of each (Mike: the space room two floors up)
 {

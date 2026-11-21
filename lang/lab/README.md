@@ -11,7 +11,8 @@ cosine. Two halves:
 **Only what is in focus runs** (Mike, 21 Nov 2026, the game makers' bubble round the player): on the lab floor, things
 within 12 ft of whoever is looking step each frame, the rest sleep; the lab's air runs only while you are on its floor; the
 upper floors run only while you are on them. **Daemons** keep their own time anywhere, for slow experiments that need it:
-the seed beaker's growing salt, and the washroom's who-needs-it. Make a thing a daemon in `scene.delta` when its experiment
+the seed beaker's growing salt, the washroom's who-needs-it, and the wave tank whenever the lab's air runs (its waves come
+from a real sea buoy's file and stir the air: real random air flow, never computer random). Make a thing a daemon in `scene.delta` when its experiment
 must keep running unwatched.
 
 Everything not yet real is called **magic**, said on the panel and listed in [MAGIC.md](MAGIC.md) with what would make it
