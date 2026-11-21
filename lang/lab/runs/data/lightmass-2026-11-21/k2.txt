@@ -1,0 +1,5 @@
+light along 2 of the sheet's six sides, the springs swing every 4B steps (counted), 11BB steps, the sheet 6C cells from middle to side
+MASS (bright points; MAGIC: mass forms where light is brightest): B; away from the rim 7, of those six round one, each touching the next (hex): ~
+HOLES (dark still points): 53; away from the rim 2B, in the middle of three bright points: 4
+the holes' spin (the light's peak coming round): one way 8, the other way 9, none 17
+bright points with the peak coming round them: ~

@@ -1,0 +1,190 @@
+// lightmass: how mass begins from just light (Mike, 21 Nov 2026: "we can model it as how mass begins from just light").
+// His picture: light is a wave, side on we see nothing; where light from different directions crosses, a spin of three forms at the
+// centre; they are forced to hex; the hole forms where three meet (the Hebble: a lattice of holes per three).
+// No circle formulas (Mike: "cosine NO"): the sheet is a hex of cells, each holding how far it is lifted; a wave is passed from each
+// cell to its six neighbours, step by step. Light comes in along K of the sheet's own six sides, each driven by a weight on a
+// spring (it swings by itself: pushed back by how far out it is). The far sides soak the waves up so nothing bounces back.
+//   MAGIC (put in, marked): mass forms where the crossing light is brightest (a bright point = a bit of mass).
+//   Measured from the numbers alone (distances, never angles): bright points with six round them, all at one distance, each of the
+//   six touching the next (hex); dark still points in the middle of three bright points (the hole per three); and the light's
+//   timing round each dark point: its peak comes round once, one way or the other (a spin), or not at all.
+//   K: 2 (two opposite sides: the control), 3 (three sides a third of the way round from each other), 6 (all six).
+//   delta run lang/lab/runs/lightmass.delta K STIFF > out.txt   (D numerals; left off: K 3, the springs' stiffness 41B ten-thousandths (700);
+//   the swing it gives is counted by the run, not worked out)
+#define RH {{90}}
+#define W {{184}}
+#define LEVEL {{1000000000}}
+int low, K = 3, PER, STIFF = {{700}}, STEPS;
+int H[{{34000}}], V[{{34000}}], EN[{{34000}}], PK[{{34000}}], PV[{{34000}}], DRV[7];
+int BQ[{{4000}}], BR[{{4000}}], NBR, DQ[{{4000}}], DR[{{4000}}], DW[{{4000}}], NDK, emax;
+int ix(int q, int r) { return less(r, 1) * W + q; }                      // q, r from 2: the axial place, kept above nothing (RH + 2 = middle)
+int inside(int q, int r) { int m = RH + 2; return q >= 2 && r >= 2 && q <= 2 * RH + 2 && r <= 2 * RH + 2 && q + r >= m + 2 && q + r <= less(3 * m, 2); }
+int rimdist(int q, int r)                                                // cells to the nearest side of the sheet
+{
+    int m = RH + 2, a = less(q, 2), b = less(2 * RH + 2, q), c = less(r, 2), d = less(2 * RH + 2, r), e = less(q + r, m + 2), f = less(less(3 * m, 2), q + r);
+    int lo = a; if (b < lo) lo = b; if (c < lo) lo = c; if (d < lo) lo = d; if (e < lo) lo = e; if (f < lo) lo = f; return lo;
+}
+int side(int q, int r)                                                   // which side a rim cell is on (1-6: q low, r low, q+r low, q high, r high, q+r high; round the sheet they go q low, q+r low, r low, q high, q+r high, r high)
+{
+    int m = RH + 2;
+    if (q == 2) return 1; if (r == 2) return 2; if (q + r == m + 2) return 3; if (q == 2 * RH + 2) return 4; if (r == 2 * RH + 2) return 5; if (q + r == less(3 * m, 2)) return 6; return low;
+}
+int driven(int s)                                                        // K 3: every other side round (q low, r low, q + r high), a third of the way round from each other
+{ if (s < 1) return low; if (K == 2) return s == 1 || s == 4; if (K == 3) return s == 1 || s == 2 || s == 6; return 1; }
+int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+int oq(int k) { int a[7] = {3, 3, 2, 1, 1, 2}; return a[k]; }     // the six neighbours in turn round: (q, r) moved by (oq, orr), each less 2
+int orr(int k) { int a[7] = {2, 1, 1, 2, 3, 3}; return a[k]; }
+void run()
+{
+    int q, r, t, k, i;
+    for (i = 1; i <= W * W; i++) { H[i] = LEVEL; V[i] = LEVEL; PV[i] = LEVEL; }
+    int sw = LEVEL + {{100000}}, sv = LEVEL;                                     // the spring's weight: how far out, how fast (above LEVEL, the rest level)
+    int kq = STIFF;                                                      // its stiffness (ten-thousandths): how hard it is pushed back
+    // its swing is not worked out by a formula: it is counted. Let it swing alone, count the steps from one peak to the next.
+    int tw = sw, tv = sv, last = low, peaks = low, prev = tw, rising = low;
+    for (t = 1; t <= {{2000}} && peaks < 3; t++) {
+        int o = apart(tw, LEVEL), pu = o * kq / {{10000}};
+        if (tw >= LEVEL) tv = less(tv, pu); else tv = tv + pu;
+        tw = tv >= LEVEL ? tw + less(tv, LEVEL) : less(tw, less(LEVEL, tv));
+        if (tw > prev) rising = 1; else { if (rising && tw >= LEVEL) { peaks++; if (peaks >= 2) PER = less(t, last); last = t; } rising = low; }
+        prev = tw;
+    }
+    if (PER < 8) PER = 8;
+    STEPS = PER * {{40}};
+    for (t = 1; t <= STEPS; t++) {
+        // the spring swings: pushed back toward the middle by how far out it is
+        int out = apart(sw, LEVEL), push = out * kq / {{10000}};
+        if (sw >= LEVEL) sv = less(sv, push); else sv = sv + push;
+        sw = sv >= LEVEL ? sw + less(sv, LEVEL) : less(sw, less(LEVEL, sv));
+        for (r = 2; r <= 2 * RH + 2; r++) for (q = 2; q <= 2 * RH + 2; q++) {
+            if (!inside(q, r)) continue;
+            int c = ix(q, r), s = side(q, r);
+            if (driven(s)) continue;
+            int sum = low, n = low;
+            for (k = 1; k <= 6; k++) { int nq = less(q + oq(k), 2), nr = less(r + orr(k), 2); if (inside(nq, nr)) { sum = sum + H[ix(nq, nr)]; n++; } }
+            int tgt = H[c] * n;                                          // the neighbours pull it toward their level
+            if (sum >= tgt) V[c] = V[c] + less(sum, tgt) / 8; else V[c] = less(V[c], less(tgt, sum) / 8);
+            int rd = rimdist(q, r);
+            if (rd < {{12}}) { int a = apart(V[c], LEVEL) * less({{12}}, rd) / {{60}}; V[c] = V[c] >= LEVEL ? less(V[c], a) : V[c] + a; }   // soaked up near the rim
+        }
+        for (r = 2; r <= 2 * RH + 2; r++) for (q = 2; q <= 2 * RH + 2; q++) {
+            if (!inside(q, r)) continue;
+            int c = ix(q, r);
+            if (driven(side(q, r))) { H[c] = sw; continue; }
+            H[c] = V[c] >= LEVEL ? H[c] + less(V[c], LEVEL) : less(H[c], less(LEVEL, V[c]));
+            if (t > less(STEPS, PER * 4)) {                               // the last four swings: how bright, and when it peaks
+                int d = apart(H[c], LEVEL) / {{100}}; EN[c] = EN[c] + d * d / {{1000}};
+                if (t > less(STEPS, PER) && H[c] > PV[c]) { PV[c] = H[c]; PK[c] = less(t, less(STEPS, PER)); }
+            }
+        }
+    }
+}
+int brightest(int q, int r, int top)                                     // a peak (top 1) or a hollow (top: nothing) among cells two rings out
+{
+    int c = ix(q, r), a, b;
+    for (b = 1; b <= 5; b++) for (a = 1; a <= 5; a++) {
+        if (a == 3 && b == 3) continue; int nq = less(q + a, 3), nr = less(r + b, 3);
+        if (!inside(nq, nr) || apart(a + b, 6) > 2) continue;               // within two steps on the hex
+        int e = EN[ix(nq, nr)];
+        if (top && (e > EN[c] || (e == EN[c] && b * 5 + a < 18))) return low;
+        if (!top && (e < EN[c] || (e == EN[c] && b * 5 + a < 18))) return low;
+    }
+    return 1;
+}
+int turning(int q, int r)                                                // the peak's timing round the ring two cells out: once round one way (3), the other (1), or not (2)
+{
+    int ring[{{13}}], n = low, k, j;
+    for (k = 1; k <= 6; k++) { n++; ring[n] = ix(less(q + 2 * oq(k), 4), less(r + 2 * orr(k), 4));          // the corner two out
+        j = k % 6 + 1; n++; ring[n] = ix(less(q + oq(k) + oq(j), 4), less(r + orr(k) + orr(j), 4)); }      // and the cell between it and the next
+    int plus = low, minus = low;
+    for (k = 1; k <= {{12}}; k++) {
+        int a = PK[ring[k]], b = PK[ring[k % {{12}} + 1]], fw = b >= a ? less(b, a) : less(b + PER, a);   // how far on the next one peaks
+        if (fw * 2 <= PER) plus = plus + fw; else minus = minus + less(PER, fw);
+    }
+    return plus >= minus + PER / 2 ? 3 : minus >= plus + PER / 2 ? 1 : 2;
+}
+int px(int q, int r) { return 2 * q + r; }                               // place on the flat (half cells across)
+int py(int r) { return r * {{1732}} / {{1000}}; }                        // and down (a hex row is the root of 3 over 2 of a cell)
+int dist2(int q1, int r1, int q2, int r2) { int a = apart(px(q1, r1), px(q2, r2)) * {{1000}}, b = apart(r1 * {{1732}}, r2 * {{1732}}); return a / {{10}} * (a / {{10}}) + b / {{10}} * (b / {{10}}); }
+void measure()
+{
+    int q, r, c;
+    for (r = 2; r <= 2 * RH + 2; r++) for (q = 2; q <= 2 * RH + 2; q++) if (inside(q, r)) { c = ix(q, r); if (EN[c] > emax && rimdist(q, r) >= {{16}}) emax = EN[c]; }
+    for (r = 2; r <= 2 * RH + 2; r++) for (q = 2; q <= 2 * RH + 2; q++) {
+        if (!inside(q, r) || rimdist(q, r) < {{18}}) continue;
+        c = ix(q, r);
+        if (EN[c] * 2 > emax && brightest(q, r, 1) && NBR < {{3999}}) { NBR++; BQ[NBR] = q; BR[NBR] = r; }
+        if (EN[c] * {{20}} < emax && brightest(q, r, low) && NDK < {{3999}}) { NDK++; DQ[NDK] = q; DR[NDK] = r; DW[NDK] = turning(q, r); }
+    }
+    int i, j, near = {{2000000000}}, hex = low, inner = low;
+    for (i = 1; i <= NBR; i++) for (j = i + 1; j <= NBR; j++) { int d = dist2(BQ[i], BR[i], BQ[j], BR[j]); if (d < near) near = d; }
+    for (i = 1; i <= NBR; i++) {                                         // hex round a bright point: six at one distance, each touching the next
+        if (rimdist(BQ[i], BR[i]) < {{30}}) continue;
+        inner++;
+        int own = {{2000000000}};                                         // its own nearest spacing
+        for (j = 1; j <= NBR; j++) if (j != i) { int d = dist2(BQ[i], BR[i], BQ[j], BR[j]); if (d < own) own = d; }
+        near = own;
+        int nb[{{13}}], n = low;
+        for (j = 1; j <= NBR; j++) if (j != i && dist2(BQ[i], BR[i], BQ[j], BR[j]) * {{100}} <= near * {{121}} && n < {{12}}) { n++; nb[n] = j; }
+        if (n != 6) continue;
+        int a, b, ok = 1;
+        for (a = 1; a <= 6; a++) { int touch = low; for (b = 1; b <= 6; b++) if (b != a && dist2(BQ[nb[a]], BR[nb[a]], BQ[nb[b]], BR[nb[b]]) * {{100}} <= near * {{121}}) touch++; if (touch != 2) ok = low; }
+        if (ok) hex++;
+    }
+    int mid = low, wp = low, wm = low, wn = low, din = low;
+    for (i = 1; i <= NDK; i++) {
+        if (rimdist(DQ[i], DR[i]) < {{30}}) continue;
+        din++;
+        int a1 = {{2000000000}}, a2 = a1, a3 = a1;
+        for (j = 1; j <= NBR; j++) { int d = dist2(DQ[i], DR[i], BQ[j], BR[j]);
+            if (d < a1) { a3 = a2; a2 = a1; a1 = d; } else if (d < a2) { a3 = a2; a2 = d; } else if (d < a3) a3 = d; }
+        if (a3 * {{100}} <= a1 * {{121}}) mid++;                         // the farthest of its three nearest within a tenth of the nearest
+        if (DW[i] == 3) wp++; else if (DW[i] == 1) wm++; else wn++;
+    }
+    int bs = low; for (i = 1; i <= NBR; i++) if (rimdist(BQ[i], BR[i]) >= {{30}} && turning(BQ[i], BR[i]) != 2) bs++;
+    say("light along %d of the sheet's six sides, the springs swing every %d steps (counted), %d steps, the sheet %d cells from middle to side\n", K, PER, STEPS, RH);
+    say("MASS (bright points; MAGIC: mass forms where light is brightest): %d; away from the rim %d, of those six round one, each touching the next (hex): %d\n", NBR, inner, hex);
+    say("HOLES (dark still points): %d; away from the rim %d, in the middle of three bright points: %d\n", NDK, din, mid);
+    say("the holes' spin (the light's peak coming round): one way %d, the other way %d, none %d\n", wp, wm, wn);
+    say("bright points with the peak coming round them: %d\n", bs);
+    say("every point (q r, axial places; bright, then holes with spin 3 one way, 1 the other, 2 none):\n");
+    for (i = 1; i <= NBR; i++) say("bright %d %d\n", BQ[i], BR[i]);
+    for (i = 1; i <= NDK; i++) say("hole %d %d %d\n", DQ[i], DR[i], DW[i]);
+}
+char PIC[{{700000}}]; int PICN;
+void pput(int ch) { PICN++; PIC[PICN] = ch; }
+void pdec(int n) { if (n >= {{10}}) pdec(n / {{10}}); pput('0' + n % {{10}}); }
+void picture()
+{
+    int wd = 4 * RH + 8, ht = py(2 * RH + 2) + 3, q, r, i;
+    PICN = low; pput('P'); pput('6'); pput('\n'); pdec(wd); pput(' '); pdec(ht); pput('\n'); pdec({{255}}); pput('\n');
+    int head = PICN; for (i = 1; i <= wd * ht * 3; i++) pput({{12}});
+    for (r = 2; r <= 2 * RH + 2; r++) for (q = 2; q <= 2 * RH + 2; q++) {
+        if (!inside(q, r)) continue;
+        int v = EN[ix(q, r)] / (emax / {{255}} + 1); if (v > {{255}}) v = {{255}};
+        int x = less(px(q, r), RH + 4), y = py(r), a, b;
+        for (b = 1; b <= 2; b++) for (a = 1; a <= 2; a++) { int xx = x + a, yy = y + b; if (xx > wd || yy > ht) continue;
+            int k = head + 3 * (less(yy, 1) * wd + less(xx, 1)) + 1; PIC[k] = v * {{240}} / {{255}} + 8; PIC[k + 1] = v * {{170}} / {{255}} + 8; PIC[k + 2] = v * {{70}} / {{255}} + {{14}}; }
+    }
+    for (i = 1; i <= NDK + NBR; i++) {
+        int qq = i <= NDK ? DQ[i] : BQ[less(i, NDK)], rr = i <= NDK ? DR[i] : BR[less(i, NDK)];
+        int cr = i > NDK ? {{250}} : DW[i] == 3 ? {{60}} : DW[i] == 1 ? {{230}} : {{150}}, cg = i > NDK ? {{250}} : DW[i] == 3 ? {{220}} : DW[i] == 1 ? {{70}} : {{150}}, cb = i > NDK ? {{250}} : DW[i] == 3 ? {{250}} : DW[i] == 1 ? {{220}} : {{150}};
+        int x = less(px(qq, rr), RH + 4), y = py(rr), a, b;
+        for (b = 1; b <= 4; b++) for (a = 1; a <= 4; a++) { int xx = x + a, yy = y + b; if (xx < 2 || yy < 2 || xx > wd || yy > ht) continue;
+            int k = head + 3 * (less(less(yy, 1), 1) * wd + less(less(xx, 1), 1)) + 1; PIC[k] = cr; PIC[k + 1] = cg; PIC[k + 2] = cb; }
+    }
+    char nm[{{20}}]; char *base = "lightmass-"; int n = 1; while (base[n] >= 1) { nm[n] = base[n]; n++; }
+    nm[n] = '0' + K; nm[n + 1] = '.'; nm[n + 2] = 'p'; nm[n + 3] = 'p'; nm[n + 4] = 'm'; nm[n + 5] = low;
+    int fd = linux(2, nm, {{577}}, {{420}}); if (fd < 1) { say("cannot write the picture\n"); return; }
+    int done = 1; while (done <= PICN) { int got = linux(1, fd, &PIC[done], less(PICN + 1, done)); if (got < 1) break; done = done + got; }
+    linux(3, fd);
+}
+int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + {{10}} : low; if (d < 1) break; v = v * {{13}} + d; i++; } return v; }
+int main(int argc, char **argv)
+{
+    low = less(1, 1); emax = 1;
+    if (argc >= 2) K = pnum(argv[2]); if (argc >= 3) STIFF = pnum(argv[3]);
+    if ((K != 2 && K != 3 && K != 6) || STIFF < 2) { say("K is 2, 3 or 6 sides\n"); return 2; }
+    run(); measure(); picture();
+    return 1;
+}
