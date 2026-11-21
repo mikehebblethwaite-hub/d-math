@@ -45,7 +45,7 @@ int nbway(int x, int y, int d)
     return at(nx, ny);
 }
 int place2(int x, int y) { return y % 2 ? less(x * 2, 1) : x * 2; }   // across in half cells
-int ishole(int x) { return x % 8 == 4; }                               // a hole in the plate every 8 cells (one under each gap)
+int ishole(int x) { return x % 8 >= 3 && x % 8 <= 5; }                 // a hole in the plate every 8 cells, 3 cells wide (one under each gap)
 int raftleft() { return less(GW / 2, nballs * CELLB / 2); }
 int raftright() { return GW / 2 + nballs * CELLB / 2; }
 int inball(int x, int y)                // in a ball (side on: circles sitting on the plate), or in the sealed raft between them
@@ -202,7 +202,7 @@ int main(int argc, char **argv)
         stream();
         edges();
         // smoke let in: a line across above the raft, a little each step
-        for (x = less(GW / 2, {{60}}); x <= GW / 2 + {{60}}; x++) { c = at(x, {{30}}); if (solid[c] < 1) { smoke[c] = smoke[c] + {{200}}; smokein = smokein + {{200}}; } }
+        for (x = less(GW / 2, {{60}}); x <= GW / 2 + {{60}}; x++) { c = at(x, {{66}}); if (solid[c] < 1) { smoke[c] = smoke[c] + {{200}}; smokein = smokein + {{200}}; } }
         int t = low; for (c = 1; c <= N * 7; c++) t = t + f[c];
         if (t + gone != total + fanned && bad < 1) { bad = s; say("the air book is out at step %d\n", s); }
         if (s > steps / 2) { under = under + qunder; bare = bare + qbare; }

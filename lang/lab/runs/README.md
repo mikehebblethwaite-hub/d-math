@@ -68,3 +68,7 @@ pingfunnel 23rd input 2 (set by hand in hex, a hair's unevenness by the world's 
 tray to the patch). The map: a whole hex raft. Scattered balls (sung or not) only flatten into clumps (they jam first);
 the sung plate (MAGIC pattern) pulled a few more into place (3 six-touching vs 1).
 Bench recipe from the lab: set balls by hand in hex on a fine-holed plate, Henry pulling, ~120 C, two to four minutes.
+Warmth window for the raft (hand-set patch, 170 mm tray, 300 s; data/funnel-2026-11-21/warmth/): 105, 110, 115, 120, 125 C
+all seal the full raft, none melting; 130 C melts every ball. Bench: anywhere 105-125 C works; past 125 it drips.
+Side-on smoke (rafttunnel): the sealed raft turns the air up and away over its middle and draws it down at its ends to the
+bare holes (the flow goes round, it does not stop); a longer run with wider holes is in progress (raft-frames videos).
