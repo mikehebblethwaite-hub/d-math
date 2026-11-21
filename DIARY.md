@@ -153,3 +153,19 @@ measured, not worked out: working it out waits for the lab's sunlight and poles)
 so 1E's reason for it being high (the 15 C) was WRONG. The cause is the squeeze rule: water's stiffness was kept at its
 surface value (2.34 GPa), where real water stiffens as it is squeezed and so packs less. Real measurements at the deepest
 give about 1,070 times; the lab's is about 4% high. Still "about 1,100" (MATCH), with the right reason now given.
+
+**21.** Mike: "we want to see what temps come from things we do so any fixed temps will be marked magic". Every held or
+put-in warmth, invented or measured, is now MAGIC (lang/lab/MAGIC.md): the ground air at 15 C, the sky above 11 km, the ocean
+by depth, the candle's room, wick, ignition and cap, the 20 C starts.
+
+**22.** The crust below the deep (Mike: "the lava temps from crust will be important"), known answers written first. The
+rock's warmth from heat flowing up and made in the rock, carried only so fast (surface fixed at 15 C: magic): 25.8 C a km in
+an average continent (MATCH); 49 C at 4 km in the old cold rock of the deepest mines, where 60 C is known (CLOSE, 20% low);
+water at the deep sea floor (2,500 m, 25.2 MPa) boils only at 427 C, so 400 C vent water stays liquid (MATCH, though real
+water there is past its critical point, which the rule does not know); lava's warmth would only echo the melting point put
+in (NOT A TEST). Run: lang/lab/runs/crust.delta (Doomsday Book 448603f0-b8ef-45bb-900f-3211616562cc).
+
+**23.** Mike: "please can the room sit where two plates slide over each other". The crust room sits under the deep at a
+trench, where one plate slides under another (the Mariana trench is the deep's own 11 km bottom). Its four known answers
+(trench, volcano line, deepening earthquakes, heat flow low at the trench and high under the volcanoes) written in TRACK.md
+before any run.

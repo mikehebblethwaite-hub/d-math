@@ -59,8 +59,17 @@ magic): heat flowing up from inside and made in the rock itself, carried only so
 
 | # | Known result (what really happens) | Lab's answer | Match? | Run |
 |---|---|---|---|---|
-| 1 | Rock gets warmer going down, about 25-30 C for every km in continental crust | not run yet | - | - |
-| 2 | In the deepest mines (about 4 km down) the rock is about 60 C | not run yet | - | - |
-| 3 | Lava (basalt) comes out at about 1,100-1,200 C | not run yet | - | - |
-| 4 | Hot water from vents on the deep sea floor stays liquid at about 400 C (the deep's pressure keeps it from boiling) | not run yet | - | - |
+| 1 | Rock gets warmer going down, about 25-30 C for every km in continental crust | 25.8 C a km (average continent: heat flow 65 mW/m2, rock 2.5 W/m/K); 765 C at 40 km | MATCH | runs/crust.delta |
+| 2 | In the deepest mines (about 4 km down) the rock is about 60 C | old cold rock (heat flow 45, quartzite 5.0): 49 C at 4 km (the average continent would give 116 C) | CLOSE: about 20% low | runs/crust.delta |
+| 3 | Lava (basalt) comes out at about 1,100-1,200 C | in this model it would equal rock's melting point, which is put in | NOT A TEST here (circular) | runs/crust.delta |
+| 4 | Hot water from vents on the deep sea floor stays liquid at about 400 C (the deep's pressure keeps it from boiling) | at 2,500 m (25.2 MPa) water boils only at 427 C | MATCH, with a caveat: real water there is past its critical point (374 C), with no boiling at all; the boiling rule does not know the critical point | runs/crust.delta |
+
+### Where the crust room sits: two plates sliding, one under the other (Mike, 12:29; known answers written ~12:34, before any run)
+
+| # | Known result (what really happens) | Lab's answer | Match? | Run |
+|---|---|---|---|---|
+| 5 | The deepest sea is a trench where one plate slides under another (the Mariana trench, about 11 km: the deep's own bottom) | not run yet | - | - |
+| 6 | Volcanoes stand in a line about 100-200 km behind the trench, above where the sinking plate reaches about 100 km down | not run yet | - | - |
+| 7 | Earthquakes get deeper the further from the trench, along the sinking plate, down to about 700 km | not run yet | - | - |
+| 8 | Heat flow through the sea floor is low over the trench (the cold sinking plate) and high under the volcanoes | not run yet | - | - |
 

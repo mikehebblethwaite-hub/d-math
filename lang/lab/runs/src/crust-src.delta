@@ -1,0 +1,49 @@
+// Doomsday Book 448603f0-b8ef-45bb-900f-3211616562cc (Mike J Hebblethwaite): The crust below the deep: rock warmth from heat flow, the vents (crust)
+// crust: below the deep, the rock (21 Nov 2026; Mike: "the one under the ocean ... the lava temps from crust will be important";
+// known answers written in lang/lab/TRACK.md before this was built). The rock's warmth comes out of the run, never put in
+// (Mike: fixed temps are magic): heat flows up from inside the Earth (the measured flow through the surface) and is made in the
+// rock itself (its own radioactive warmth, most in the top 10 km); rock carries heat only so fast (its conductivity), so going
+// down the warmth must climb to pass the heat up. Stepped 10 m at a time. MAGIC (fixed temps): the surface at 15 C.
+// Two columns: an average continent (heat flow 65 mW per square metre, rock carrying 2.5 W per metre per degree), and the old
+// cold rock of the deepest gold mines (heat flow 45, quartzite carrying 5.0): measured values, not temperatures.
+// The vents: the boiling point of water at the deep sea floor's pressure (2,500 m down), by the same stepped boiling rule that
+// gave Everest's 70 C (water's own heat of boiling), stepped up from 100 C.
+#define DZ {{10}}
+int low;
+int heatL(int tmk) { return tmk >= {{273150}} ? less({{2501000}}, lower2(less(tmk, {{273150}}) * {{2370}} / {{1000}}, {{2400000}})) : {{2501000}}; }
+int lower2(int a, int b) { return a < b ? a : b; }
+int column(int flow, int carry)                    // flow: microwatts a square metre; carry: milliwatts a metre a degree; returns nothing, prints
+{
+    int z = low, t = {{288150}}, q = flow, a = {{1000}};   // t millikelvin; q heat flowing up (microW/m2); a heat made in the rock (nanowatts a cubic metre), halving about every 7 km
+    int t1 = low, t4 = low, t1k = low;
+    while (z < {{40000}}) {
+        int dt = q * DZ / carry;                     // microW/m2 x m / (mW/m/K) = mK: the climb needed to pass q up
+        t = t + dt;
+        int made = a * DZ / {{1000}};                // microW/m2 made in this 10 m slab (it flows up from here, so less comes from below)
+        q = q > made ? less(q, made) : 1;
+        a = less(a, a * DZ / {{10000}});            // the rock's own warmth thins with depth (a tenth of a percent each 10 m: about half every 7 km)
+        z = z + DZ;
+        if (z == {{1000}}) t1k = t; if (z == {{4000}}) t4 = t;
+    }
+    say("  heat flow %d microwatts a square metre, rock carrying %d milliwatts a metre a degree: warmer by %d thousandths of a degree in the first km; at 4 km %d thousandths of a degree over freezing; at 40 km %d\n",
+        flow, carry, less(t1k, {{288150}}), less(t4, {{273150}}), less(t, {{273150}}));
+    return t;
+}
+int vapour(int tmk)                                // water's push to escape as vapour (Pa), stepped from 100 C at 101,325 Pa (Everest's rule)
+{
+    int t = {{373150}}, e = {{101325}};
+    while (t + {{50}} < tmk) { int k = heatL(t) * {{1000}} / {{4615}} * {{10}} / (t / {{100}}) * {{1000}} / (t / {{100}}); e = e + e / {{1000}} * k / {{10000}} * {{100}} / {{1000}}; t = t + {{100}}; }
+    return e;
+}
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    say("the crust: the rock's warmth from heat flowing up and made in the rock (surface fixed at 15 C: MAGIC)\n");
+    say("an AVERAGE CONTINENT:\n"); column({{65000}}, {{2500}});
+    say("the OLD COLD ROCK of the deepest gold mines:\n"); column({{45000}}, {{5000}});
+    int p = {{101325}} + {{1025}} * {{981}} * {{2500}} / {{100}};    // the deep sea floor, 2,500 m down: Pa
+    int b = {{373150}}; while (b < {{700000}} && vapour(b) < p) b = b + {{100}};
+    say("the VENTS: at 2,500 m down the water's pressure is %d Pa; water boils there only at %d thousandths of a degree over freezing\n", p, less(b, {{273150}}));
+    say("LAVA: in this model lava's warmth would be rock's melting point, which is put in, not found: not a test here\n");
+    return 1;
+}

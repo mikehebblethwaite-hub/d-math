@@ -1,0 +1,7 @@
+the crust: the rock's warmth from heat flowing up and made in the rock (surface fixed at 15 C: MAGIC)
+an AVERAGE CONTINENT:
+  heat flow 2377D microwatts a square metre, rock carrying 11A4 milliwatts a metre a degree: warmer by B963 thousandths of a degree in the first km; at 4 km 3D9C3 thousandths of a degree over freezing; at 40 km 1DA2D2
+the OLD COLD ROCK of the deepest gold mines:
+  heat flow 17637 microwatts a square metre, rock carrying 2378 milliwatts a metre a degree: warmer by 3D54 thousandths of a degree in the first km; at 4 km 195DC thousandths of a degree over freezing; at 40 km 7D32C
+the VENTS: at 2,500 m down the water's pressure is 52C91B2 Pa; water boils there only at 11C3D6 thousandths of a degree over freezing
+LAVA: in this model lava's warmth would be rock's melting point, which is put in, not found: not a test here
