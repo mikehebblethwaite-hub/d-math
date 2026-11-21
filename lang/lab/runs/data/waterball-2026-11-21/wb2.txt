@@ -1,0 +1,3 @@
+water, PULLED DOWN ONTO A FLOOR, starting as a square: roundness 8859 thousandths (1000 a perfect round), width over height 5BB
+  settled: roundness 736, width over height 825
+  poked (squeezed from the sides): its width over height swung between 2B7 and 1A78, turning 12 times; after: roundness 1362, width over height 1A5D

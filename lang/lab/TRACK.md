@@ -18,7 +18,7 @@ to fix a fault (written in FAILS.md); several runs where chance is used; misses 
 | 1 | Wing nut / T-handle spun about its middle axis turns over and over (Dzhanibekov, 1985 in orbit; also on Earth, Mike at home) | space room | easiest and hardest axes steady; middle turned over 10 times in 200,000 steps | MATCH | runs/wingnut.delta |
 | 2 | A candle flame with no gravity: round (a sphere), dimmer, blue (little or no yellow soot), and it may go out as the air round it is used up (shuttle, ISS and drop tower candle tests) | space room | no gravity: round, 32 x 31 mm (with gravity 81 x 23); burns about 3% as much; the same share burned short of oxygen (363 v 348 thousandths); still burning at 9 s | ROUND: MATCH. DIMMER: MATCH. BLUE: MISS (the soot rule knows nothing of cooling yet). GOES OUT: not run long enough | runs/candlespace.delta |
 | 3 | Crystals grown in orbit come out larger and more perfect than on the ground (no convection, no settling) | space room | salt round a seed, 5 runs each: in orbit 78% full, nearly square (long/short 1.07); on Earth (brine moving down) 65% full, a lopsided column (2.28) growing toward the incoming brine; no overlap | MORE PERFECT: MATCH. LARGER: not tested yet | runs/saltplay.delta (2nd input: drift) |
-| 4 | Liquid in free fall pulls itself into a ball; a floating ball of water wobbles when touched (ISS water demos) | space room | not run yet | - | - |
+| 4 | Liquid in free fall pulls itself into a ball; a floating ball of water wobbles when touched (ISS water demos) | space room | from a square: nearly round (1.16 edge to edge from round, the square 1.41), wobbled 23 times when poked and came back round; with gravity on a floor it slumps (1.4 wide) and a poke spreads it to a puddle (4 wide) | BALL: MATCH. WOBBLE: MATCH | runs/waterball.delta |
 
 ## Floor 1: the lab (Earth)
 
@@ -40,3 +40,15 @@ to fix a fault (written in FAILS.md); several runs where chance is used; misses 
 | 4 | A sealed balloon grows as it rises, about doubling by 5.5 km | 1.77 times | CLOSE: the written "about doubling" was loose; the gas law gives about 1.75 | runs/atmos.delta |
 | 5 | A weather balloon (about 2 m across at launch, rubber) swells as it rises and bursts at about 30-35 km up, about 6-8 m across, where the air is about 1% of the ground's pressure (Mike, 11:03: "rising balloon expands as it reaches the upper atmosphere then pops"; written before the run) | burst at 30,580 m, 8.63 m across, at 964 Pa (0.95% of the ground); with gravity from the Earth's mass at each height (Mike), 30,700 m at 965 Pa; above 11 km the air's warmth is MEASURED (standard atmosphere), not worked out | MATCH | runs/atmos.delta |
 | 6 | The weather balloon's shape as it rises, and how it ends (Mike gave two real films rather than his words) | blind helper (skin physics): slightly egg-shaped with a funnel to the neck at launch, round high up; floats at ~31 km, tears beside the neck at 35.5 km if carried higher | SHAPE: MATCH (films). THE END: MISS (real ones burst at 29-32 km still climbing, the whole skin shattering) | proofs/blind-balloon-2026-11-21 |
+
+## Below the lab: the deep (written 21 Nov 2026 ~12:24, before any run; Mike: "your balloon under water down to the deep")
+
+The sea from its surface (the wave tank's sea) down to its deepest, about 11 km; a label, not a wall, like the sky above.
+
+| # | Known result (what really happens) | Lab's answer | Match? | Run |
+|---|---|---|---|---|
+| 1 | Water's pressure grows by about one more air pressure for every 10 m down | not run yet | - | - |
+| 2 | A balloon taken down is half its size by 10 m, a third by 20 m, a quarter by 30 m (the gas squeezed) | not run yet | - | - |
+| 3 | At the deepest (about 11 km) the pressure is about 1,100 times the air's at the surface | not run yet | - | - |
+| 4 | Polystyrene cups sent down on deep-sea dives come back shrunk to a fraction of their size (their air squeezed out) | not run yet | - | - |
+

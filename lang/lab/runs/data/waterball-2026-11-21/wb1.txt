@@ -1,0 +1,3 @@
+water, WITH NO GRAVITY (free fall), starting as a square: roundness 8859 thousandths (1000 a perfect round), width over height 5BB
+  settled: roundness 6AB, width over height 5BB
+  poked (squeezed from the sides): its width over height swung between 277 and 619, turning 1A times; after: roundness 67B, width over height 5C3

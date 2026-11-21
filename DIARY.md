@@ -128,3 +128,14 @@ file stood at 12:20; later versions are the same thing, grown):
 - Salt in three dimensions (saltcube, Dragonfly's play): `9e0c729c-abb2-4722-89d2-86c18fdcb59d` (Dragonfly), `lang/lab/runs/src/saltcube-src.delta`
 - The Delta lab diary (Faraday's way), begun 21 Nov 2026: `263bb5a1-8bdc-4786-8ead-eac40fe3c633` (Mike J Hebblethwaite), `DIARY.md`
 - The Delta lab track records (each room against known results): `6a4543d2-a1c9-42bd-a772-26d983987030` (Mike J Hebblethwaite), `lang/lab/TRACK.md`
+
+**1C.** The space room's track item 4 (its known answer written this morning): floating water. A blob of water parcels, each
+pushing away a neighbour too close and pulling in one a little further (water sticking to itself), started as a square.
+With no gravity it pulled itself nearly round (edge 1.16 from round; the square 1.41) and, poked, wobbled 23 times and came
+back round; pulled down onto a floor it slumped and, poked, spread to a puddle 4 times wider than tall. BALL and WOBBLE:
+MATCH. Run: lang/lab/runs/waterball.delta (Doomsday Book e00f7613-f653-4ce9-93a3-93cea097f8c1); data runs/data/waterball-2026-11-21.
+
+**1D.** Mike: "did you do your balloon under water down to the deep too? or is your tank in need of placing under the lab and
+making deep?" Not yet. The deep is placed below the lab, a label like the sky: the sea from the wave tank's surface to about
+11 km down. Its four known answers were written in lang/lab/TRACK.md at 12:24, before any run (pressure one more air every
+10 m; a balloon half its size by 10 m, a quarter by 30 m; about 1,100 times at the deepest; polystyrene cups shrinking).

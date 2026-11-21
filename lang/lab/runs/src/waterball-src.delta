@@ -1,0 +1,85 @@
+// Doomsday Book e00f7613-f653-4ce9-93a3-93cea097f8c1 (Mike J Hebblethwaite): Floating water: a ball in free fall, a puddle on a floor (waterball)
+// waterball: liquid floating free pulls itself into a ball, and wobbles when touched (21 Nov 2026; the space track record #4,
+// its known answer written in lang/lab/TRACK.md before this was built). A blob of water in a flat slice, made of parcels; each
+// parcel pushes away a neighbour that is too close and pulls in one a little further (water sticks to itself: its skin).
+// Nothing tells it a shape: it starts as a square. GRAV 1: none (the space room, free fall); 2: pulled down onto a floor.
+// Measured: roundness (the outer parcels' farthest from the middle over their nearest, 1000 = a perfect round), the blob's
+// width over its height, and, after a poke (squeezed from the sides), how its width over height swings (a wobble) and how
+// many times. No pi, no cosine.
+//   delta run lang/lab/runs/waterball.delta GRAV > out.txt
+#define NP {{400}}
+#define LEVEL {{1000000000000}}
+int low, GRAV = 1;
+int X[{{401}}], Y[{{401}}], VX[{{401}}], VY[{{401}}], FX[{{401}}], FY[{{401}}], NB[{{401}}];
+int up(int a) { return a >= LEVEL; }
+int amt(int a) { return apart(a, LEVEL); }
+int with(int m, int u) { return u ? LEVEL + m : less(LEVEL, m); }
+int addv(int a, int b) { int ua = up(a), ub = up(b), ma = amt(a), mb = amt(b); if (ua == ub) return with(ma + mb, ua); return ma >= mb ? with(less(ma, mb), ua) : with(less(mb, ma), ub); }
+int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+int RSIT = {{1000}}, RPULL = {{1600}};                   // parcels sit 1000 apart (micrometres); they pull in out to 1600
+void forces()
+{
+    int i, j;
+    for (i = 1; i <= NP; i++) { FX[i] = LEVEL; FY[i] = LEVEL; NB[i] = low; }
+    for (i = 1; i <= NP; i++) for (j = i + 1; j <= NP; j++) {
+        int ax = apart(X[i], X[j]), ay = apart(Y[i], Y[j]);
+        if (ax >= RPULL || ay >= RPULL) continue;
+        int d = isqrt(ax * ax + ay * ay); if (d >= RPULL || d < 1) continue;
+        NB[i]++; NB[j]++;
+        int f, away;                                 // away 1: pushed apart; low: pulled together
+        if (d < RSIT) { f = less(RSIT, d) * {{40}}; away = 1; } else { f = less(d, RSIT) * less(RPULL, d) / {{20}}; away = low; }
+        int fx = f * ax / d, fy = f * ay / d, ix = X[i] >= X[j], iy = Y[i] >= Y[j];   // i's way out from j
+        FX[i] = addv(FX[i], with(fx, ix == away)); FY[i] = addv(FY[i], with(fy, iy == away));
+        FX[j] = addv(FX[j], with(fx, ix != away)); FY[j] = addv(FY[j], with(fy, iy != away));
+    }
+    if (GRAV >= 2) for (i = 1; i <= NP; i++) FY[i] = addv(FY[i], with({{60}}, low));   // pulled down
+}
+void stepall()
+{
+    int i;
+    for (i = 1; i <= NP; i++) {
+        VX[i] = addv(VX[i], with(amt(FX[i]) / {{50}}, up(FX[i]))); VY[i] = addv(VY[i], with(amt(FY[i]) / {{50}}, up(FY[i])));
+        VX[i] = with(amt(VX[i]) * {{995}} / {{1000}}, up(VX[i])); VY[i] = with(amt(VY[i]) * {{995}} / {{1000}}, up(VY[i]));   // water's own drag, a little
+        X[i] = addv(X[i], with(amt(VX[i]) / {{10}}, up(VX[i]))); Y[i] = addv(Y[i], with(amt(VY[i]) / {{10}}, up(VY[i])));
+        if (GRAV >= 2 && Y[i] < LEVEL) { Y[i] = LEVEL; if (!up(VY[i])) VY[i] = LEVEL; }       // the floor
+    }
+}
+int CX, CY;
+void middle() { int i, sx = low, sy = low; for (i = 1; i <= NP; i++) { sx = sx + less(X[i], less(LEVEL, {{100000}})) ; sy = sy + less(Y[i], less(LEVEL, {{100000}})); } CX = less(LEVEL, {{100000}}) + sx / NP; CY = less(LEVEL, {{100000}}) + sy / NP; }
+int roundness()                                     // the outer parcels (fewer than 5 neighbours): farthest over nearest from the middle
+{
+    int i, far = low, near = {{2000000000}};
+    middle();
+    for (i = 1; i <= NP; i++) { if (NB[i] >= 5) continue; int ax = apart(X[i], CX), ay = apart(Y[i], CY), d = isqrt(ax * ax + ay * ay); if (d > far) far = d; if (d < near) near = d; }
+    return near >= 1 ? far * {{1000}} / near : {{999999}};
+}
+int widthover()                                    // width over height, thousandths
+{
+    int i, xl = LEVEL * 2, xh = low, yl = LEVEL * 2, yh = low;
+    for (i = 1; i <= NP; i++) { if (X[i] < xl) xl = X[i]; if (X[i] > xh) xh = X[i]; if (Y[i] < yl) yl = Y[i]; if (Y[i] > yh) yh = Y[i]; }
+    return less(xh, xl) * {{1000}} / (less(yh, yl) + 1);
+}
+int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + {{10}} : low; if (d < 1) break; v = v * {{13}} + d; i++; } return v; }
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc >= 2) GRAV = pnum(argv[2]);
+    int i, t;
+    for (i = 1; i <= NP; i++) {                    // a square blob, 20 by 20 parcels, still
+        X[i] = LEVEL + less(i, 1) % {{20}} * RSIT + {{500}}; Y[i] = LEVEL + less(i, 1) / {{20}} * RSIT + {{500}}; VX[i] = LEVEL; VY[i] = LEVEL;
+    }
+    say("water, %s, starting as a square: roundness %d thousandths (1000 a perfect round), width over height %d\n", GRAV >= 2 ? "PULLED DOWN ONTO A FLOOR" : "WITH NO GRAVITY (free fall)", roundness(), widthover());
+    for (t = 1; t <= {{6000}}; t++) { forces(); stepall(); }
+    forces();
+    say("  settled: roundness %d, width over height %d\n", roundness(), widthover());
+    middle();                                       // the poke: squeezed in from the sides
+    for (i = 1; i <= NP; i++) VX[i] = with({{3000}} * apart(X[i], CX) / {{10000}}, X[i] < CX);
+    int last = widthover(), was = 2, swings = low, most = last, least = last;
+    for (t = 1; t <= {{6000}}; t++) {
+        forces(); stepall();
+        if (t % {{20}} < 1) { int w = widthover(); int now = w > last ? 3 : w < last ? 1 : was; if (now != was && was != 2) swings++; was = now; last = w; if (w > most) most = w; if (w < least) least = w; }
+    }
+    forces();
+    say("  poked (squeezed from the sides): its width over height swung between %d and %d, turning %d times; after: roundness %d, width over height %d\n", least, most, swings, roundness(), widthover());
+    return 1;
+}
