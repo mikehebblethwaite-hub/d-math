@@ -1,5 +1,12 @@
 # The lab's magic ledger: what is not real yet, and what would make it real
 
+**Magic and the shrug are kept apart** (Mike, 21 Nov 2026: "by the time we are done we should have reduced magic to zero and
+have a shrug to work on reducing for unknown stuffs yet discovered").
+- **Magic** is what we put in knowingly as a stand-in. Every line below says what would make it real. The goal is none left.
+- **The shrug (`~`)** is what nobody knows yet: not a stand-in of ours, but the world's parts still undiscovered. It is
+  honest, never nothing, and shrinks only as things are found and named. When a run meets one, it is written as `~`, never
+  hidden inside a piece of magic.
+
 Mike, 20 Nov 2026: "me and you will work our hardest to duplicate the real world into Delta D ... magic, waste and
 supply we aim to remove as much as possible as we build; our goal is no shrug."
 
