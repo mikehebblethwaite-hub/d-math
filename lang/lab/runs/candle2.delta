@@ -17,7 +17,7 @@
 #define WY 2A
 int low, GRAV = 2, WAX = 1, STEPN;
 int T[2A8C], F[2A8C], OX[2A8C], T2[2A8C], F2[2A8C], O2[2A8C], R[2A8C], ISW[2A8C], MELTJ[2A8C];   // T mK; F vapour (units of 10^-15 kg); OX millionths; ISW 1 wax; MELTJ nanojoules taken to melt (melted at 180,000,000)
-int WSTORE;                                         // molten wax held in the wick (10^-15 kg units)
+int WSTORE, MAPAT, RUNMS = 63C12;                                         // molten wax held in the wick (10^-15 kg units)
 int waxmelt(int w) { int a[8] = {$B4119, $B9A13, $B49D1, $BA2D2, $B883C, $ADB93, $C6D2D}; return a[w]; }
 int waxdraw(int w) { int a[8] = {3, 2, 2, 1, 2, 3, 1}; return a[w]; }
 char *waxname(int w) { if (w == 1) return "paraffin (low melt, container)"; if (w == 2) return "paraffin (high melt, pillar)"; if (w == 3) return "soy"; if (w == 4) return "beeswax"; if (w == 5) return "palm"; if (w == 6) return "coconut"; return "gel"; }
@@ -75,7 +75,9 @@ void step()
     }
     for (x = 1; x <= NX; x++) { OX[at(x, NY)] = 7477B; T[at(x, NY)] = amb(); F[at(x, NY)] = 1; }
     for (y = 1; y <= NY; y++) { int c1 = at(1, y), c2 = at(NX, y); if (!ISW[c1]) { OX[c1] = 7477B; T[c1] = amb(); F[c1] = 1; } if (!ISW[c2]) { OX[c2] = 7477B; T[c2] = amb(); F[c2] = 1; } }
-    if (STEPN <= $BAB) for (k = less(WY, 1); k <= WY + 1; k++) if (T[at(WX, k)] < 3D6998) T[at(WX, k)] = 3D6998;   // the match, held 2 s
+    // the match, held to the wick 2 s: a real one is about 85 W (0.1 g of wood in about 20 s, wood 17 MJ/kg); this 1 mm slice
+    // holds about a tenth of its flame: 8.5 W = 8,500,000 nJ each ms, into the wick's top two cells it touches (no warmth held)
+    if (STEPN <= $BAB) for (k = less(WY, 1); k <= WY; k++) give(at(WX, k), $B5A5C1);
     // the wick draws molten wax from the pool cells touching its foot
     for (x = less(WX, 1); x <= WX + 1; x++) { int c = at(x, less(WY, 5)); if (molten(c)) WSTORE = WSTORE + waxdraw(WAX) * 54D442; }
     if (WSTORE > 1B696A7936) WSTORE = 1B696A7936;                          // a wick holds at most about 20 mg
@@ -113,19 +115,23 @@ int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int 
 int main(int argc, char **argv)
 {
     low = less(1, 1);
-    if (argc >= 2) GRAV = pnum(argv[2]); if (argc >= 3) WAX = pnum(argv[3]);
+    if (argc >= 2) GRAV = pnum(argv[2]); if (argc >= 3) WAX = pnum(argv[3]); if (argc >= 4) MAPAT = pnum(argv[4]); if (argc >= 5) RUNMS = pnum(argv[5]);
     int i, x, y, t;
     for (i = 1; i <= NX * NY; i++) { F[i] = 1; OX[i] = 7477B; T[i] = amb(); ISW[i] = low; MELTJ[i] = low; }
     for (y = 2; y <= less(WY, 5); y++) for (x = less(WX, 11); x <= WX + 11; x++) { int c = at(x, y); ISW[c] = 1; OX[c] = 1; }   // the candle: wax 29 mm across, up to the wick's foot
     for (y = less(WY, 4); y <= WY; y++) { int c = at(WX, y); ISW[c] = 1; OX[c] = 1; }   // the wick (holds wax: treated as wax for heat)
     WSTORE = $C349BA483;                                                        // the wick soaked before lighting: about 10 mg of wax (a real wick holds about that)
     int burn = low, last = low;
-    for (t = 1; t <= 63C12; t++) {                                             // three minutes
+    for (t = 1; t <= RUNMS; t++) {                                             // three minutes
         STEPN = t; step();
         int b2 = low; for (i = 1; i <= NX * NY; i++) b2 = b2 + R[i];
-        if (t > 61867) burn = burn + b2; last = b2;
+        if (t + 2378 > RUNMS) burn = burn + b2; last = b2;
+        if (MAPAT >= 1 && t == MAPAT) {                              // a map round the wick: warmth (hundreds of K) and where it burns (*)
+            say("map at %d ms (rows from 12 mm over the wick's top down to the pool; each cell: hundreds of K, * burning):\n", t);
+            int yy, xx; for (yy = WY + $C; yy >= less(WY, 6); yy = less(yy, 1)) { for (xx = less(WX, 8); xx <= WX + 8; xx++) { int c = at(xx, yy);
+                if (ISW[c] && xx == WX && yy > less(WY, 5)) say("  W"); else if (ISW[c]) say("  #"); else if (R[c] >= 1) say("  *"); else { int v = T[c] / 36694; if (v < $D) say("  %d", v); else say(" %d", v); } } say("\n"); } }
         if (t % 4723 < 1) { int pool = low; for (x = less(WX, 11); x <= WX + 11; x++) if (molten(at(x, less(WY, 5)))) pool++;
-            say("  at %d ms: wick top %d mK, wick holds %d (10^-15 kg), burning %d, molten pool %d mm\n", t, T[at(WX, WY)], WSTORE, b2, pool); }
+            say("  at %d ms: wick top %d mK, wick holds %d units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning %d, molten pool %d mm\n", t, T[at(WX, WY)], WSTORE, b2, pool); }
     }
     int pool = low; for (x = less(WX, 11); x <= WX + 11; x++) if (molten(at(x, less(WY, 5)))) pool++;
     say("candle2 %s, wax %s (melts at %d mK): after 3 minutes the molten pool is %d mm across; burning in the last 5 s %d; still burning: %s\n",

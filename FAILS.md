@@ -181,3 +181,18 @@ mix, move): each a crash avoided before it ran.
 `pkill -f "scratchpad/labz"` matched nothing (the program ran as `./labz dan`), so three test copies piled up and the build
 could not overwrite the file. Fix: stopped those three by their numbers, after checking each was mine. Lesson (now how I do
 it): start a test copy with `& echo $! > labz.pid` and stop it by that saved number, never by a name pattern.
+
+## 21 Nov 2026 14:20: Python round the edges of the Delta work (Mike: "the hex cult requires the use of delta D")
+The models ran in Delta, but I read their D numerals back with little Python scripts, edited sources with Python, and checked
+the hex circle with a Python checker (with their pi in it). Fix: lang/oldnumbers.delta, a Delta reader that turns a run's D
+numerals into the old numbers (the bridge out, as numerals.delta is the bridge in). Lesson: when Python does a thing Delta
+cannot, write it into Delta (Mike: "if python can do a thing it cannot you can write it into it"). Still to move: my file
+edits (a Delta find-and-replace tool), the checkers.
+
+## 21 Nov 2026 14:25: candle2's match was an endless heat supply; and two slips of mine
+The match held the wick at 1,500 K every millisecond: endless heat, so the wick's whole 10 mg boiled off in 2 s into a cloud
+that burned slowly above the wick, never a flame on it. Fix: a real match, 85 W (0.1 g of wood in about 20 s), a tenth of it
+in this 1 mm slice, given as heat. Slips: I typed a 20 s run length in D wrong (1528C is 40,000, not 20,000; now made with
+numerals.delta), and first wrote the match's 8.5 W as 8,500 nJ a ms (it is 8,500,000): caught before running. Lesson: run
+lengths and energies go through numerals.delta and a units line, never by hand. Also a label had an old number written in
+its words (10^-15): oldnumbers.delta read it as D, rightly; labels say units in words now.

@@ -1,0 +1,44 @@
+// oldnumbers: read a run's words aloud in the old numbers. Every whole word made of D digits (1-9, A-D, ~ for nothing) that
+// holds at least one of 1-9 is turned into the old (base ten) number; ~ on its own becomes their 0; a $ in front is dropped.
+// Letter-only words (A, BC, ...) are left as they are, since they may be words. Everything else is copied as it is.
+// The bridge out to the old maths, at the edge, as numerals.delta is the bridge in (Mike 21 Nov 2026: "the hex cult
+// requires the use of delta D": no Python to read our own runs).
+//
+//   delta run lang/oldnumbers.delta FILE        or    some-run | delta run lang/oldnumbers.delta
+char src[1A2B1C7];
+char out[1A2B1C7];
+int on, low;
+void put(int c) { on++; out[on] = c; }
+int ddigit(int c) { if (c >= '1' && c <= '9') return less(c, '0'); if (c >= 'A' && c <= 'D') return less(c, 'A') + A; return low; }
+int wordch(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '~'; }
+void old(int n)                                   // n in the old numbers, base ten, with their nought
+{
+    char r[99]; int k = low, i;
+    if (n < 1) { put('0'); return; }
+    while (n >= 1) { k++; r[k] = n % A >= 1 ? '0' + n % A : '0'; n = n / A; }
+    for (i = k; i >= 1; i = less(i, 1)) put(r[i]);
+}
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    int fd = low;                                 // no file named: read what is piped in
+    if (argc >= 2) { fd = linux(2, argv[2], low, low); if (fd < 1) { say("cannot read %s\n", argv[2]); return 1; } }
+    int n = low, got = 1;
+    while (got >= 1) { got = linux(low, fd, &src[n + 1], less(1A2B1C6, n)); if (got >= 1) n = n + got; }
+    int i = 1;
+    while (i <= n) {
+        int prev = i > 1 ? src[less(i, 1)] : ' ';
+        int s = i; if (src[s] == '$' && s + 1 <= n && ddigit(src[s + 1]) >= 1) s++;
+        if (!wordch(prev) && (ddigit(src[s]) >= 1 || src[s] == '~')) {
+            int k = s, v = low, num = low, ok = 1;
+            if (src[k] == '~') { k++; }
+            else while (k <= n && ddigit(src[k]) >= 1) { if (src[k] <= '9') num = 1; v = v * D + ddigit(src[k]); k++; }
+            if (k <= n && wordch(src[k])) ok = low;   // part of a longer word: leave it
+            if (ok && (num || src[s] == '~')) { old(v); i = k; continue; }
+        }
+        put(src[i]); i++;
+    }
+    int done = 1;
+    while (done <= on) { int g = linux(1, 1, &out[done], less(on + 1, done)); if (g < 1) break; done = done + g; }
+    return 1;
+}
