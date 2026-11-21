@@ -13,9 +13,36 @@
 // No pi, no curves, no exp: every one stepped. Prints in D numerals.
 #define DZ {{10}}
 int low, GMASS = {{1000}};                    // the Earth's mass in thousandths of its own (the gravity changer: Mike); 12 = the Moon's
-int LATLEN = {{28337}};                              // the length of your circle of latitude, km (measured off the map; 45 degrees, the standard atmosphere's own, by default; the equator 40,075; a pole 1)
-int spin(int zm) { int v = LATLEN * {{1000000}} / {{86164}}; return v * v / {{6371000}} * ({{6371000}} + zm) / {{6371000}}; }   // the Earth's turning lightens you: (speed round, mm/s)^2 / the Earth's radius, in micrometres a second squared; one turn is 86,164 s (no cosine, no pi: the circle is measured)
-int gpull(int zm) { int r = ({{6371000}} + zm) / {{1000}}; return less({{398600}} * GMASS * {{1000}} / r / r * {{1000}}, spin(zm)); }   // the Earth's pull at height zm: G x its mass / (distance from its middle)^2, less the spin's lightening, in micrometres a second squared (GM = 398,600 km3/s2 x GMASS thousandths)
+// The Earth's real shape (Mike 21 Nov 2026: "put the earth's real shape in"): flattened, 6,378,137 m to the equator, 6,356,752
+// m to a pole (measured), and the bulge's own extra pull, J2 = 0.00108263 (measured from how it tugs satellites). Where you
+// stand comes from your circle of latitude's measured length: over the equator's (40,075,017 m) it is your distance from the
+// axis over the equator's radius (a ratio of lengths: no pi); your height above the equator's plane follows from the shape.
+// No cosine, no pi anywhere: squares and square roots of lengths.
+int LATLEN = {{28385}};                              // your circle of latitude, km (measured; 45 degrees on the real Earth by default; the equator 40,075; a pole 1)
+int gsqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+int AXIS, PLANE2, SURF;                              // metres from the axis; (height above the equator's plane)^2; metres from the middle at the ground
+void shape()
+{
+    int ea = {{6378137}}, eb = {{6356752}};
+    AXIS = ea * LATLEN / {{40075}} * {{1000}} / {{1000000}} * {{1000}};                    // the equator's radius x your circle / the equator's (m)
+    if (AXIS > ea) AXIS = ea;
+    int bx = eb * (AXIS / {{1000}}) / (ea / {{1000}});                                     // the shape: (height/b)^2 + (axis/a)^2 = 1, so height^2 = b^2 - (b x axis / a)^2
+    PLANE2 = eb * eb > bx * bx ? less(eb * eb, bx * bx) : 1;
+    SURF = gsqrt(AXIS * AXIS + PLANE2);
+}
+int spin(int zm) { int v = LATLEN * {{1000000}} / {{86164}}; return v * v / (SURF + zm); }   // the turning lightens you: (speed round, mm/s)^2 / (your distance from the middle, m) = micrometres a second squared; one turn 86,164 s
+int gpull(int zm)
+{
+    if (SURF < 1) shape();
+    int R = SURF + zm;                                                                     // metres from the middle
+    int g = {{398600441000}} * GMASS / R * {{1000}} / R * {{1000}};                          // G x the Earth's mass / R^2, micrometres a second squared (GM = 398,600,441,000,000 m3/s2 x GMASS thousandths)
+    int aR = {{6378137}} * {{1000}} / (R / {{1000}});                                     // (equator's radius / R), millionths
+    int lean = PLANE2 / (R * R / {{1000000}}) * 3;              // 3 x (height above the equator's plane / R)^2, millionths
+    int bulge = g / {{1000}} * {{1623945}} / {{1000000}} * (aR * aR / {{1000000}}) / {{1000000}};   // g x 1.5 J2 x (a/R)^2 (1.5 J2 = 0.001623945)
+    if (lean >= {{1000000}}) g = less(g, bulge * less(lean, {{1000000}}) / {{1000000}});   // nearer the poles the bulge's pull is from the side: less straight down
+    else g = g + bulge * less({{1000000}}, lean) / {{1000000}};                               // near the equator the bulge sits under you: it pulls more
+    return less(g, spin(zm));
+}
 
 int heatL(int tmk) { return tmk >= {{273150}} ? less({{2501000}}, less(tmk, {{273150}}) * {{2370}} / {{1000}}) : {{2501000}} + less({{273150}}, tmk) * {{2370}} / {{1000}}; }   // J/kg
 int vapour(int tmk)                               // water's push to escape as vapour (milli-pascals) at this warmth, stepped from 100 C

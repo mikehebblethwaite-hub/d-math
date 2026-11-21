@@ -266,3 +266,11 @@ a pole 9.8200 (9.832). CLOSE, all within 0.12%: the spin gives about two thirds 
 the rest is the Earth's flattened shape (the lab's Earth is a ball: now the magic in its place). The balloon still bursts at
 30,800 m. Twice today I typed a D numeral by hand and got it wrong (a run length, the equator's length); numerals.delta had
 the right one both times: numbers go through it, never through my head.
+
+**30.** Mike: "put the earth's real shape in". The sky's gravity now has the Earth flattened (6,378,137 m to the equator,
+6,356,752 to a pole, measured) and the bulge's own pull (J2, measured from how it tugs satellites). Where you stand comes from
+your circle of latitude's measured length over the equator's: no cosine, no pi, only squares and roots of lengths. Known
+answers written first (sky 10, the measured normal gravity). Equator 9.7800 (9.7803), 45 degrees 9.8061 (9.8062), a pole
+9.8317 (9.8322): MATCH, within 0.005%. On the way I slipped three times (two sums a thousand out, the Earth's mass factor in
+the wrong units), all caught before the result by checking the sums by hand and by the run's own numbers. Mike then sent a
+picture of the gravity potato (the satellites' map of the Earth's lumps): the next layer, now the magic in its place.
