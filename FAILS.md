@@ -144,3 +144,9 @@ mix, move): each a crash avoided before it ran.
 - Found: writing the old-maths translation (three equal waves give six round one, two thirds of a wave apart = 18.1 cells).
 - Fix: CUT input (4th); at 24% and 20% every middle point has six round it (17.3-18.2 cells). Site corrected, said plainly.
 - Lesson: before naming a pattern, vary the cut-off that picks the points; and check against the old maths' prediction.
+
+## 21 Nov 2026 10:50 UK: candlespace's gravity flame blew itself out (and the picture store overflowed)
+- What: warm gas moved up to 90% of a cell a step, far faster than spreading could feed the flame: it went out at once.
+- Fix (not tuning to the known answer): the step is set from real air (1 ms on 1 mm cells: spreading 2e-5 m2/s = a fiftieth to
+  each neighbour a step; rising at root(9.81 x 0.01 x warmer/air) m/s = ~0.4-0.5 cell a step). Picture store 60,000 -> 130,000.
+- Lesson: set a run's step from the real speeds first; never let anything move a whole cell in one step.

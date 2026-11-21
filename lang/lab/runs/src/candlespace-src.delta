@@ -1,0 +1,89 @@
+// candlespace: a candle with and without gravity (21 Nov 2026; the space track record, item 2). The known answer was written
+// in lang/lab/SPACE-TRACK.md BEFORE this was built: with no gravity a candle flame is round, dimmer and blue, and may go out.
+// A slice through the flame in millimetre cells. Wax vapour comes off the wick and spreads; oxygen spreads in from the air;
+// where both are and it is hot enough they burn (one part wax takes three of oxygen, a rough guide), giving heat. Heat spreads
+// too. Each step is a thousandth of a second on millimetre cells, set from real air: things spread in air at about 2 x 10^-5 m2
+// a second, so each step a cell gives a fiftieth to each neighbour; warm gas rises at about the root of (g x 1 cm x how much
+// warmer, over the air's warmth), so a cell 3 times the air's warmth moves about half a cell a step. With gravity, gas warmer
+// than the air rises so and carries everything up with it, and
+// fresh air comes in from below; without gravity nothing rises: only spreading. Nothing here is told the flame's shape.
+// Measured: the flame (cells burning) tall by wide; how much it burns (brightness); its hottest; how much burns where it is
+// short of oxygen (sooty, yellow); and whether it keeps burning.
+//   delta run lang/lab/runs/candlespace.delta GRAVITY > out.txt    (2 with gravity, 1 none; D numerals)
+#define NX {{81}}
+#define NY {{121}}
+#define WX {{41}}
+#define WY {{36}}
+int low, GRAV = 2;
+int F[{{9802}}], OX[{{9802}}], T[{{9802}}], R[{{9802}}], F2[{{9802}}], O2[{{9802}}], T2[{{9802}}];   // wax vapour, oxygen (millionths), warmth (mK)
+int at(int x, int y) { return less(y, 1) * NX + x; }
+int amb() { return {{293150}}; }
+int lower(int a, int b) { return a < b ? a : b; }
+int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+void step()
+{
+    int x, y;
+    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {   // spreading: each cell moves toward its four neighbours
+        int c = at(x, y), n = at(x, y + 1), s = at(x, less(y, 1)), e = at(x + 1, y), w = at(less(x, 1), y);
+        F2[c] = (F[c] * {{46}} + F[n] + F[s] + F[e] + F[w]) / {{50}};
+        O2[c] = (OX[c] * {{46}} + OX[n] + OX[s] + OX[e] + OX[w]) / {{50}};
+        T2[c] = (T[c] * {{46}} + T[n] + T[s] + T[e] + T[w]) / {{50}};
+    }
+    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) { int c = at(x, y); F[c] = F2[c]; OX[c] = O2[c]; T[c] = T2[c]; }
+    if (GRAV >= 2) {                                // rising: warm gas carries its cell's share up, the cell below fills it
+        for (y = less(NY, 1); y >= 3; y = less(y, 1)) for (x = 2; x <= less(NX, 1); x++) {
+            int c = at(x, y), b = at(x, less(y, 1));
+            if (T[b] <= amb() + {{20000}}) continue;
+            int up = isqrt(less(T[b], amb()) * {{981}} / amb()) * {{100}} / {{100}};   // hundredths of a cell a step: root(9.81 x 0.01 x warmer / air) m/s x 1 ms / 1 mm
+            if (up > {{90}}) up = {{90}};
+            F[c] = (F[c] * less({{100}}, up) + F[b] * up) / {{100}}; OX[c] = (OX[c] * less({{100}}, up) + OX[b] * up) / {{100}}; T[c] = (T[c] * less({{100}}, up) + T[b] * up) / {{100}};
+        }
+    }
+    for (x = 1; x <= NX; x++) { OX[at(x, 1)] = {{210000}}; T[at(x, 1)] = amb(); F[at(x, 1)] = 1; OX[at(x, NY)] = {{210000}}; T[at(x, NY)] = amb(); F[at(x, NY)] = 1; }   // the room's air at the edges
+    for (y = 1; y <= NY; y++) { OX[at(1, y)] = {{210000}}; T[at(1, y)] = amb(); F[at(1, y)] = 1; OX[at(NX, y)] = {{210000}}; T[at(NX, y)] = amb(); F[at(NX, y)] = 1; }
+    int k; for (k = less(WY, 4); k <= WY; k++) { F[at(WX, k)] = {{300000}}; OX[at(WX, k)] = 1; if (T[at(WX, k)] < {{600000}}) T[at(WX, k)] = {{600000}}; }   // the wick: wax vapour off it, kept hot by the flame
+    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {    // burning: where wax and oxygen meet and it is hot
+        int c = at(x, y); R[c] = low;
+        if (T[c] < {{700000}} || F[c] < {{100}} || OX[c] < {{300}}) continue;
+        int can = F[c] < OX[c] / 3 ? F[c] : OX[c] / 3, b = can / 5 + 1;
+        F[c] = less(F[c], b); OX[c] = less(OX[c], lower(OX[c], 3 * b)); R[c] = b;
+        T[c] = T[c] + b * {{40}}; if (T[c] > {{2300000}}) T[c] = {{2300000}};
+    }
+}
+int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + {{10}} : low; if (d < 1) break; v = v * {{13}} + d; i++; } return v; }
+char PIC[{{130000}}]; int PICN;
+void pput(int ch) { PICN++; PIC[PICN] = ch; }
+void pdec(int n) { if (n >= {{10}}) pdec(n / {{10}}); pput('0' + n % {{10}}); }
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc >= 2) GRAV = pnum(argv[2]);
+    int i, x, y, t;
+    for (i = 1; i <= NX * NY; i++) { F[i] = 1; OX[i] = {{210000}}; T[i] = amb(); }
+    for (y = WY; y <= WY + 6; y++) T[at(WX, y)] = {{1500000}};                 // lit
+    int burn = low, sooty = low, hot = low, top = low, bot = NY, left = NX, right = low, lastburn = low;
+    for (t = 1; t <= {{9000}}; t++) {
+        step();
+        if (t > {{6000}}) {                             // the last third: what the flame is like once settled
+            int b = low;
+            for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) { int c = at(x, y); if (R[c] >= 1) {
+                b = b + R[c]; if (F[c] > OX[c]) sooty = sooty + R[c]; if (T[c] > hot) hot = T[c];
+                if (R[c] >= {{20}}) { if (y > top) top = y; if (y < bot) bot = y; if (x < left) left = x; if (x > right) right = x; } } }
+            burn = burn + b; lastburn = b;
+        }
+    }
+    say("a candle %s: the flame %d mm tall by %d mm wide; burning (brightness) %d; burned short of oxygen (sooty, yellow) %d thousandths of it;\n",
+        GRAV >= 2 ? "with gravity" : "with NO gravity", top >= bot ? less(top, bot) + 1 : low, right >= left ? less(right, left) + 1 : low, burn / {{2000}}, burn >= 1 ? sooty * {{1000}} / burn : low);
+    say("  its hottest %d tenths of a degree C over freezing; still burning at the end: %s (%d)\n", hot > {{273150}} ? less(hot, {{273150}}) / {{100}} : 1, lastburn >= 1 ? "yes" : "NO, it went out", lastburn);
+    PICN = low; pput('P'); pput('6'); pput('\n'); pdec(NX * 2); pput(' '); pdec(NY * 2); pput('\n'); pdec({{255}}); pput('\n');
+    for (y = NY; y >= 1; y = less(y, 1)) for (i = 1; i <= 2; i++) for (x = 1; x <= NX; x++) {
+        int c = at(x, y), h = T[c] > amb() ? less(T[c], amb()) / {{8000}} : low; if (h > {{255}}) h = {{255}};
+        int r = R[c] * {{6}}; if (r > {{255}}) r = {{255}};
+        int yel = F[c] > OX[c] && R[c] >= 1;
+        int rr = yel ? r : r / 3, gg = yel ? r * 3 / 4 : r / 2, bb = yel ? r / 6 : r;
+        int q; for (q = 1; q <= 2; q++) { pput(lower({{255}}, h / 3 + rr + 8)); pput(lower({{255}}, h / 6 + gg + 8)); pput(lower({{255}}, bb + {{14}})); }
+    }
+    char *nm = GRAV >= 2 ? "candle-gravity.ppm" : "candle-space.ppm";
+    int fd = linux(2, nm, {{577}}, {{420}}); if (fd >= 1) { int done = 1; while (done <= PICN) { int got = linux(1, fd, &PIC[done], less(PICN + 1, done)); if (got < 1) break; done = done + got; } linux(3, fd); }
+    return 1;
+}
