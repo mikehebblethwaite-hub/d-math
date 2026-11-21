@@ -19,3 +19,7 @@ Predictions (3 x 40 mm balls, balls held near 118-120 C):
 4. With the holes facing DOWN to the Henry, the tops cave in before the touching places fuse (more at higher pull).
 5. The best warmth is ~118-120 C (Mike guessed 120): below ~100 C nothing changes; past 125 C they sag and drip.
 6. On the Skil's top fan (500 l/min) its air comes out no hotter than ~220 C whatever the display is set to (2000 W limit).
+
+## First real check of a lab rule (21 Nov 2026, 08:10 UK)
+Mike's memory of his cold-air rigs (2009 era): no hex rafts. The funnel model with ball-on-ball grip (0.3) jams at 2 degrees
+(matches); without grip it rafted ~60% hex (did not match): the grip is kept. Cold balls jam; hex needs heat + flow.

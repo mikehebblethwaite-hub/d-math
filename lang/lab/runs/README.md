@@ -49,3 +49,6 @@ runs order (~60 of 101 hex) but some scatters jam (22, 27, 7): order depends on 
 squeezing between them, half rho u squared over ~110 mm2; 13th) and the hole moved off the cone's low point (14th; Mike
 moved the Henry's nozzle by hand). With grip none of these freed the jam at 2 degrees (0-3 hex). Question for Mike's
 memory of the bench: did his rigs jam or raft into hex? That sets whether the grip is right.
+REAL CHECK (Mike, 21 Nov 2026 08:10, his 2009-era rigs): "no hex rafts as it was cold air only back then". So the GRIP
+version (jams) matches the bench; the gripless version (60% hex at 2 degrees) did not: grip stays in, 0.3. Hex comes only
+with heat (soft walls pulled into the gaps by the flow), as the dream said.
