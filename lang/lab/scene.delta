@@ -37,8 +37,18 @@ void scene_start()
     lightsheet_start();                                              // the light sheet, on the floor of the space room (floor 3)
 }
 void scene_step() { if (FLOOR == 3) lightsheet_step(); if (FLOOR > 1) return; washroom1.step(); scope1.step(); microscope1.step(); seedcup1.step(); meter1.step(); pingpong1.step(); candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
+void lift_draw()                                         // the lift between the floors, in the back left corner of each (Mike: the space room two floors up)
+{
+    int x1 = 1 + INCH, x2 = FOOT * 4, z1 = less(ROOM, FOOT * 4), z2 = less(ROOM, INCH), top = less(ROOM, INCH);
+    lab_alpha(169); lab_colour(B7, BC, C9); lab_box(x1, z1, x2, z2, 1, top);                    // the shaft, brushed steel
+    lab_colour(55, 59, 64); lab_box(FOOT, less(z1, INCH / 2), less(x2, FOOT), z1, 1, FOOT * 7);   // its door
+    lab_colour(FLOOR == 3 ? 156 : FLOOR == 2 ? 93 : 163, FLOOR == 3 ? 156 : FLOOR == 2 ? 125 : 118, FLOOR == 3 ? 168 : FLOOR == 2 ? 163 : 6C);
+    lab_glow((FOOT + less(x2, FOOT)) / 2, FOOT * 7 + INCH * 4, less(z1, INCH), INCH * 4);                   // the floor sign over it, lit in the floor's colour
+    lab_alpha(149);
+}
 void scene_draw()                         // farthest first, the painter's way, so near things cover far ones
 {
+    lift_draw();
     if (FLOOR > 1) {                                                 // the floors above: their own things only
         int m; for (m = 1; m <= 31; m++) MARKON[m] = low;
         if (FLOOR == 3) lightsheet_draw();
@@ -68,7 +78,7 @@ void scene_panel(int sel)
 {
     if (FLOOR > 1) {
         lab_line(FLOOR == 3 ? "floor 3: SPACE, two floors above the lab;  Page Down: the lift down" : "floor 2: ATMOSPHERE TESTS, the floor above the lab (nothing in it yet);  Page Up: space, Page Down: the lab");
-        lab_line("MAGIC: the lift between the floors is not drawn; the air shown on floor 1 is the lab's");
+        lab_line("the lift: back left corner (Page Up, Page Down). MAGIC: you can walk through it; these floors have no air cells of their own yet");
         if (FLOOR == 3) lightsheet_panel();
         return;
     }
@@ -79,7 +89,7 @@ void scene_panel(int sel)
     if (PAGE == 1) {
         lab_line(camZ > ROOM ? "you are in the wave room;  O: the door between, 1 to 5: the window" : "you are in the lab;  O: the door between, 1 to 5: the window");
         lab_line(DOOROPEN ? "the door between: open" : "the door between: shut");
-        lab_line("Page Up: the lift to floor 2 (atmosphere tests) and floor 3 (space)");
+        lab_line("the lift, back left corner: Page Up to floor 2 (atmosphere tests) and floor 3 (space)");
         if (WINOPEN >= 1) lab_value("the window: open, fifths of the way", WINOPEN, ""); else lab_line("the window: shut");
         lab_line("the air (1 ft hex cells, both rooms; a second a step, so faster than real time; T shows it):");
         tvalue("  the lab", roomt(1, 3)); tvalue("    at its floor", roomt(1, 1)); tvalue("    at its ceiling", roomt(1, 2));

@@ -49,3 +49,7 @@ Mike 09:21: "things split not hole in real life" - a real ball vents by SPLITTIN
 gas inside pushes, not by a ready-made hole. (For the blind wall test: the hole was the dream as first told; next blind case = a split.)
 Mike 09:31, on the Hebble picture (the holes per three joined up make a honeycomb net): "graphene" - the lattice of holes has
 the same honeycomb shape as graphene's carbon sheet; stacked layers of it, the flow threading through.
+Mike 10:29: "blind test soft flat circular discs about a cm thick instead of balls to test after balls for is it the same" -
+after the ball tests: the same blind test with soft flat discs ~1 cm thick (no air inside to push back; walls are the disc's
+own rim): does a field of them go hex the same way? Plan + pass mark to be stamped before it runs, like the balls.
+Mike 10:31: try a known space / low-orbit microgravity experiment in the space room, after these.
