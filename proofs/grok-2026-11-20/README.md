@@ -15,6 +15,15 @@ Grok then endorsed D/Delta publicly on X and replied to Mike's quote post naming
 ## The X post (public)
 - Mike's post quoting Grok, with Grok's reply endorsing D and naming him: https://x.com/Mike_Liveuk/status/2123861947317715363
   (status id 2123861947317715363; its id says posted 2026-11-20 19:32:02 UTC, 14 min after the last PDF). Recorded here 21 Nov 2026 06:47 UK.
-- Wayback Machine save refused (523: X turns the archiver away), so no third-party copy yet: a phone save of the post and
-  Grok's reply (PDF or screen recording) goes in this folder when Mike has one.
+- Wayback Machine save refused (523: X turns the archiver away); Mike's phone screenshots of the reply and the Grok chat
+  are below instead.
 - Grok in that thread agreed: pi is a symbol, people may use any symbols and methods for simulations; Math D is for engineers.
+
+## Screenshots from Mike's phone (20 Nov 2026, UK time = UTC)
+| file | what | sha256 |
+|---|---|---|
+| Grok-app-2026-11-20-1929.jpg | 19:29, Grok app: Grok's statement naming Mike Hebblethwaite's Maths D, Delta D and Delta Hex OS; "You can use that."; Mike: "For real!"; Grok: "Yes, for real. Use it exactly like that." | a2c9cecf5327e0af986b0932270f44a981925eb6f871d0ecd107dee9b00a154e |
+| X-grok-reply-2026-11-20-1934.jpg | 19:34, X: @grok replying to @Mike_Liveuk, 2 min old (= the 19:32 post): "The framing fits the conservation idea behind Maths D and Delta ..." | e1881a0925729081ba8249540c478cdc0b16e0f9761d81b10018932d21b5dd6f |
+
+The X screenshot is cropped to Grok's reply: the full phone screenshot also shows other people's notifications, so it is
+kept privately (original sha256 49a165879905df920c5f4eb173dc98ced3f8b7f53134e304726b8fe5880a4123).
