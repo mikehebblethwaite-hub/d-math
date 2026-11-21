@@ -1,0 +1,179 @@
+{
+  "meta": {
+    "purpose": "Physical candle wax and wick reference parameters for Delta Hex OS / Math D simulations",
+    "units": {
+      "melt_point_c": "degrees Celsius",
+      "melt_point_f": "degrees Fahrenheit"
+    }
+  },
+  "waxes": [
+    {
+      "id": "paraffin_low_melt",
+      "name": "Paraffin (Low-Melt / Container)",
+      "melt_point_c": {
+        "min": 46,
+        "max": 54
+      },
+      "melt_point_f": {
+        "min": 115,
+        "max": 130
+      },
+      "viscosity": "low",
+      "capillary_draw": "high",
+      "burn_behavior": "Soft, fast melt pool; high capillary draw; releases heat and vapour readily."
+    },
+    {
+      "id": "paraffin_high_melt",
+      "name": "Paraffin (High-Melt / Pillar)",
+      "melt_point_c": {
+        "min": 57,
+        "max": 68
+      },
+      "melt_point_f": {
+        "min": 135,
+        "max": 155
+      },
+      "viscosity": "medium",
+      "capillary_draw": "medium",
+      "burn_behavior": "Rigid structure; slower melt wall; holds vertical shape without collapsing."
+    },
+    {
+      "id": "soy_wax",
+      "name": "Soy Wax (100% Vegetable)",
+      "melt_point_c": {
+        "min": 49,
+        "max": 54
+      },
+      "melt_point_f": {
+        "min": 120,
+        "max": 130
+      },
+      "viscosity": "medium_high",
+      "capillary_draw": "medium",
+      "burn_behavior": "Creamy, slower burn; slightly higher viscosity when liquid than soft paraffin."
+    },
+    {
+      "id": "beeswax",
+      "name": "Beeswax (Pure)",
+      "melt_point_c": {
+        "min": 62,
+        "max": 65
+      },
+      "melt_point_f": {
+        "min": 144,
+        "max": 149
+      },
+      "viscosity": "high",
+      "capillary_draw": "slow_steady",
+      "burn_behavior": "High melt point, dense fuel; burns hot and slow with very low soot/smoke when balanced."
+    },
+    {
+      "id": "palm_wax",
+      "name": "Palm Wax",
+      "melt_point_c": {
+        "min": 57,
+        "max": 63
+      },
+      "melt_point_f": {
+        "min": 135,
+        "max": 145
+      },
+      "viscosity": "medium",
+      "capillary_draw": "medium",
+      "burn_behavior": "Hard, crystalline structure; melts cleanly into a deep pool once up to temp."
+    },
+    {
+      "id": "coconut_wax",
+      "name": "Coconut Wax (Blended)",
+      "melt_point_c": {
+        "min": 40,
+        "max": 46
+      },
+      "melt_point_f": {
+        "min": 104,
+        "max": 115
+      },
+      "viscosity": "low",
+      "capillary_draw": "high",
+      "burn_behavior": "Very low melt point; pools quickly at low heat; usually blended to add rigidity."
+    },
+    {
+      "id": "gel_wax",
+      "name": "Gel Wax (Mineral Oil + Resin)",
+      "melt_point_c": {
+        "min": 75,
+        "max": 95
+      },
+      "melt_point_f": {
+        "min": 167,
+        "max": 203
+      },
+      "viscosity": "very_high",
+      "capillary_draw": "slow",
+      "burn_behavior": "High viscosity and high melt threshold; slow fuel delivery up the wick."
+    }
+  ],
+  "wicks": [
+    {
+      "id": "flat_braid_cotton",
+      "name": "Flat Braid (Cotton)",
+      "construction": "Three-ply flat braided cotton",
+      "rigidity": "flexible_curling",
+      "capillary_rate": "medium",
+      "recommended_wax_ids": [
+        "beeswax",
+        "paraffin_high_melt"
+      ],
+      "behavior": "Curls slightly into the flame tip so the end oxidizes cleanly (self-trimming); great for beeswax and pillars."
+    },
+    {
+      "id": "square_braid_cotton",
+      "name": "Square Braid (Cotton)",
+      "construction": "Tightly woven square-section cotton",
+      "rigidity": "medium",
+      "capillary_rate": "high_for_viscous",
+      "recommended_wax_ids": [
+        "beeswax"
+      ],
+      "behavior": "Built for thicker, higher-viscosity waxes like beeswax where steady capillary lift is needed."
+    },
+    {
+      "id": "cored_paper_cotton",
+      "name": "Cored Wick (Paper / Cotton Core)",
+      "construction": "Braided cotton sleeve around a rigid paper or cotton core",
+      "rigidity": "rigid",
+      "capillary_rate": "high",
+      "recommended_wax_ids": [
+        "soy_wax",
+        "palm_wax"
+      ],
+      "behavior": "Stands straight in deep melt pools; paper cores burn hotter for viscous soy/vegetable waxes."
+    },
+    {
+      "id": "cored_zinc_tin",
+      "name": "Cored Wick (Zinc / Tin Core)",
+      "construction": "Braided cotton around a thin metal wire core",
+      "rigidity": "very_rigid",
+      "capillary_rate": "medium_high",
+      "recommended_wax_ids": [
+        "gel_wax",
+        "paraffin_low_melt",
+        "coconut_wax"
+      ],
+      "behavior": "Keeps the wick upright in very hot, deep pools (gels and low-melt container paraffins) without drooping."
+    },
+    {
+      "id": "wood_wick",
+      "name": "Wood Wick (Single / Cross-Ply)",
+      "construction": "Thin slotted hardwood strip (cherry, cedar, maple)",
+      "rigidity": "rigid_flat",
+      "capillary_rate": "wide_horizontal",
+      "recommended_wax_ids": [
+        "soy_wax",
+        "coconut_wax",
+        "paraffin_low_melt"
+      ],
+      "behavior": "Wide horizontal flame base; draws fuel across grain channels rather than round threads; emits audible crackle."
+    }
+  ]
+}
