@@ -176,3 +176,9 @@ run (0.914) was such a lucky one. So shaking does NOT reliably pack scattered ba
 withdrawn. A fault was found too: runs started seconds apart took the same chance from the machine's power reading, so
 several repeats ran identically (FAILS.md); about 3 distinct shaken and 2 distinct still. The fail stands; the test was
 weaker than planned. (proofs/blind-wall-2026-11-21/RESULT-shake-repeat.md)
+
+**25.** Mike: "i did not get any hex cold in real life i already said that". He had (proofs/pingpong-2026-11-21/REAL-CHECKS.md:
+his cold rigs never made hex, even with his hands on them). Paragraph 13's single shaken cold run going hex (0.914) went
+AGAINST his bench and should have been checked against it before being called a finding. The repeat (24) agrees with his
+bench: cold shaken balls mostly do not pack hex. The one shaken cold run in five that did is where the lab disagrees with the
+real world; that is the thing to explain. Lesson: check every lab "finding" against the real checks already on record first.
