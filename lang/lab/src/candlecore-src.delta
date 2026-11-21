@@ -15,7 +15,7 @@
 #define cnWY {{36}}
 int cnGRAV = 2, cnWAX = 1, cnSTEPN;
 int cnT[{{6200}}], cnF[{{6200}}], cnOX[{{6200}}], cnT2[{{6200}}], cnF2[{{6200}}], cnO2[{{6200}}], cnR[{{6200}}], cnISW[{{6200}}], cnMELTJ[{{6200}}];   // T mK; F vapour (units of 10^-15 kg); OX millionths; ISW 1 wax; MELTJ nanojoules taken to melt (melted at 180,000,000)
-int cnMATCHON = 1, cnLIT, cnWSTORE, cnHOLDMS = {{1000}};                 // WSTORE: molten wax held in the wick (units of a thousandth of a millionth of a millionth of a kg); HOLDMS: how long the hand holds the match after the wick catches
+int cnMATCHON = 1, cnLIT, cnWSTORE, cnBURNT, cnHOLDMS = {{1000}};                 // cnBURNT: all the wax burned (units); cnWSTORE: molten wax held in the wick (units of a thousandth of a millionth of a millionth of a kg); HOLDMS: how long the hand holds the match after the wick catches
 int cnwaxmelt(int w) { int a[8] = {{{323150}}, {{335650}}, {{324650}}, {{336650}}, {{333150}}, {{316150}}, {{358150}}}; return a[w]; }
 int cnwaxdraw(int w) { int a[8] = {3, 2, 2, 1, 2, 3, 1}; return a[w]; }
 char *cnwaxname(int w) { if (w == 1) return "paraffin (low melt, container)"; if (w == 2) return "paraffin (high melt, pillar)"; if (w == 3) return "soy"; if (w == 4) return "beeswax"; if (w == 5) return "palm"; if (w == 6) return "coconut"; return "gel"; }
@@ -97,7 +97,7 @@ void cnstep()
         // burn, burns; the flame's speed is how fast they reach each other. Wax takes 3.4 kg of oxygen a kg (paraffin, measured):
         // a unit of wax takes 2.58 millionths of the cell's oxygen share (1 millionth of a 1 mm cell's air holds 1.32 units of oxygen)
         int air = cnOX[c] * {{100}} / {{258}}, b = cnF[c] < air ? cnF[c] : air; if (b < 1) continue;
-        cnF[c] = cndrop(cnF[c], b); cnOX[c] = cndrop(cnOX[c], b * {{258}} / {{100}}); cnR[c] = b;
+        cnBURNT = cnBURNT + b; cnF[c] = cndrop(cnF[c], b); cnOX[c] = cndrop(cnOX[c], b * {{258}} / {{100}}); cnR[c] = b;
         cngive(c, b * {{46}} * {{80}} / {{100}}); light = light + b * {{46}} * {{20}} / {{100}};
         if (cnT[c] > {{2300000}}) cnT[c] = {{2300000}};
     }
@@ -118,7 +118,7 @@ void cnstart()                                         // the candle set up: wax
     for (i = 1; i <= cnNX * cnNY; i++) { cnF[i] = 1; cnOX[i] = {{210000}}; cnT[i] = cnamb(); cnISW[i] = low; cnMELTJ[i] = low; cnR[i] = low; }
     for (y = 2; y <= less(cnWY, 5); y++) for (x = less(cnWX, {{14}}); x <= cnWX + {{14}}; x++) { int c = cnat(x, y); cnISW[c] = 1; cnOX[c] = 1; }
     for (y = less(cnWY, 4); y <= cnWY; y++) { int c = cnat(cnWX, y); cnISW[c] = 1; cnOX[c] = 1; }
-    cnWSTORE = {{10000000000}}; cnMATCHON = 1; cnLIT = low; cnSTEPN = low;
+    cnWSTORE = {{10000000000}}; cnMATCHON = 1; cnLIT = low; cnSTEPN = low; cnBURNT = low;
 }
 int cnburning() { int i, b = low; for (i = 1; i <= cnNX * cnNY; i++) b = b + cnR[i]; return b; }
 int cnpool() { int x, p = low; for (x = less(cnWX, {{14}}); x <= cnWX + {{14}}; x++) if (cnmolten(cnat(x, less(cnWY, 5)))) p++; return p; }
@@ -128,4 +128,25 @@ int cntick()                                           // one millisecond; says 
     if (cnLIT < 1 && cnburning() >= 1) cnLIT = cnSTEPN;      // caught: burning of its own (a real wick's tip sits at boiling, so a warmth test never fires)
     if (cnMATCHON && ((cnLIT >= 1 && cnSTEPN > cnLIT + cnHOLDMS) || cnSTEPN > {{10000}})) { cnMATCHON = low; return 1; }
     return low;
+}
+// Saving and loading the candle as it is (Mike watches it in the room: the run lights it and saves it after a while, the room
+// carries on from there: the same core, started earlier). Ints are 8 bytes. A file that is not whole is refused.
+int cnsavearr(int w, int *a) { return linux(1, w, a, cnNX * cnNY * 8) == cnNX * cnNY * 8; }
+int cnloadarr(int fd, int *a) { return linux(low, fd, a, cnNX * cnNY * 8) == cnNX * cnNY * 8; }
+int cnsave(char *path)
+{
+    int w = linux(2, path, 355, 264); if (w < 1) return low;
+    int s[8]; s[1] = cnWSTORE; s[2] = cnLIT; s[3] = cnSTEPN; s[4] = cnBURNT; s[5] = cnMATCHON + 1; s[6] = cnGRAV; s[7] = cnWAX;   // MATCHON kept as 1 or 2 (no nothing in a file)
+    int ok = cnsavearr(w, &cnT[1]) && cnsavearr(w, &cnF[1]) && cnsavearr(w, &cnOX[1]) && cnsavearr(w, &cnISW[1]) && cnsavearr(w, &cnMELTJ[1]) && linux(1, w, &s[1], 7 * 8) == 7 * 8;
+    linux(3, w); return ok;
+}
+int cnload(char *path)
+{
+    int fd = linux(2, path, low, low); if (fd < 1) return low;
+    int s[8];
+    int ok = cnloadarr(fd, &cnT[1]) && cnloadarr(fd, &cnF[1]) && cnloadarr(fd, &cnOX[1]) && cnloadarr(fd, &cnISW[1]) && cnloadarr(fd, &cnMELTJ[1]) && linux(low, fd, &s[1], 7 * 8) == 7 * 8;
+    linux(3, fd);
+    if (!ok) { cnstart(); return low; }
+    cnWSTORE = s[1]; cnLIT = s[2]; cnSTEPN = s[3]; cnBURNT = s[4]; cnMATCHON = less(s[5], 1); cnGRAV = s[6]; cnWAX = s[7];
+    return 1;
 }

@@ -4,18 +4,19 @@
 // with the lab room's candle; this file only sets it going and reports.
 //   delta run lang/lab/runs/candle2.delta GRAVITY WAX MAPAT RUNMS HOLDMS > out.txt   (D numerals; GRAVITY 2 with, 1 none; WAX 1-7
 //   as Mike's data lists them; MAPAT: the ms to draw a map round the wick, ~ for none; RUNMS: how long; HOLDMS: how long the
-//   hand holds the match after the wick catches, 1,000 ms if left out)
-int low, MAPAT, RUNMS = 63C12;
+//   hand holds the match after the wick catches, 1,000 ms if left out; SAVEAT: the ms to save the candle for the lab room)
+int low, MAPAT, SAVEAT, RUNMS = 63C12;
 #include "../objects/candlecore.delta"
 int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + $A : low; if (d < 1) break; v = v * $D + d; i++; } return v; }
 int main(int argc, char **argv)
 {
     low = less(1, 1);
-    if (argc >= 2) cnGRAV = pnum(argv[2]); if (argc >= 3) cnWAX = pnum(argv[3]); if (argc >= 4) MAPAT = pnum(argv[4]); if (argc >= 5) RUNMS = pnum(argv[5]); if (argc >= 6) cnHOLDMS = pnum(argv[6]);
+    if (argc >= 2) cnGRAV = pnum(argv[2]); if (argc >= 3) cnWAX = pnum(argv[3]); if (argc >= 4) MAPAT = pnum(argv[4]); if (argc >= 5) RUNMS = pnum(argv[5]); if (argc >= 6) cnHOLDMS = pnum(argv[6]); if (argc >= 7) SAVEAT = pnum(argv[7]);
     cnstart();
     int t, burn = low, last = low;
     for (t = 1; t <= RUNMS; t++) {
         if (cntick()) say("  the match taken away at %d ms (the wick caught at %d ms)\n", t, cnLIT);
+        if (SAVEAT >= 1 && t == SAVEAT) { if (cnsave("lang/lab/data/candle-lit.state")) say("  saved for the lab room at %d ms (lang/lab/data/candle-lit.state)\n", t); else say("  could NOT save at %d ms\n", t); }
         int b2 = cnburning();
         if (t + 2378 > RUNMS) burn = burn + b2; last = b2;
         if (MAPAT >= 1 && t == MAPAT) {                              // a map round the wick: warmth (hundreds of K) and where it burns (*)

@@ -36,6 +36,7 @@ Each runs from the repo's top folder. Numbers in and out are D numerals (13s, di
 | Mass from just light | `lang/delta run lang/lab/runs/lightmass.delta 3 79 1B` | `runs/data/lightmass-2026-11-21/` | [the Hebble lattice](https://deltahexos.com/hebble.html#light), [the calculations](https://deltahexos.com/calcs.html#light) |
 | The wing nut flip | `lang/delta run lang/lab/runs/wingnut.delta 2` (1 and 3: the other axes) | `runs/data/wingnut-2026-11-21/` | [the space room](https://deltahexos.com/space.html) |
 | Salt round a seed (Dragonfly's hobby) | `lang/delta run lang/lab/runs/saltplay.delta 1` (and `A`, `79`); 3-D: `saltcube.delta` | `runs/data/saltplay-2026-11-21/` | [Dragonfly's hobbies](https://deltahexos.com/dragonfly.html) |
+| A candle that feeds itself (real energy, the flame's light, Mike's wax data; the room's candle is the same core) | `lang/delta run lang/lab/runs/candle2.delta 2 1 ~ 1528C` (gravity, paraffin, no map, 40 s); the room's lit candle: run from the repo's top with `... 2 1 ~ 1528C 4723 1528C` (match held 10 s, saved at 40 s to `lang/lab/data/candle-lit.state`) | `runs/data/candlespace-2026-11-21/` | track 2a-2e |
 | Side-on air and smoke over the raft | `lang/delta run lang/lab/runs/rafttunnel.delta` | | |
 | A flat field of thousands of balls | `lang/delta run lang/lab/runs/pingfield.delta` | `runs/data/` | |
 

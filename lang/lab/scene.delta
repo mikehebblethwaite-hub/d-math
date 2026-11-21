@@ -146,7 +146,7 @@ void scene_panel(int sel)
 void scene_air()                          // what each thing gives the air, and where it fills it
 {
     CANX = candle1.x; CANZ = candle1.z;
-    air_heat(candle1.x, 2B5, candle1.z, 2A54B);                      // the candle's flame: about 80 watts
+    if (CDBURN >= 1) air_heat(candle1.x, 2B5, candle1.z, 2A54B);        // the candle's flame, while it burns: about 80 watts (a real candle's; MAGIC: not yet from the core's own burning)
     air_heat(faraday1.x, 1A5, faraday1.z, 3C63);                         // Faraday's pile and contacts: 8.7 watts
     air_heat(MID, less(ROOM, 4C * 6), MID, 213D5);                       // the lab's lamp: 60 watts
     air_heat(MID, less(ROOM, 4C * 6), MID + ROOM, 213D5);                // the wave room's lamp

@@ -1,0 +1,64 @@
+// The lab room's candle (Mike 21 Nov 2026: "the wax does not melt or reduce"): the tested candle core itself
+// (objects/candlecore.delta, from src/candlecore-src.delta; track 2a MATCH: it melts its own pool and feeds itself), run live,
+// drawn as it is: the wax 29 mm across, its melted pool on top, the wick, the flame where the core burns, the candle shorter
+// by the wax it has burned. It runs as many of its milliseconds each picture as fit in about 30 ms of this machine, so it runs
+// slower than real time, and the panel says how much. MAGIC, said on the panel: the match held 10 s (in 1 mm cells the early
+// flame cannot yet hold its wick alone); no soot yet (a real candle's yellow is glowing soot), so the flame shows blue; it
+// burns down as the slice does (a wall of wick, faster than a round candle).
+#include "light.delta"                    // the colours things shine with, from the physics
+#include "objects/candlecore.delta"
+#define CDTALL {{192}}                    // the candle stands 3 inches tall when new (64ths of an inch)
+int CDREAL, CDLAST, CDBURN, CDFROM;          // CDFROM: the candle time it was lit before you came in (from the saved run), or nothing                  // this machine's ms spent watching it; the clock last picture; burning now (for the room's air)
+int mmu(int mm) { return mm * {{2520}} / {{1000}}; }   // millimetres to 64ths of an inch
+void candle_start()                       // lit before you came in, when the run has saved one (lang/lab/runs/candle2.delta, its 7th input); else lit as you watch
+{
+    cnstart(); cnHOLDMS = {{10000}}; CDREAL = low; CDLAST = low; CDBURN = low; CDFROM = low;
+    if (cnload("lang/lab/data/candle-lit.state")) CDFROM = cnSTEPN;
+}
+void candle_steps()
+{
+    int tstart = nowms(), n = low;
+    if (CDLAST >= 1 && tstart > CDLAST && less(tstart, CDLAST) < {{1000}}) CDREAL = CDREAL + less(tstart, CDLAST);   // only the time it is watched
+    while (n < {{400}}) { cntick(); n++; if (nowms() >= tstart + {{30}}) break; }
+    CDBURN = cnburning(); CDLAST = nowms();
+}
+int cdshrink() { return cnBURNT / {{10350000000}}; }    // the wax burned in the slice (1 mm thick, 29 mm across, 900 kg a cubic metre), as height in 64ths of an inch
+int cdtop() { int s = cdshrink(); return CDTALL > s + {{64}} ? less(CDTALL, s) : {{64}}; }
+void candle_draw(int x, int z)
+{
+    int top = cdtop(), p = cnpool();
+    lab_cyl(x, z, mmu({{14}}) + 1, 1, top, 9);                        // the wax: 29 mm across
+    if (p >= 1) lab_cyl(x, z, mmu(p) / 2 + 1, less(top, 2), top + 1, 3);   // the melted pool on top: clear, as melted wax is
+    lab_cyl(x, z, 1, top, top + mmu(5), {{10}});                       // the wick, 5 mm of it above the wax
+    int cx, cy;
+    for (cy = less(cnWY, 4); cy <= cnWY + {{30}}; cy++) for (cx = less(cnWX, {{12}}); cx <= cnWX + {{12}}; cx++) {
+        int c = cnat(cx, cy), b = cnR[c]; if (b < 1) continue;
+        int wx = cx >= cnWX ? x + mmu(less(cx, cnWX)) : less(x, mmu(less(cnWX, cx)));
+        int wy = top + mmu(less(cy, less(cnWY, 5)));
+        burnglow(lower({{13}}, b / {{3000}} + 1)); lab_colour(GLR, GLG, GLB); lab_glow(wx, wy, z, mmu(2));
+    }
+}
+void candle_panel()
+{
+    lab_line("A candle that feeds itself: the tested core (lang/lab/src/candlecore-src.delta; track 2a MATCH)");
+    lab_value("candle time, ms", cnSTEPN, "");
+    if (CDFROM >= 1) lab_value("  lit before you came in: the run burned it for (ms), the room carries on", CDFROM, "");
+    lab_value("this machine's time watching it, ms", CDREAL, "");
+    if (cnSTEPN >= 1 && CDREAL >= 1) lab_value("  so it runs slower than real time by", CDREAL / cnSTEPN + 1, "times");
+    lab_line(cnMATCHON ? "  the match is held to the wick" : cnLIT >= 1 ? "  the match is away: it burns on its own" : "  the match is away");
+    lab_value("melted pool across, mm", cnpool(), "");
+    lab_value("wax in the wick, thousandths of a mg", cnWSTORE / {{1000000}}, "");
+    lab_value("burning now, units a ms", CDBURN, "");
+    lab_value("shorter by, 64ths of an inch", cdshrink(), "");
+    lab_line("  MAGIC: the match held 10 s (1 mm cells: the early flame cannot yet hold its wick alone)");
+    lab_line("  MAGIC: no soot yet, so the flame shows blue (a real candle's yellow is glowing soot)");
+    lab_line("  MAGIC: it burns down as its slice does (a wall of wick), faster than a round candle");
+}
+
+thing candle {
+    int x, z;                               // where it stands on the floor
+    void start() { candle_start(); }
+    void step() { candle_steps(); }
+    void draw() { candle_draw(x, z); }
+    void panel() { candle_panel(); }
+};
