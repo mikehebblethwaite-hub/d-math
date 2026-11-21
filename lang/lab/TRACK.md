@@ -24,7 +24,7 @@ to fix a fault (written in FAILS.md); several runs where chance is used; misses 
 |---|---|---|---|---|
 | 1 | Cold ping pong balls in a funnel under suction jam: they do not raft hex (Mike's own cold rigs, 2009) | jams at 2 degrees with ball-on-ball grip | MATCH (proofs/pingpong-2026-11-21/REAL-CHECKS.md) | runs/pingfunnel.delta |
 | 2 | Salt grown slowly makes clear cubes; grown fast it branches and crusts, and makes hollow stepped hopper cubes | slow: a full square; fast: branching | cubes and branching: MATCH; hoppers: not seen yet | runs/saltplay.delta, saltcube.delta |
-| 3 | Faraday's 1821 rotations: a wire turns round a magnet in mercury, and a magnet round a wire | the paper (5.4) accounts for its energy only; whether the turning comes out of the rules or is drawn in is not yet checked | to check | lab objects/faraday.delta |
+| 3 | Faraday's 1821 rotations: a wire turns round a magnet in mercury, and a magnet round a wire | checked 21 Nov: the turning is DRAWN at set speeds; only the energy book is worked out | NOT A TEST YET (magic, in MAGIC.md with what would make it real) | lab objects/faraday.delta |
 | 4 | Basalt cooling cracks into columns, most of them six-sided (Giant's Causeway) | from a scatter, 3 in every 4 columns six-sided, fives and sevens in equal numbers (paper 5.3); no hexagon drawn | MATCH, but checked AFTER the run (the run came days before this row was written) | causeway.delta |
 | 5 | Steel quenched from red hot is hard and brittle (it snaps); tempered (reheated gently) it gets its give back and bends (Mike, 11:56: "metal blade hardening"; written before any run) | not run yet | - | - |
 

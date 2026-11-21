@@ -49,6 +49,7 @@ not yet traced) comes down as this list does.
 | The weather balloon is a perfect ball all the way up (only its size changes) | atmosphere room, balloon | a rubber skin that stretches, the lift gas pushing harder at the top than the bottom: the launch pear shape and the rounding out should come by themselves; Mike's own sightings of real ones are the check (asked 21 Nov 11:17) |
 | The Earth's spin left out of gravity (the pull is 9.820 at the ground, measured 9.81) | atmos, balloon | the Earth's turning: the outward push at each latitude |
 | The space room's floating: free fall around the Earth, not "no gravity" (the pull at 400 km is still 88.5% of the ground's) | space room | an orbit drawn: the room and everything in it falling round the Earth together |
+| Faraday's wire and magnet turn at set speeds (one place every 2 and 3 frames): drawn, not worked out | the lab, Faraday's glasses | the push on the wire from the current crossing the magnet's field (current x field x length) against the mercury's drag: the speed and the way round (which flips if the pile is turned round) come out by themselves |
 
 ## Links (attachments, inputs, outputs)
 | Magic | Where | What would make it real |
