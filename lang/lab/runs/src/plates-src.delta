@@ -1,0 +1,69 @@
+// Doomsday Book cb325fcc-2754-4787-b960-d8ffaa633b7c (Mike J Hebblethwaite): Where two plates meet, one diving under the other (plates)
+// plates: where two plates meet, one sliding under the other (21 Nov 2026; Mike: "please can the room sit where two plates slide
+// over each other"; known answers written in lang/lab/TRACK.md before this was built). A slice 600 km across and 700 km down,
+// in 5 km cells, each holding its warmth; heat spreads cell to neighbour (rock carries heat at about 1 square millimetre a
+// second); each step is 100,000 years. The ocean plate's coldness is not put in: it is made by cooling a column of hot rock
+// at the sea floor for 50 million years (its age at the trench) by the same rule. Then it moves 5 cm a year toward the trench
+// and dives under the other plate at 45 degrees, one cell along and one down each step, carrying its warmth with it, while
+// heat soaks into it from all round.
+// MAGIC (fixed temps): the surface held at 0 C; rock below the plates starting at 1,350 C (the mantle's warmth); the rock
+// above the diving plate (the wedge) does not flow; the slope (45 degrees) is chosen.
+// Measured: how deep the diving plate's middle stays colder than 650 C (cold rock snaps: earthquakes; warmer rock bends);
+// the heat flowing up through the surface across the slice (low over cold rock); where the plate's top reaches 100 km down.
+#define NX {{120}}
+#define NZ {{140}}
+#define TM {{1350000000}}                         // warmth in millionths of a degree (thousandths round the deep, slow changes away)
+int low;
+int T[{{17000}}], T2[{{17000}}], COL[{{141}}], COLNEW[{{141}}];
+int at(int x, int z) { return less(z, 1) * NX + x; }
+int XT = {{30}};                                   // the trench: 150 km from the left edge
+int inslab(int x, int z) { if (x <= XT) return low; int top = less(x, XT); return z > top && z <= top + {{23}}; }   // below its top line, 113 km across (80 km thick)
+int inplate(int x, int z) { return x <= XT && z <= {{16}}; }   // the ocean plate coming in: the top 80 km left of the trench
+void spread()
+{
+    int x, z;
+    for (z = 2; z <= less(NZ, 1); z++) for (x = 2; x <= less(NX, 1); x++) {
+        int c = at(x, z);
+        int s = T[at(x + 1, z)] + T[at(less(x, 1), z)] + T[at(x, z + 1)] + T[at(x, less(z, 1))];
+        int me = T[c] * 4;
+        T2[c] = s >= me ? T[c] + less(s, me) * {{126}} / {{1000}} : less(T[c], less(me, s) * {{126}} / {{1000}});   // kappa dt / dx^2 = 0.126
+    }
+    for (z = 2; z <= less(NZ, 1); z++) for (x = 2; x <= less(NX, 1); x++) T[at(x, z)] = T2[at(x, z)];
+    for (x = 1; x <= NX; x++) { T[at(x, 1)] = 1; T[at(x, NZ)] = TM; }    // the surface (MAGIC: 0 C, kept as 1 mK) and the deep (MAGIC: 1,350 C)
+    for (z = 1; z <= NZ; z++) { T[at(NX, z)] = T[at(less(NX, 1), z)]; }  // the far side: no heat through it
+}
+void carry()                                        // the plate moves: right along the top, then down the slope, one cell a step
+{
+    int x, z;
+    for (z = NZ; z >= 2; z = less(z, 1)) for (x = NX; x >= 2; x = less(x, 1)) {
+        if (inslab(x, z)) T[at(x, z)] = T[at(less(x, 1), less(z, 1))];
+    }
+    for (z = 1; z <= {{16}}; z++) for (x = XT; x >= 2; x = less(x, 1)) T[at(x, z)] = T[at(less(x, 1), z)];
+    for (z = 1; z <= {{16}}; z++) T[at(1, z)] = COL[z];   // new ocean plate, 50 million years old, comes in at the left
+}
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    int x, z, step;
+    // the ocean plate: a column of hot rock under the sea floor, cooled from the top for 50 million years (500 steps)
+    for (z = 1; z <= NZ; z++) COL[z] = TM;
+    for (step = 1; step <= {{500}}; step++) {
+        for (z = 2; z <= less(NZ, 1); z++) { int s = COL[z + 1] + COL[less(z, 1)], me = COL[z] * 2; COLNEW[z] = s >= me ? COL[z] + less(s, me) * {{126}} / {{1000}} : less(COL[z], less(me, s) * {{126}} / {{1000}}); }
+        for (z = 2; z <= less(NZ, 1); z++) COL[z] = COLNEW[z];
+        COL[1] = 1;
+    }
+    say("the ocean plate after 50 million years of cooling: %d C at 25 km, %d C at 50 km, %d C at 80 km, %d C at 100 km\n", COL[6] / {{1000000}}, COL[{{11}}] / {{1000000}}, COL[{{17}}] / {{1000000}}, COL[{{21}}] / {{1000000}});
+    for (z = 1; z <= NZ; z++) for (x = 1; x <= NX; x++) T[at(x, z)] = z <= {{16}} && x <= XT ? COL[z] : z <= {{20}} ? COL[z] : TM;   // the other plate: the same cooled column on top (MAGIC: its age)
+    for (step = 1; step <= {{300}}; step++) { carry(); spread(); }   // 30 million years
+    // the diving plate's middle: walk down it; the deepest place still colder than 650 C (earthquakes)
+    int quake = low, k;
+    for (k = 1; k + {{12}} <= less(NZ, 1) && XT + k + {{12}} <= less(NX, 1); k++) {
+        int mid = T[at(XT + k + {{6}}, k + {{12}})];   // halfway into the plate, across from its top
+        if (mid < {{650000000}}) quake = (k + {{12}}) * 5;
+    }
+    say("earthquakes (the diving plate still colder than 650 C in its middle) go down to %d km\n", quake);
+    say("heat flowing up through the surface, milliwatts a square metre (rock 2.5 W per metre per degree), every 50 km across (the trench at 150 km):\n");
+    for (x = 1; x <= NX; x = x + {{10}}) say("  %d km: %d\n", x * 5, (T[at(x, 2)] > T[at(x, 1)] ? less(T[at(x, 2)], T[at(x, 1)]) : 1) * {{2500}} / {{5000}} / {{1000000}});
+    say("the plate's top reaches 100 km down %d km past the trench (from the chosen 45 degree slope: not a test)\n", {{100}});
+    return 1;
+}

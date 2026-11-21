@@ -68,8 +68,10 @@ magic): heat flowing up from inside and made in the rock itself, carried only so
 
 | # | Known result (what really happens) | Lab's answer | Match? | Run |
 |---|---|---|---|---|
-| 5 | The deepest sea is a trench where one plate slides under another (the Mariana trench, about 11 km: the deep's own bottom) | not run yet | - | - |
-| 6 | Volcanoes stand in a line about 100-200 km behind the trench, above where the sinking plate reaches about 100 km down | not run yet | - | - |
-| 7 | Earthquakes get deeper the further from the trench, along the sinking plate, down to about 700 km | not run yet | - | - |
-| 8 | Heat flow through the sea floor is low over the trench (the cold sinking plate) and high under the volcanoes | not run yet | - | - |
+| 5 | The deepest sea is a trench where one plate slides under another (the Mariana trench, about 11 km: the deep's own bottom) | the trench is the shape the run starts with | NOT A TEST | runs/plates.delta |
+| 6 | Volcanoes stand in a line about 100-200 km behind the trench, above where the sinking plate reaches about 100 km down | 100 km, straight from the chosen 45 degree slope | NOT A TEST (circular) | runs/plates.delta |
+| 7 | Earthquakes get deeper the further from the trench, along the sinking plate, down to about 700 km | the plate's middle stays below 650 C (a chosen snapping limit) only to 445 km | MISS | runs/plates.delta |
+| 8 | Heat flow through the sea floor is low over the trench (the cold sinking plate) and high under the volcanoes | over the trench 11 mW/m2 against 47 coming in (LOW); under the volcano line flat, about 38 (no flowing, melting rock above the plate in this model) | LOW: MATCH. HIGH: MISS | runs/plates.delta |
 
+Also checked (not a written-before answer, said so): the ocean plate cooled 50 million years by the lab's stepping matches the
+old maths' cooling exactly (464 C at 25 km, 846 at 50, 1,142 at 80, 1,249 at 100) and its heat flow (47 mW/m2 against 48).

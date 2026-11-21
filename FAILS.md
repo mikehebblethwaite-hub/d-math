@@ -163,3 +163,10 @@ mix, move): each a crash avoided before it ran.
 - Effect: about 3 distinct shaken and 2 distinct still runs, not 5 and 5. The result (FAIL) stands but is weaker than planned.
 - Fix: every run's chance = the world's reading stirred with a run number given on its command line (or its process number).
 - Lesson: when repeating a chance run, check the repeats differ before trusting their average.
+
+## 21 Nov 2026 13:35 UK: plates: heat spread too slowly, and a bare 11 that meant 14
+- What: the spreading step was divided by 2 (column) and 4 (slice) by mistake: heat moved 2-4 times too slowly. Then a print
+  label COL[11] read as D numeral 11 = 14, so "50 km" showed 65 km's warmth; I blamed rounding first (wrong).
+- Found: comparing with the old maths' cooling and then running the same steps in plain floating maths digit by digit.
+- Lesson: in Delta source, only 1-9 are the same as ordinary numbers; every bigger number goes in {{ }}. Check the measuring
+  (the label, the index) before blaming the model.

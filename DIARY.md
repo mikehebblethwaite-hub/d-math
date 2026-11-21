@@ -192,3 +192,13 @@ them were his sons with Joe Johnson and his son Anthony. Photos: family 2,817, s
 people's 5, unsorted 316; videos: family 312, other people's 10, unsorted 19. Moved, never deleted; sha256 before and after;
 logged and undoable. Then a search page (wildcards, all fields) and right-click (move, name, delete-to-bin) through a guarded
 door and a worker with its own user. Mike's product idea from it: wildcard search of the "i" data.
+
+**27.** The plate boundary under the deep (Mike: the crust room "where two plates slide over each other"), known answers
+written before. A slice 600 km by 700 km in 5 km cells, 100,000 years a step; the ocean plate's coldness made by cooling it
+for its age (it matches the old maths' cooling exactly: 464 C at 25 km, 846 at 50, 1,142 at 80; heat flow 47 against 48).
+Heat flow low over the trench (11 against 47): MATCH. High under the volcanoes: MISS (the rock above the plate does not flow
+or melt here: magic). Earthquakes to about 700 km: MISS (cold enough to snap only to 445 km, with a chosen 650 C limit). The
+trench and the volcano line came from the shape and slope put in: not tests. Two faults found on the way and fixed: heat
+spread four times too slowly (a stray division), and a bare 11 in the source read as a D numeral (14), so a label pointed at
+the wrong depth; the column itself was right, checked against plain maths digit by digit. Run: lang/lab/runs/plates.delta
+(Doomsday Book cb325fcc-2754-4787-b960-d8ffaa633b7c).

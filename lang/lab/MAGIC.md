@@ -61,6 +61,9 @@ not yet traced) comes down as this list does.
 | FIXED TEMPS: the ocean's warmth by depth put in from measurements | the deep | the sun warming the top, cold polar water sinking |
 | FIXED TEMPS: the candle's room air at 20 C, its wick held at 327 C, burning starting at 427 C, the flame capped at 2,027 C | candlespace | the room's own air (the lab's air cells); the wick warmed by the flame; the flame's warmth from the heat its burning gives less what it loses, no cap |
 | FIXED TEMPS: the balls and the lab air start at 20 C | pingfunnel, pingblind | the lab room's own air at the time (the air cells, the outside, the sea) |
+| The rock above the diving plate (the wedge) does not flow or melt | plates | the wedge dragged down by the plate and hot rock flowing in behind; water from the plate lowering its melting point: the volcanoes' heat |
+| FIXED TEMPS: the plates' surface held at 0 C and the deep rock at 1,350 C | plates | the Earth's inner heat flowing out (the core and the rock's own radioactive warmth) |
+| The diving plate's slope (45 degrees) and the snapping limit (650 C) are chosen | plates | the slope from the plate's weight against the rock's push; the limit from rock strength by warmth |
 
 ## Links (attachments, inputs, outputs)
 | Magic | Where | What would make it real |
