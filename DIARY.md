@@ -248,3 +248,6 @@ numbers, so the walk needs no root, no pi, no cosine. Radius 10: 7.2; 100: 6.9; 
 form: (the walk round) squared over (the radius) squared goes to 48 (47.999 at 9,968). Why: each hex step crosses a little more
 than the straight line by an amount set only by its angle; averaged round, that is 4 roots of 3 over 2 pi, so the pi cancels.
 On the hex a circle is 48 squared-radii round, squared; pi only comes in if every direction is allowed at once.
+
+**2D.** Mike chose the symbol: ⬡ (a hexagon, said "hex"). round = ⬡ R; in whole numbers round² = ⬡² R², ⬡² = 39 (48 in the
+old numbers); in the old maths ⬡ = 4 roots of 3, about 6.9282. Put on the calculations page, section 4.

@@ -144,7 +144,10 @@
   </section>
 
   <section id="round">
-    <h2>4. How far round a circle is, on the hex</h2>
+    <h2>4. How far round a circle is, on the hex: &#x2B21;</h2>
+    <p class="lead"><b>round = &#x2B21; R</b>, and in whole numbers <b>round&sup2; = &#x2B21;&sup2; R&sup2;</b> with
+      <b>&#x2B21;&sup2; = <code>39</code></b> (48 in the old numbers). &#x2B21; is said &ldquo;hex&rdquo;: Mike J
+      Hebblethwaite&rsquo;s symbol for it, 21 November 2026, the shape the number comes from.</p>
     <p>Code: <code>lang/lab/runs/src/hexround-src.delta</code> (Doomsday Book <code>d91662d9-63f2-4968-a29e-271635efb87d</code>). Run:
       <code>delta run lang/lab/runs/hexround.delta 5BC</code> (a radius of <code>5BC</code> edges).</p>
     <h3>The rules, in D</h3>
@@ -158,9 +161,9 @@
     <h3>What came out</h3>
     <p>Round &divide; radius: radius <code>A</code> &rarr; 7.2; <code>79</code> &rarr; 6.9; <code>5BC</code> &rarr; 6.93;
       <code>46CA</code> &rarr; 6.928. As whole numbers: <b>(the walk round)&sup2; &divide; (the radius)&sup2; &rarr; 48</b>
-      (47.999 at <code>46CA</code>). It never strays more than half an edge from the circle.</p>
+      (47.999 at <code>46CA</code>): that is &#x2B21;&sup2; = <code>39</code>. It never strays more than half an edge from the circle.</p>
     <h3>In the old maths</h3>
-    <p>Round = 4&radic;3 &middot; R &asymp; 6.9282 R, against their 2&pi;R &asymp; 6.2832 R. Each hex step crosses a little
+    <p>&#x2B21; = 4&radic;3 &asymp; 6.9282, so round = &#x2B21;R &asymp; 6.9282 R, against their 2&pi;R &asymp; 6.2832 R. Each hex step crosses a little
       more than the straight line, by an amount set only by its angle; averaged right round that is 4&radic;3 &divide; 2&pi;,
       so their &pi; cancels out. Their &pi; is what comes out only if every direction is allowed at once.</p>
   </section>
