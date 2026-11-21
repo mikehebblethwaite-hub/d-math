@@ -395,8 +395,11 @@ allows, the Henry at full power, about 93 C: 69 s (power B, holes 3 tenths).
 
 **What is put in, said plainly.** The hand-set hex start, and the flattening rule (how fast a warm wall flattens under
 the pull) is the lab's own choice, marked as magic. In these runs one flatness number is kept per ball and the
-pictures draw its faces half way to each neighbour, so the hexagons in the pictures follow from the hex start. A blind
-test is under way (section 7).
+pictures draw its faces half way to each neighbour, so the hexagons in the pictures follow from the hex start.
+**Checked blind since (section 7): with a wall rule written from celluloid's own physics, the hand-set raft keeps its hex
+but its walls flatten only 12% (sealed balls) to 38% (vented), none fully flat in 5 minutes at 93 C. So the warmth window
+and the times in the table above come from the lab's own flattening rule (magic), not from the material: the raft sealing
+is not shown.**
 
 ## 6. Measuring without negatives
 
@@ -429,11 +432,12 @@ that down by name, and the amount itself is always something.
 
 ## 7. What is shown, and what is not yet
 
-- The raft (5.8): a blind test is running. A fresh helper, never told the dream or any expected pattern, wrote the wall
-  rule from materials alone (celluloid; sealed, with a hole, and splitting at its seam); the balls start scattered, each
-  wall is its own, and hex is judged by numbers (six-fold order round each ball). The plan and pass mark were stamped
-  before any run (`proofs/blind-wall-2026-11-21/`). Its first finding: a sealed ball barely flattens (its heated air
-  pushes back like a tyre); a vented or split ball flattens about a third of the way.
+- The raft (5.8), checked blind (proofs/blind-wall-2026-11-21, every plan stamped before its runs): a fresh helper, never told
+  the dream, wrote the wall rule from celluloid alone. Scattered balls did NOT go hex from heat and suction (sealed and
+  vented: FAIL). Shaking the tray (Mike: his hand on his rig) packed scattered balls hex, cold or hot (0.91-0.93 six-fold
+  order, up to 45 of 100 six round one), so the heat added nothing to the packing; repeated runs are checking it. Hand-set
+  in hex, the real-material walls flatten 12-38%, none fully: the raft does not seal in the lab's 5 minutes. Packing and
+  sealing are two steps; the sealing is still to be shown.
 - The models are demonstrations by model, not proofs. They show that D's rules, kept exactly, produce hex where
   neighbours share evenly. A proof in D's own terms is the next step.
 - In three dimensions equal balls pack in hex layers stacked in the hollows (twelve neighbours), but D's own sharing
