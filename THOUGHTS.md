@@ -25,3 +25,12 @@ Mike, 19 Nov 2026: "people may or may not adopt it as a standard, who knows, so 
 (or our own compression) is taken up by others, it becomes something other systems already read, and can travel without
 the standard wrapper. Until then it travels wrapped. Future us: look at who reads .hexi before dropping the wrapper; keep
 HEXI.md complete and plain, so anyone can build a reader from it alone.
+
+## Mike's current theory (21 Nov 2026, 08:14 UK; his words)
+"When photons of light are slowed to particles, if 3, the flowing wave of the surrounding neighbour light forces them to hex,
+producing matter." Also his: "the hole flow goes through is space time which seems to be a lattice of holes per three";
+"the funnel is gravity, the path of falling"; "all one thing ... same in a different state dependent on neighbours and their
+current condition".
+What the ball-and-flow lab says so far (lang/lab/runs, 21 Nov): cold balls in a flow jam (lab and Mike's bench agree); the hex
+came only once the balls were pliable (heat) and the flow pulled their walls into the gaps; a hole under every three lets
+one Henry close a whole field. In the analogue the "slowing" (a pliable state) looks necessary. A likeness to test, not proof.
