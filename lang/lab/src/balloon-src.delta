@@ -1,0 +1,68 @@
+// The weather balloon in the atmosphere room (floor 2; Mike 21 Nov 2026: "do me a rising balloon expands as it reaches the
+// upper atmosphere then pops in real atmosphere see what it does in ours"). The same column of air as lang/lab/runs/atmos.delta
+// (which matched: it bursts at 30,580 m), worked out live as it climbs: each 10 m up the pressure drops by the weight of that air;
+// air full of water vapour cools as it rises (water condensing gives warmth back); above 11 km the sky's warmth is MEASURED
+// (standard atmosphere), not worked out. The balloon: rubber, 2 m across at launch, bursts at its maker's size, 8.63 m; it rises
+// about 5 m a second; each picture is 30 seconds of flight (MAGIC: time sped up). It hovers in the middle of the room while the
+// panel says how high it is (MAGIC: the room does not go 30 km up); drawn a fifth of its size.
+#define BLEVEL {{101325000}}
+int BZ, BP, BT, BAL, BPOP, BBURSTZ, BRISEN = 1;
+int bheat(int tmk) { return tmk >= {{273150}} ? less({{2501000}}, less(tmk, {{273150}}) * {{2370}} / {{1000}}) : {{2501000}} + less({{273150}}, tmk) * {{2370}} / {{1000}}; }
+int bvapour(int tmk)
+{
+    int t = {{373150}}, e = {{101325000}};
+    while (t > tmk + {{50}}) { int k = bheat(t) * {{1000}} / {{4615}} * {{10}} / (t / {{100}}) * {{1000}} / (t / {{100}}); e = less(e, e / {{1000}} * k / {{10000}} * {{100}}); t = less(t, {{100}}); }
+    return e;
+}
+void balloon_start() { BZ = low; BP = BLEVEL; BT = {{288150}}; BPOP = low; BAL = {{1000}}; }
+int bcube(int n) { int lo = 1, hi = {{30000}}; while (lo < hi) { int m = (lo + hi + 1) / 2; if (m * m * m <= n) lo = m; else hi = less(m, 1); } return lo; }   // the whole cube root (n in mm cubed)
+int bacross() { int g = BLEVEL / (BP / {{1000}}) * (BT / {{100}}) / {{2881}}; return bcube({{8000000}} * g); }   // mm across: its volume grows as the gas law says (2 m at the ground: 8,000,000,000 mm3 x g/1000)
+void balloon_step()
+{
+    if (BPOP >= 1) { BPOP++; if (BPOP > {{40}}) balloon_start(); return; }
+    int k;
+    for (k = 1; k <= {{15}}; k++) {                   // 30 s at 5 m/s: fifteen steps of 10 m
+        int dp = BP / {{1000}} * {{2842}} / {{8314}} * {{1000}} / (BT / {{1000}});
+        if (BZ < {{11000}}) {
+            int es = bvapour(BT), rs = es / {{1000}} * {{622000}} / (less(BP, es) / {{1000}}), L = bheat(BT) / {{1000}}, tk = BT / {{1000}};
+            int num = {{1000000}} + L * rs / ({{287}} * tk) * {{1000}}, den = {{1000000}} + L * L * rs / {{1000}} * {{622}} * {{1000}} / ({{1005}} * {{287}} * tk * tk / {{1000}});
+            BT = less(BT, {{97612}} * (num / {{1000}}) / (den / {{1000}}) / {{1000}});
+        } else if (BZ >= {{20000}} && BZ < {{32000}}) BT = BT + {{10}}; else if (BZ >= {{32000}}) BT = BT + {{28}};
+        BP = less(BP, dp); BZ = BZ + {{10}};
+        if (bacross() >= {{8630}}) { BPOP = 1; BBURSTZ = BZ; return; }
+    }
+}
+void balloon_draw()
+{
+    int cx = MID, cz = MID + FOOT * 4, cy = FOOT * 4, i;
+    if (BPOP >= 1) {                                  // the pop: shreds of rubber flying out
+        lab_colour({{230}}, {{80}}, {{70}});
+        for (i = 1; i <= {{12}}; i++) { int sp = BPOP * {{24}}, a = i * {{7}} % {{12}} + 1;
+            int dx = sp * (a % 4 + 1) / 4, dz = sp * ((a / 4) % 3 + 1) / 3;
+            lab_glow(i % 2 ? cx + dx : less(cx, dx), less(cy + sp / 2, i % 3 * sp / 3), i % 4 < 2 ? cz + dz : less(cz, dz), INCH * 2); }
+        return;
+    }
+    int across = bacross() * INCH * {{1000}} / {{25400}} / 5;   // a fifth of its size, in sixty-fourths of an inch
+    if (cy > across / 2 + FOOT * 2 + INCH * 6) {      // the string down to the box (while there is room above the floor)
+        lab_tube(cx, less(cy, across / 2), cz, cx, less(cy, across / 2 + FOOT * 2), cz);
+        lab_alpha({{240}}); lab_colour({{180}}, {{150}}, {{110}}); lab_box(less(cx, INCH * 3), less(cz, INCH * 3), cx + INCH * 3, cz + INCH * 3, less(cy, across / 2 + FOOT * 2 + INCH * 5), less(cy, across / 2 + FOOT * 2));
+        lab_alpha({{149}});
+    }
+    if (lab_proj(cx, cy, cz) < 1) return;             // the balloon: a shaded round, lit from above
+    int rr = across / 2 * F * 13 / PD, x1 = pix(less(PX, rr)), x2 = pix(PX + rr), y1 = pix(less(PY, rr)), y2 = pix(PY + rr), x, y;
+    for (y = y1; y <= y2; y++) for (x = x1; x <= x2; x++) {
+        if (!onscreen(x, y)) continue;
+        int dx = apart(BIG * 13 + x * 13 + 8, PX), dy = apart(BIG * 13 + y * 13 + 8, PY), d2 = dx * dx + dy * dy;
+        if (d2 >= rr * rr) continue;
+        int lit = less({{256}}, d2 * {{140}} / (rr * rr)); int top = BIG * 13 + y * 13 < PY ? dy * {{60}} / (rr + 1) : low;
+        mixpx(x, y, lower({{255}}, {{220}} * lit / {{256}} + top), lower({{255}}, {{60}} * lit / {{256}} + top), lower({{255}}, {{55}} * lit / {{256}} + top), {{235}});
+    }
+}
+void balloon_panel()
+{
+    lab_line("the weather balloon (2 m across at launch, rubber; bursts at 8.63 m): rising about 5 m a second, 30 s a picture (MAGIC: sped up)");
+    lab_value("  how high, metres", BZ, ""); lab_value("  the air's pressure, pascals", BP / {{1000}}, "");
+    lab_value("  the air's warmth, thousandths of a degree over the lowest", BT, ""); lab_value("  across, millimetres", BPOP ? {{8630}} : bacross(), "");
+    if (BBURSTZ) lab_value("  the last one burst at, metres", BBURSTZ, "");
+    lab_line("  MAGIC: it hovers here while the panel climbs; drawn a fifth of its size; above 11 km the warmth is measured, not worked out");
+}
