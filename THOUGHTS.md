@@ -53,3 +53,9 @@ Mike 10:29: "blind test soft flat circular discs about a cm thick instead of bal
 after the ball tests: the same blind test with soft flat discs ~1 cm thick (no air inside to push back; walls are the disc's
 own rim): does a field of them go hex the same way? Plan + pass mark to be stamped before it runs, like the balls.
 Mike 10:31: try a known space / low-orbit microgravity experiment in the space room, after these.
+
+## 21 Nov 2026 10:47 UK, Mike's business idea (his words)
+"what would be cool is a company building paying for a lower earth orbit experiment and we do it here first for a 'fee' then
+they can compare to a real one after" - pre-flight predictions in the Delta lab, stamped (OTS) before launch, compared after
+flight. Needs first: a track record on known space results (wing nut done; candle, crystals, floating liquid next), several
+runs per prediction with a range, and the UK legal check before any payment (B2B bank transfer + invoice, as Perch).
