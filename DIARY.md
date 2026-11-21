@@ -258,3 +258,11 @@ room's air runs only when a thing in focus needs it (Mike: the motor ran while h
 requires the use of delta D": the runs are read with lang/oldnumbers.delta and the sources edited with lang/swap.delta, both
 Delta, in place of the Python I had used round the edges. The candle's match was found to be an endless heat supply (the
 wick held at 1,500 K): now a real match of about 85 W.
+
+**2F.** The Earth's spin into the sky's gravity, without a cosine or pi: the spin lightens you by (your speed round the axis)
+squared over the Earth's radius, and that speed is your circle of latitude's measured length (off the map) over one turn,
+86,164 s. Known answers written first (sky 9). 45 degrees: 9.8030 (standard 9.80665); the equator 9.7860 (measured 9.780);
+a pole 9.8200 (9.832). CLOSE, all within 0.12%: the spin gives about two thirds of the difference between equator and pole,
+the rest is the Earth's flattened shape (the lab's Earth is a ball: now the magic in its place). The balloon still bursts at
+30,800 m. Twice today I typed a D numeral by hand and got it wrong (a run length, the equator's length); numerals.delta had
+the right one both times: numbers go through it, never through my head.
