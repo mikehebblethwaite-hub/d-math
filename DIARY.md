@@ -202,3 +202,12 @@ trench and the volcano line came from the shape and slope put in: not tests. Two
 spread four times too slowly (a stray division), and a bare 11 in the source read as a D numeral (14), so a label pointed at
 the wrong depth; the column itself was right, checked against plain maths digit by digit. Run: lang/lab/runs/plates.delta
 (Doomsday Book cb325fcc-2754-4787-b960-d8ffaa633b7c).
+
+**28.** Mike: "lets do all the known studies and compare for each ... study area like you were doing with space experiments
+track" (the deep's own currents have no real data to check, so the lab earns trust where it can be checked). Seven more
+known answers written first (13:32), then one run (lang/lab/runs/knowns.delta, Doomsday Book 586fb774-f881-4963-88ec-a99557cd9640), all stepped and counted,
+no pi: the space station's orbit 7.675 km/s and 92.7 minutes (MATCH); escape speed 11.01 km/s (CLOSE); sound 340.1 m/s at the
+ground (MATCH) and 289.8 at 11 km (CLOSE); Denver boils at 94.6 C (MATCH); sound in sea water 1,511 m/s (MATCH); a 1 m pendulum
+2.009 s (MATCH); the sea floor 5.3 km deep at 50 million years (CLOSE). My slips on the way, all caught by the numbers being
+wrong and fixed before recording: gravity rounded to whole units, a lost factor of a thousand and a wrong count in the
+pendulum, the sea floor's units.

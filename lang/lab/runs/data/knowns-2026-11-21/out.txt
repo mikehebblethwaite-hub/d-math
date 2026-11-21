@@ -1,0 +1,10 @@
+SKY: sound at the ground (15 C, MAGIC: fixed) BBA7D cm/s; at 11 km (74571 mK, from the column) A1B66 cm/s
+SKY: Denver (1,600 m, 2BD46 Pa): water boils at 33D9C thousandths of a degree over freezing
+DEEP: sound in sea water 539D7 cm/s
+SPACE: the station at 400 km: it neither rises nor falls at 1789598 mm/s; once round in 4DAB half-seconds (stepped, counted)
+SPACE: escape speed from the ground: 2386CA3 mm/s (the slowest that is still going out after 2 days)
+LAB: a 1 m pendulum: a whole swing (through the middle one way, back, and through the same way again) in BB7 milliseconds (stepped, counted)
+CRUST: sea floor 1 million years old: 313 m deeper than at the ridge
+CRUST: sea floor A million years old: 7AB m deeper than at the ridge
+CRUST: sea floor 3B million years old: 1358 m deeper than at the ridge
+CRUST: sea floor 79 million years old: 19B6 m deeper than at the ridge

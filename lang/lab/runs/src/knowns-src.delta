@@ -1,0 +1,98 @@
+// Doomsday Book 586fb774-f881-4963-88ec-a99557cd9640 (Mike J Hebblethwaite): Known studies for every area, stepped and counted (knowns)
+// knowns: the next known studies for every area, each worked out by stepping (21 Nov 2026; known answers written in
+// lang/lab/TRACK.md at ~13:32 before this was built; Mike: "lets do all the known studies and compare for each ... study area").
+// No pi, no circle formulas: orbits, swings and falls are stepped and counted. Measured constants only: the Earth's G x mass
+// 398,600 km3/s2 and middle 6,371 km below; air's warmth per kg 1,005 (constant pressure) and 718 (constant volume) J/kg K, 28.97 g
+// a mole; the gas constant 8.314; sea water 1,025 kg a cubic metre, stiffness 2.34 GPa; rock 3,300 kg a cubic metre, growing 3
+// parts in 100,000 per degree warmer; rock carries heat at about 1 square millimetre a second.
+#define LEVEL {{1000000000000000}}
+int low;
+int up(int a) { return a >= LEVEL; }
+int amt(int a) { return apart(a, LEVEL); }
+int with(int m, int u) { return u ? LEVEL + m : less(LEVEL, m); }
+int addv(int a, int b) { int ua = up(a), ub = up(b), ma = amt(a), mb = amt(b); if (ua == ub) return with(ma + mb, ua); return ma >= mb ? with(less(ma, mb), ua) : with(less(mb, ma), ub); }
+int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+int heatL(int tmk) { return tmk >= {{273150}} ? less({{2501000}}, less(tmk, {{273150}}) * {{2370}} / {{1000}}) : {{2501000}}; }
+int vapour(int tmk)
+{
+    int t = {{373150}}, e = {{101325000}};
+    while (t > tmk + {{50}}) { int k = heatL(t) * {{1000}} / {{4615}} * {{10}} / (t / {{100}}) * {{1000}} / (t / {{100}}); e = less(e, e / {{1000}} * k / {{10000}} * {{100}}); t = less(t, {{100}}); }
+    return e;
+}
+int gpull(int zm) { int r = ({{6371000}} + zm) / {{1000}}; return {{398600}} * {{1000}} * {{1000}} / r / r * {{1000}}; }
+int CT, CP;                                         // the column's warmth (mK) and pressure (mPa) at the last height asked
+void column(int zto)                               // the moist column of air (as atmos.delta) up to zto metres
+{
+    int z = low; CP = {{101325000}}; CT = {{288150}};
+    while (z < zto) {
+        int dp = CP / {{1000}} * (gpull(z) * {{2897}} / {{10000000}}) / {{8314}} * {{1000}} / (CT / {{1000}});
+        int es = vapour(CT), rs = es / {{1000}} * {{622000}} / (less(CP, es) / {{1000}}), L = heatL(CT) / {{1000}}, tk = CT / {{1000}};
+        int num = {{1000000}} + L * rs / ({{287}} * tk) * {{1000}}, den = {{1000000}} + L * L * rs / {{1000}} * {{622}} * {{1000}} / ({{1005}} * {{287}} * tk * tk / {{1000}});
+        CT = less(CT, gpull(z) * {{10}} / {{1005}} * (num / {{1000}}) / (den / {{1000}}) / {{1000}});
+        CP = less(CP, dp); z = z + {{10}};
+    }
+}
+int sound(int tmk) { return isqrt({{1005}} * {{1000000}} / {{718}} * {{8314}} / {{1000}} * (tmk / {{1000}}) * {{1000}} / {{2897}} * {{100}}); }   // root(gamma R T / M), centimetres a second
+// ---- an orbit, stepped: a satellite at radius r (metres above the Earth's middle), moving sideways; positions in mm, speeds mm/s
+int OX, OY, OVX, OVY;
+void ostep(int dt)                                 // one step of dt milliseconds: pulled toward the middle by the Earth's mass
+{
+    int x = amt(OX) / {{1000}}, y = amt(OY) / {{1000}}, r2 = x * x + y * y, r = isqrt(r2);      // metres
+    int g = {{398600}} * {{1000000000}} * {{1000}} / r2;                                   // GM / r^2, mm/s^2 (GM in m3/s2 = 398,600 x 10^9), kept to the mm
+    int ax = g * (x * {{1000}} / r) / {{1000}}, ay = g * (y * {{1000}} / r) / {{1000}};      // toward the middle
+    OVX = addv(OVX, with(ax * dt / {{1000}}, !up(OX))); OVY = addv(OVY, with(ay * dt / {{1000}}, !up(OY)));
+    OX = addv(OX, with(amt(OVX) * dt / {{1000}}, up(OVX))); OY = addv(OY, with(amt(OVY) * dt / {{1000}}, up(OVY)));
+}
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    // SKY: the speed of sound at the ground and at 11 km; Denver's boiling
+    say("SKY: sound at the ground (15 C, MAGIC: fixed) %d cm/s; ", sound({{288150}}));
+    column({{11000}}); say("at 11 km (%d mK, from the column) %d cm/s\n", CT, sound(CT));
+    column({{1600}}); { int b = {{373150}}; while (b > {{340000}} && vapour(b) > CP) b = less(b, {{100}}); say("SKY: Denver (1,600 m, %d Pa): water boils at %d thousandths of a degree over freezing\n", CP / {{1000}}, less(b, {{273150}})); }
+    // DEEP: sound in sea water
+    say("DEEP: sound in sea water %d cm/s\n", isqrt({{2340000000}} / {{1025}} * {{10000}}) );
+    // SPACE: the station's orbit. The speed that neither rises nor falls: gravity's pull equals what turning needs. Found by trying:
+    int r = {{6771000}}, lo = {{7000000}}, hi = {{8500000}}, k;                 // speeds in mm/s
+    for (k = 1; k <= {{22}}; k++) {                                          // try a speed; after a short stretch, has it risen or fallen?
+        int v = (lo + hi) / 2, t; OX = with(r * {{1000}}, 1); OY = LEVEL; OVX = LEVEL; OVY = with(v, 1);
+        for (t = 1; t <= {{600}}; t++) ostep({{1000}});
+        int x = amt(OX) / {{1000}}, y = amt(OY) / {{1000}}, rr = isqrt(x * x + y * y);
+        if (rr > r) hi = v; else lo = v;
+    }
+    int vc = (lo + hi) / 2;
+    OX = with(r * {{1000}}, 1); OY = LEVEL; OVX = LEVEL; OVY = with(vc, 1);   // now go round once and count: back across its start line from below
+    int t = low, crossed = low, wasup = 1;
+    while (t < {{20000}} && crossed < 2) { ostep({{500}}); t++; int u = up(OY); if (u != wasup) { crossed++; wasup = u; } }
+    say("SPACE: the station at 400 km: it neither rises nor falls at %d mm/s; once round in %d half-seconds (stepped, counted)\n", vc, t);
+    // SPACE: escape speed: launched straight up from the ground, faster and faster: the slowest that never comes back (within a day)
+    lo = {{10000000}}; hi = {{12500000}};
+    for (k = 1; k <= {{20}}; k++) {
+        int v = (lo + hi) / 2, s2; OX = with({{6371000000}}, 1); OY = LEVEL; OVX = with(v, 1); OVY = LEVEL; int back = low;
+        for (s2 = 1; s2 <= {{172800}}; s2++) { ostep({{1000}}); if (!up(OVX)) { back = 1; break; } }      // falling back once it turns
+        if (back) lo = v; else hi = v;
+    }
+    say("SPACE: escape speed from the ground: %d mm/s (the slowest that is still going out after 2 days)\n", (lo + hi) / 2);
+    // LAB: a pendulum 1 m long, a small swing (5 cm): pulled back toward the middle by g x (how far out / its length): for a small
+    // swing that is the whole of it (no angles needed); stepped a millisecond at a time; count to back where it started
+    { int x = with({{50000}}, 1), v = LEVEL, n = low, wasr = 1, cross = low, t1 = low;   // micrometres, micrometres a second
+      while (n < {{100000}} && cross < 3) {
+        int a = {{9806650}} / {{1000}} * amt(x) / {{1000}};                          // micrometres/s^2: g x out / 1 m (both in micrometres)
+        v = addv(v, with(a / {{1000}} + 1, !up(x)));                                 // a millisecond: toward the middle
+        x = addv(x, with(amt(v) / {{1000}}, up(v)));
+        n++; int r1 = up(x); if (r1 != wasr) { cross++; wasr = r1; if (cross == 1) t1 = n; }
+      }
+      say("LAB: a 1 m pendulum: a whole swing (through the middle one way, back, and through the same way again) in %d milliseconds (stepped, counted)\n", less(n, t1)); }
+    // CRUST: the sea floor deepens as it ages: cool the plate (as plates.delta) and let the cooled rock shrink and settle
+    { int COL[{{141}}], NEWC[{{141}}], z, st, age;
+      for (z = 1; z <= {{140}}; z++) COL[z] = {{1350000000}};
+      for (age = 1; age <= {{100}}; age++) {                                // each age step: 10 steps of 100,000 years = 1 million years
+        for (st = 1; st <= {{10}}; st++) {
+          for (z = 2; z <= {{139}}; z++) { int s = COL[z + 1] + COL[less(z, 1)], me = COL[z] * 2; NEWC[z] = s >= me ? COL[z] + less(s, me) * {{126}} / {{1000}} : less(COL[z], less(me, s) * {{126}} / {{1000}}); }
+          for (z = 2; z <= {{139}}; z++) COL[z] = NEWC[z]; COL[1] = 1; }
+        if (age == 1 || age == {{10}} || age == {{50}} || age == {{100}}) {
+          int shrink = low; for (z = 1; z <= {{140}}; z++) shrink = shrink + less({{1350000000}}, COL[z]) / {{1000}} * {{5000}};   // (1350 - T) x 5,000 m, in thousandths of a degree x m
+          int sink = shrink / {{1000}} * {{3}} / {{100000}} * {{3300}} / {{2275}};      // metres: growth 3 in 100,000 a degree x that, rock replaced by water (3300 over 3300 - 1025)
+          say("CRUST: sea floor %d million years old: %d m deeper than at the ridge\n", age, sink); } } }
+    return 1;
+}

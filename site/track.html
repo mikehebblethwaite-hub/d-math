@@ -29,6 +29,8 @@
       <tr><td>2</td><td>A candle flame with no gravity: round (a sphere), dimmer, blue (little or no yellow soot), and it may go out as the air round it is used up (shuttle, ISS and drop tower candle tests)</td><td>space room</td><td>no gravity: round, 32 x 31 mm (with gravity 81 x 23); burns about 3% as much; the same share burned short of oxygen (363 v 348 thousandths); still burning at 9 s</td><td>ROUND: MATCH. DIMMER: MATCH. BLUE: MISS (the soot rule knows nothing of cooling yet). GOES OUT: not run long enough</td><td>runs/candlespace.delta</td></tr>
       <tr><td>3</td><td>Crystals grown in orbit come out larger and more perfect than on the ground (no convection, no settling)</td><td>space room</td><td>salt round a seed, 5 runs each: in orbit 78% full, nearly square (long/short 1.07); on Earth (brine moving down) 65% full, a lopsided column (2.28) growing toward the incoming brine; no overlap</td><td>MORE PERFECT: MATCH. LARGER: not tested yet</td><td>runs/saltplay.delta (2nd input: drift)</td></tr>
       <tr><td>4</td><td>Liquid in free fall pulls itself into a ball; a floating ball of water wobbles when touched (ISS water demos)</td><td>space room</td><td>from a square: nearly round (1.16 edge to edge from round, the square 1.41), wobbled 23 times when poked and came back round; with gravity on a floor it slumps (1.4 wide) and a poke spreads it to a puddle (4 wide)</td><td>BALL: MATCH. WOBBLE: MATCH</td><td>runs/waterball.delta</td></tr>
+      <tr><td>5</td><td>The space station's orbit, about 400 km up: once round in about 92-93 minutes, at about 7.7 km a second (written 21 Nov 2026 ~13:32, before any run)</td><td>neither rising nor falling at 7.675 km/s; once round in 92.7 minutes, stepped and counted</td><td>MATCH</td><td>runs/knowns.delta</td></tr>
+      <tr><td>6</td><td>Escape speed from the ground: about 11.2 km a second (written 21 Nov 2026 ~13:32, before any run)</td><td>11.01 km/s (the slowest still going out after 2 days: a short watch counts near-misses as escapes)</td><td>CLOSE (2% low)</td><td>runs/knowns.delta</td></tr>
     </table>
   </section>
   <section><h2>Floor 2: atmosphere tests</h2>
@@ -43,6 +45,8 @@
       <tr><td>4</td><td>A sealed balloon grows as it rises, about doubling by 5.5 km</td><td>1.77 times</td><td>CLOSE: the written "about doubling" was loose; the gas law gives about 1.75</td><td>runs/atmos.delta</td></tr>
       <tr><td>5</td><td>A weather balloon (about 2 m across at launch, rubber) swells as it rises and bursts at about 30-35 km up, about 6-8 m across, where the air is about 1% of the ground's pressure (Mike, 11:03: "rising balloon expands as it reaches the upper atmosphere then pops"; written before the run)</td><td>burst at 30,580 m, 8.63 m across, at 964 Pa (0.95% of the ground); with gravity from the Earth's mass at each height (Mike), 30,700 m at 965 Pa; above 11 km the air's warmth is fixed from measurements: MAGIC (fixed temps)</td><td>MATCH</td><td>runs/atmos.delta</td></tr>
       <tr><td>6</td><td>The weather balloon's shape as it rises, and how it ends (Mike gave two real films rather than his words)</td><td>blind helper (skin physics): slightly egg-shaped with a funnel to the neck at launch, round high up; floats at ~31 km, tears beside the neck at 35.5 km if carried higher</td><td>SHAPE: MATCH (films). THE END: MISS (real ones burst at 29-32 km still climbing, the whole skin shattering)</td><td>proofs/blind-balloon-2026-11-21</td></tr>
+      <tr><td>7</td><td>The speed of sound: about 340 m/s at the ground, about 295 m/s at 11 km (written 21 Nov 2026 ~13:32, before any run)</td><td>340.1 m/s at the ground; 289.8 at 11 km (the column 210 K there, the real 217)</td><td>GROUND: MATCH. 11 KM: CLOSE (2% low)</td><td>runs/knowns.delta</td></tr>
+      <tr><td>8</td><td>Water boils at about 95 C in Denver, 1.6 km up (written 21 Nov 2026 ~13:32, before any run)</td><td>air 83.5 kPa (real 83.4); boils at 94.6 C</td><td>MATCH</td><td>runs/knowns.delta</td></tr>
     </table>
   </section>
   <section><h2>Floor 1: the lab (Earth)</h2>
@@ -53,6 +57,7 @@
       <tr><td>3</td><td>Faraday's 1821 rotations: a wire turns round a magnet in mercury, and a magnet round a wire</td><td>checked 21 Nov: the turning is DRAWN at set speeds; only the energy book is worked out</td><td>NOT A TEST YET (magic, in MAGIC.md with what would make it real)</td><td>lab objects/faraday.delta</td></tr>
       <tr><td>4</td><td>Basalt cooling cracks into columns, most of them six-sided (Giant's Causeway)</td><td>from a scatter, 3 in every 4 columns six-sided, fives and sevens in equal numbers (paper 5.3); no hexagon drawn</td><td>MATCH, but checked AFTER the run (the run came days before this row was written)</td><td>causeway.delta</td></tr>
       <tr><td>5</td><td>Steel quenched from red hot is hard and brittle (it snaps); tempered (reheated gently) it gets its give back and bends (Mike, 11:56: "metal blade hardening"; written before any run)</td><td>not run yet</td><td>-</td><td>-</td></tr>
+      <tr><td>6</td><td>A pendulum 1 m long swings there and back once every 2.0 seconds (written 21 Nov 2026 ~13:32, before any run)</td><td>2.009 s, stepped and counted (a small swing)</td><td>MATCH</td><td>runs/knowns.delta</td></tr>
     </table>
   </section>
   <section><h2>Below the lab: the deep</h2>
@@ -63,8 +68,9 @@
       <tr><th>#</th><th>Known result (what really happens)</th><th>Lab's answer</th><th>Match?</th><th>Run</th></tr>
       <tr><td>1</td><td>Water's pressure grows by about one more air pressure for every 10 m down</td><td>1.99 at 10 m, 2.99 at 20 m, 3.98 at 30 m, 10.9 at 100 m</td><td>MATCH</td><td>runs/deep.delta</td></tr>
       <tr><td>2</td><td>A balloon taken down is half its size by 10 m, a third by 20 m, a quarter by 30 m (the gas squeezed)</td><td>501, 334, 251 thousandths</td><td>MATCH</td><td>runs/deep.delta</td></tr>
-      <tr><td>3</td><td>At the deepest (about 11 km) the pressure is about 1,100 times the air's at the surface</td><td>1,122 times (real measurements about 1,070: about 4% high, because water&#x27;s stiffness is kept at its surface value; corrected reason, diary 1F)</td><td>MATCH</td><td>runs/deep.delta</td></tr>
+      <tr><td>3</td><td>At the deepest (about 11 km) the pressure is about 1,100 times the air's at the surface</td><td>1,122 times (real measurements about 1,070: about 4% high, because water's stiffness is kept at its surface value; corrected reason, diary 1F)</td><td>MATCH</td><td>runs/deep.delta</td></tr>
       <tr><td>4</td><td>Polystyrene cups sent down on deep-sea dives come back shrunk to a fraction of their size (their air squeezed out)</td><td>at 11 km: 3% of its size, 31% of its height (foam 97% air, measured densities)</td><td>MATCH</td><td>runs/deep.delta</td></tr>
+      <tr><td>5</td><td>Sound travels through sea water at about 1,500 m/s (written 21 Nov 2026 ~13:32, before any run)</td><td>1,511 m/s (from its measured stiffness and weight)</td><td>MATCH</td><td>runs/knowns.delta</td></tr>
     </table>
   </section>
   <section><h2>Below the deep: the crust</h2>
@@ -77,6 +83,7 @@
       <tr><td>2</td><td>In the deepest mines (about 4 km down) the rock is about 60 C</td><td>old cold rock (heat flow 45, quartzite 5.0): 49 C at 4 km (the average continent would give 116 C)</td><td>CLOSE: about 20% low</td><td>runs/crust.delta</td></tr>
       <tr><td>3</td><td>Lava (basalt) comes out at about 1,100-1,200 C</td><td>in this model it would equal rock's melting point, which is put in</td><td>NOT A TEST here (circular)</td><td>runs/crust.delta</td></tr>
       <tr><td>4</td><td>Hot water from vents on the deep sea floor stays liquid at about 400 C (the deep's pressure keeps it from boiling)</td><td>at 2,500 m (25.2 MPa) water boils only at 427 C</td><td>MATCH, with a caveat: real water there is past its critical point (374 C), with no boiling at all; the boiling rule does not know the critical point</td><td>runs/crust.delta</td></tr>
+      <tr><td>9</td><td>The sea floor deepens as it ages: about 2.5 km deep at the ridge, about 5 km at 50 million years (written 21 Nov 2026 ~13:32, before any run)</td><td>the cooled plate shrinks and settles: 2.78 km deeper at 50 million years, so 5.3 km (the 2.5 km ridge put in); 0.5 km at 1, 1.3 at 10, 3.9 at 100</td><td>CLOSE (6% deep)</td><td>runs/knowns.delta</td></tr>
     </table>
     <p>Where the room sits: two plates, one diving under the other (known answers written before the run):</p>
     <table>

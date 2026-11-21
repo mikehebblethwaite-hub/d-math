@@ -170,3 +170,9 @@ mix, move): each a crash avoided before it ran.
 - Found: comparing with the old maths' cooling and then running the same steps in plain floating maths digit by digit.
 - Lesson: in Delta source, only 1-9 are the same as ordinary numbers; every bigger number goes in {{ }}. Check the measuring
   (the label, the index) before blaming the model.
+
+## 21 Nov 2026 13:45 UK: knowns: four arithmetic slips in one run
+- Gravity GM/r^2 divided before multiplying (8 in place of 8.69); the pendulum's pull lost a factor of 1,000 and its swing was
+  counted from the start (three-quarters) not between like crossings; the sea floor's sum used the wrong units (came out 0).
+- Caught because each answer was wildly off a known value; fixed before anything was recorded.
+- Lesson: multiply before dividing in whole-number sums; count a period between two like events, never from the start.
