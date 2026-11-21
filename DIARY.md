@@ -145,3 +145,11 @@ density (squeezed denser with depth) and gravity from the Earth's mass. Pressure
 at 20, 3.98 at 30, 1,122 at 11 km; a balloon 501, 334, 251 thousandths of its size at 10, 20, 30 m; a foam cup (97% air) 3%
 of its size and 31% of its height at 11 km. All four MATCH. The water held at 15 C all the way down (magic; real deep water
 near 2 C) makes the deepest pressure a little high. Run: lang/lab/runs/deep.delta (Doomsday Book 6d0eb4f2-ab13-4735-be7d-949d1878af5d).
+
+**1F.** Correction of 1E. Mike asked: "ocean temperatures from magic?" Yes: the water was held at 15 C (made up). Replaced
+with the real ocean's measured warmth by depth (15 C to 100 m, 5 C by 1,000 m, 2 C by 3,000 m, 1.5 C at the bottom;
+measured, not worked out: working it out waits for the lab's sunlight and poles). The balloon and cup now cool with the water
+(at 1,000 m a balloon is 8 thousandths of its size, was 9). The bottom pressure did not change (1,122 times the surface air):
+so 1E's reason for it being high (the 15 C) was WRONG. The cause is the squeeze rule: water's stiffness was kept at its
+surface value (2.34 GPa), where real water stiffens as it is squeezed and so packs less. Real measurements at the deepest
+give about 1,070 times; the lab's is about 4% high. Still "about 1,100" (MATCH), with the right reason now given.

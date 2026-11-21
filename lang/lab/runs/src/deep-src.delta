@@ -4,28 +4,38 @@
 // 101,325 Pa above it), from measured constants only: sea water 1,025 kg a cubic metre at the surface, squeezed a little denser
 // the deeper (its bulk stiffness 2.34 GPa); gravity from the Earth's mass at each depth (G x mass 398,600 km3/s2, the Earth's
 // middle 6,371 km below the surface); a balloon's air squeezed by the gas law; a polystyrene foam cup: 30 kg a cubic metre of
-// foam, solid polystyrene 1,050, so 97 parts in 100 of the cup is air, squeezed, and the solid part not. MAGIC: the water's
-// warmth held at 15 C all the way down (real deep water is near 2 C, which would squeeze the balloon a little more).
+// foam, solid polystyrene 1,050, so 97 parts in 100 of the cup is air, squeezed, and the solid part not. The water's warmth by
+// depth is MEASURED, not worked out (a typical mid-latitude ocean: 15 C at the top to 100 m, falling through the thermocline to
+// 5 C by 1,000 m, 2 C by 3,000 m, 1.5 C at the bottom); the gas in the balloon and cup takes the water's warmth. Working it out
+// (the sun warming the top, cold polar water sinking to fill the deep) waits for the lab's sunlight and poles (MAGIC.md).
 #define DZ {{10}}
 int low;
 int gdeep(int dm) { int r = less({{6371000}}, dm) / {{1000}}; return {{398600}} * {{1000}} * {{1000}} / r / r * {{1000}}; }   // micrometres a second squared
+int seat(int dm)                                   // the water's warmth at this depth, millikelvin (measured, typical; straight between the points)
+{
+    if (dm <= {{100}}) return {{288150}};
+    if (dm <= {{1000}}) return less({{288150}}, less(dm, {{100}}) * {{10000}} / {{900}});
+    if (dm <= {{3000}}) return less({{278150}}, less(dm, {{1000}}) * {{3000}} / {{2000}});
+    if (dm <= {{6000}}) return less({{275150}}, less(dm, {{3000}}) * {{500}} / {{3000}});
+    return {{274650}};
+}
 int icbrt(int n) { int lo = 1, hi = {{2000000}}; while (lo < hi) { int m = (lo + hi + 1) / 2; if (m * m * m <= n) lo = m; else hi = less(m, 1); } return lo; }
 int main(int argc, char **argv)
 {
     low = less(1, 1);
     int d = low, p = {{101325}}, k;                 // depth (m), pressure (Pa)
-    say("the deep: sea water from the surface down (air above at 101,325 Pa); water's warmth held at 15 C (MAGIC)\n");
+    say("the deep: sea water from the surface down (air above at 101,325 Pa); the water's warmth by depth MEASURED (typical ocean), not worked out\n");
     while (d < {{11000}}) {
         int rho = {{1025}} + {{1025}} * (p / {{1000}}) / {{2340000}};                 // kg a cubic metre, squeezed: 1 + p/K
         p = p + rho * (gdeep(d) / {{1000}}) * DZ / {{1000}};
         d = d + DZ;
         if (d == {{10}} || d == {{20}} || d == {{30}} || d == {{100}} || d == {{1000}} || d == {{4000}} || d == {{10994}} || d == {{11000}}) {
             int times = p * {{1000}} / {{101325}};                                  // thousandths of the surface air's pressure
-            int balloon = {{101325}} * {{1000}} / (p / {{1}});                    // a balloon's size (thousandths of its surface size)
-            int cupvol = {{29}} * {{1000}} / {{1000}} + {{971}} * {{101325}} / p;   // the cup's size, thousandths: solid 29 + air 971 squeezed
+            int balloon = {{101325}} * {{1000}} / p * (seat(d) / {{100}}) / {{2881}};   // a balloon's size: squeezed, and cooled with the water (thousandths)
+            int cupvol = {{29}} + {{971}} * {{101325}} / p * (seat(d) / {{100}}) / {{2881}};   // the cup's size, thousandths: solid 29 + air 971 squeezed and cooled
             int cupline = icbrt(cupvol * {{1000000}});                             // its height, thousandths (cube root of its size)
-            say("  %d m down: %d Pa, %d thousandths of the air's pressure at the surface; a balloon %d thousandths of its size; a foam cup %d thousandths of its size, %d thousandths of its height\n",
-                d, p, times, balloon, cupvol, cupline);
+            say("  %d m down (water %d thousandths of a degree over freezing): %d Pa, %d thousandths of the air's pressure at the surface; a balloon %d thousandths of its size; a foam cup %d thousandths of its size, %d thousandths of its height\n",
+                d, seat(d) > {{273150}} ? less(seat(d), {{273150}}) : 1, p, times, balloon, cupvol, cupline);
         }
     }
     return 1;

@@ -50,6 +50,8 @@ not yet traced) comes down as this list does.
 | The Earth's spin left out of gravity (the pull is 9.820 at the ground, measured 9.81) | atmos, balloon | the Earth's turning: the outward push at each latitude |
 | The space room's floating: free fall around the Earth, not "no gravity" (the pull at 400 km is still 88.5% of the ground's) | space room | an orbit drawn: the room and everything in it falling round the Earth together |
 | Faraday's wire and magnet turn at set speeds (one place every 2 and 3 frames): drawn, not worked out | the lab, Faraday's glasses | the push on the wire from the current crossing the magnet's field (current x field x length) against the mercury's drag: the speed and the way round (which flips if the pile is turned round) come out by themselves |
+| The ocean's warmth by depth is measured, not worked out | the deep | the sun warming the top and cold polar water sinking to fill the deep (needs the lab's sunlight and poles) |
+| Sea water's stiffness held at its surface value (2.34 GPa) | the deep | water stiffening as it is squeezed (measured: its stiffness rises with pressure): brings the bottom pressure from 1,122 toward the real ~1,070 |
 
 ## Links (attachments, inputs, outputs)
 | Magic | Where | What would make it real |
