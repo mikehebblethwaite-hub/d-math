@@ -76,3 +76,7 @@ Mike 11:55, on packing and sealing being two steps: "so is that why some materia
 in the lab: rafts at different wall flatness (packed only / part-sealed / fully sealed), push one edge, measure slide, bend or
 crack.
 Mike 11:56: "metal blade hardening proves that yes" - quenched = locked (brittle), tempered = some give back (flexible): on the lab's track list (floor 1, #5).
+Mike 12:40 (product idea): "wildcard searches of i data is such a useful thing our app for that will sell well" - search the
+words inside the packs' info (what is IN a lifetime of photos, videos and sounds, not their file names), with wildcards, on
+the owner's own machine. Mike also: "I hate individually going through thousands of photos and video" - so sorting is by
+GROUP on evidence (camera data, Gemma's description) with one "go", every move logged and undoable; the owner decides.
