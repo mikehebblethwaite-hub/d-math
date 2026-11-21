@@ -305,3 +305,9 @@ Drawn: the wax 29 mm across, its melted pool, the wick, the flame where the core
 On the panel as magic: the match held 10 s, no soot yet (so the flame is blue, not a candle's yellow), and burning down as a
 slice does. New Delta tool on the way: lang/rename.delta (whole words, never in comments or quotes). Two D rules I tripped on
 writing it: a name with a 0 in it (t0), and a name spelt only in D digits (CDB is a number).
+
+**35.** Mike asked for a code review of every repo's work today. In the lab it found real faults, all mine or near them: the
+zoom never let the room draw sharp and held the eye when you walked; the bot notes stopped whenever the air rested (my focus
+change of this afternoon); the washroom daemon stopped on the upper floors; P changed the balls and opened the outside door;
+and the new Delta tools could cut a too-big file short or write past their ends. All fixed and tested on the test screen
+(0e01e6b). A review by a second reader found what my own testing had not: written down here so the next is asked for sooner.
