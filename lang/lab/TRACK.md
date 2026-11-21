@@ -35,3 +35,4 @@ to fix a fault (written in FAILS.md); several runs where chance is used; misses 
 | 2 | Air cools about 6.5 C for every km up (on average, in the lowest part of the sky) | not run yet | - | - |
 | 3 | Water boils at about 70 C on top of Everest (8.8 km) | not run yet | - | - |
 | 4 | A sealed balloon grows as it rises, about doubling by 5.5 km | not run yet | - | - |
+| 5 | A weather balloon (about 2 m across at launch, rubber) swells as it rises and bursts at about 30-35 km up, about 6-8 m across, where the air is about 1% of the ground's pressure (Mike, 11:03: "rising balloon expands as it reaches the upper atmosphere then pops"; written before the run) | not run yet | - | - |
