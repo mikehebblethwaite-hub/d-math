@@ -296,3 +296,12 @@ wick at boiling. Held 10 s, the same candle lived (31) because the match bridged
 think most likely, not yet shown: 1 mm cells, so the flame's heat must cross a whole mm of gas to the wick, where a real
 flame's edge sits a fifth to a half of a mm away. 2b waits for finer cells round the wick. Also made: lang/rename.delta, a
 whole-word rename in Delta, to share the candle's core with the room.
+
+**34.** The lab room's candle is now the tested core itself (lang/lab/src/candlecore-src.delta, shared with the run, which
+reproduces 14:50's numbers to the digit). Mike had watched the old room candle: "the wax does not melt or reduce". Live, the
+core runs about 30 times slower than real time in the room (7 pictures a second), too slow to watch it catch and pool; so the
+run lights it and saves it after 40 s, and the room carries on from there, saying so on its panel ("lit before you came in").
+Drawn: the wax 29 mm across, its melted pool, the wick, the flame where the core burns, the candle shorter by the wax burned.
+On the panel as magic: the match held 10 s, no soot yet (so the flame is blue, not a candle's yellow), and burning down as a
+slice does. New Delta tool on the way: lang/rename.delta (whole words, never in comments or quotes). Two D rules I tripped on
+writing it: a name with a 0 in it (t0), and a name spelt only in D digits (CDB is a number).
