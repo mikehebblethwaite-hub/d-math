@@ -75,3 +75,4 @@ fixes them: a 3-D printer by sound. Ties to: chips grown from crystals with harm
 Mike 11:55, on packing and sealing being two steps: "so is that why some materials are flexible and some brittle" - to test
 in the lab: rafts at different wall flatness (packed only / part-sealed / fully sealed), push one edge, measure slide, bend or
 crack.
+Mike 11:56: "metal blade hardening proves that yes" - quenched = locked (brittle), tempered = some give back (flexible): on the lab's track list (floor 1, #5).
