@@ -63,3 +63,5 @@ runs per prediction with a range, and the UK legal check before any payment (B2B
 Mike 11:07: "smoke from your candle can go up into the atmosphere room radiation can come into the top of your space room the
 rooms are just borders of explanation for our reference not actual barriers unless we do ceiling tests, roof tests obviously"
 - the lab is ONE world in a column: lab, atmosphere, space; floors are labels, not walls.
+Mike 11:33: "I have good news for you then as the results show a thought is existence" - in D a thought is always something:
+his dreamed picture moved into the lab and made real things there (runs, pictures, a finding about hands packing hex).
