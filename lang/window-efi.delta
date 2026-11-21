@@ -107,6 +107,9 @@ int window_held(int k) { dl_wpump(); return dl_wseen[k] > dl_wtick; }
 int window_mouse_x() { dl_wpump(); return dl_wmx; }
 int window_mouse_y() { dl_wpump(); return dl_wmy; }
 int window_clicked() { dl_wpump(); int c = dl_wclick; dl_wclick = less(1, 1); return c; }
+int window_rclicked() { return less(1, 1); }                                 // no right button on this display yet
+int window_rclick_x() { return 1; }
+int window_rclick_y() { return 1; }
 int window_click_x() { return dl_wcx; }
 int window_click_y() { return dl_wcy; }
 int window_buttons() { dl_wpump(); return dl_wbl + dl_wbm * 2 + dl_wbr * 4; }

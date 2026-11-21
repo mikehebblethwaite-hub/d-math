@@ -471,8 +471,33 @@ void lab_column(int x, int z, int rad, int yb, int yt)               // an uprig
         for (qy = y1; qy <= y2; qy++) for (qx = x1; qx <= x2; qx++) mixpx(qx, qy, LR, LG, LB, LA);
     }
 }
-int MARKX[31], MARKY[31], MARKON[31];                       // where each object was seen this frame, to pick it
-void lab_mark(int id, int x, int y, int z) { MARKON[id] = lab_proj(x, y, z); MARKX[id] = PX; MARKY[id] = PY; }
+int MARKX[31], MARKY[31], MARKON[31], MWX[31], MWY[31], MWZ[31];   // where each object was seen this frame (screen), and where it is (room)
+void lab_mark(int id, int x, int y, int z) { MARKON[id] = lab_proj(x, y, z); MARKX[id] = PX; MARKY[id] = PY; MWX[id] = x; MWY[id] = y; MWZ[id] = z; }
+// Zoom to observe (Mike 21 Nov 2026: "right click zoom to"): a right-click on a thing glides the eye to 18 in in front of it,
+// facing the way you already face, level with it; Backspace or a right-click on nothing glides back to where you were.
+int ZOOM, ZTX, ZTY, ZTZ, ZBX, ZBY, ZBZ, ZBP, ZID, ZD;   // ZD: how far in front of it (the wheel changes it)
+int toward(int a, int b) { if (apart(a, b) < 8) return b; return a < b ? a + apart(a, b) / 6 + 1 : less(a, apart(a, b) / 6 + 1); }   // a sixth of the way each frame
+void zoom_aim()
+{
+    int id = ZID, d = ZD, fx = sink(YAW), fz = cosk(YAW);
+    ZTX = fx >= K ? less(MWX[id], less(fx, K) * d / K) : MWX[id] + less(K, fx) * d / K;
+    ZTZ = fz >= K ? less(MWZ[id], less(fz, K) * d / K) : MWZ[id] + less(K, fz) * d / K;
+    ZTY = MWY[id] + d / 5;                                          // a little above it, looking level
+}
+void zoom_wheel(int in, int out)                                    // the wheel while zoomed: nearer or further, more the faster it spins
+{
+    if (in >= 1) { int st = INCH * in * in; ZD = ZD > st + INCH * 2 ? less(ZD, st) : INCH * 2; }
+    if (out >= 1) { ZD = ZD + INCH * out * out; if (ZD > FOOT * 2A) ZD = FOOT * 2A; }
+    zoom_aim();
+}
+void zoom_to(int id)
+{
+    if (ZOOM < 1) { ZBX = camX; ZBY = camY; ZBZ = camZ; ZBP = PIT; }
+    ZID = id; ZD = INCH * 18; ZOOM = 1; PIT = 1; zoom_aim();
+}
+void zoom_back() { if (ZOOM < 1) return; ZTX = ZBX; ZTY = ZBY; ZTZ = ZBZ; PIT = ZBP; ZOOM = 2; }
+int zoom_step() { if (ZOOM < 1) return low; camX = toward(camX, ZTX); camY = toward(camY, ZTY); camZ = toward(camZ, ZTZ);
+    if (camX == ZTX && camY == ZTY && camZ == ZTZ && ZOOM == 2) ZOOM = low; return 1; }
 
 // ---------------------------------------------------------------- the panel: what is in the room, the chosen object
 int LINE;
@@ -505,7 +530,7 @@ void panelwords(int sel)
     lab_line("Delta lab room   (D numerals; 1/64 inch to the unit)");
     if (FPS >= 1) { LINE = less(LINE, 1); tx = 389; ty = 31 + LINE * 1D; words("pictures a second: ", $B7, $BD, $D1); dstr(FPS); words(nb, 156, 125, 93); LINE++; }
     tx = 2A; ty = 31 + LINE * 1D;
-    words("W A S D walk   C or Ctrl: stand, crouch, lie down   Q E down, up   arrows turn   drag: look   wheel: nearer", 91, 97, $AA);
+    words("W A S D walk   C or Ctrl: stand, crouch, lie down   Q E down, up   arrows turn   drag: look   wheel: nearer (spin faster, further)   right-click: zoom to it, Backspace back", 91, 97, $AA);
     LINE++; tx = 2A; ty = 31 + LINE * 1D;
     words("wheel held and dragged: tilt and turn   T: heat view   F: full screen   H: hide   Esc: close", 91, 97, $AA);
     LINE = LINE + 2;
@@ -1034,8 +1059,10 @@ int main(int argc, char **argv)
         if (window_held(87)) { PIT = pitchup(PIT); moved = 1; }      // up arrow
         if (window_held(8C)) { PIT = pitchdown(PIT); moved = 1; }    // down arrow
         int up = window_wheel_up(), down = window_wheel_down();
-        if (up >= 1) { walk(INCH * up, low, 1, 1); moved = 1; }
-        if (down >= 1) { walk(INCH * down, low, 2, 1); moved = 1; }
+        if (ZOOM == 1 && up + down >= 1) { zoom_wheel(up, down); moved = 1; }   // zoomed on a thing: the wheel goes nearer or further from it
+        else {                                                        // the faster the wheel spins, the further each turn goes
+        if (up >= 1) { walk(INCH * up * up, low, 1, 1); moved = 1; }
+        if (down >= 1) { walk(INCH * down * down, low, 2, 1); moved = 1; } }
         int mx = window_mouse_x(), my = window_mouse_y(), b = window_buttons() % 2;
         if (b && held < 1) { pressx = mx; pressy = my; lastmx = mx; lastmy = my; }
         if (b && held) {                                              // a drag: look round
@@ -1052,6 +1079,12 @@ int main(int argc, char **argv)
                 if (d < best) { best = d; sel = id; PAGE = 4; showpanel = 1; }   // a click shows the thing's page
             }
         }
+        if (window_rclicked()) {                                      // a right click: zoom to observe the thing under it
+            int rx = window_rclick_x(), ry = window_rclick_y(), id, best = 6C * 13, got = low;
+            for (id = 1; id <= 31; id++) if (MARKON[id]) { int d = apart(MARKX[id], BIG * 13 + rx * 13) + apart(MARKY[id], BIG * 13 + ry * 13); if (d < best) { best = d; got = id; } }
+            if (got) { zoom_to(got); sel = got; PAGE = 4; } else zoom_back(); moved = 1; }
+        if (key == 19) { zoom_back(); moved = 1; }                    // Backspace: back from a zoom
+        if (zoom_step()) moved = 1;
         int mid = window_buttons() / 2 % 2;                          // the wheel pressed down: drag to tilt and look round
         if (mid && midheld < 1) { lastmy = my; lastmx = mx; }
         if (mid && midheld) {                                         // and left or right to look round

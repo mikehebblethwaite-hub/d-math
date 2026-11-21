@@ -176,3 +176,8 @@ mix, move): each a crash avoided before it ran.
   counted from the start (three-quarters) not between like crossings; the sea floor's sum used the wrong units (came out 0).
 - Caught because each answer was wildly off a known value; fixed before anything was recorded.
 - Lesson: multiply before dividing in whole-number sums; count a period between two like events, never from the start.
+
+## 21 Nov 2026 13:55: test copies of the lab left running on :2
+`pkill -f "scratchpad/labz"` matched nothing (the program ran as `./labz dan`), so three test copies piled up and the build
+could not overwrite the file. Fix: stopped those three by their numbers, after checking each was mine. Lesson (now how I do
+it): start a test copy with `& echo $! > labz.pid` and stop it by that saved number, never by a name pattern.
