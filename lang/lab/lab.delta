@@ -993,7 +993,7 @@ int main(int argc, char **argv)
         if (key == 22) { HEATVIEW = HEATVIEW ? low : 1; moved = 1; }   // T: heat view, or as the eye sees
         if (HEATVIEW && frame % 13 < 1) sharp = low;                 // the heat view: the air changes, so the room is looked at again
         if (key == 32) { window_fullscreen(); moved = 1; }        // F: full screen, or not
-        hexi_key(key); scope_keys(key, sel); microscope_keys(key, sel); seedcup_keys(key, sel); meter_keys(key, sel);
+        hexi_key(key); scope_keys(key, sel); microscope_keys(key, sel); seedcup_keys(key, sel); meter_keys(key, sel); pingpong_keys(key, sel);
         washroom_keys(key, camX, camZ); floor_keys(key, camX, camZ);
         if (key == 42 || key == 2B || key == 81) {                    // C or Ctrl: stand, crouch, lie down, stand ...
             POSE = POSE % 3 + 1;
@@ -1059,7 +1059,7 @@ int main(int argc, char **argv)
         if (WHO[1] != 'd') air_breath(camX, camY, camZ, D8);       // their breath: 5 millilitres of carbon dioxide a second
         if (OTHHERE) air_body(OTHX, OTHZ, OTHY + INCH * 4, WHO[1] == 'd' ? 5BC * 5BC / $A : DANRAD);
         air_step(); air_draught(); hexi_step();
-        if (frame % 2B < 1) { air_note(); scope_note(); microscope_note(); seedcup_note(); meter_note(); }                                // the air in words, for bots
+        if (frame % 2B < 1) { air_note(); scope_note(); microscope_note(); seedcup_note(); meter_note(); pingpong_note(); }                                // the air in words, for bots
         scene_draw();
         if (frame % 8 < 1) presence_write(frame);                    // where I stand, for the others
         if (frame % 4 < 1) presence_read(other);
