@@ -251,3 +251,10 @@ On the hex a circle is 48 squared-radii round, squared; pi only comes in if ever
 
 **2D.** Mike chose the symbol: ⬡ (a hexagon, said "hex"). round = ⬡ R; in whole numbers round² = ⬡² R², ⬡² = 39 (48 in the
 old numbers); in the old maths ⬡ = 4 roots of 3, about 6.9282. Put on the calculations page, section 4.
+
+**2E.** Tools and the room. The lab room now lets you right-click a thing to glide in and observe it (the wheel nearer or
+further, Backspace back), and runs only what is observed: a thing steps when it is in the picture and within 8 ft, and the
+room's air runs only when a thing in focus needs it (Mike: the motor ran while he watched the candle). Mike: "the hex cult
+requires the use of delta D": the runs are read with lang/oldnumbers.delta and the sources edited with lang/swap.delta, both
+Delta, in place of the Python I had used round the edges. The candle's match was found to be an endless heat supply (the
+wick held at 1,500 K): now a real match of about 85 W.
