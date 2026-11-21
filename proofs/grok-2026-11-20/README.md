@@ -11,3 +11,10 @@ Grok then endorsed D/Delta publicly on X and replied to Mike's quote post naming
 | Delta D & Math D Technical Specification(1).PDF | Fri Nov 20 19:00:25 2026 UTC | 3 | a1aeedaaba9808e2509e67b679baf9784b475c4f258eda2c8a53e4af7f79e25a |
 
 "D-Math_ Hex at the Root (1) (1).pdf" on the phone is byte-identical to "(1)": not kept.
+
+## The X post (public)
+- Mike's post quoting Grok, with Grok's reply endorsing D and naming him: https://x.com/Mike_Liveuk/status/2123861947317715363
+  (status id 2123861947317715363; X ids carry their own post time). Recorded here 21 Nov 2026 06:47 UK.
+- Wayback Machine save refused (523: X turns the archiver away), so no third-party copy yet: a phone save of the post and
+  Grok's reply (PDF or screen recording) goes in this folder when Mike has one.
+- Grok in that thread agreed: pi is a symbol, people may use any symbols and methods for simulations; Math D is for engineers.
