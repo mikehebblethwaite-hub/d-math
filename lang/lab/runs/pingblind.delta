@@ -46,6 +46,7 @@ int HEATC = 1, HEATAT = 6, HMODE = 2;              // the heat: air at HEATC C f
 int TB[NMAX], SOFTB[NMAX], FLATB[NMAX], MELTB[NMAX], THK[NMAX], PULLB[NMAX];   // each ball's warmth (mK), softness, flatness (millionths), melt, shell, pull (Pa)         // the flow's lock between neighbours (2 on, 1 off); the hole moved off the cone's low point (mm, 1 = not)
 #define WS $C
 int WJ[13513], WF[13513], WP[13513];   // each ball's walls: the ball on the other side, how flat (millionths), how hard they press (microN)
+int VENT = 1, INP[NMAX], TBW[NMAX];               // VENT 2: each ball has a 0.3 mm hole (the dream); its gas over the outside air (Pa), last second's warmth
 int GRIP = 1A1;                                 // ball on ball grip, thousandths of how hard they press (0.3, a rough guide)
 int low, N = 79, ANG = $A,                 // ANG in tenths of a degree
  TRAYMM = 163, HOLEMM = 24, SECS = 1A, HENRY = 2, POWER = $B;
@@ -54,7 +55,7 @@ int HEAD[4723], GW;                        // the grid: cells a ball wide, each 
 int CX, CY, RT, RH, DIA = 8396851;          // the tray's middle, its rim, the hole (nanometres); a ball across
 int SINA, COSA, GRAV, ROLL, QAIR, BLOCKED, SUCK, chance;
 int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
-// ======== BLIND RULE START (the helper's wall-src.delta, copied unchanged but its isqrt line, which is the same as ours; sha256 in proofs/blind-wall-2026-11-21) ========
+// ======== BLIND RULE START (the helper's wall-src.delta with its vented part, copied unchanged but its isqrt line, which is the same as ours; sha256 in proofs/blind-wall-2026-11-21) ========
 // BLIND WALL: one shared wall between two table-tennis balls, flattening as the plastic softens.
 //
 // MATERIAL: celluloid (cellulose nitrate plasticised with camphor), the classic ball plastic.
@@ -105,6 +106,27 @@ int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x
 //
 // Not modelled: seams, a leaking ball, the plate contact, gravity sag, heat flow (warm is the plastic's own
 // temperature), snap-through (mirror buckling) of a large cap, and wallflat ignores melting (see wmeltb).
+//
+// SECOND VERSION: A BALL WITH ONE SMALL HOLE (0.3 mm across) in its shell. The first functions are unchanged.
+//   wallflatv: the same rule as wallflat, but the air term uses the ball's present inside excess pressure
+//     (inside, Pa, kept 1 or more) instead of the sealed-ball figure. A vented soft ball is held up by its
+//     shell alone, so it flattens much further.
+//   wventp: the gas in the ball over one second, worked in 1000 steps of 1 ms:
+//     heating: at fixed volume the absolute pressure rises with temperature, P' = P T / Tbefore (spread evenly
+//       over the second); cooling lowers it the same way.
+//     flow through the hole: a short tube, radius r = 0.15 mm, length = the shell thickness. Two resistances
+//       in series (Q = Qv Qo / (Qv + Qo)):
+//         viscous (Poiseuille)  Qv = pi r^4 dp / (8 mu L),  mu = 18.1 uPa s at 20 C, +0.047 uPa s per K
+//         orifice (inertia)     Qo = Cd pi r^2 sqrt(2 dp / rho), Cd = 0.6, rho = 353 / T(K) kg/m^3
+//       The gas in the ball loses (or gains) pressure at P Q / V per second, V = 4/3 pi (R - h)^3 (inside volume,
+//       about 31.5 cm^3), the ball's gas kept at the plastic's temperature (isothermal in each step).
+//     The hole opens to the surrounding air at plain outside pressure (not into the suction neck).
+//     The answer cannot go below 1 Pa: a cooling ball draws air in through the hole, and the hole refills it
+//     within milliseconds, so "below outside" is shown as 1 (level).
+//   Time scale this gives: about 15..20 ms for small excess pressures, so a vented ball stays almost level
+//   with the outside air; steady heating at 1 K/s holds only a few pascals inside.
+//   Not modelled: air squeezed out by the flattening itself (under 1 % of the volume), the hole closing up as
+//   the plastic softens, a hole placed in the suction neck.
 
 
 // square root to the nearest whole number
@@ -199,6 +221,86 @@ int wmeltb(int warm)
     int m = wpowten(less(warm, 115D8A) / $A) / 5BC;
     if (m >= 5BB) return 5BC;
     return 1 + m;
+}
+
+// ---- second version: one 0.3 mm hole in the shell ----
+
+// the flat disc radius the wall heads for, with the ball's own inside excess pressure (Pa)
+int wtargetv(int warm, int shell, int pull, int press, int inside)
+{
+    int force = press + pull * shell * 227A3 / 28D221;               // micronewtons
+    int sshell = wmod(warm) * shell * shell / 5BC * 1144A / 1DC187A;  // N/m^2
+    int dp = inside;
+    if (dp < 1) dp = 1;
+    int sair = $ACCC1 * dp / 36694;
+    int a2 = force * 12C23A19C / (sshell + sair + 1) * 5BC;       // nm^2
+    int t = isqrt(a2) / 17;                                               // a_max = 2e7 nm
+    if (t < 1) t = 1;
+    if (t > 28D221) t = 28D221;
+    return t;
+}
+
+int wallflatv(int flat, int warm, int shell, int pull, int press, int inside)
+{
+    int aim = wtargetv(warm, shell, pull, press, inside);
+    int rate = 733B8298841 / wpowten(wslow(warm));         // creep rate, billionths per second
+    if (rate > 12C23A19C) rate = 12C23A19C;
+    int q = less(179437C9, 26D2B1C5243A113 / wexp(rate / $A)) * $A;   // 1 - e^-rate, billionths
+    int step = apart(aim, flat) * q / 12C23A19C;
+    int f = flat;
+    if (aim > flat) f = flat + step; else f = less(flat, step);
+    if (f < 1) f = 1;
+    if (f > 28D221) f = 28D221;
+    return f;
+}
+
+// volume flow through the hole, in units of 1e-15 m^3/s, for a pressure difference dpm (mPa)
+int wholeflow(int dpm, int warm, int shell)
+{
+    int mun = 8314;                                      // viscosity, 1e-9 Pa s
+    if (warm > $A357D) mun = mun + less(warm, $A357D) * 38 / 5BC;
+    else mun = less(mun, less($A357D, warm) * 38 / 5BC);
+    int qv = dpm * (159928279C4 / (shell * mun));        // Poiseuille, pi r^4 / (8 mu L)
+    int qo = 163C6 * isqrt(dpm * warm * 2 / 212);     // orifice, Cd pi r^2 sqrt(2 dp / rho)
+    int sum = qv + qo;
+    if (sum < 1) return 1;
+    int share = qv / (sum / 28D221 + 1);                 // qv / (qv + qo), millionths
+    return qo * share / 28D221;
+}
+
+int wventp(int inside, int warm, int warmbefore)
+{
+    int shell = 24A;                                      // hole length: the shell (um)
+    int ri = less(9146, shell);                            // inside radius, um
+    int vol = ri * ri * ri / 28D221 * $B38798 / 12C23A19C;   // mm^3
+    int e = inside * 5BC;                                 // excess, mPa
+    int over = 1;                                              // 1: inside above outside, 2: below
+    int dt = apart(warm, warmbefore);
+    int n = 1;
+    while (n <= 5BC) {
+        int tnow = warmbefore;                                 // temperature through the second
+        if (warm >= warmbefore) tnow = warmbefore + dt * n / 5BC; else tnow = less(warmbefore, dt * n / 5BC);
+        int pabs = 17CB892A + e;
+        if (over == 2) pabs = less(17CB892A, e);
+        int heat = pabs / 5BC * dt / tnow;                // mPa this ms
+        int up = 2;
+        if (warm > warmbefore) up = 1;
+        if (heat >= 1) {
+            if (up == over) e = e + heat;
+            else { if (heat > e) { e = less(heat, e); over = up; } else e = less(e, heat); }
+        }
+        if (e >= 1) {
+            int q = wholeflow(e, tnow, shell);
+            int drop = pabs / 5BC * q / (vol * 28D221);   // mPa this ms
+            if (drop > e) drop = e;
+            e = less(e, drop);
+        }
+        n++;
+    }
+    if (over == 2) return 1;
+    int r = e / 5BC;
+    if (r < 1) r = 1;
+    return r;
 }
 
 // ======== BLIND RULE END ========
@@ -437,6 +539,7 @@ void heat(int s)                                   // a second: warmth, softness
         PULLB[i] = PULLB[i] + pl * NC[i];
     }
     for (i = 1; i <= N; i++) {
+        TBW[i] = TB[i]; if (INP[i] < 1) INP[i] = 1;
         int air = $A357D;
         if (HEATC >= 2 && s >= HEATAT) {
             int set = 97437 + HEATC * 5BC;
@@ -450,6 +553,7 @@ void heat(int s)                                   // a second: warmth, softness
         int h = HEATC >= 2 && s >= HEATAT ? 48 : 7, cb = 385 * THK[i] / 5BC;
         if (air > TB[i]) TB[i] = TB[i] + less(air, TB[i]) * h / cb; else TB[i] = less(TB[i], less(TB[i], air) * h / cb);
         SOFTB[i] = TB[i] > $C93A8 ? less(TB[i], $C93A8) / 24 + 1 : 1; if (SOFTB[i] > 5BC) SOFTB[i] = 5BC;
+        if (VENT >= 2) INP[i] = wventp(INP[i], TB[i], TBW[i]);
         MELTB[i] = MELTB[i] + less(wmeltb(TB[i]), 1); if (MELTB[i] > 5BC) MELTB[i] = 5BC;
     }
     for (i = 1; i <= N; i++) {                                         // each wall, once (from its lower-numbered ball)
@@ -462,7 +566,8 @@ void heat(int s)                                   // a second: warmth, softness
                 int u = VAIR[i] * 3; if (u > $D869) u = $D869;
                 int pull = (PLATEP >= 2 ? SUCK : low) + 6 * (u / 79) * (u / 79) / 5BC + 1;   // pascals across the wall
                 int k2 = wslot(j, i, 1), press = k2 < 13512 ? (WP[b + s2] + WP[k2]) / 2 : WP[b + s2];
-                int nf = wallflat(WF[b + s2], (TB[i] + TB[j]) / 2, (THK[i] + THK[j]) / 2 * 24A / 5BC, pull, press + 1);
+                int nf = VENT >= 2 ? wallflatv(WF[b + s2], (TB[i] + TB[j]) / 2, (THK[i] + THK[j]) / 2 * 24A / 5BC, pull, press + 1, (INP[i] + INP[j]) / 2 + 1)
+                                   : wallflat(WF[b + s2], (TB[i] + TB[j]) / 2, (THK[i] + THK[j]) / 2 * 24A / 5BC, pull, press + 1);
                 WF[b + s2] = nf; if (k2 < 13512) WF[k2] = nf;
             }
             if (on) { sum = sum + WF[b + s2]; nw++; }
@@ -717,7 +822,7 @@ int main(int argc, char **argv)
     low = less(1, 1);
     if (argc >= 2) N = pnum(argv[2]); if (argc >= 3) ANG = pnum(argv[3]); if (argc >= 4) TRAYMM = pnum(argv[4]);
     if (argc >= 5) HOLEMM = pnum(argv[5]); if (argc >= 6) SECS = pnum(argv[6]); if (argc >= 7) HENRY = pnum(argv[7]);
-    if (argc >= 8) POWER = pnum(argv[8]); if (argc >= 9) GRIP = pnum(argv[9]); if (argc >= $A) SHAKEG = pnum(argv[$A]); if (argc >= $B) SHAKEHZ = pnum(argv[$B]); if (argc >= $C) SHAKES = pnum(argv[$C]); if (argc >= $D) LOCK = pnum(argv[$D]); if (argc >= 11) HOFF = pnum(argv[11]); if (argc >= 12) HEATC = pnum(argv[12]); if (argc >= 13) HEATAT = pnum(argv[13]); if (argc >= 14) HMODE = pnum(argv[14]); if (argc >= 15) PLATEP = pnum(argv[15]); if (argc >= 16) PLATED = pnum(argv[16]); if (argc >= 17) CHLAD = pnum(argv[17]); if (argc >= 18) CHLADMM = pnum(argv[18]); if (argc >= 19) CHLADS = pnum(argv[19]); if (argc >= 1A) PLACE = pnum(argv[1A]); if (argc >= 1B) FILM = pnum(argv[1B]);
+    if (argc >= 8) POWER = pnum(argv[8]); if (argc >= 9) GRIP = pnum(argv[9]); if (argc >= $A) SHAKEG = pnum(argv[$A]); if (argc >= $B) SHAKEHZ = pnum(argv[$B]); if (argc >= $C) SHAKES = pnum(argv[$C]); if (argc >= $D) LOCK = pnum(argv[$D]); if (argc >= 11) HOFF = pnum(argv[11]); if (argc >= 12) HEATC = pnum(argv[12]); if (argc >= 13) HEATAT = pnum(argv[13]); if (argc >= 14) HMODE = pnum(argv[14]); if (argc >= 15) PLATEP = pnum(argv[15]); if (argc >= 16) PLATED = pnum(argv[16]); if (argc >= 17) CHLAD = pnum(argv[17]); if (argc >= 18) CHLADMM = pnum(argv[18]); if (argc >= 19) CHLADS = pnum(argv[19]); if (argc >= 1A) PLACE = pnum(argv[1A]); if (argc >= 1B) FILM = pnum(argv[1B]); if (argc >= 1C) VENT = pnum(argv[1C]);
     if (FILM >= 2) linux(65, "raft-film", 2BC);
     if (ANG < 1 || ANG > 27B || N > NMAX || N < 2) { say("1 to 26B tenths of a degree (44 degrees), 2 or more balls\n"); return 2; }
     SINA = slopet(ANG); COSA = liet(ANG);

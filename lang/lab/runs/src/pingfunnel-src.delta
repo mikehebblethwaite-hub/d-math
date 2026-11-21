@@ -36,7 +36,7 @@
 int SHAKEG = 1, SHAKEHZ = {{20}}, SHAKES = {{1000}}, STEPNOW;   // ... and for SHAKES seconds, then still (to settle)          // the tray shaken side to side: its strongest push, thousandths of g (1: still); beats a second
 int LOCK = 2, HOFF = 1, HX, HY, VAIR[NMAX];
 int PLATEP = 1, PLATED = 5, VGAP;                  // the cone as a holed plate (Mike: "a hole under every three"): holes PLATEP mm apart (1: no plate, one hole in the middle), PLATED tenths of a mm across; air speed through a gap (mm/s)
-int PLACE = 1, FILM = 1;                           // FILM 2: a picture from above every 2 s while it heats (raft-film/)
+int PLACE = 1, FILM = 1;                           // FILM 2: a picture from above every 2 s while it heats (raft-film/); 3: and at 45 degrees
                                      // 1: scattered by the world's chance; 2: set by hand in hex (a hand's unevenness, up to 1 mm, by the world's chance)
 int CHLAD = 1, CHLADMM = {{40}}, CHLADS = {{20}}, CNORM = 1;   // the plate sung like Chladni's: drift strength (thousandths of g, 1 none), still points this far apart (mm), for this many seconds
 int HEATC = 1, HEATAT = 6, HMODE = 2;              // the heat: air at HEATC C from above (1: none), from second HEATAT on; 1 the whole tray, 2 the Skil over the middle
@@ -342,21 +342,45 @@ int facesok(int i, int x, int y)                  // inside every flat face ball
     }
     return 1;
 }
-int inball(int i, int x, int y)
+int touches(int a, int b)                        // pressing together: within 8% of a ball, middle to middle
 {
-    int dx = apart(x, X[i]), dy = apart(y, Y[i]), round = isqrt(dx / {{1000}} * (dx / {{1000}}) + dy / {{1000}} * (dy / {{1000}}));
-    int r = DIA / {{2000}}, reach = r;
-    if (FLATB[i] >= {{2000}}) {                      // filling out into a gap between threes as its walls flatten (only where three meet)
-        int k, near = low, hx = x / DIA, hy = y / DIA, qx, qy;
-        for (qy = 1; qy <= 3; qy++) for (qx = 1; qx <= 3; qx++) {
-            int cx = hx + qx, cy = hy + qy; if (cx < 2 || cy < 2 || cx > GW + 1 || cy > GW + 1) continue;
-            k = HEAD[less(cy, 2) * GW + less(cx, 2) + 1];
-            while (k <= N) { int ax = apart(x, X[k]) / {{1000}}, ay = apart(y, Y[k]) / {{1000}}; if (ax * ax + ay * ay <= r * r * {{160}} / {{100}}) near++; k = NEXT[k]; }   // out to 1.26 r: a gap's middle is 1.155 r from its three (a hair more if set a hair apart)
-        }
-        if (near >= 3) reach = r * ({{1000}} + {{155}} * (FLATB[i] / {{1000}}) / {{1000}}) / {{1000}};
+    int ax = apart(X[a], X[b]), ay = apart(Y[a], Y[b]);
+    if (ax >= DIA * {{108}} / {{100}} || ay >= DIA * {{108}} / {{100}}) return low;
+    return isqrt(ax / {{1000}} * (ax / {{1000}}) + ay / {{1000}} * (ay / {{1000}})) * {{100}} <= DIA / {{1000}} * {{108}};
+}
+int area2(int x1, int y1, int x2, int y2, int x3, int y3)   // twice a triangle's area (micrometres, kept above nothing)
+{
+    x1 = x1 / {{1000}}; y1 = y1 / {{1000}}; x2 = x2 / {{1000}}; y2 = y2 / {{1000}}; x3 = x3 / {{1000}}; y3 = y3 / {{1000}};
+    return apart(x1 * y2 + x2 * y3 + x3 * y1, x1 * y3 + x2 * y1 + x3 * y2);
+}
+int ingap(int i, int x, int y)                    // in ball i's corner of a gap where three meet: inside the three i, j, k
+{                                                 // (j and k touch i and each other); a free side has no such three, it stays round
+    int nb[{{20}}], n = low, gx = X[i] / DIA, gy = Y[i] / DIA, ox, oy, j, a, b;
+    for (oy = 1; oy <= 3; oy++) for (ox = 1; ox <= 3; ox++) {
+        int ex = gx + ox, ey = gy + oy;
+        if (ex < 2 || ey < 2 || ex > GW + 1 || ey > GW + 1) continue;
+        j = HEAD[less(ey, 2) * GW + less(ex, 2) + 1];
+        while (j <= N) { if (j != i && n < {{18}} && touches(i, j)) { n++; nb[n] = j; } j = NEXT[j]; }
     }
+    for (a = 1; a <= n; a++) for (b = a + 1; b <= n; b++) {
+        int j1 = nb[a], k1 = nb[b];
+        if (touches(j1, k1) < 1) continue;
+        int whole = area2(X[i], Y[i], X[j1], Y[j1], X[k1], Y[k1]);
+        int parts = area2(x, y, X[j1], Y[j1], X[k1], Y[k1]) + area2(X[i], Y[i], x, y, X[k1], Y[k1]) + area2(X[i], Y[i], X[j1], Y[j1], x, y);
+        if (parts <= whole + whole / {{1000}} + 1) return 1;
+    }
+    return low;
+}
+int inball(int i, int x, int y)                  // the ball's outline from above: round, its walls flattening toward the balls it
+{                                                // presses on (faces half way), filling out into the gaps where three meet as it flattens:
+    int dx = apart(x, X[i]), dy = apart(y, Y[i]), round = isqrt(dx / {{1000}} * (dx / {{1000}}) + dy / {{1000}} * (dy / {{1000}}));
+    int r = DIA / {{2000}};                         // fully flat it is a hexagon: faces at r, corners at 1.155 r (the gap's middle)
+    if (round <= r) return facesok(i, x, y);
+    if (FLATB[i] < {{2000}}) return low;
+    int reach = r * ({{1000}} + {{155}} * (FLATB[i] / {{1000}}) / {{1000}}) / {{1000}} + 1;
     if (round > reach) return low;
-    return facesok(i, x, y);
+    if (facesok(i, x, y) < 1) return low;
+    return ingap(i, x, y);
 }
 void picture(char *name)
 {
@@ -386,6 +410,71 @@ void picture(char *name)
         int w = less(TB[got], {{293150}} > TB[got] ? TB[got] : {{293150}}) / {{600}}; if (w > {{150}}) w = {{150}};
         if (MELTB[got] >= {{500}}) { pput({{200}}); pput({{90}}); pput({{40}}); }
         else { pput({{240}}); pput(less({{240}}, w / 2)); pput(less({{235}}, w)); }
+    }
+    int fd = linux(2, name, {{577}}, {{420}});
+    if (fd < 1) { say("cannot write %s\n", name); return; }
+    int done = 1;
+    while (done <= PICN) { int got2 = linux(1, fd, &PIC[done], less(PICN + 1, done)); if (got2 < 1) break; done = done + got2; }
+    linux(3, fd);
+}
+// ---------------------------------------------------------------- the tray at 45 degrees from the front (raft-film/sNNNN.ppm, raft-end45.ppm)
+int HIT[{{400000}}], SHADE[{{400000}}];
+int in3(int k, int x, int y, int z)               // inside ball k in the room: the outline from above, sliced by height. Round: a sphere.
+{                                                 // Flattening: each slice keeps the outline from above, its walls rising straight
+    int r = DIA / 2, dz = apart(z, r);              // (a profile 1 - h^4 in place of 1 - h^2), so a fully flat ball is a hex block
+    if (dz >= r) return low;                        // with a rounded top, pressed face to face on its neighbours
+    int ax = apart(x, X[k]), ay = apart(y, Y[k]), lim = r * {{116}} / {{100}};
+    if (ax > lim || ay > lim) return low;
+    int q = dz / (r / {{1000}}), q2 = q * q;
+    int rhor = isqrt(less({{1000000}}, q2)), rhof = isqrt(isqrt(less({{1000000000000}}, q2 * q2)));
+    int rho = rhor + less(rhof, rhor) * (FLATB[k] / {{1000}}) / {{1000}};
+    if (rho < 2) return low;
+    int sx = ax / rho * {{1000}}, sy = ay / rho * {{1000}};
+    int px = x >= X[k] ? X[k] + sx : sx <= X[k] ? less(X[k], sx) : low, py = y >= Y[k] ? Y[k] + sy : sy <= Y[k] ? less(Y[k], sy) : low;
+    if (px < 1 || py < 1) return low;
+    return inball(k, px, py);
+}
+int ballat(int x, int y, int z)                   // which ball holds this point (none: N + 1)
+{
+    int gx = x / DIA, gy = y / DIA, ox, oy, k;
+    for (oy = 1; oy <= 3; oy++) for (ox = 1; ox <= 3; ox++) {
+        int cx = gx + ox, cy = gy + oy; if (cx < 2 || cy < 2 || cx > GW + 1 || cy > GW + 1) continue;
+        k = HEAD[less(cy, 2) * GW + less(cx, 2) + 1];
+        while (k <= N) { if (in3(k, x, y, z)) return k; k = NEXT[k]; }
+    }
+    return N + 1;
+}
+void picture45(char *name)                        // looking down at 45 degrees from the front (the tray drawn level; the cone's
+{                                                 // 2 degrees left out); along each sight line y - z stays the same
+    int side = {{600}}, px, py, c, r = DIA / 2;
+    int span = RT * 2 + DIA, xleftp = less(CX, span / 2), ps = span / side, ks = ps * {{1000}} / {{707}};
+    int kmin = less(CY, RT + DIA + DIA / {{10}}), kmax = CY + RT + DIA / 2, rows = less(kmax, kmin) / ks + 1;
+    int ztop = DIA + DIA / {{20}}, zs = DIA / {{80}};
+    if (rows * side >= {{360000}}) rows = {{360000}} / side;     // the picture store holds a little over a million bytes
+    for (c = 1; c <= GW * GW; c++) HEAD[c] = N + 1;
+    int i; for (i = 1; i <= N; i++) { c = cellof(X[i], Y[i]); NEXT[i] = HEAD[c]; HEAD[c] = i; }
+    for (py = 1; py <= rows; py++) for (px = 1; px <= side; px++) {
+        int x = xleftp + px * ps, kk = kmin + py * ks, z = ztop, got = N + 1, pix = less(py, 1) * side + px;
+        while (z >= zs && got > N) { z = less(z, zs); got = ballat(x, kk + z, z); }
+        if (got <= N) {                              // close in on the surface: between z (inside) and z + zs (outside)
+            int lo = z, hi = z + zs, t;
+            for (t = 1; t <= 6; t++) { int mid = (lo + hi) / 2; if (in3(got, x, kk + mid, mid)) lo = mid; else hi = mid; }
+            z = lo;
+        }
+        HIT[pix] = got; SHADE[pix] = got <= N ? {{450}} + {{550}} * (z / {{1000}}) / (DIA / {{1000}}) : low;   // lit from above: tops brightest
+        if (got > N) { int dx = apart(CX, x), dy = apart(CY, kk); SHADE[pix] = isqrt(dx / {{1000}} * (dx / {{1000}}) + dy / {{1000}} * (dy / {{1000}})) > RT / {{1000}} ? 1 : 2; }
+    }
+    PICN = low;
+    pput('P'); pput('6'); pput('\n'); pdec(side); pput(' '); pdec(rows); pput('\n'); pdec({{255}}); pput('\n');
+    for (py = 1; py <= rows; py++) for (px = 1; px <= side; px++) {
+        int pix = less(py, 1) * side + px, k = HIT[pix];
+        if (k > N) { if (SHADE[pix] == 1) { pput({{18}}); pput({{18}}); pput({{22}}); } else { pput({{70}}); pput({{72}}); pput({{78}}); } continue; }
+        int edge = (px > 1 && HIT[less(pix, 1)] != k) || (px < side && HIT[pix + 1] != k) || (py > 1 && HIT[less(pix, side)] != k) || (py < rows && HIT[pix + side] != k);
+        if (edge) { pput({{50}}); pput({{50}}); pput({{56}}); continue; }
+        int b = SHADE[pix]; if (b > {{1000}}) b = {{1000}};
+        int w = less(TB[k], {{293150}} > TB[k] ? TB[k] : {{293150}}) / {{600}}; if (w > {{150}}) w = {{150}};
+        if (MELTB[k] >= {{500}}) { pput({{200}} * b / {{1000}}); pput({{90}} * b / {{1000}}); pput({{40}} * b / {{1000}}); }
+        else { pput({{240}} * b / {{1000}}); pput(less({{240}}, w / 2) * b / {{1000}}); pput(less({{235}}, w) * b / {{1000}}); }
     }
     int fd = linux(2, name, {{577}}, {{420}});
     if (fd < 1) { say("cannot write %s\n", name); return; }
@@ -468,17 +557,18 @@ int main(int argc, char **argv)
     if (PLATEP >= 2) say("the cone is a holed plate: holes %d mm apart, %d tenths of a mm across, under the whole tray (no single hole)\n", PLATEP, PLATED);
     say("each ball: %d microNewtons down the slope, %d held back by rolling on the tray; grip ball on ball %d thousandths; shaken %d thousandths of g at %d a second\n", GRAV, ROLL, GRIP, SHAKEG, SHAKEHZ);
     int step, s = low;
-    if (PLACE == 2) picture("raft-start.ppm");
+    if (PLACE == 2) { picture("raft-start.ppm"); if (FILM >= 3) picture45("raft-start45.ppm"); }
     for (step = 1; step <= SECS * {{4000}}; step++) {
         if (step % {{400}} == 1) henry();
         STEPNOW = step; forces(); roll();
         if (step % {{4000}} < 1) {
             s++; heat(s); report(s);
             if (FILM >= 2 && s % 2 < 1) { char nm[{{40}}]; char *b = "raft-film/f"; int k = 1, dd = {{1000}}, n = s / 2; while (b[k] >= 1) { nm[k] = b[k]; k++; }
-                while (dd >= 1) { nm[k] = '0' + n / dd % {{10}}; k++; dd = dd / {{10}}; } nm[k] = '.'; nm[k + 1] = 'p'; nm[k + 2] = 'p'; nm[k + 3] = 'm'; nm[k + 4] = low; picture(nm); }
+                while (dd >= 1) { nm[k] = '0' + n / dd % {{10}}; k++; dd = dd / {{10}}; } nm[k] = '.'; nm[k + 1] = 'p'; nm[k + 2] = 'p'; nm[k + 3] = 'm'; nm[k + 4] = low; picture(nm);
+                if (FILM >= 3) { nm[{{11}}] = 's'; picture45(nm); } }   // FILM 3: the 45 degree view too (raft-film/sNNNN.ppm)
         }
     }
     map();
-    if (PLACE == 2) { picture("raft-end.ppm"); say("pictures: raft-start.ppm (before), raft-end.ppm (after)\n"); }
+    if (PLACE == 2) { picture("raft-end.ppm"); if (FILM >= 3) picture45("raft-end45.ppm"); say("pictures: raft-start.ppm (before), raft-end.ppm (after); FILM 3: raft-start45.ppm, raft-end45.ppm (45 degrees)\n"); }
     return 1;
 }
