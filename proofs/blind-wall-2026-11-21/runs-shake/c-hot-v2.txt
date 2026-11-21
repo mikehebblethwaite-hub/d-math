@@ -1,0 +1,653 @@
+ping pong funnel: 7A balls on a cone tray at 17 tenths of a degree, 1A3 mm to the rim, a 24 mm hole; Henry on, power B of B; the world's chance 69174A2B
+the flow lock on; the hole ~ mm off the cone's low point
+the cone is a holed plate: holes A mm apart, 5 tenths of a mm across, under the whole tray (no single hole)
+each ball: 562 microNewtons down the slope, 62 held back by rolling on the tray; grip ball on ball 1A1 thousandths; shaken 3B thousandths of g at 17 a second
+1 s  rolling 79 of 7A  fastest 4 mm/s  hex (six touching) ~  middle to ball, mean C4 mm  Henry A8C7 ml/s pull 2C52 Pa  hole open
+   heat: warmth 126 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+ORDER now: balls with 2+ neighbours 6A, mean psi6 387 thousandths, psi6 >= 0.9: 1B, exactly six neighbours: ~ (of 7A)
+2 s  rolling 61 of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean C3 mm  Henry A8C7 ml/s pull 2C52 Pa  hole open
+   heat: warmth 126 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+3 s  rolling 1B of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean C2 mm  Henry A8D3 ml/s pull 2C52 Pa  hole open
+   heat: warmth 126 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+4 s  rolling 73 of 7A  fastest 19 mm/s  hex (six touching) ~  middle to ball, mean C2 mm  Henry A8D3 ml/s pull 2C52 Pa  hole open
+   heat: warmth 126 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+5 s  rolling 72 of 7A  fastest A3 mm/s  hex (six touching) ~  middle to ball, mean C1 mm  Henry A925 ml/s pull 2C52 Pa  hole open
+   heat: warmth 126 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+6 s  rolling 79 of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean C1 mm  Henry A93B ml/s pull 2C52 Pa  hole open
+   heat: warmth 19C tenths C over freezing  flat 1  walls fully flat ~  melted ~
+7 s  rolling 29 of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean BD mm  Henry A953 ml/s pull 2C52 Pa  hole open
+   heat: warmth 239 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+8 s  rolling 7 of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean BC mm  Henry A975 ml/s pull 2C52 Pa  hole open
+   heat: warmth 29A tenths C over freezing  flat 1  walls fully flat ~  melted ~
+9 s  rolling 76 of 7A  fastest C mm/s  hex (six touching) ~  middle to ball, mean BC mm  Henry A975 ml/s pull 2C52 Pa  hole open
+   heat: warmth 324 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+A s  rolling 7A of 7A  fastest 4 mm/s  hex (six touching) ~  middle to ball, mean BC mm  Henry A981 ml/s pull 2C52 Pa  hole open
+   heat: warmth 373 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+B s  rolling 7A of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean BC mm  Henry A98B ml/s pull 2C52 Pa  hole open
+   heat: warmth 3B9 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+C s  rolling 64 of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean BB mm  Henry A997 ml/s pull 2C52 Pa  hole open
+   heat: warmth 42A tenths C over freezing  flat 1  walls fully flat ~  melted ~
+D s  rolling 7 of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean BB mm  Henry A997 ml/s pull 2C52 Pa  hole open
+   heat: warmth 466 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+11 s  rolling 64 of 7A  fastest A mm/s  hex (six touching) ~  middle to ball, mean BB mm  Henry A9B9 ml/s pull 2C52 Pa  hole open
+   heat: warmth 499 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+12 s  rolling 7A of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean BB mm  Henry A9D1 ml/s pull 2C46 Pa  hole open
+   heat: warmth 4C9 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+13 s  rolling 7A of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry A9DB ml/s pull 2C3D Pa  hole open
+   heat: warmth 525 tenths C over freezing  flat 1  walls fully flat ~  melted ~
+14 s  rolling 61 of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry A9DB ml/s pull 2C3D Pa  hole open
+   heat: warmth 54B tenths C over freezing  flat 1  walls fully flat ~  melted ~
+15 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry A9DB ml/s pull 2C3D Pa  hole open
+   heat: warmth 56D tenths C over freezing  flat 1  walls fully flat ~  melted ~
+16 s  rolling 7A of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry A9DB ml/s pull 2C3D Pa  hole open
+   heat: warmth 58D tenths C over freezing  flat 1  walls fully flat ~  melted ~
+17 s  rolling 7A of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry AA17 ml/s pull 2C38 Pa  hole open
+   heat: warmth 5AA tenths C over freezing  flat 2  walls fully flat ~  melted ~
+18 s  rolling 7A of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry AA17 ml/s pull 2C38 Pa  hole open
+   heat: warmth 5C5 tenths C over freezing  flat 4  walls fully flat ~  melted ~
+19 s  rolling 5D of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry AA17 ml/s pull 2C38 Pa  hole open
+   heat: warmth 5DB tenths C over freezing  flat 7  walls fully flat ~  melted ~
+1A s  rolling 56 of 7A  fastest 7 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry AA17 ml/s pull 2C38 Pa  hole open
+   heat: warmth 622 tenths C over freezing  flat C  walls fully flat ~  melted ~
+1B s  rolling 78 of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA17 ml/s pull 2C38 Pa  hole open
+   heat: warmth 634 tenths C over freezing  flat 16  walls fully flat ~  melted ~
+1C s  rolling 74 of 7A  fastest 36 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA2C ml/s pull 2C2B Pa  hole open
+   heat: warmth 645 tenths C over freezing  flat 23  walls fully flat ~  melted ~
+1D s  rolling 79 of 7A  fastest C mm/s  hex (six touching) 1  middle to ball, mean B9 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+   heat: warmth 655 tenths C over freezing  flat 34  walls fully flat ~  melted ~
+21 s  rolling 65 of 7A  fastest 9 mm/s  hex (six touching) 1  middle to ball, mean B8 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+   heat: warmth 663 tenths C over freezing  flat 49  walls fully flat ~  melted ~
+22 s  rolling A of 7A  fastest A mm/s  hex (six touching) 1  middle to ball, mean B8 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+   heat: warmth 66D tenths C over freezing  flat 64  walls fully flat ~  melted ~
+23 s  rolling 78 of 7A  fastest B mm/s  hex (six touching) 1  middle to ball, mean B8 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+   heat: warmth 67A tenths C over freezing  flat 7A  walls fully flat ~  melted ~
+24 s  rolling 77 of 7A  fastest C mm/s  hex (six touching) 1  middle to ball, mean B8 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+   heat: warmth 685 tenths C over freezing  flat 94  walls fully flat ~  melted ~
+ORDER now: balls with 2+ neighbours 78, mean psi6 3B8 thousandths, psi6 >= 0.9: 1D, exactly six neighbours: 1 (of 7A)
+25 s  rolling 79 of 7A  fastest 8 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+   heat: warmth 68C tenths C over freezing  flat AA  walls fully flat ~  melted ~
+26 s  rolling 6B of 7A  fastest 9 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+   heat: warmth 696 tenths C over freezing  flat C2  walls fully flat ~  melted ~
+27 s  rolling C of 7A  fastest C mm/s  hex (six touching) 1  middle to ball, mean B6 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+   heat: warmth 69C tenths C over freezing  flat D4  walls fully flat ~  melted ~
+28 s  rolling 7A of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean B6 mm  Henry AA45 ml/s pull 2C1D Pa  hole open
+   heat: warmth 6A5 tenths C over freezing  flat 116  walls fully flat ~  melted ~
+29 s  rolling 7A of 7A  fastest 4 mm/s  hex (six touching) 1  middle to ball, mean B5 mm  Henry AA51 ml/s pull 2C18 Pa  hole open
+   heat: warmth 6AA tenths C over freezing  flat 124  walls fully flat ~  melted ~
+2A s  rolling 79 of 7A  fastest 4 mm/s  hex (six touching) 1  middle to ball, mean B5 mm  Henry AA7C ml/s pull 2BCD Pa  hole open
+   heat: warmth 6B1 tenths C over freezing  flat 12B  walls fully flat ~  melted ~
+2B s  rolling 7A of 7A  fastest 2 mm/s  hex (six touching) 1  middle to ball, mean B5 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+   heat: warmth 6B6 tenths C over freezing  flat 138  walls fully flat ~  melted ~
+2C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B4 mm  Henry AA51 ml/s pull 2C18 Pa  hole open
+   heat: warmth 6B9 tenths C over freezing  flat 143  walls fully flat ~  melted ~
+2D s  rolling 7A of 7A  fastest 2 mm/s  hex (six touching) 1  middle to ball, mean B4 mm  Henry AA67 ml/s pull 2BDA Pa  hole open
+   heat: warmth 6BD tenths C over freezing  flat 148  walls fully flat ~  melted ~
+31 s  rolling 7A of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean B4 mm  Henry AA67 ml/s pull 2BDA Pa  hole open
+   heat: warmth 6C3 tenths C over freezing  flat 151  walls fully flat ~  melted ~
+32 s  rolling 7A of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean B3 mm  Henry AA67 ml/s pull 2BDA Pa  hole open
+   heat: warmth 6C5 tenths C over freezing  flat 156  walls fully flat ~  melted ~
+33 s  rolling 7A of 7A  fastest 2 mm/s  hex (six touching) 1  middle to ball, mean B3 mm  Henry AA67 ml/s pull 2BDA Pa  hole open
+   heat: warmth 6C8 tenths C over freezing  flat 15A  walls fully flat ~  melted ~
+34 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B3 mm  Henry AA67 ml/s pull 2BDA Pa  hole open
+   heat: warmth 6CA tenths C over freezing  flat 15D  walls fully flat ~  melted ~
+35 s  rolling 7A of 7A  fastest 2 mm/s  hex (six touching) 1  middle to ball, mean B3 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+   heat: warmth 6CC tenths C over freezing  flat 162  walls fully flat ~  melted ~
+36 s  rolling 7A of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean B3 mm  Henry AA7C ml/s pull 2BCD Pa  hole open
+   heat: warmth 6D1 tenths C over freezing  flat 164  walls fully flat ~  melted ~
+37 s  rolling 78 of 7A  fastest 11 mm/s  hex (six touching) 1  middle to ball, mean B3 mm  Henry AA88 ml/s pull 2BC8 Pa  hole open
+   heat: warmth 6D2 tenths C over freezing  flat 165  walls fully flat ~  melted ~
+38 s  rolling 7A of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean B3 mm  Henry AA88 ml/s pull 2BC8 Pa  hole open
+   heat: warmth 6D4 tenths C over freezing  flat 166  walls fully flat ~  melted ~
+39 s  rolling 38 of 7A  fastest 4 mm/s  hex (six touching) 1  middle to ball, mean B2 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+   heat: warmth 6D5 tenths C over freezing  flat 166  walls fully flat ~  melted ~
+3A s  rolling 72 of 7A  fastest B mm/s  hex (six touching) 2  middle to ball, mean B2 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+   heat: warmth 6D6 tenths C over freezing  flat 165  walls fully flat ~  melted ~
+3B s  rolling 7A of 7A  fastest 7 mm/s  hex (six touching) 1  middle to ball, mean B2 mm  Henry AA7C ml/s pull 2BCD Pa  hole open
+   heat: warmth 6D7 tenths C over freezing  flat 162  walls fully flat ~  melted ~
+3C s  rolling 75 of 7A  fastest B mm/s  hex (six touching) 1  middle to ball, mean B2 mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+   heat: warmth 6D8 tenths C over freezing  flat 163  walls fully flat ~  melted ~
+3D s  rolling 71 of 7A  fastest 13 mm/s  hex (six touching) 5  middle to ball, mean B1 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 6D9 tenths C over freezing  flat 164  walls fully flat ~  melted ~
+41 s  rolling 3 of 7A  fastest 3 mm/s  hex (six touching) 2  middle to ball, mean B1 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+   heat: warmth 6DA tenths C over freezing  flat 166  walls fully flat ~  melted ~
+42 s  rolling 77 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B1 mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+   heat: warmth 6DB tenths C over freezing  flat 167  walls fully flat ~  melted ~
+43 s  rolling 7A of 7A  fastest D mm/s  hex (six touching) 2  middle to ball, mean B1 mm  Henry AA88 ml/s pull 2BC8 Pa  hole open
+   heat: warmth 6DB tenths C over freezing  flat 168  walls fully flat ~  melted ~
+44 s  rolling 7A of 7A  fastest 6 mm/s  hex (six touching) 1  middle to ball, mean B1 mm  Henry AA95 ml/s pull 2BC2 Pa  hole open
+   heat: warmth 6DC tenths C over freezing  flat 167  walls fully flat ~  melted ~
+45 s  rolling 78 of 7A  fastest 12 mm/s  hex (six touching) 5  middle to ball, mean B1 mm  Henry AAAA ml/s pull 2BB5 Pa  hole open
+   heat: warmth 6DD tenths C over freezing  flat 166  walls fully flat ~  melted ~
+46 s  rolling 22 of 7A  fastest 11 mm/s  hex (six touching) 4  middle to ball, mean B1 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 6DD tenths C over freezing  flat 167  walls fully flat ~  melted ~
+47 s  rolling 78 of 7A  fastest 9 mm/s  hex (six touching) 5  middle to ball, mean B1 mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 6DD tenths C over freezing  flat 167  walls fully flat ~  melted ~
+48 s  rolling 75 of 7A  fastest 8 mm/s  hex (six touching) 4  middle to ball, mean B1 mm  Henry AA95 ml/s pull 2BC2 Pa  hole open
+   heat: warmth 711 tenths C over freezing  flat 168  walls fully flat ~  melted ~
+ORDER now: balls with 2+ neighbours 7A, mean psi6 3D2 thousandths, psi6 >= 0.9: 2C, exactly six neighbours: D (of 7A)
+49 s  rolling 7A of 7A  fastest B mm/s  hex (six touching) 2  middle to ball, mean B1 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 711 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+4A s  rolling 71 of 7A  fastest 11 mm/s  hex (six touching) 2  middle to ball, mean B1 mm  Henry AA95 ml/s pull 2BC2 Pa  hole open
+   heat: warmth 711 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+4B s  rolling 3A of 7A  fastest B mm/s  hex (six touching) 4  middle to ball, mean B1 mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 712 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+4C s  rolling 79 of 7A  fastest 14 mm/s  hex (six touching) 5  middle to ball, mean B1 mm  Henry AAC3 ml/s pull 2BA7 Pa  hole open
+   heat: warmth 712 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+4D s  rolling 7A of 7A  fastest 12 mm/s  hex (six touching) 2  middle to ball, mean B1 mm  Henry AAAA ml/s pull 2BB5 Pa  hole open
+   heat: warmth 712 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+51 s  rolling 77 of 7A  fastest D mm/s  hex (six touching) 4  middle to ball, mean B1 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 712 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+52 s  rolling 72 of 7A  fastest B mm/s  hex (six touching) 3  middle to ball, mean B1 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 713 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+53 s  rolling 1D of 7A  fastest C mm/s  hex (six touching) 4  middle to ball, mean B1 mm  Henry AAAA ml/s pull 2BB5 Pa  hole open
+   heat: warmth 713 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+54 s  rolling 69 of 7A  fastest 11 mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry AAC3 ml/s pull 2BA7 Pa  hole open
+   heat: warmth 713 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+55 s  rolling 78 of 7A  fastest 13 mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 713 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+56 s  rolling 79 of 7A  fastest 5 mm/s  hex (six touching) 1  middle to ball, mean AD mm  Henry AAAA ml/s pull 2BB5 Pa  hole open
+   heat: warmth 713 tenths C over freezing  flat 168  walls fully flat ~  melted ~
+57 s  rolling 66 of 7A  fastest 11 mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+58 s  rolling 25 of 7A  fastest B mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 168  walls fully flat ~  melted ~
+59 s  rolling 69 of 7A  fastest 8 mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+5A s  rolling 74 of 7A  fastest 13 mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+5B s  rolling 79 of 7A  fastest 15 mm/s  hex (six touching) 1  middle to ball, mean AD mm  Henry AA88 ml/s pull 2BC8 Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+5C s  rolling 76 of 7A  fastest 12 mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+5D s  rolling 22 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AAC3 ml/s pull 2BA7 Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+61 s  rolling 71 of 7A  fastest 13 mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+62 s  rolling 7A of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AAC3 ml/s pull 2BA7 Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+63 s  rolling 7A of 7A  fastest 12 mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+64 s  rolling 76 of 7A  fastest 12 mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+65 s  rolling 12 of 7A  fastest A mm/s  hex (six touching) 2  middle to ball, mean AD mm  Henry AA95 ml/s pull 2BC2 Pa  hole open
+   heat: warmth 714 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+66 s  rolling 78 of 7A  fastest C mm/s  hex (six touching) 2  middle to ball, mean AD mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+67 s  rolling 7A of 7A  fastest 14 mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+68 s  rolling 74 of 7A  fastest C mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+69 s  rolling 7A of 7A  fastest 2 mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+6A s  rolling 23 of 7A  fastest C mm/s  hex (six touching) 2  middle to ball, mean AD mm  Henry AAAA ml/s pull 2BB5 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+6B s  rolling 6B of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+6C s  rolling 78 of 7A  fastest D mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+ORDER now: balls with 2+ neighbours 7A, mean psi6 428 thousandths, psi6 >= 0.9: 32, exactly six neighbours: 14 (of 7A)
+6D s  rolling 7A of 7A  fastest 11 mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+71 s  rolling 73 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean AD mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+72 s  rolling 2D of 7A  fastest 11 mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+73 s  rolling 71 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean AD mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+74 s  rolling 77 of 7A  fastest 13 mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+75 s  rolling 79 of 7A  fastest 13 mm/s  hex (six touching) 8  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+76 s  rolling 73 of 7A  fastest 5 mm/s  hex (six touching) 2  middle to ball, mean AD mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+77 s  rolling 26 of 7A  fastest 11 mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+78 s  rolling 68 of 7A  fastest 3 mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+79 s  rolling 79 of 7A  fastest A mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry AAC3 ml/s pull 2BA7 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+7A s  rolling 79 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+7B s  rolling 72 of 7A  fastest D mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+7C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 2  middle to ball, mean AD mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+7D s  rolling 72 of 7A  fastest C mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+81 s  rolling 77 of 7A  fastest D mm/s  hex (six touching) 7  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+82 s  rolling 79 of 7A  fastest 5 mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+83 s  rolling 76 of 7A  fastest 11 mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+84 s  rolling 19 of 7A  fastest 6 mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+85 s  rolling 5A of 7A  fastest 13 mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+86 s  rolling 7A of 7A  fastest B mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+87 s  rolling 78 of 7A  fastest 6 mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+88 s  rolling 72 of 7A  fastest 14 mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+89 s  rolling 29 of 7A  fastest B mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AAC3 ml/s pull 2BA7 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+8A s  rolling 68 of 7A  fastest B mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+8B s  rolling 78 of 7A  fastest 12 mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+8C s  rolling 76 of 7A  fastest A mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+8D s  rolling 76 of 7A  fastest 14 mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+91 s  rolling 1D of 7A  fastest C mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AAC3 ml/s pull 2BA7 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+92 s  rolling 58 of 7A  fastest A mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+93 s  rolling 7A of 7A  fastest 17 mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+ORDER now: balls with 2+ neighbours 7A, mean psi6 42A thousandths, psi6 >= 0.9: 33, exactly six neighbours: 13 (of 7A)
+94 s  rolling 21 of 7A  fastest 11 mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+95 s  rolling 22 of 7A  fastest 13 mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AAAA ml/s pull 2BB5 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+96 s  rolling 13 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+97 s  rolling 12 of 7A  fastest 5 mm/s  hex (six touching) 2  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+98 s  rolling C of 7A  fastest 8 mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+99 s  rolling 2A of 7A  fastest 11 mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+9A s  rolling 1B of 7A  fastest D mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+9B s  rolling 2D of 7A  fastest 13 mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+9C s  rolling 38 of 7A  fastest 12 mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+9D s  rolling 27 of 7A  fastest 16 mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+A1 s  rolling 26 of 7A  fastest C mm/s  hex (six touching) 5  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+A2 s  rolling 11 of 7A  fastest 6 mm/s  hex (six touching) 2  middle to ball, mean AD mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+A3 s  rolling 23 of 7A  fastest D mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+A4 s  rolling 2C of 7A  fastest C mm/s  hex (six touching) 6  middle to ball, mean AD mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+A5 s  rolling 8 of 7A  fastest 6 mm/s  hex (six touching) 3  middle to ball, mean AD mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+A6 s  rolling 1A of 7A  fastest 7 mm/s  hex (six touching) 4  middle to ball, mean AD mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+A7 s  rolling A of 7A  fastest 6 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+A8 s  rolling 24 of 7A  fastest D mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+A9 s  rolling 16 of 7A  fastest B mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+AA s  rolling 19 of 7A  fastest 12 mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+AB s  rolling 2B of 7A  fastest 9 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+AC s  rolling 23 of 7A  fastest 17 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry AAC3 ml/s pull 2BA7 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+AD s  rolling 17 of 7A  fastest 11 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+B1 s  rolling 16 of 7A  fastest C mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+B2 s  rolling 19 of 7A  fastest 8 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry AA95 ml/s pull 2BC2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+B3 s  rolling 2D of 7A  fastest 13 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16D  walls fully flat ~  melted ~
+B4 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+B5 s  rolling 15 of 7A  fastest C mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+B6 s  rolling 36 of 7A  fastest 11 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+B7 s  rolling 25 of 7A  fastest 12 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+ORDER now: balls with 2+ neighbours 7A, mean psi6 432 thousandths, psi6 >= 0.9: 34, exactly six neighbours: 12 (of 7A)
+B8 s  rolling 21 of 7A  fastest C mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry AAC3 ml/s pull 2BA7 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+B9 s  rolling 33 of 7A  fastest 14 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+BA s  rolling 1B of 7A  fastest D mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+BB s  rolling 33 of 7A  fastest B mm/s  hex (six touching) 7  middle to ball, mean AC mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+BC s  rolling 25 of 7A  fastest 9 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+BD s  rolling 1C of 7A  fastest 8 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+C1 s  rolling 2A of 7A  fastest C mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+C2 s  rolling 1D of 7A  fastest C mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+C3 s  rolling 38 of 7A  fastest 12 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+C4 s  rolling 2B of 7A  fastest B mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+C5 s  rolling 33 of 7A  fastest D mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+C6 s  rolling 25 of 7A  fastest C mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+C7 s  rolling 31 of 7A  fastest 11 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+C8 s  rolling 3A of 7A  fastest D mm/s  hex (six touching) 7  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+C9 s  rolling 23 of 7A  fastest 5 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+CA s  rolling 2D of 7A  fastest 16 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+CB s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+CC s  rolling 14 of 7A  fastest C mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+CD s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry AACC ml/s pull 2BA2 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+D1 s  rolling 34 of 7A  fastest D mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+D2 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+D3 s  rolling 1B of 7A  fastest 11 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+D4 s  rolling 33 of 7A  fastest C mm/s  hex (six touching) 7  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+D5 s  rolling 5 of 7A  fastest 4 mm/s  hex (six touching) 1  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+D6 s  rolling 34 of 7A  fastest 12 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+D7 s  rolling 17 of 7A  fastest C mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+D8 s  rolling 1D of 7A  fastest C mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry AAC3 ml/s pull 2BA7 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+D9 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+DA s  rolling 35 of 7A  fastest 15 mm/s  hex (six touching) 7  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+DB s  rolling 36 of 7A  fastest 13 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 169  walls fully flat ~  melted ~
+ORDER now: balls with 2+ neighbours 7A, mean psi6 465 thousandths, psi6 >= 0.9: 36, exactly six neighbours: 11 (of 7A)
+DC s  rolling 1A of 7A  fastest B mm/s  hex (six touching) 3  middle to ball, mean AB mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+DD s  rolling 35 of 7A  fastest 14 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+111 s  rolling 23 of 7A  fastest D mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+112 s  rolling 6 of 7A  fastest 4 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+113 s  rolling 24 of 7A  fastest 15 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+114 s  rolling 35 of 7A  fastest 16 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+115 s  rolling 1B of 7A  fastest D mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+116 s  rolling 35 of 7A  fastest 12 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+117 s  rolling 27 of 7A  fastest 12 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+118 s  rolling 14 of 7A  fastest 8 mm/s  hex (six touching) 1  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+119 s  rolling 31 of 7A  fastest 17 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+11A s  rolling 26 of 7A  fastest B mm/s  hex (six touching) 5  middle to ball, mean AB mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+11B s  rolling 2A of 7A  fastest 12 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+11C s  rolling 2A of 7A  fastest C mm/s  hex (six touching) 7  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+11D s  rolling 33 of 7A  fastest 12 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+121 s  rolling 18 of 7A  fastest A mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+122 s  rolling 33 of 7A  fastest D mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+123 s  rolling 2A of 7A  fastest 17 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+124 s  rolling 33 of 7A  fastest 12 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+125 s  rolling 23 of 7A  fastest 12 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+126 s  rolling 2C of 7A  fastest 11 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+127 s  rolling 22 of 7A  fastest 11 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+128 s  rolling 16 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+129 s  rolling 21 of 7A  fastest 9 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+12A s  rolling 35 of 7A  fastest 12 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+12B s  rolling 16 of 7A  fastest B mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+12C s  rolling 2D of 7A  fastest 11 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+12D s  rolling 25 of 7A  fastest 15 mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+131 s  rolling D of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+132 s  rolling C of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+ORDER now: balls with 2+ neighbours 7A, mean psi6 46B thousandths, psi6 >= 0.9: 38, exactly six neighbours: D (of 7A)
+133 s  rolling 2A of 7A  fastest 14 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+134 s  rolling 12 of 7A  fastest 7 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+135 s  rolling 32 of 7A  fastest D mm/s  hex (six touching) 8  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+136 s  rolling 26 of 7A  fastest D mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+137 s  rolling 27 of 7A  fastest A mm/s  hex (six touching) 7  middle to ball, mean AC mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+138 s  rolling C of 7A  fastest 6 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+139 s  rolling 3A of 7A  fastest 14 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+13A s  rolling 14 of 7A  fastest C mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+13B s  rolling 19 of 7A  fastest 5 mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+13C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+13D s  rolling 23 of 7A  fastest B mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+141 s  rolling 26 of 7A  fastest 11 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+142 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+143 s  rolling 24 of 7A  fastest 9 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+144 s  rolling 34 of 7A  fastest B mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+145 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+146 s  rolling 33 of 7A  fastest 11 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+147 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+148 s  rolling 2B of 7A  fastest C mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+149 s  rolling 37 of 7A  fastest A mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry AA23 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+14A s  rolling 1B of 7A  fastest B mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+14B s  rolling 31 of 7A  fastest C mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+14C s  rolling 26 of 7A  fastest 8 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+14D s  rolling 34 of 7A  fastest 12 mm/s  hex (six touching) 5  middle to ball, mean AB mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+151 s  rolling 1C of 7A  fastest A mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+152 s  rolling 24 of 7A  fastest B mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+153 s  rolling 28 of 7A  fastest D mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+154 s  rolling 21 of 7A  fastest 11 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+155 s  rolling 23 of 7A  fastest 11 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+156 s  rolling 2D of 7A  fastest B mm/s  hex (six touching) 7  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+ORDER now: balls with 2+ neighbours 7A, mean psi6 467 thousandths, psi6 >= 0.9: 36, exactly six neighbours: C (of 7A)
+157 s  rolling 11 of 7A  fastest 5 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+158 s  rolling 35 of 7A  fastest 11 mm/s  hex (six touching) 8  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+159 s  rolling 14 of 7A  fastest B mm/s  hex (six touching) 4  middle to ball, mean AB mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+15A s  rolling 29 of 7A  fastest 14 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+15B s  rolling 32 of 7A  fastest 11 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry AA16 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+15C s  rolling 31 of 7A  fastest 13 mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+15D s  rolling 27 of 7A  fastest 12 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+161 s  rolling 1 of 7A  fastest 2 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+162 s  rolling 15 of 7A  fastest 9 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+163 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+164 s  rolling 27 of 7A  fastest 12 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+165 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+166 s  rolling 34 of 7A  fastest 11 mm/s  hex (six touching) 7  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+167 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+168 s  rolling 23 of 7A  fastest B mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+169 s  rolling 3A of 7A  fastest 11 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+16A s  rolling 26 of 7A  fastest D mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+16B s  rolling 11 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+16C s  rolling 24 of 7A  fastest 13 mm/s  hex (six touching) 3  middle to ball, mean AB mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+16D s  rolling 21 of 7A  fastest D mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+171 s  rolling 13 of 7A  fastest C mm/s  hex (six touching) 1  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+172 s  rolling 13 of 7A  fastest 6 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+173 s  rolling 18 of 7A  fastest 11 mm/s  hex (six touching) 4  middle to ball, mean AB mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+174 s  rolling C of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+175 s  rolling 2A of 7A  fastest 15 mm/s  hex (six touching) 7  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+176 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+177 s  rolling 19 of 7A  fastest D mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+178 s  rolling 1D of 7A  fastest B mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+179 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+17A s  rolling 1A of 7A  fastest 12 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+ORDER now: balls with 2+ neighbours 7A, mean psi6 464 thousandths, psi6 >= 0.9: 37, exactly six neighbours: 11 (of 7A)
+17B s  rolling A of 7A  fastest 7 mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+17C s  rolling 22 of 7A  fastest 14 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+17D s  rolling 24 of 7A  fastest B mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry AA23 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+181 s  rolling 3B of 7A  fastest 11 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+182 s  rolling D of 7A  fastest 5 mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+183 s  rolling 1A of 7A  fastest B mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+184 s  rolling 24 of 7A  fastest 12 mm/s  hex (six touching) 7  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+185 s  rolling 25 of 7A  fastest A mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+186 s  rolling 2D of 7A  fastest B mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+187 s  rolling 36 of 7A  fastest 15 mm/s  hex (six touching) 6  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+188 s  rolling 16 of 7A  fastest 4 mm/s  hex (six touching) 1  middle to ball, mean AC mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+189 s  rolling 35 of 7A  fastest 11 mm/s  hex (six touching) 6  middle to ball, mean AB mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+18A s  rolling 22 of 7A  fastest 12 mm/s  hex (six touching) 4  middle to ball, mean AB mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+18B s  rolling 28 of 7A  fastest A mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16A  walls fully flat ~  melted ~
+18C s  rolling 1A of 7A  fastest 12 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+18D s  rolling 1C of 7A  fastest 14 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+191 s  rolling 2C of 7A  fastest 12 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+192 s  rolling 3 of 7A  fastest 2 mm/s  hex (six touching) 4  middle to ball, mean AB mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+193 s  rolling 27 of 7A  fastest 14 mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+194 s  rolling 33 of 7A  fastest C mm/s  hex (six touching) 5  middle to ball, mean AB mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+195 s  rolling 21 of 7A  fastest 11 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+196 s  rolling 14 of 7A  fastest A mm/s  hex (six touching) 2  middle to ball, mean AC mm  Henry A9B9 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+197 s  rolling 1B of 7A  fastest A mm/s  hex (six touching) 5  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+198 s  rolling 1C of 7A  fastest B mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+199 s  rolling 32 of 7A  fastest D mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16C  walls fully flat ~  melted ~
+19A s  rolling 25 of 7A  fastest 14 mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+19B s  rolling 1B of 7A  fastest 9 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry AA16 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+19C s  rolling 2A of 7A  fastest D mm/s  hex (six touching) 3  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+19D s  rolling 14 of 7A  fastest A mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+1A1 s  rolling 32 of 7A  fastest 17 mm/s  hex (six touching) 4  middle to ball, mean AC mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+   heat: warmth 715 tenths C over freezing  flat 16B  walls fully flat ~  melted ~
+ORDER now: balls with 2+ neighbours 7A, mean psi6 463 thousandths, psi6 >= 0.9: 36, exactly six neighbours: B (of 7A)
+ORDER end: balls with 2+ neighbours 7A, mean psi6 463 thousandths, psi6 >= 0.9: 36, exactly six neighbours: B (of 7A)
+the tray from above (X walls fully flat, ~ melted, # six touching, o four or five, . fewer, H over the hole; a letter a ball, 10 mm across, 17 mm down):
+
+
+
+
+
+
+                         .   .
+                      .         o   .   .
+                  .      o   o              .
+               .                o   o   o
+                   o        o                 .
+            .   o     .       o   o   o   o
+                   o       .                     .
+           .           .         .     o  o
+               o   o      #   o               o   .
+            .         .         o   o   o   o
+                .        .   o                    .
+           .         o         o   .     o    o
+              o   o         .                    .
+          .         o   #         o     o   o
+                 o         .   o     o         o
+            .       o  o         .         o
+                o         o   o         o     o   .
+                      o          o  o      .
+             .     o         o         #
+                .    o          o  #
+                            o         .   .
+                   .    o         .
+                           o   o
+                       .
+
+
+
+
+
+
