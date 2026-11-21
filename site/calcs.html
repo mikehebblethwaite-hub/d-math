@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The calculations: Delta lab</title>
+<meta name="description" content="Every rule and number behind the Hebble lattice lab results, in D maths and translated into the old maths, with the code.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <nav><a href="index.html">Back to D</a> <a href="hebble.html">The Hebble lattice</a></nav>
+
+  <section id="calcs">
+    <h1>The calculations</h1>
+    <p class="lede">Every rule and every number behind the <a href="hebble.html">Hebble lattice</a> results, first in D (as
+      the lab runs it: whole numbers that only move, no zero, no minus, no &pi;), then translated into the old maths, so
+      anyone can check it either way. The code is open: every run can be repeated.</p>
+    <p>D numerals count in thirteens with digits <code>1</code>&ndash;<code>9</code>, <code>A</code>&ndash;<code>D</code> and no
+      zero (<a href="help-numerals.html">how to read them</a>). In the tables, <b>D</b> is what the run prints and <b>old</b>
+      is the same number written the old way.</p>
+  </section>
+
+  <section id="light">
+    <h2>1. Mass from just light</h2>
+    <p>Code: <code>lang/lab/runs/src/lightmass-src.delta</code>. Run: <code>delta run lang/lab/runs/lightmass.delta 3 79 1B</code>.</p>
+    <h3>The rules, in D</h3>
+    <ul>
+      <li><b>The sheet.</b> A hexagon of cells, <code>6C</code> cells from the middle to each side. Each cell holds how far it
+        is lifted, kept above a rest level (nothing ever goes below anything).</li>
+      <li><b>The wave.</b> Each step, every cell is pulled toward its six neighbours: its speed moves by (the neighbours&rsquo;
+        lifts together, less its own lift for each neighbour) &divide; 8; then its lift moves by its speed.</li>
+      <li><b>The light.</b> Every other side of the sheet is moved by a weight on a spring. Each step the weight&rsquo;s speed
+        is pushed back toward the middle by its distance out &times; <code>79</code> ten-thousandths, then it moves by its
+        speed. The swing is counted, not worked out: <b><code>4B</code> steps</b> from one peak to the next.</li>
+      <li><b>Soaking up.</b> Cells within <code>C</code> of a side lose part of their speed each step, so nothing bounces back.</li>
+      <li><b>Brightness.</b> Over the last four swings, each cell adds up how far it is lifted, squared.</li>
+      <li><b>MAGIC (put in):</b> mass forms where the light is brightest: a bright point is a cell brighter than every cell
+        within two steps of it, and at least <code>1B</code> hundredths as bright as the brightest.</li>
+      <li><b>Holes:</b> a cell darker than every cell within two steps, and less than a twentieth as bright as the brightest.</li>
+      <li><b>Spin:</b> round a ring of <code>C</code> cells two out from a hole, the step at which each cell peaks is read in
+        turn; if the peak comes round once one way, or once the other, the hole spins that way.</li>
+    </ul>
+    <h3>The same rules in the old maths</h3>
+    <ul>
+      <li>The wave is the discrete wave equation on a triangular lattice:
+        <code>v<sub>c</sub> &larr; v<sub>c</sub> + &frac18; &Sigma;<sub>n</sub>(h<sub>n</sub> &minus; h<sub>c</sub>)</code>,
+        <code>h<sub>c</sub> &larr; h<sub>c</sub> + v<sub>c</sub></code>, which is
+        <code>&part;&sup2;h/&part;t&sup2; = c&sup2;&nabla;&sup2;h</code> with <code>c = &radic;(3/16) = 0.433</code> cells a step.</li>
+      <li>The spring is the harmonic oscillator (symplectic Euler) with <code>k = 0.01</code>: its period is
+        <code>2&pi; / arccos(1 &minus; k/2) = 62.8</code> steps.</li>
+      <li>Wavelength <code>&lambda; = c &times; period = 27.2</code> cells. Three equal waves 120&deg; apart make bright points six
+        round one, <code>2&lambda;/3 = 18.1</code> cells apart. The old maths calls the dark points phase singularities
+        (optical vortices), with charge +1 or &minus;1.</li>
+    </ul>
+    <h3>What was measured, and what the old maths expects</h3>
+    <table>
+      <tr><th>quantity</th><th>D (measured)</th><th>old (measured)</th><th>old maths predicts</th></tr>
+      <tr><td>the spring&rsquo;s swing</td><td><code>4B</code> steps (counted)</td><td>63 steps</td><td>62.8 steps</td></tr>
+      <tr><td>bright points round the middle one</td><td><code>6</code> at <code>D4</code>&ndash;<code>DD</code> tenths of a cell</td><td>6 at 17.3&ndash;18.2 cells</td><td>6 at 18.1 cells</td></tr>
+      <tr><td>the next ring out</td><td><code>6</code> at <code>1AB</code> tenths</td><td>6 at 31.0 cells</td><td>6 at 31.4 (&radic;3 &times; 18.1)</td></tr>
+      <tr><td>holes spinning one way / the other / not at all</td><td><code>23</code> / <code>23</code> / <code>3</code></td><td>29 / 29 / 3</td><td>equal numbers each way</td></tr>
+      <tr><td>light from two opposite sides (control)</td><td colspan="3">stripes: few bright points (<code>B</code>, old 11), most holes with no spin (<code>17</code> of <code>2B</code>, old 20 of 37)</td></tr>
+    </table>
+    <p><b>What this shows, plainly.</b> D&rsquo;s counted run and the old maths agree: same swing, same spacing, same balance of
+      spins. The pattern itself (six round one, holes spinning both ways) is what crossing waves do, in either maths. The
+      step from bright light to mass is the one rule put in; that is the step still to be shown.</p>
+  </section>
+
+  <section id="raft">
+    <h2>2. The raft</h2>
+    <p>Code: <code>lang/lab/runs/src/pingfunnel-src.delta</code>. Each step is a quarter of a millisecond; forces in
+      microNewtons, places in nanometres, all kept above a still level so nothing goes below anything.</p>
+    <table>
+      <tr><th>rule</th><th>D</th><th>old maths</th></tr>
+      <tr><td>a ball&rsquo;s pull down the cone (2.7 g on a 2&deg; slope)</td><td><code>BD96</code> &times; rise of 2&deg; = <code>562</code> &mu;N</td><td>m g sin&theta; = 0.0027 &times; 9.81 &times; 0.0349 = 925 &mu;N</td></tr>
+      <tr><td>rolling on the tray</td><td>3 thousandths of its weight on it</td><td>rolling resistance 0.003 m g cos&theta;</td></tr>
+      <tr><td>pushed apart where they overlap</td><td>(a ball across, less how far apart) &times; <code>A</code></td><td>linear spring F = k&middot;overlap</td></tr>
+      <tr><td>the flow&rsquo;s pull between two balls on the holed plate</td><td>suction &times; <code>64</code> &times; the gap still open, &divide; 3</td><td>F = &Delta;p &times; open area</td></tr>
+      <tr><td>grip</td><td>up to <code>1A1</code> thousandths of how hard they press</td><td>Coulomb friction, &mu; = 0.3</td></tr>
+      <tr><td>warmth</td><td>moves toward the air by (air &minus; ball) &times; h &divide; heat held</td><td>Newton cooling, dT/dt = hA(T<sub>air</sub> &minus; T)/(mc)</td></tr>
+      <tr><td>MAGIC: how fast a warm wall flattens</td><td>softness &times; pull &divide; 1000 &times; thinness each second</td><td>(chosen, not measured; the blind test checks it)</td></tr>
+    </table>
+    <p><b>Warmth window:</b> D <code>81</code> to <code>98</code> C close the raft, <code>9D</code> C melts it; old: 105 to 125 C, 130 C melts.</p>
+    <p><b>Hole size and Henry power</b> (seconds until every wall is flat; the Henry&rsquo;s pull in pascals):</p>
+    <table>
+      <tr><th>holes</th><th>power 3</th><th>power 6</th><th>power 9</th><th>power 11</th></tr>
+      <tr><td>0.3 mm</td><td>233 s (D <code>14C</code>), 5,088 Pa (<code>2415</code>)</td><td>134 s (<code>A4</code>), 9,889 Pa (<code>4669</code>)</td><td>100 s (<code>79</code>), 14,510 Pa (<code>67B2</code>)</td><td>87 s (<code>69</code>), 17,515 Pa (<code>7C84</code>)</td></tr>
+      <tr><td>0.4 mm</td><td>242 s (<code>158</code>), 4,883 Pa (<code>22B8</code>)</td><td>140 s (<code>AA</code>), 9,334 Pa (<code>432D</code>)</td><td>105 s (<code>81</code>), 13,504 Pa (<code>61BA</code>)</td><td>92 s (<code>71</code>), 16,179 Pa (<code>7497</code>)</td></tr>
+      <tr><td>0.5 mm</td><td>256 s (<code>169</code>), 4,615 Pa (<code>213D</code>)</td><td>150 s (<code>B7</code>), 8,614 Pa (<code>3BC8</code>)</td><td>113 s (<code>89</code>), 12,255 Pa (<code>5769</code>)</td><td>100 s (<code>79</code>), 14,519 Pa (<code>67BB</code>)</td></tr>
+      <tr><td>0.7 mm</td><td>295 s (<code>199</code>), 3,939 Pa (<code>1A3D</code>)</td><td>181 s (<code>DC</code>), 6,967 Pa (<code>322C</code>)</td><td>141 s (<code>AB</code>), 9,456 Pa (<code>43C5</code>)</td><td>127 s (<code>9A</code>), 10,933 Pa (<code>4C8D</code>)</td></tr>
+      <tr><td>1 mm</td><td>not all in 300 s, 2,774 Pa (<code>1355</code>)</td><td>271 s (<code>17B</code>), 4,541 Pa (<code>1DB4</code>)</td><td>222 s (<code>141</code>), 5,645 Pa (<code>2753</code>)</td><td>204 s (<code>129</code>), 6,242 Pa (<code>2AC2</code>)</td></tr>
+    </table>
+    <p>Each pull is given the old way, with the run&rsquo;s own D number beside it.</p>
+  </section>
+
+  <section id="blind">
+    <h2>3. The blind wall test</h2>
+    <p>The wall rule written blind by a helper who was never told the dream or any pattern (files and their stamps:
+      <code>proofs/blind-wall-2026-11-21/</code>). Its own words, in the old maths:</p>
+    <ul>
+      <li>Material: celluloid (2.7 g in a 40 mm ball with a 0.40 mm shell gives 1.34 g/cm&sup3;, as celluloid). Stiff, 2 GPa,
+        up to 70 C; softening to 20 MPa by 110 C; flows from 140 C.</li>
+      <li>Force across the wall: press + pull &times; &pi;Rh. Where the wall settles:
+        <code>a&sup2; = F / (k/2R + &pi;&Delta;p<sub>air</sub>)</code>, with the shell&rsquo;s stiffness
+        <code>k = 4Eh&sup2; / (R&radic;(3(1&minus;&nu;&sup2;)))</code> and the heated air inside pushing back
+        <code>&Delta;p<sub>air</sub> = 101325 (T &minus; 293.15)/293.15</code>.</li>
+      <li>It creeps there at a rate set by warmth; centres sit closer as the flat disc grows, each shell keeping its area.</li>
+      <li>Sealed: the disc reaches 1.9 mm (centres 0.17 mm closer). With a hole, or split at the seam (it splits near 124 C):
+        about a third of the way flat (a 6 mm disc).</li>
+    </ul>
+    <p>The test: balls scattered, never set in hex; hex judged by numbers (six-fold order round each ball). The pass mark,
+      stamped before any run: mean six-fold order 0.7 or more, and 0.2 above both its start and the cold control. The
+      result goes here when the runs finish, pass or fail.</p>
+  </section>
+
+  <nav class="pager"><a href="hebble.html">The Hebble lattice</a> <a href="https://github.com/mikehebblethwaite-hub/d-math">All the code</a></nav>
+</div>
+<footer class="site"><p>D and Delta &copy; Mike J Hebblethwaite. <a href="index.html">Back to D</a></p></footer>
+</body>
+</html>
