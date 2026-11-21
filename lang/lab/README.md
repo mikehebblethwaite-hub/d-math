@@ -8,9 +8,10 @@ cosine. Two halves:
   Run: `lang/delta run lang/lab/lab.delta` (W A S D walk, arrows turn, Tab the panel, Esc close).
 - **The runs** (`runs/`): the same rules, headless and large, writing only data. These are the results.
 
-**Only what is in focus runs** (Mike, 21 Nov 2026, the game makers' bubble round the player): on the lab floor, things
-within 12 ft of whoever is looking step each frame, the rest sleep; the lab's air runs only while you are on its floor; the
-upper floors run only while you are on them. **Daemons** keep their own time anywhere, for slow experiments that need it:
+**Only what is in focus runs** (Mike, 21 Nov 2026, the game makers' bubble round the player; tightened the same day when the
+motor ran while he watched the candle): on the lab floor a thing steps only when it is in the picture and within 8 ft, or it
+is the thing you zoomed to (right-click); the lab's air runs only when a thing in focus needs it (the candle, the tunnel, the
+wave tank, the balls) or the heat view is on, and the panel says RESTING otherwise; the upper floors run only while you are on them. **Daemons** keep their own time anywhere, for slow experiments that need it:
 the seed beaker's growing salt, the washroom's who-needs-it, and the wave tank whenever the lab's air runs (its waves come
 from a real sea buoy's file and stir the air: real random air flow, never computer random). Make a thing a daemon in `scene.delta` when its experiment
 must keep running unwatched.

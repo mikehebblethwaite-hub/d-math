@@ -35,6 +35,7 @@ int S[75];
 int floorh, roomh, roomr2;
 int HR, HG, HB;
 int low;
+int AIRON;                     // 1: the lab's air runs this picture (a thing in focus needs it); set by scene_step
 int HEATVIEW;                  // 1: things are drawn as a heat camera sees them (T); LOW: as the eye sees them
 int LA = 149;               // how much a column, block or tube covers what is behind it (lab_alpha)
 int TUBER = 2;                  // a tube's radius in 1/64 inch, set before lab_tube
@@ -1100,7 +1101,7 @@ int main(int argc, char **argv)
         copy(&px[1], &bg[1], (W * H + W + 2) * 4);
         scene_step();
         if (frame % 8 < 1) outside_now();
-        if (FLOOR == 1) {                                             // the lab's air runs only while you are on the lab's floor (Mike: no CPU out of focus)
+        if (FLOOR == 1 && AIRON) {                                    // the lab's air runs only on the lab's floor, and only when a thing in focus needs it (Mike: no CPU out of focus)
         for (wi = 1; wi <= ACELLS; wi++) ASOLID[wi] = low;
         scene_air();                                                  // the things, the bodies and the lamps in the air
         air_body(camX, camZ, camY + INCH * 4, WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n' ? DANRAD : 5BC * 5BC / $A);   // the one looking

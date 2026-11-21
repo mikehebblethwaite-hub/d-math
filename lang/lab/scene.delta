@@ -41,6 +41,10 @@ void scene_start()
     balloon_start(); sky_start();                                    // the weather balloon and the sky's column, on floor 2
 }
 int inbubble(int x, int z) { return lab_far(x, z) < (FOOT * C) * (FOOT * C); }   // within 12 ft of whoever is looking (Mike: "a bubble around the player")
+// In focus (Mike 21 Nov 2026: the motor demo ran while he watched the candle, "killing the machine"): a thing steps only when
+// it was on the screen last picture AND within 8 ft, or it is the thing zoomed to (right-click). Nothing else spends a cycle.
+
+int focus(int id, int x, int z) { if (ZOOM == 1 && id == ZID) return 1; return MARKON[id] && MARKX[id] >= BIG * 13 && MARKX[id] <= BIG * 13 + W * 13 && MARKY[id] >= BIG * 13 && MARKY[id] <= BIG * 13 + H * 13 && lab_far(x, z) < (FOOT * 8) * (FOOT * 8); }   // in the picture, not just in front
 void scene_step()                         // only what is in focus runs (Mike: no CPU for things not in focus); daemons keep time anywhere
 {
     if (FLOOR == 2) balloon_step();
@@ -48,14 +52,16 @@ void scene_step()                         // only what is in focus runs (Mike: n
     seedcup1.step();                                                 // DAEMON: the growing salt keeps its time on every floor
     if (FLOOR > 1) return;
     washroom1.step();                                                // DAEMON: who needs the washroom, wherever you stand
-    if (inbubble(SCX, (SCZ1 + SCZ2) / 2)) scope1.step();
-    if (inbubble(MSX, MSZ)) microscope1.step();
-    if (inbubble(MTX, MTZ)) meter1.step();
-    if (inbubble(PPX, PPZ)) pingpong1.step();
-    if (inbubble(candle1.x, candle1.z)) candle1.step();
-    if (inbubble(faraday1.x, faraday1.z)) faraday1.step();
-    if (inbubble(tunnel1.x, tunnel1.z)) tunnel1.step();
-    tank1.step();                                                    // DAEMON while the lab's air runs: the real sea's waves (buoy file) stir the air: real random air flow (Mike)
+    if (focus(5, SCX, (SCZ1 + SCZ2) / 2)) scope1.step();
+    if (focus(6, MSX, MSZ)) microscope1.step();
+    if (focus(8, MTX, MTZ)) meter1.step();
+    int fp = focus(9, PPX, PPZ), fc = focus(1, candle1.x, candle1.z), ft = focus(3, tunnel1.x, tunnel1.z), fk = focus(4, tank1.x, tank1.z);
+    if (fp) pingpong1.step();
+    if (fc) candle1.step();
+    if (focus(2, faraday1.x, faraday1.z)) faraday1.step();
+    if (ft) tunnel1.step();
+    AIRON = fp || fc || ft || fk || HEATVIEW;                        // the lab's air runs only when a thing in focus needs it (or the heat view is on)
+    if (AIRON) tank1.step();                                         // while the air runs: the real sea's waves (buoy file) stir it: real random air flow (Mike)
 }
 void lift_draw()                                         // the lift between the floors, in the back left corner of each (Mike: the space room two floors up)
 {
@@ -113,7 +119,7 @@ void scene_panel(int sel)
         lab_line(DOOROPEN ? "the door between: open" : "the door between: shut");
         lab_line("the lift, back left corner: Page Up to floor 2 (atmosphere tests) and floor 3 (space)");
         if (WINOPEN >= 1) lab_value("the window: open, fifths of the way", WINOPEN, ""); else lab_line("the window: shut");
-        lab_line("the air (1 ft hex cells, both rooms; a second a step, so faster than real time; T shows it):");
+        lab_line(AIRON ? "the air (1 ft hex cells, both rooms; a second a step, so faster than real time; T shows it):" : "the air: RESTING (nothing in focus needs it; it runs near the candle, the tunnel, the wave tank, the balls, or in the heat view T)");
         tvalue("  the lab", roomt(1, 3)); tvalue("    at its floor", roomt(1, 1)); tvalue("    at its ceiling", roomt(1, 2));
         tvalue("  the wave room", roomt(low, 3));
         lab_kind(3); lab_value("  carbon dioxide in the lab", roomco(1), "parts per million");

@@ -24,6 +24,13 @@ char *waxname(int w) { if (w == 1) return "paraffin (low melt, container)"; if (
 int at(int x, int y) { return less(y, 1) * NX + x; }
 int amb() { return {{293150}}; }
 int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+int drop(int a, int b) { return a > b ? less(a, b) : 1; }   // take b away, leaving at least the least there is
+int warmpow(int tmk, int which)                     // (warmth / 293 K) to the 0.75 power (which 1) or the 1.75 power (which 2), in thousandths, by square roots
+{
+    int r = tmk * {{1000}} / {{293150}}; if (r < 1) r = 1;
+    int s1 = isqrt(r * {{1000}}), p75 = s1 * isqrt(s1 * {{1000}}) / {{1000}};
+    return which == 1 ? p75 : r * p75 / {{1000}};
+}
 int iswick(int x, int y) { return x == WX && y >= less(WY, 4) && y <= WY; }
 int molten(int c) { return ISW[c] && MELTJ[c] >= {{180000000}}; }
 void give(int c, int nj)                            // nanojoules into a cell: air or wax, melting first if wax at its melting point
@@ -41,20 +48,26 @@ void step()
     for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {
         int c = at(x, y), n2[3], q; n2[1] = at(x + 1, y); n2[2] = at(x, y + 1);
         for (q = 1; q <= 2; q++) {
-            int d = n2[q], carry = ISW[c] && ISW[d] ? {{240}} : {{26}};          // nJ per ms per K
+            int d = n2[q], carry = ISW[c] && ISW[d] ? {{240}} : {{26}} * warmpow(T[c] / 2 + T[d] / 2, 1) / {{1000}};   // nJ per ms per K; air carries heat better hot (measured: as warmth to the 0.75 power)
             int dt = apart(T[c], T[d]) / {{1000}}, nj = dt * carry;            // whole degrees x carry
             if (nj < 1) continue;
             if (T[c] > T[d]) { take(c, nj); give(d, nj); } else { take(d, nj); give(c, nj); }
         }
     }
-    // the gases spread (air only)
-    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {
-        int c = at(x, y); if (ISW[c]) continue;
-        int n = at(x, y + 1), s = at(x, less(y, 1)), e = at(x + 1, y), w = at(less(x, 1), y);
-        F2[c] = (F[c] * {{46}} + (ISW[n] ? F[c] : F[n]) + (ISW[s] ? F[c] : F[s]) + (ISW[e] ? F[c] : F[e]) + (ISW[w] ? F[c] : F[w])) / {{50}};
-        O2[c] = (OX[c] * {{46}} + (ISW[n] ? OX[c] : OX[n]) + (ISW[s] ? OX[c] : OX[s]) + (ISW[e] ? OX[c] : OX[e]) + (ISW[w] ? OX[c] : OX[w])) / {{50}};
+    // the gases spread (air only), faster the hotter (measured: gases mix as warmth to the 1.75 power, oxygen in air 0.00002
+    // square metres a second at 20 C, so 0.02 of the difference crosses each face each ms); in 3 smaller steps to stay steady
+    int sub;
+    for (sub = 1; sub <= 3; sub++) {
+        for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) { int c = at(x, y); F2[c] = F[c]; O2[c] = OX[c]; }
+        for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {
+            int c = at(x, y), q; if (ISW[c]) continue;
+            for (q = 1; q <= 2; q++) { int d = q == 1 ? at(x + 1, y) : at(x, y + 1); if (ISW[d]) continue;
+                int f = {{20}} * warmpow(T[c] / 2 + T[d] / 2, 2) / {{3000}}; if (f > {{240}}) f = {{240}};   // thousandths a face
+                int fl = apart(F[c], F[d]) * f / {{1000}}, ol = apart(OX[c], OX[d]) * f / {{1000}};
+                if (F[c] > F[d]) { F2[c] = drop(F2[c], fl); F2[d] = F2[d] + fl; } else { F2[d] = drop(F2[d], fl); F2[c] = F2[c] + fl; }
+                if (OX[c] > OX[d]) { O2[c] = drop(O2[c], ol); O2[d] = O2[d] + ol; } else { O2[d] = drop(O2[d], ol); O2[c] = O2[c] + ol; } } }
+        for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) { int c = at(x, y); if (!ISW[c]) { F[c] = F2[c] > 1 ? F2[c] : 1; OX[c] = O2[c] > 1 ? O2[c] : 1; } }
     }
-    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) { int c = at(x, y); if (!ISW[c]) { F[c] = F2[c]; OX[c] = O2[c]; } }
     if (GRAV >= 2) for (y = less(NY, 1); y >= 3; y = less(y, 1)) for (x = 2; x <= less(NX, 1); x++) {   // warm air rises (relative to the room's)
         int c = at(x, y), b = at(x, less(y, 1)); if (ISW[c] || ISW[b] || T[b] <= amb() + {{20000}}) continue;
         int up = isqrt(less(T[b], amb()) * {{981}} / amb()); if (up > {{90}}) up = {{90}};
@@ -66,13 +79,15 @@ void step()
     // the wick draws molten wax from the pool cells touching its foot
     for (x = less(WX, 1); x <= WX + 1; x++) { int c = at(x, less(WY, 5)); if (molten(c)) WSTORE = WSTORE + waxdraw(WAX) * {{2000000}}; }
     if (WSTORE > {{20000000000}}) WSTORE = {{20000000000}};                          // a wick holds at most about 20 mg
-    // the wick's top boils off what the heat reaching it can boil: its warmth above 643 K, over wax vapour's 360 kJ/kg
-    { int c = at(WX, WY); if (T[c] > {{643000}} && WSTORE >= 1) {
-        int nj = less(T[c], {{643000}}) / {{1000}} * {{2250}};                  // the heat above boiling, as the wick holds it (nJ)
-        int units = nj / {{360}} * {{1000}};                                   // 360 kJ/kg = 360 nJ per 10^-12 kg = 0.36 nJ per unit (10^-15 kg)
+    // the wick boils off what the heat reaching it can boil, all along its part above the pool (a real wick's whole exposed
+    // length gives off vapour, so the flame wraps it): each wick cell over 643 K, its heat above boiling over wax vapour's 360 kJ/kg
+    for (k = less(WY, 4); k <= WY; k++) { int c = at(WX, k); if (T[c] <= {{643000}} || WSTORE < 1) continue;
+        int units = less(T[c], {{643000}}) / {{1000}} * {{2250}} * {{1000}} / {{360}};   // nJ over boiling -> units (0.36 nJ each)
         if (units > WSTORE) units = WSTORE;
-        WSTORE = less(WSTORE, units); T[c] = less(T[c], units * {{360}} / {{1000}} / {{2250}} * {{1000}} > less(T[c], {{643000}}) ? less(T[c], {{643000}}) : units * {{360}} / {{1000}} / {{2250}} * {{1000}});
-        int up = at(WX, WY + 1); F[up] = F[up] + units; } }
+        WSTORE = less(WSTORE, units); T[c] = less(T[c], units * {{360}} / {{2250}});
+        int sl = at(less(WX, 1), k), sr = at(WX + 1, k);
+        if (k == WY) { int up = at(WX, WY + 1); F[up] = F[up] + units / 3; F[sl] = F[sl] + units / 3; F[sr] = F[sr] + units / 3; }
+        else { F[sl] = F[sl] + units / 2; F[sr] = F[sr] + units / 2; } }
     // burning: 46 MJ/kg = 46 nJ per unit; 80 parts in 100 warm the cell, 20 leave as light onto the wax
     int light = low;
     for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {
@@ -84,10 +99,11 @@ void step()
         if (T[c] > {{2300000}}) T[c] = {{2300000}};
     }
     if (light >= 1) {                                // the light lands on the wax's top cells by distance (rings of 8 x d cells)
-        for (x = less(WX, {{14}}); x <= WX + {{14}}; x++) {
-            int c = at(x, less(WY, 5)), got = low, y2, x2;
+        for (x = less(WX, {{14}}); x <= WX + {{14}} + 5; x++) {          // the pool's top row, then the 5 wick cells (the wick is in the light too)
+            int ty = x <= WX + {{14}} ? less(WY, 5) : less(WY, 4) + less(x, WX + {{15}}), tx = x <= WX + {{14}} ? x : WX;
+            int c = at(tx, ty), got = low, y2, x2;
             for (y2 = WY; y2 <= WY + {{30}}; y2++) for (x2 = less(WX, {{10}}); x2 <= WX + {{10}}; x2++) { int b2 = R[at(x2, y2)]; if (b2 < 1) continue;
-                int d = apart(x2, x) > apart(y2, less(WY, 5)) ? apart(x2, x) : apart(y2, less(WY, 5)); if (d < 1) d = 1;
+                int d = apart(x2, tx) > apart(y2, ty) ? apart(x2, tx) : apart(y2, ty); if (d < 1) d = 1;
                 got = got + b2 * {{46}} * {{20}} / {{100}} / (8 * d); }
             give(c, got);
         }
@@ -109,7 +125,7 @@ int main(int argc, char **argv)
         int b2 = low; for (i = 1; i <= NX * NY; i++) b2 = b2 + R[i];
         if (t > {{175000}}) burn = burn + b2; last = b2;
         if (t % {{10000}} < 1) { int pool = low; for (x = less(WX, {{14}}); x <= WX + {{14}}; x++) if (molten(at(x, less(WY, 5)))) pool++;
-            say("  at %d ms: wick top %d mK, wick holds %d, burning %d, molten pool %d mm\n", t, T[at(WX, WY)], WSTORE, b2, pool); }
+            say("  at %d ms: wick top %d mK, wick holds %d (10^-15 kg), burning %d, molten pool %d mm\n", t, T[at(WX, WY)], WSTORE, b2, pool); }
     }
     int pool = low; for (x = less(WX, {{14}}); x <= WX + {{14}}; x++) if (molten(at(x, less(WY, 5)))) pool++;
     say("candle2 %s, wax %s (melts at %d mK): after 3 minutes the molten pool is %d mm across; burning in the last 5 s %d; still burning: %s\n",
