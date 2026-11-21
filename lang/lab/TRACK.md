@@ -1,5 +1,7 @@
 # Track records: each Delta lab room against known results
 
+Doomsday Book 6a4543d2-a1c9-42bd-a772-26d983987030 (Mike J Hebblethwaite).
+
 Mike, 21 Nov 2026: companies could pay to have a low Earth orbit experiment run in the Delta lab first, the prediction
 stamped before launch, and compare it with the real flight after. Before anyone pays, the lab earns a track record here:
 known results from orbit (or drop towers), which the lab must give WITHOUT being tuned to them. Every match and every miss

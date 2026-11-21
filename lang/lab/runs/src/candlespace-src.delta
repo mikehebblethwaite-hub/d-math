@@ -1,3 +1,4 @@
+// Doomsday Book 70c8ff27-1e76-445f-9710-cab8d43e265c (Mike J Hebblethwaite): A candle with and without gravity (candlespace)
 // candlespace: a candle with and without gravity (21 Nov 2026; the space track record, item 2). The known answer was written
 // in lang/lab/SPACE-TRACK.md BEFORE this was built: with no gravity a candle flame is round, dimmer and blue, and may go out.
 // A slice through the flame in millimetre cells. Wax vapour comes off the wick and spreads; oxygen spreads in from the air;

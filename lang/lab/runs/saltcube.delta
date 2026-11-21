@@ -1,3 +1,4 @@
+// Doomsday Book 9e0c729c-abb2-4722-89d2-86c18fdcb59d (Dragonfly): Salt in three dimensions (saltcube, Dragonfly's play)
 // saltcube: salt growing round a seed in three dimensions (21 Nov 2026, Dragonfly's play time, Mike: "do the 3D salt with
 // hoppers"). Salt is cubic: a cube lattice. Bits of salt wander the brine by the world's chance (one cell a step, any of six
 // ways). Next to the crystal a bit holds by how much of the crystal it touches: alone on a flat face (one side) it rarely holds

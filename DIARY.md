@@ -1,5 +1,7 @@
 # The Delta lab diary
 
+Doomsday Book 263bb5a1-8bdc-4786-8ead-eac40fe3c633 (Mike J Hebblethwaite).
+
 Kept the way Michael Faraday kept his: every paragraph numbered in one count that never restarts (in D numerals), every day
 dated, written plainly enough that anyone, generations from now, can follow each step and each mistake (Mike J Hebblethwaite,
 21 Nov 2026: "lets make sure data is as good as his so many generations from now can see this path and steps").
@@ -112,3 +114,17 @@ placing particles and heat fixing them (his favourite note G#); flexible v britt
 
 **1A.** Dragonfly's play time (Mike: "have some play time of your own you earned it"): salt round a seed grows a full square
 slowly and branches fast; in 3-D no hoppers yet. Its own page: deltahexos.com/dragonfly.html.
+
+**1B.** Mike, 12:18: "every unique thing gets a doomsday number on its media". Each of today's experiments, and this diary
+and the track records, now holds its own Doomsday Book number, registered under its maker (the fingerprint taken as each
+file stood at 12:20; later versions are the same thing, grown):
+- The raft experiment (pingfunnel): ping pong balls, heat and a Henry: `35c27e4c-a150-47d2-802e-6379fa5beba0` (Mike J Hebblethwaite), `lang/lab/runs/src/pingfunnel-src.delta`
+- The blind wall test bed (pingblind): `a8a9f253-209c-45db-ae62-c8db7fce2bca` (Mike J Hebblethwaite), `lang/lab/runs/src/pingblind-src.delta`
+- Mass from just light (lightmass): `07509a90-d302-41cb-af9a-26e5e42741aa` (Mike J Hebblethwaite), `lang/lab/runs/src/lightmass-src.delta`
+- The wing nut flip (wingnut): `d5530baf-9e11-463d-9d6f-705dc8ba97b3` (Mike J Hebblethwaite), `lang/lab/runs/src/wingnut-src.delta`
+- A candle with and without gravity (candlespace): `70c8ff27-1e76-445f-9710-cab8d43e265c` (Mike J Hebblethwaite), `lang/lab/runs/src/candlespace-src.delta`
+- The atmosphere room tests and the weather balloon (atmos): `717ce938-8e3a-4f1c-80e1-a6aa3eb63819` (Mike J Hebblethwaite), `lang/lab/runs/src/atmos-src.delta`
+- Salt round a seed, on Earth and in orbit (saltplay, Dragonfly's play): `7c73531f-7073-4000-a9ec-4fc18ce8c60c` (Dragonfly), `lang/lab/runs/src/saltplay-src.delta`
+- Salt in three dimensions (saltcube, Dragonfly's play): `9e0c729c-abb2-4722-89d2-86c18fdcb59d` (Dragonfly), `lang/lab/runs/src/saltcube-src.delta`
+- The Delta lab diary (Faraday's way), begun 21 Nov 2026: `263bb5a1-8bdc-4786-8ead-eac40fe3c633` (Mike J Hebblethwaite), `DIARY.md`
+- The Delta lab track records (each room against known results): `6a4543d2-a1c9-42bd-a772-26d983987030` (Mike J Hebblethwaite), `lang/lab/TRACK.md`
