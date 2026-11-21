@@ -10,12 +10,19 @@
 // fresh air comes in from below; without gravity nothing rises: only spreading. Nothing here is told the flame's shape.
 // Measured: the flame (cells burning) tall by wide; how much it burns (brightness); its hottest; how much burns where it is
 // short of oxygen (sooty, yellow); and whether it keeps burning.
-//   delta run lang/lab/runs/candlespace.delta GRAVITY > out.txt    (2 with gravity, 1 none; D numerals)
+//   delta run lang/lab/runs/candlespace.delta GRAVITY WAX > out.txt    (2 with gravity, 1 none; WAX 1-7 as Mike's data lists them: 1 container paraffin, 2 pillar paraffin, 3 soy, 4 beeswax, 5 palm, 6 coconut, 7 gel)
 #define NX 63
 #define NY 94
 #define WX 32
 #define WY 2A
-int low, GRAV = 2;
+int low, GRAV = 2, WAX = 1;
+// Mike's wax data (lang/lab/data/candle_wax_wick_data.json): each wax's melting point (the middle of its range, mK) and how fast
+// a wick draws it (the data's words made numbers: slow 1, medium 2, high 3)
+int waxmelt(int w) { int a[8] = {$B4119, $B9A13, $B49D1, $BA2D2, $B883C, $ADB93, $C6D2D}; return a[w]; }
+int waxdraw(int w) { int a[8] = {3, 2, 2, 1, 2, 3, 1}; return a[w]; }
+char *waxname(int w) { if (w == 1) return "paraffin (low melt, container)"; if (w == 2) return "paraffin (high melt, pillar)"; if (w == 3) return "soy"; if (w == 4) return "beeswax"; if (w == 5) return "palm"; if (w == 6) return "coconut"; return "gel"; }
+int inpool(int x, int y) { return y >= less(WY, 13) && y <= less(WY, 5) && apart(x, WX) <= 11; }   // the candle's top: a block of wax 29 mm across under the wick
+int POOL, STEPN, WSTORE = 7DD663;   // WSTORE: the wax soaked into the wick before it is lit (a real wick is dipped)
 int F[45CD], OX[45CD], T[45CD], R[45CD], F2[45CD], O2[45CD], T2[45CD];   // wax vapour, oxygen (millionths), warmth (mK)
 int at(int x, int y) { return less(y, 1) * NX + x; }
 int amb() { return $A357D; }
@@ -24,7 +31,7 @@ int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x
 void step()
 {
     int x, y;
-    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {   // spreading: each cell moves toward its four neighbours
+    for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {   // spreading: each cell moves toward its four neighbours (wax: heat only)
         int c = at(x, y), n = at(x, y + 1), s = at(x, less(y, 1)), e = at(x + 1, y), w = at(less(x, 1), y);
         F2[c] = (F[c] * 37 + F[n] + F[s] + F[e] + F[w]) / 3B;
         O2[c] = (OX[c] * 37 + OX[n] + OX[s] + OX[e] + OX[w]) / 3B;
@@ -42,7 +49,16 @@ void step()
     }
     for (x = 1; x <= NX; x++) { OX[at(x, 1)] = 7477B; T[at(x, 1)] = amb(); F[at(x, 1)] = 1; OX[at(x, NY)] = 7477B; T[at(x, NY)] = amb(); F[at(x, NY)] = 1; }   // the room's air at the edges
     for (y = 1; y <= NY; y++) { OX[at(1, y)] = 7477B; T[at(1, y)] = amb(); F[at(1, y)] = 1; OX[at(NX, y)] = 7477B; T[at(NX, y)] = amb(); F[at(NX, y)] = 1; }
-    int k; for (k = less(WY, 4); k <= WY; k++) { F[at(WX, k)] = $A671C; OX[at(WX, k)] = 1; if (T[at(WX, k)] < 17D13B) T[at(WX, k)] = 17D13B; }   // the wick: wax vapour off it, kept hot by the flame
+    // the candle feeds itself (Mike's wax data): the pool's top row melts where the flame's heat brings it past the wax's melting
+    // point; the wick draws that liquid up (faster for a high-draw wax); at the wick's top the wax boils off as vapour only if
+    // the wick is hot enough (paraffin boils off at about 370 C: a property of the wax, from published figures). Nothing is held.
+    int k, liq = low;
+    for (x = less(WX, 11); x <= WX + 11; x++) for (k = less(WY, 13); k <= less(WY, 5); k++) { int c = at(x, k); F[c] = 1; OX[c] = 1; if (T[c] > waxmelt(WAX) && k == less(WY, 5)) liq++; }
+    for (k = less(WY, 4); k <= WY; k++) OX[at(WX, k)] = 1;                       // the wick holds no air
+    if (STEPN <= $BAB) for (k = less(WY, 1); k <= WY + 1; k++) if (T[at(WX, k)] < 3D6998) T[at(WX, k)] = 3D6998;   // the lighting: a match held to the wick for 2 s, as a person would
+    WSTORE = WSTORE + liq * waxdraw(WAX) * 372; if (WSTORE > 7DD663) WSTORE = 7DD663;   // the wick drinks from the molten pool, as much as it holds
+    if (T[at(WX, WY)] > 196897 && WSTORE >= 149A) { int off = WSTORE / 125 + 1; WSTORE = less(WSTORE, off); F[at(WX, WY)] = F[at(WX, WY)] + off; }   // vapour boils off the hot wick top from what it holds
+    POOL = liq;
     for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) {    // burning: where wax and oxygen meet and it is hot
         int c = at(x, y); R[c] = low;
         if (T[c] < 1B67D2 || F[c] < 79 || OX[c] < 1A1) continue;
@@ -58,13 +74,16 @@ void pdec(int n) { if (n >= $A) pdec(n / $A); pput('0' + n % $A); }
 int main(int argc, char **argv)
 {
     low = less(1, 1);
-    if (argc >= 2) GRAV = pnum(argv[2]);
+    if (argc >= 2) GRAV = pnum(argv[2]); if (argc >= 3) WAX = pnum(argv[3]);
     int i, x, y, t;
     for (i = 1; i <= NX * NY; i++) { F[i] = 1; OX[i] = 7477B; T[i] = amb(); }
-    for (y = WY; y <= WY + 6; y++) T[at(WX, y)] = 3D6998;                 // lit
+    for (y = WY; y <= WY + 6; y++) T[at(WX, y)] = 3D6998;                 // lit (a match held to it for a moment: the only time anything is set)
+    for (y = less(WY, 4); y <= WY; y++) F[at(WX, y)] = $A671C;              // the first wax vapour the match boils off the wick
     int burn = low, sooty = low, hot = low, top = low, bot = NY, left = NX, right = low, lastburn = low;
     for (t = 1; t <= 4134; t++) {
-        step();
+        STEPN = t; step();
+        if (t % 2C6 < 1 && t <= 1A89) { int b2 = low; for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) b2 = b2 + R[at(x, y)];
+            say("  at %d ms: wick top %d mK, wick holds %d, burning now %d, pool molten %d mm, vapour at the wick top %d\n", t, T[at(WX, WY)], WSTORE, b2, POOL, F[at(WX, WY)]); }
         if (t > 2967) {                             // the last third: what the flame is like once settled
             int b = low;
             for (y = 2; y <= less(NY, 1); y++) for (x = 2; x <= less(NX, 1); x++) { int c = at(x, y); if (R[c] >= 1) {
@@ -73,6 +92,7 @@ int main(int argc, char **argv)
             burn = burn + b; lastburn = b;
         }
     }
+    say("wax: %s (melts at %d thousandths of a degree over freezing); the pool's molten top at the end: %d mm across\n", waxname(WAX), less(waxmelt(WAX), 97437), POOL);
     say("a candle %s: the flame %d mm tall by %d mm wide; burning (brightness) %d; burned short of oxygen (sooty, yellow) %d thousandths of it;\n",
         GRAV >= 2 ? "with gravity" : "with NO gravity", top >= bot ? less(top, bot) + 1 : low, right >= left ? less(right, left) + 1 : low, burn / $BAB, burn >= 1 ? sooty * 5BC / burn : low);
     say("  its hottest %d tenths of a degree C over freezing; still burning at the end: %s (%d)\n", hot > 97437 ? less(hot, 97437) / 79 : 1, lastburn >= 1 ? "yes" : "NO, it went out", lastburn);

@@ -65,6 +65,8 @@ not yet traced) comes down as this list does.
 | FIXED TEMPS: the plates' surface held at 0 C and the deep rock at 1,350 C | plates | the Earth's inner heat flowing out (the core and the rock's own radioactive warmth) |
 | The diving plate's slope (45 degrees) and the snapping limit (650 C) are chosen | plates | the slope from the plate's weight against the rock's push; the limit from rock strength by warmth |
 | FAULT: the lab's cold balls pack into hex (up to 30-41 of 100 six round one) where Mike's real cold rigs never did | pingfunnel, pingblind | cold balls that behave as his real ones: measured celluloid-on-celluloid grip, the real flow between balls; checked against his bench (no hex cold) BEFORE any more ball tests |
+| MISSING: no radiant heat anywhere in the lab (a flame's glow, the sun's light) | candlespace, the sky, the space room | light carrying heat from hot things to what they shine on: needed for a candle to melt its pool with gravity, for sunlight warming the sky (the ozone) and the sea |
+| The wick's wax boils off by a share each step, not by the heat that reaches it | candlespace | vapour = the heat reaching the wick top / wax's heat of boiling |
 
 ## Links (attachments, inputs, outputs)
 | Magic | Where | What would make it real |

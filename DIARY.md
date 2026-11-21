@@ -221,3 +221,12 @@ that grip, or the flow's pull between neighbours, still lets cold balls order. B
 balls behave as his real ones did (no hex cold), from measured values (celluloid on celluloid grip, the real flow between
 balls), and check that first, written down before. The blind test results stay recorded, marked as resting on a faulty
 cold control.
+
+**2A.** Mike gave candle wax and wick data (lang/lab/data/candle_wax_wick_data.json, made with Gemini; melting ranges agree
+with published figures). The candle was changed to feed itself: no held wick warmth; the pool melts where the flame's heat
+reaches it, the wick draws melted wax (a soaked wick to start), the wax boils off the hot wick top; a match held 2 s to light
+it. Known answers written first (2a, 2b). With no gravity it melts its pool and keeps burning. With gravity it goes out once
+the wick's own wax is used (under a second) and the pool never melts: watched every half second, two causes found, both
+missing physics: the lab has no radiant heat (a real flame melts its pool mostly by its glow shining down; here heat only
+creeps through air, and gravity sweeps it up), and the wick's vapour is not limited by the heat reaching it. MISS, recorded
+with its causes; radiation is now the lab's next big piece (also for sunlight on the sky and the sea).
