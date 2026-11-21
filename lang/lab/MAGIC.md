@@ -1,5 +1,9 @@
 # The lab's magic ledger: what is not real yet, and what would make it real
 
+**Fixed temperatures are magic** (Mike, 21 Nov 2026: "we want to see what temps come from things we do so any fixed temps will be
+marked magic"): any warmth put in and held, invented or measured, is magic, until it comes out of what happens (the sun,
+burning, squeezing, sinking water). Settings a real rig has (a heat gun's dial) are the experiment's own inputs, said so.
+
 **Magic and the shrug are kept apart** (Mike, 21 Nov 2026: "by the time we are done we should have reduced magic to zero and
 have a shrug to work on reducing for unknown stuffs yet discovered").
 - **Magic** is what we put in knowingly as a stand-in. Every line below says what would make it real. The goal is none left.
@@ -52,6 +56,11 @@ not yet traced) comes down as this list does.
 | Faraday's wire and magnet turn at set speeds (one place every 2 and 3 frames): drawn, not worked out | the lab, Faraday's glasses | the push on the wire from the current crossing the magnet's field (current x field x length) against the mercury's drag: the speed and the way round (which flips if the pile is turned round) come out by themselves |
 | The ocean's warmth by depth is measured, not worked out | the deep | the sun warming the top and cold polar water sinking to fill the deep (needs the lab's sunlight and poles) |
 | Sea water's stiffness held at its surface value (2.34 GPa) | the deep | water stiffening as it is squeezed (measured: its stiffness rises with pressure): brings the bottom pressure from 1,122 toward the real ~1,070 |
+| FIXED TEMPS: the ground's air at 15 C (atmos, balloon, the sky's column) | sky | the sun warming the ground and the ground warming the air |
+| FIXED TEMPS: the sky's warmth above 11 km put in from measurements | sky | sunlight soaked up by ozone, worked out (the sun in at the top of the space room) |
+| FIXED TEMPS: the ocean's warmth by depth put in from measurements | the deep | the sun warming the top, cold polar water sinking |
+| FIXED TEMPS: the candle's room air at 20 C, its wick held at 327 C, burning starting at 427 C, the flame capped at 2,027 C | candlespace | the room's own air (the lab's air cells); the wick warmed by the flame; the flame's warmth from the heat its burning gives less what it loses, no cap |
+| FIXED TEMPS: the balls and the lab air start at 20 C | pingfunnel, pingblind | the lab room's own air at the time (the air cells, the outside, the sea) |
 
 ## Links (attachments, inputs, outputs)
 | Magic | Where | What would make it real |
