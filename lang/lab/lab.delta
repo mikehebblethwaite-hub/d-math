@@ -987,12 +987,14 @@ int main(int argc, char **argv)
         int at1 = 1, at2 = 1, at3 = 1;
         camX = pnum(argv[3], &at1) * FOOT; camZ = pnum(argv[4], &at2) * FOOT;
         if (argc >= 5) YAW = pnum(argv[5], &at3);
+        if (argc >= 6) { int at4 = 1; FLOOR = pnum(argv[6], &at4); if (FLOOR < 1 || FLOOR > 3) FLOOR = 1; }   // a start floor (1 lab, 2 atmosphere, 3 space)
     }
     WASZ = camZ;
     scene_start();
     air_start(); place_read(); outside_now();
     camY = less(TALL, INCH * 9 / 2);                                 // standing, at the height place.txt gives (tall)
     int sharp = low, moved = 1, showpanel = 1, sel = 1, frame = low;
+    if (argc >= 7) showpanel = low;                                 // a seventh word: start with the panel hidden (for films)
     int lastmx = low, lastmy = low, held = low, pressx = low, pressy = low, midheld = low;
     while (1) {
         frame++;

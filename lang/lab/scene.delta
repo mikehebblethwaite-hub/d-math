@@ -14,6 +14,7 @@
 #include "objects/dangoes.delta"
 #include "objects/pingpong.delta"
 #include "objects/lightsheet.delta"
+#include "objects/wingnut.delta"
 
 thing candle candle1;                       // a candle ...
 thing faraday faraday1;                     // Faraday's two glasses ...
@@ -35,8 +36,9 @@ void scene_start()
     washroom1.start(); microscope1.start(); pingpong1.start();
     tank1.x = MID; tank1.z = ROOM + FOOT * 5; tank1.start();         // ... in the wave room, five feet past the wall between
     lightsheet_start();                                              // the light sheet, on the floor of the space room (floor 3)
+    wingnut_start();                                                 // the wing nut, floating over it
 }
-void scene_step() { if (FLOOR == 3) lightsheet_step(); if (FLOOR > 1) return; washroom1.step(); scope1.step(); microscope1.step(); seedcup1.step(); meter1.step(); pingpong1.step(); candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
+void scene_step() { if (FLOOR == 3) { lightsheet_step(); wingnut_step(); } if (FLOOR > 1) return; washroom1.step(); scope1.step(); microscope1.step(); seedcup1.step(); meter1.step(); pingpong1.step(); candle1.step(); faraday1.step(); tunnel1.step(); tank1.step(); }
 void lift_draw()                                         // the lift between the floors, in the back left corner of each (Mike: the space room two floors up)
 {
     int x1 = 1 + INCH, x2 = FOOT * 4, z1 = less(ROOM, FOOT * 4), z2 = less(ROOM, INCH), top = less(ROOM, INCH);
@@ -51,7 +53,7 @@ void scene_draw()                         // farthest first, the painter's way, 
     lift_draw();
     if (FLOOR > 1) {                                                 // the floors above: their own things only
         int m; for (m = 1; m <= 31; m++) MARKON[m] = low;
-        if (FLOOR == 3) lightsheet_draw();
+        if (FLOOR == 3) { lightsheet_draw(); wingnut_draw(); }
         return;
     }
     washroom1.draw();
@@ -79,7 +81,7 @@ void scene_panel(int sel)
     if (FLOOR > 1) {
         lab_line(FLOOR == 3 ? "floor 3: SPACE, two floors above the lab;  Page Down: the lift down" : "floor 2: ATMOSPHERE TESTS, the floor above the lab (nothing in it yet);  Page Up: space, Page Down: the lab");
         lab_line("the lift: back left corner (Page Up, Page Down). MAGIC: you can walk through it; these floors have no air cells of their own yet");
-        if (FLOOR == 3) lightsheet_panel();
+        if (FLOOR == 3) { lightsheet_panel(); wingnut_panel(); }
         return;
     }
     lab_line(PAGE == 1 ? "Tab: [the room]  outside  washroom and bench  the thing you clicked"

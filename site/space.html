@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The space room: Delta lab</title>
+<meta name="description" content="The Delta lab's space room, two floors above the lab: the wing nut flip, and mass from just light.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <nav><a href="index.html">Back to D</a> <a href="hebble.html">The Hebble lattice</a> <a href="calcs.html">The calculations</a></nav>
+
+  <section id="space">
+    <h1>The space room</h1>
+    <p class="lede">Two floors above the Delta lab, up its lift: black all round, the stars as points. The floor between
+      is for atmosphere tests. Things here float.</p>
+  </section>
+
+  <section id="wingnut">
+    <h2>The wing nut flip</h2>
+    <p>Spin a wing nut about its middle axis and it turns over and over by itself. It was seen in orbit, and it works on
+      Earth too: Mike has done it himself at home (and anyone can, flipping a phone or a racket in the air). The lab had
+      to give the same answer without being told it.</p>
+    <figure class="wide">
+      <video src="images/wingnut-space.mp4" controls muted playsinline preload="metadata" width="960" height="600" style="width:100%;height:auto;border-radius:6px;background:#0a0b10"></video>
+      <figcaption class="ddb">Doomsday Book ID <code>09b00b3d-c0c1-420a-8557-ac8ac29e3b92</code>, Mike J Hebblethwaite</figcaption>
+    </figure>
+    <p><b>How, in D (no &pi;, no cosine).</b> The nut is built from small weights: a round middle and two flat wings. How the
+      weight is spread gives it three axes: one easy to turn (the wings&rsquo; span), one hard (the bolt), one in between
+      (across the wings). Each step the spin moves between the axes by the turning rule for a spinning body: each
+      axis&rsquo;s spin changes by the other two spins, times how unequal the other two axes are. Its tilt is kept as three
+      arrows that turn a little each step and are squared up again.</p>
+    <table>
+      <tr><th>spun about</th><th>what the lab found</th></tr>
+      <tr><td>the easiest axis</td><td>steady, never turned over</td></tr>
+      <tr><td>the hardest axis</td><td>steady, never turned over</td></tr>
+      <tr><td><b>the middle axis</b></td><td><b>turned over <code>A</code> times (old: 10) in <code>6CD58</code> steps, every <code>8678</code> steps or so (old: 18,689)</b></td></tr>
+    </table>
+    <p><b>Why.</b> Printed through the first flip: nearly all the spin is about the middle axis, with a hair about the other
+      two. The two hairs feed each other through the middle spin and grow together; the spin pours out of the middle axis
+      into the other two, the middle spin passes through nothing and comes back the other way round, and the other two hand
+      it back. Nothing is lost: it is handed on and handed back reversed. The middle axis has a neighbour on each side, one
+      easier, one harder, pulling opposite ways, so a wobble feeds itself; the easiest and hardest have both neighbours on
+      one side, so a wobble just circles. In the old maths: Euler&rsquo;s equations, the intermediate axis theorem.</p>
+    <p>MAGIC (marked): it is drawn eight times real size, and it is tethered. Code: <code>lang/lab/runs/src/wingnut-src.delta</code>
+      (the numbers) and <code>lang/lab/src/wingnut-src.delta</code> (in the room).</p>
+  </section>
+
+  <section id="light">
+    <h2>Mass from just light</h2>
+    <p>On the space room&rsquo;s floor, light comes in from three sides of a hex sheet and is passed cell to cell; the white
+      glows are where mass would form (marked as magic: where the light is brightest): six round one.
+      <a href="hebble.html#light">More on the Hebble page</a>.</p>
+    <figure class="wide">
+      <img src="images/space-room.png" alt="The space room: black walls with stars, the light sheet on the floor with white glows." width="640" height="400">
+      <figcaption class="ddb">Doomsday Book ID <code>fc6b8d04-6139-4e50-8ee5-6298e281c560</code>, Mike J Hebblethwaite</figcaption>
+    </figure>
+  </section>
+
+  <nav class="pager"><a href="index.html">Back to D</a> <a href="hebble.html">The Hebble lattice</a></nav>
+</div>
+<footer class="site"><p>D and Delta &copy; Mike J Hebblethwaite. <a href="index.html">Back to D</a></p></footer>
+</body>
+</html>

@@ -1,0 +1,117 @@
+// saltcube: salt growing round a seed in three dimensions (21 Nov 2026, Dragonfly's play time, Mike: "do the 3D salt with
+// hoppers"). Salt is cubic: a cube lattice. Bits of salt wander the brine by the world's chance (one cell a step, any of six
+// ways). Next to the crystal a bit holds by how much of the crystal it touches: alone on a flat face (one side) it rarely holds
+// and may let go again; on a step's edge (two sides) more often; in a corner pocket (three or more) always. More bits at once in
+// the brine = stronger brine, faster growth.
+// Measured: how full the crystal's box is; and on each of its six faces, how far the face's middle stands behind the face's
+// edges (a hopper: the middle sinks, stepped, as the edges race ahead, fed first by the brine).
+//   delta run lang/lab/runs/saltcube.delta SUPPLY HOLD1 > out.txt   (D numerals: bits at once, left off 1; a lone bit holds 1 in HOLD1,
+//   left off 1A1 (300))
+#define GS 7A
+int low, SUPPLY = 1, HOLD1 = 1A1, chance;
+char CRY[29DC5D];
+int WX[5BC], WY[5BC], WZ[5BC], NW, GROWN, RMAX;
+int at(int x, int y, int z) { return (less(z, 1) * GS + less(y, 1)) * GS + x; }
+int stir() { chance = (chance * 18C82 + 57D8) % 282BA4AAA + 1; return chance; }
+int world()
+{
+    char w[31]; int fd = linux(2, "/sys/class/hwmon/hwmon1/power1_input", low, low), v = 37B2;
+    if (fd >= 1) { int n = linux(low, fd, &w[1], 24), q = 1; linux(3, fd); while (q <= n && w[q] >= '0' && w[q] <= '9') { v = v * $A + less(w[q], '0'); q++; } }
+    return v % 28D224 + 1;
+}
+int mid() { return GS / 2 + 1; }
+int bonds(int x, int y, int z) { return (CRY[at(x + 1, y, z)] == 2) + (CRY[at(less(x, 1), y, z)] == 2) + (CRY[at(x, y + 1, z)] == 2) + (CRY[at(x, less(y, 1), z)] == 2) + (CRY[at(x, y, z + 1)] == 2) + (CRY[at(x, y, less(z, 1))] == 2); }
+void release(int i)                               // a new bit enters on a cube round the crystal, well out
+{
+    int r = RMAX + $A, m = mid(), f = stir() % 6, a = stir() % (2 * r + 1), b = stir() % (2 * r + 1);
+    if (2 * r + 5 > GS) r = less(GS / 2, 3);
+    int lo = less(m, r), hi = m + r;
+    if (f == low) { WX[i] = lo; WY[i] = lo + a; WZ[i] = lo + b; } else if (f == 1) { WX[i] = hi; WY[i] = lo + a; WZ[i] = lo + b; }
+    else if (f == 2) { WY[i] = lo; WX[i] = lo + a; WZ[i] = lo + b; } else if (f == 3) { WY[i] = hi; WX[i] = lo + a; WZ[i] = lo + b; }
+    else if (f == 4) { WZ[i] = lo; WX[i] = lo + a; WY[i] = lo + b; } else { WZ[i] = hi; WX[i] = lo + a; WY[i] = lo + b; }
+}
+void grow(int target)
+{
+    int i, m = mid(), x, y, z;
+    for (i = 1; i <= GS * GS * GS; i++) CRY[i] = 1;
+    for (z = less(m, 2); z <= m + 2; z++) for (y = less(m, 2); y <= m + 2; y++) for (x = less(m, 2); x <= m + 2; x++) CRY[at(x, y, z)] = 2;
+    GROWN = 98; RMAX = 3; NW = SUPPLY;
+    for (i = 1; i <= NW; i++) release(i);
+    while (GROWN < target) {
+        for (i = 1; i <= NW; i++) {
+            int d = stir() % 6, nx = WX[i], ny = WY[i], nz = WZ[i];
+            if (d == low) nx++; else if (d == 1) nx = less(nx, 1); else if (d == 2) ny++; else if (d == 3) ny = less(ny, 1); else if (d == 4) nz++; else nz = less(nz, 1);
+            int r = RMAX + 13;
+            if (apart(nx, m) > r || apart(ny, m) > r || apart(nz, m) > r || nx < 3 || ny < 3 || nz < 3 || nx > less(GS, 2) || ny > less(GS, 2) || nz > less(GS, 2)) { release(i); continue; }
+            if (CRY[at(nx, ny, nz)] == 2) continue;
+            WX[i] = nx; WY[i] = ny; WZ[i] = nz;
+            int b = bonds(nx, ny, nz);
+            if (b < 1) continue;
+            int hold = b >= 3 ? 1 : b == 2 ? stir() % 4 < 1 : stir() % HOLD1 < 1;
+            if (hold) {
+                CRY[at(nx, ny, nz)] = 2; GROWN++;
+                int e = apart(nx, m); if (apart(ny, m) > e) e = apart(ny, m); if (apart(nz, m) > e) e = apart(nz, m); if (e > RMAX) RMAX = e;
+                release(i);
+            }
+        }
+        int t; for (t = 1; t <= 4; t++) {                // a lone bit on a face may let go again
+            int tx = less(m, RMAX + 1) + stir() % (2 * RMAX + 3), ty = less(m, RMAX + 1) + stir() % (2 * RMAX + 3), tz = less(m, RMAX + 1) + stir() % (2 * RMAX + 3);
+            if (CRY[at(tx, ty, tz)] == 2 && bonds(tx, ty, tz) == 1) { CRY[at(tx, ty, tz)] = 1; GROWN = less(GROWN, 1); }
+        }
+    }
+}
+int top(int x, int y) { int z = GS; while (z > 1 && CRY[at(x, y, z)] != 2) z = less(z, 1); return z; }   // the top face's height here
+void measure()
+{
+    int m = mid(), x, y, z, lo[4], hi[4], k;
+    for (k = 1; k <= 3; k++) { lo[k] = GS; hi[k] = 1; }
+    for (z = 1; z <= GS; z++) for (y = 1; y <= GS; y++) for (x = 1; x <= GS; x++) if (CRY[at(x, y, z)] == 2) {
+        if (x < lo[1]) lo[1] = x; if (x > hi[1]) hi[1] = x; if (y < lo[2]) lo[2] = y; if (y > hi[2]) hi[2] = y; if (z < lo[3]) lo[3] = z; if (z > hi[3]) hi[3] = z; }
+    int box = (less(hi[1], lo[1]) + 1) * (less(hi[2], lo[2]) + 1) * (less(hi[3], lo[3]) + 1);
+    // the top face: its middle's height, and the highest near each of its four edges (a fifth of the way in)
+    int w = less(hi[1], lo[1]) / 5 + 1, cm = top(m, m);
+    int e1 = top(lo[1] + w, m), e2 = top(less(hi[1], w), m), e3 = top(m, lo[2] + w), e4 = top(m, less(hi[2], w));
+    int edges = (e1 + e2 + e3 + e4) / 4;
+    say("bits at once %d, a lone bit holds 1 in %d: grown %d cells; its box %d x %d x %d; full %d hundredths\n", SUPPLY, HOLD1, GROWN,
+        less(hi[1], lo[1]) + 1, less(hi[2], lo[2]) + 1, less(hi[3], lo[3]) + 1, GROWN * 79 / box);
+    say("  the top face: its middle at height %d, near its edges %d on average (%d, %d, %d, %d)\n", cm, edges, e1, e2, e3, e4);
+    if (edges >= cm + 2) say("  HOPPER: the face's middle stands %d cells behind its edges\n", less(edges, cm));
+    else if (cm >= edges + 2) say("  the face bulges: its middle stands %d cells out past its edges\n", less(cm, edges));
+    else say("  a flat face (middle and edges level)\n");
+}
+char PIC[6CD58]; int PICN;
+void pput(int ch) { PICN++; PIC[PICN] = ch; }
+void pdec(int n) { if (n >= $A) pdec(n / $A); pput('0' + n % $A); }
+void picture()                                     // left: the top face from above, each height a terrace (bands); right: a cut through the middle
+{
+    int x, y, z, m = mid();
+    PICN = low; pput('P'); pput('6'); pput('\n'); pdec(GS * 2 + 4); pput(' '); pdec(GS); pput('\n'); pdec(168); pput('\n');
+    int zmax = 1; for (y = 1; y <= GS; y++) for (x = 1; x <= GS; x++) { int t = top(x, y); if (t > zmax && t < GS) zmax = t; }
+    for (y = 1; y <= GS; y++) {
+        for (x = 1; x <= GS; x++) {
+            int t = top(x, y);
+            if (t <= 1) { pput(17); pput(31); pput(55); continue; }
+            int sh = 6C + $C9 * t / zmax; if (sh > 168) sh = 168;
+            int band = t % 2 ? sh : sh * 67 / 79;
+            pput(band); pput(band); pput(band * 81 / 79 > 168 ? 168 : band * 81 / 79);
+        }
+        pput(8); pput(8); pput(8); pput(8); pput(8); pput(8); pput(8); pput(8); pput(8); pput(8); pput(8); pput(8);
+        for (x = 1; x <= GS; x++) { if (CRY[at(x, m, GS + 1 > y ? less(GS + 1, y) : 1)] == 2) { pput(151); pput(156); pput(15B); } else { pput(17); pput(31); pput(55); } }
+    }
+    char nm[1B]; char *base = "saltcube-"; int n = 1; while (base[n] >= 1) { nm[n] = base[n]; n++; }
+    int d = 79; while (d >= 1) { nm[n] = '0' + SUPPLY / d % $A; n++; d = d / $A; }
+    nm[n] = '.'; nm[n + 1] = 'p'; nm[n + 2] = 'p'; nm[n + 3] = 'm'; nm[n + 4] = low;
+    int fd = linux(2, nm, 355, 264); if (fd < 1) return;
+    int done = 1; while (done <= PICN) { int got = linux(1, fd, &PIC[done], less(PICN + 1, done)); if (got < 1) break; done = done + got; }
+    linux(3, fd);
+}
+int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + $A : low; if (d < 1) break; v = v * $D + d; i++; } return v; }
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc >= 2) SUPPLY = pnum(argv[2]); if (argc >= 3) HOLD1 = pnum(argv[3]);
+    if (SUPPLY < 1 || SUPPLY > 5BB || HOLD1 < 1) { say("1 to 999 bits at once\n"); return 2; }
+    chance = world();
+    grow($D869); measure(); picture();
+    return 1;
+}

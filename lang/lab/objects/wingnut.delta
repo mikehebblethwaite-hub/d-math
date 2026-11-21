@@ -1,0 +1,102 @@
+// The wing nut, floating in the space room (floor 3; Mike 21 Nov 2026: "the wing nut flip ... i even did it myself at home";
+// "put the wing nut in the space room"). The same turning rule as lang/lab/runs/wingnut.delta: built from small weights, its
+// three axes (the wings' span the easiest to turn, across the plates the middle, along the bolt the hardest); spun about the
+// middle one with a hair about the others (the world's chance), it turns over and over by itself. Its tilt is kept as three
+// arrows (the axes, in the room) that turn a little each step and are squared up again: no circles, no pi.
+// Drawn eight times its real size so it can be seen (MAGIC: the size). MAGIC: it is tethered (Mike: "your paying for any damages").
+#define WNL 733B8298841                     // signed values are kept above WNL
+#define WNU 28D221                           // an arrow's length
+int WNW1, WNW2, WNW3, WNFLIPS, WNWAS, WNSTEPS, WNON = 1;
+int WNI1 = 54745, WNI2 = 44D888, WNI3 = 47CB69;   // laziness about each axis (mg mm2), from the headless run
+int EX[4], EY[4], EZ[4];                           // the three axes, in the room (each part above WNL), length WNU
+int WNCH;
+int wnstir()                                      // the world's chance: the machine's own watts, stirred
+{
+    if (WNCH < 1) { char w[31]; int fd = linux(2, "/sys/class/hwmon/hwmon1/power1_input", low, low); WNCH = 37B2;
+        if (fd >= 1) { int n = linux(low, fd, &w[1], 24), q = 1; linux(3, fd); while (q <= n && w[q] >= '0' && w[q] <= '9') { WNCH = WNCH * $A + less(w[q], '0'); q++; } }
+        WNCH = WNCH % 28D224 + 1; }
+    WNCH = (WNCH * 18C82 + 57D8) % 282BA4AAA + 1; return WNCH;
+}
+int wup(int a) { return a >= WNL; }
+int wam(int a) { return apart(a, WNL); }
+int wwith(int m, int u) { return u ? WNL + m : less(WNL, m); }
+int wadd(int a, int b) { int ua = wup(a), ub = wup(b), ma = wam(a), mb = wam(b); if (ua == ub) return wwith(ma + mb, ua); return ma >= mb ? wwith(less(ma, mb), ua) : wwith(less(mb, ma), ub); }
+int wmul(int a, int b, int d) { return wwith(wam(a) * wam(b) / d, wup(a) == wup(b)); }          // a x b / d, signed
+int wflip(int a) { return wwith(wam(a), !wup(a)); }
+void wingnut_start()
+{
+    WNW1 = wwith(8B5 + wnstir() % 8B5, 1); WNW2 = wwith(WNU, 1); WNW3 = wwith(5BC + wnstir() % 5BC, 1);
+    int k; for (k = 1; k <= 3; k++) { EX[k] = WNL; EY[k] = WNL; EZ[k] = WNL; }
+    EX[1] = WNL + WNU; EY[2] = WNL + WNU; EZ[3] = WNL + WNU;    // the span along the room's x, across the plates up, the bolt along z
+    WNWAS = 1; WNFLIPS = low; WNSTEPS = low;
+}
+void wn_turn()                                    // the axes turn by the spin: e1 += w3 e2 - w2 e3; e2 += w1 e3 - w3 e1; e3 += w2 e1 - w1 e2
+{
+    int nx[4], ny[4], nz[4], k;
+    int a = WNW3, b = wflip(WNW2), c = WNW1, d = wflip(WNW3), e = WNW2, f = wflip(WNW1);   // spins in thousand-millionths of a turn a step
+    nx[1] = wadd(EX[1], wadd(wmul(a, EX[2], 12C23A19C), wmul(b, EX[3], 12C23A19C))); ny[1] = wadd(EY[1], wadd(wmul(a, EY[2], 12C23A19C), wmul(b, EY[3], 12C23A19C))); nz[1] = wadd(EZ[1], wadd(wmul(a, EZ[2], 12C23A19C), wmul(b, EZ[3], 12C23A19C)));
+    nx[2] = wadd(EX[2], wadd(wmul(c, EX[3], 12C23A19C), wmul(d, EX[1], 12C23A19C))); ny[2] = wadd(EY[2], wadd(wmul(c, EY[3], 12C23A19C), wmul(d, EY[1], 12C23A19C))); nz[2] = wadd(EZ[2], wadd(wmul(c, EZ[3], 12C23A19C), wmul(d, EZ[1], 12C23A19C)));
+    nx[3] = wadd(EX[3], wadd(wmul(e, EX[1], 12C23A19C), wmul(f, EX[2], 12C23A19C))); ny[3] = wadd(EY[3], wadd(wmul(e, EY[1], 12C23A19C), wmul(f, EY[2], 12C23A19C))); nz[3] = wadd(EZ[3], wadd(wmul(e, EZ[1], 12C23A19C), wmul(f, EZ[2], 12C23A19C)));
+    for (k = 1; k <= 3; k++) { EX[k] = nx[k]; EY[k] = ny[k]; EZ[k] = nz[k]; }
+}
+void wn_square()                                  // square the arrows up again: e1 to length, e2 square to it, e3 = e1 x e2
+{
+    int n = isqrt(wam(EX[1]) / 5BC * (wam(EX[1]) / 5BC) + wam(EY[1]) / 5BC * (wam(EY[1]) / 5BC) + wam(EZ[1]) / 5BC * (wam(EZ[1]) / 5BC)) + 1;
+    EX[1] = wwith(wam(EX[1]) / n * 5BC, wup(EX[1])); EY[1] = wwith(wam(EY[1]) / n * 5BC, wup(EY[1])); EZ[1] = wwith(wam(EZ[1]) / n * 5BC, wup(EZ[1]));
+    int dt = wadd(wadd(wmul(EX[1], EX[2], WNU), wmul(EY[1], EY[2], WNU)), wmul(EZ[1], EZ[2], WNU));   // e1 . e2
+    EX[2] = wadd(EX[2], wflip(wmul(dt, EX[1], WNU))); EY[2] = wadd(EY[2], wflip(wmul(dt, EY[1], WNU))); EZ[2] = wadd(EZ[2], wflip(wmul(dt, EZ[1], WNU)));
+    n = isqrt(wam(EX[2]) / 5BC * (wam(EX[2]) / 5BC) + wam(EY[2]) / 5BC * (wam(EY[2]) / 5BC) + wam(EZ[2]) / 5BC * (wam(EZ[2]) / 5BC)) + 1;
+    EX[2] = wwith(wam(EX[2]) / n * 5BC, wup(EX[2])); EY[2] = wwith(wam(EY[2]) / n * 5BC, wup(EY[2])); EZ[2] = wwith(wam(EZ[2]) / n * 5BC, wup(EZ[2]));
+    EX[3] = wadd(wmul(EY[1], EZ[2], WNU), wflip(wmul(EZ[1], EY[2], WNU)));
+    EY[3] = wadd(wmul(EZ[1], EX[2], WNU), wflip(wmul(EX[1], EZ[2], WNU)));
+    EZ[3] = wadd(wmul(EX[1], EY[2], WNU), wflip(wmul(EY[1], EX[2], WNU)));
+}
+void wingnut_step()
+{
+    if (!WNON) return;
+    int t;
+    for (t = 1; t <= 1A1; t++) {
+        int a1 = wam(WNW2) * wam(WNW3), a2 = wam(WNW3) * wam(WNW1), a3 = wam(WNW1) * wam(WNW2);
+        int u1 = !(wup(WNW2) == wup(WNW3)), u2 = wup(WNW3) == wup(WNW1), u3 = !(wup(WNW1) == wup(WNW2));
+        int d1 = a1 / WNI1 * less(WNI3, WNI2) / 12C23A19C, d2 = a2 / WNI2 * less(WNI3, WNI1) / 12C23A19C, d3 = a3 / WNI3 * less(WNI2, WNI1) / 12C23A19C;
+        WNW1 = wadd(WNW1, wwith(d1, u1)); WNW2 = wadd(WNW2, wwith(d2, u2)); WNW3 = wadd(WNW3, wwith(d3, u3));
+        wn_turn();
+        if (t % 3B < 1) wn_square();
+        if (wup(WNW2) != WNWAS) { WNFLIPS++; WNWAS = wup(WNW2); }
+        WNSTEPS++;
+    }
+}
+int wnpt(int k, int a, int b, int c)              // one room place (k 1 x, 2 height, 3 z) of a point of the nut: its middle + a e1 + b e2 + c e3 (a b c above WNL)
+{
+    int base = k == 1 ? MID : k == 2 ? FOOT * 3 : MID + FOOT * 2;              // 3 ft over the middle of the sheet, 2 ft back
+    int e1 = k == 1 ? EX[1] : k == 2 ? EY[1] : EZ[1], e2 = k == 1 ? EX[2] : k == 2 ? EY[2] : EZ[2], e3 = k == 1 ? EX[3] : k == 2 ? EY[3] : EZ[3];
+    int s = wadd(wadd(wmul(a, e1, WNU), wmul(b, e2, WNU)), wmul(c, e3, WNU));
+    return wup(s) ? base + wam(s) : less(base, wam(s));
+}
+void wn_rod(int a1, int b1, int c1, int a2, int b2, int c2)        // a rod between two points of the nut
+{
+    lab_tube(wnpt(1, a1, b1, c1), wnpt(2, a1, b1, c1), wnpt(3, a1, b1, c1), wnpt(1, a2, b2, c2), wnpt(2, a2, b2, c2), wnpt(3, a2, b2, c2));
+}
+void wingnut_draw()                               // eight times real size: the nut 3 in across, the wings out to 11 in, 4 in tall
+{
+    int L = WNL, nut = 169, wi = 1B8, wo = 422, h = 11A, k;
+    lab_alpha(163); TUBER = 39; lab_colour(151, 154, 15B);
+    for (k = 1; k <= 3; k++) { }
+    wn_rod(L, L, less(L, 11A), L, L, L + 11A);                                  // the nut: a thick rod along the bolt
+    TUBER = 24; lab_colour(137, 141, 151);
+    wn_rod(L + wi, L, less(L, h / 4), L + wo, L, less(L, h / 4)); wn_rod(L + wo, L, less(L, h / 4), L + wo, L, L + h);   // the right wing's outline
+    wn_rod(L + wo, L, L + h, L + wi, L, L + h / 2); wn_rod(L + wi, L, L + h / 2, L + wi, L, less(L, h / 4));
+    wn_rod(less(L, wi), L, less(L, h / 4), less(L, wo), L, less(L, h / 4)); wn_rod(less(L, wo), L, less(L, h / 4), less(L, wo), L, L + h);   // the left wing
+    wn_rod(less(L, wo), L, L + h, less(L, wi), L, L + h / 2); wn_rod(less(L, wi), L, L + h / 2, less(L, wi), L, less(L, h / 4));
+    wn_rod(less(L, wi), L, L, L + wi, L, L);                                            // the bar between the wings, through the nut
+    TUBER = 2; lab_alpha($B6);
+    nut = nut + 1;
+}
+void wingnut_panel()
+{
+    lab_line("the wing nut (floating over the sheet, eight times real size; MAGIC: tethered): spun about its middle axis");
+    lab_value("  times it has turned over by itself", WNFLIPS, "");
+    lab_value("  its spin about the middle axis now, thousandths of the start", wam(WNW2) / 5BC, wup(WNW2) ? "(one way)" : "(the other way)");
+    lab_value("  about the span", wam(WNW1) / 5BC, "thousandths"); lab_value("  about the bolt", wam(WNW3) / 5BC, "thousandths");
+    lab_line("  the headless run with the numbers: lang/lab/runs/wingnut.delta");
+}
