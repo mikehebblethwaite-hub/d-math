@@ -67,6 +67,26 @@
       <tr><td>4</td><td>Polystyrene cups sent down on deep-sea dives come back shrunk to a fraction of their size (their air squeezed out)</td><td>at 11 km: 3% of its size, 31% of its height (foam 97% air, measured densities)</td><td>MATCH</td><td>runs/deep.delta</td></tr>
     </table>
   </section>
+  <section><h2>Below the deep: the crust</h2>
+    <p>Rock under the sea floor, at a trench where one plate slides under another (the Mariana trench is the deep&rsquo;s own
+      bottom). Its warmth comes out of the run: heat flowing up and made in the rock, carried only so fast. Known answers
+      written before the run. Code: <code>lang/lab/runs/src/crust-src.delta</code>.</p>
+    <table>
+      <tr><th>#</th><th>Known result (what really happens)</th><th>Lab's answer</th><th>Match?</th><th>Run</th></tr>
+      <tr><td>1</td><td>Rock gets warmer going down, about 25-30 C for every km in continental crust</td><td>25.8 C a km (average continent: heat flow 65 mW/m2, rock 2.5 W/m/K); 765 C at 40 km</td><td>MATCH</td><td>runs/crust.delta</td></tr>
+      <tr><td>2</td><td>In the deepest mines (about 4 km down) the rock is about 60 C</td><td>old cold rock (heat flow 45, quartzite 5.0): 49 C at 4 km (the average continent would give 116 C)</td><td>CLOSE: about 20% low</td><td>runs/crust.delta</td></tr>
+      <tr><td>3</td><td>Lava (basalt) comes out at about 1,100-1,200 C</td><td>in this model it would equal rock's melting point, which is put in</td><td>NOT A TEST here (circular)</td><td>runs/crust.delta</td></tr>
+      <tr><td>4</td><td>Hot water from vents on the deep sea floor stays liquid at about 400 C (the deep's pressure keeps it from boiling)</td><td>at 2,500 m (25.2 MPa) water boils only at 427 C</td><td>MATCH, with a caveat: real water there is past its critical point (374 C), with no boiling at all; the boiling rule does not know the critical point</td><td>runs/crust.delta</td></tr>
+    </table>
+    <p>Where the room sits: two plates, one sliding under the other (known answers written before any run):</p>
+    <table>
+      <tr><th>#</th><th>Known result (what really happens)</th><th>Lab's answer</th><th>Match?</th><th>Run</th></tr>
+      <tr><td>5</td><td>The deepest sea is a trench where one plate slides under another (the Mariana trench, about 11 km: the deep's own bottom)</td><td>not run yet</td><td>-</td><td>-</td></tr>
+      <tr><td>6</td><td>Volcanoes stand in a line about 100-200 km behind the trench, above where the sinking plate reaches about 100 km down</td><td>not run yet</td><td>-</td><td>-</td></tr>
+      <tr><td>7</td><td>Earthquakes get deeper the further from the trench, along the sinking plate, down to about 700 km</td><td>not run yet</td><td>-</td><td>-</td></tr>
+      <tr><td>8</td><td>Heat flow through the sea floor is low over the trench (the cold sinking plate) and high under the volcanoes</td><td>not run yet</td><td>-</td><td>-</td></tr>
+    </table>
+  </section>
   <nav class="pager"><a href="index.html">Back to D</a> <a href="space.html">The space room</a></nav>
 </div>
 <footer class="site"><p>D and Delta &copy; Mike J Hebblethwaite. <a href="index.html">Back to D</a></p></footer>
