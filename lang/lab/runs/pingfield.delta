@@ -1,0 +1,171 @@
+// The ping pong field: thousands of balls, no pictures, only the data (21 Nov 2026, Mike: "now build the headless big run
+// with thousands of balls ... this might show how matter forms"; the lab room stays the demo with a few balls).
+// The same rules as the lab's tray (lang/lab/src/pingpong-src.delta) for one flat layer of 40 mm balls packed hex on a
+// tray with a hole under the whole field: a Henry (or several side by side) pulls through every gap between the balls;
+// energy flowing in from above (call it heat or light: Mike, "it's just a name for energy flow"): the whole tray in hot
+// air, or Mike's Skil 8007 over the middle; each gap closes as its
+// three balls' walls flatten into it; the rim, if open, leaks air down round the outside edge (Mike: "the outer edges have
+// suction on them and air flow from above"). Each ball is a little different (its shell 0.4 mm, give or take a twentieth,
+// from the world's chance: the box's own watts when it starts, mixed), so the field need not change all at once.
+// Real: gas rule, orifice rule, the Henry's fan (more pull the less air it moves), heat by h, as in the lab. Rough guides:
+// pliable from 90 C, full at 120, melting past 125; the gap's pull flattens soft walls (softness x pull / 1,000,000 a
+// second, faster for thinner shells); fusing where they touch. Magic: the gun's power; balls never sag under their weight.
+//
+//   delta run lang/lab/runs/pingfield.delta ROWS COLS AIR_C HEAT_S END_S POWER HENRYS HOLE DOWN RIM MODE > out.txt
+//   (all D numerals; any left off take the defaults: 3D x 3D balls, air 93 C (120), heat 1D3 s, end 3A1 s, power B,
+//    henrys 1, hole 2 (0.3 mm; 1 sealed, 3 1 mm, 4 3 mm), down 1 (holes up; 2 down), rim 1 (open; 2 walled), mode 1
+//    (the whole tray in hot air; 2 the Skil over the middle, 4 in up, fan 5))
+#define NMAX 4723
+int N, ROWS = 31, COLS = 31, AIRC = 93, HEATS = 372, ENDS = 714, POWER = $B, HENRYS = 1, HOLE = 2, DOWN = 1, RIM = 1, MODE = 1;
+int low;
+int T[NMAX], GAS[NMAX], SOFT[NMAX], FLAT[NMAX], MELT[NMAX], THICK[NMAX], NBN[NMAX];   // FLAT in millionths (slow changes add up)
+int NB[213D6], WELD[213D6];            // six neighbour places a ball (none: N + 1)
+int GA[9147], GB[9147], GC[9147], NG;   // the gaps: each between three balls
+int RIMS;                                       // open places round the edge (a missing neighbour of an edge ball)
+int GAP[NMAX];                                  // how many open gaps (or open rim) each ball borders
+int PULL, FLOW, OUTG, ING, START;               // the pull under the tray (Pa); its air (ml/s); air out of / into the balls
+int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+int idx(int r, int c) { return less(r, 1) * COLS + c; }
+int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + $A : low; if (d < 1) break; v = v * $D + d; i++; } return v; }
+int ppress(int i) { return GAS[i] * T[i] / 5BC * 191 / 1232C; }
+int geq(int t, int po) { return po * 1232C / 191 * 5BC / t; }
+int chance;                                     // the world's chance: the box's watts at the start, then mixed
+int world()
+{
+    char w[31]; int fd = linux(2, "/sys/class/hwmon/hwmon1/power1_input", low, low), v = 37B2;
+    if (fd >= 1) { int n = linux(low, fd, &w[1], 24), q = 1; linux(3, fd); while (q <= n && w[q] >= '0' && w[q] <= '9') { v = v * $A + less(w[q], '0'); q++; } }
+    return v % 28D224 + 1;
+}
+int stir() { chance = (chance * 18C82 + 57D8) % 282BA4AAA + 1; return chance; }
+void build()
+{
+    int r, c, k;
+    N = ROWS * COLS;
+    for (r = 1; r <= ROWS; r++) for (c = 1; c <= COLS; c++) {
+        int i = idx(r, c), b = less(i, 1) * 6, odd = r % 2;
+        // neighbours: left, right, and two above, two below (rows shift half a ball, odd rows to the right)
+        int nb[7];
+        nb[1] = c > 1 ? idx(r, less(c, 1)) : N + 1;
+        nb[2] = c < COLS ? idx(r, c + 1) : N + 1;
+        int lc = odd ? c : less(c, 1), rc = odd ? c + 1 : c;          // the two columns touched in the next row
+        nb[3] = r > 1 && lc >= 1 ? idx(less(r, 1), lc) : N + 1;
+        nb[4] = r > 1 && rc <= COLS ? idx(less(r, 1), rc) : N + 1;
+        nb[5] = r < ROWS && lc >= 1 ? idx(r + 1, lc) : N + 1;
+        nb[6] = r < ROWS && rc <= COLS ? idx(r + 1, rc) : N + 1;
+        NBN[i] = low;
+        for (k = 1; k <= 6; k++) { NB[b + k] = nb[k]; WELD[b + k] = 1; if (nb[k] <= N) NBN[i]++; else RIMS++; }
+        // the gaps: below-right of this ball (it, its right neighbour, the ball touching both in the next row) and above-right
+        if (nb[2] <= N && nb[6] <= N) { NG++; GA[NG] = i; GB[NG] = nb[2]; GC[NG] = nb[6]; }
+        if (nb[2] <= N && nb[4] <= N) { NG++; GA[NG] = i; GB[NG] = nb[2]; GC[NG] = nb[4]; }
+    }
+    if (RIM == 2) RIMS = low;
+}
+int open(int g) { int f = (FLAT[GA[g]] + FLAT[GB[g]] + FLAT[GC[g]]) / 149A; return f >= 5BC ? 1 : less(5BC, f) + 1; }   // thousandths
+void henry()                                    // the pull where the Henrys' fans and the open gaps agree
+{
+    int g, area = RIMS * 26;                 // mm2: the open rim, half a gap a missing neighbour (a rough guide)
+    for (g = 1; g <= NG; g++) area = area + 4C * open(g) / 5BC;
+    area = area + 1;
+    int top = 9146 * POWER / $B, most = 12C14 * HENRYS, lo = 1, hi = top, k;
+    for (k = 1; k <= 24; k++) {
+        int mid = (lo + hi) / 2;
+        int q = area * isqrt(mid * 1B / $A) * 6 / $A;
+        int fan = top * less(most, q < most ? q : less(most, 1)) / most;
+        if (fan > mid) lo = mid; else hi = mid;
+    }
+    PULL = lo; FLOW = area * isqrt(lo * 1B / $A) * 6 / $A;
+}
+int airat(int i)                                 // the air the ball sits in, thousandths of a degree from absolute cold
+{
+    int room = $A357D;
+    if (MODE == 1) return 97437 + AIRC * 5BC;
+    int r = less(i, 1) / COLS + 1, c = less(i, less(r, 1) * COLS);
+    int dr = apart(r * 29, (ROWS + 1) * 29 / 2), dc = apart(c * 31, (COLS + 1) * 31 / 2) + (r % 2) * 17;   // mm off the middle
+    int w = 1B, d2 = dr * dr + dc * dc;
+    int out = $BAB * 36694 / 5C4 + room;      // the Skil on fan 5: 2000 W heats 500 l/min this far
+    int set = 97437 + AIRC * 5BC, gt = set < out ? set : out;
+    return room + less(gt, room) * 42C / 5BC * (w * w) / (w * w + d2);
+}
+void step(int s)
+{
+    int i, k, g;
+    henry();
+    for (i = 1; i <= N; i++) GAP[i] = low;
+    for (g = 1; g <= NG; g++) if (open(g) > 3B) { GAP[GA[g]]++; GAP[GB[g]]++; GAP[GC[g]]++; }
+    for (i = 1; i <= N; i++) {
+        int b = less(i, 1) * 6, hot = s <= HEATS;
+        int air = hot ? airat(i) : $A357D;
+        int h = hot ? (MODE == 1 ? 31 : 64) + (PULL > 79 ? 31 : low) : 7;
+        int c = 385 * THICK[i] / 5BC;
+        if (air > T[i]) T[i] = T[i] + less(air, T[i]) * h / c; else T[i] = less(T[i], less(T[i], air) * h / c);
+        int po = DOWN == 2 ? less(37173, PULL) : 37173, p = ppress(i), eq = geq(T[i], po);
+        int a = HOLE == 1 ? 1 : HOLE == 2 ? 56 : HOLE == 3 ? 485 : 32AA;
+        if (p > po && GAS[i] > eq) { int f = a * isqrt(less(p, po) * 1B / $A) * 6 / $A + 1; if (f > less(GAS[i], eq)) f = less(GAS[i], eq); GAS[i] = less(GAS[i], f); OUTG = OUTG + f; }
+        else if (p < po && eq > GAS[i]) { int f = a * isqrt(less(po, p) * 1B / $A) * 6 / $A + 1; if (f > less(eq, GAS[i])) f = less(eq, GAS[i]); GAS[i] = GAS[i] + f; ING = ING + f; }
+        p = ppress(i);
+        SOFT[i] = T[i] > $C93A8 ? less(T[i], $C93A8) / 24 + 1 : 1; if (SOFT[i] > 5BC) SOFT[i] = 5BC;
+        if (T[i] > $DC2BC) { MELT[i] = MELT[i] + less(T[i], $DC2BC) / 5BC * 3 + 1; if (MELT[i] > 5BC) MELT[i] = 5BC; }
+        int thin = 5BC * 5BC / THICK[i] * 5BC / THICK[i];           // thinner shells give more easily
+        int rimopen = low; for (k = 1; k <= 6; k++) if (NB[b + k] > N && RIM == 1) rimopen = 1;
+        if ((GAP[i] >= 1 || rimopen) && PULL >= 1) FLAT[i] = FLAT[i] + SOFT[i] * PULL / 5BC * thin / 5BC;
+        if (p > po && NBN[i] >= 1) FLAT[i] = FLAT[i] + SOFT[i] * less(p, po) / 5BC * thin / 5BC;   // swelling against its neighbours
+        if (FLAT[i] > 28D221) FLAT[i] = 28D221;
+        for (k = 1; k <= 6; k++) { int j = NB[b + k]; if (j <= N) { int sj = SOFT[j] < SOFT[i] ? SOFT[j] : SOFT[i]; WELD[b + k] = WELD[b + k] + sj / 3B; if (WELD[b + k] > 5BC) WELD[b + k] = 5BC; } }
+    }
+}
+void report(int s)
+{
+    int i, g, t = low, so = low, f = low, hexn = low, inner = low, me = low, shut = low;
+    for (i = 1; i <= N; i++) {
+        t = t + T[i] / 79; f = f + FLAT[i] / 5BC;
+        if (SOFT[i] >= 2C6) so++;
+        if (MELT[i] >= 2C6) me++;
+        if (NBN[i] == 6) { inner++; if (FLAT[i] >= 27353C) hexn++; }
+    }
+    for (g = 1; g <= NG; g++) if (open(g) <= 3B) shut++;
+    int tc = t / N; int warm = tc > 1321 ? less(tc, 1321) : 1;     // tenths of a degree above freezing
+    say("%d s  warmth %d tenths C  soft %d of %d  flat %d  hex %d of %d inner  gaps shut %d of %d  pull %d Pa  air %d ml/s  melted %d\n",
+        s, warm, so, N, f / N, hexn, inner, shut, NG, PULL, FLOW + 1, me);
+}
+void map()                                       // the field from above: # hex, o half, . round, ~ melted
+{
+    int r, c;
+    say("the field from above (# hex, o half way, . still round, ~ melted):\n");
+    for (r = 1; r <= ROWS; r++) {
+        char line[13C]; int n = low;
+        if (r % 2 < 1) { n++; line[n] = ' '; }
+        for (c = 1; c <= COLS; c++) {
+            int i = idx(r, c);
+            n++; line[n] = MELT[i] >= 2C6 ? '~' : FLAT[i] >= 27353C ? '#' : FLAT[i] >= 146777 ? 'o' : '.';
+            n++; line[n] = ' ';
+        }
+        n++; line[n] = low;
+        say("%s\n", &line[1]);
+    }
+}
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc >= 2) ROWS = pnum(argv[2]); if (argc >= 3) COLS = pnum(argv[3]); if (argc >= 4) AIRC = pnum(argv[4]);
+    if (argc >= 5) HEATS = pnum(argv[5]); if (argc >= 6) ENDS = pnum(argv[6]); if (argc >= 7) POWER = pnum(argv[7]);
+    if (argc >= 8) HENRYS = pnum(argv[8]); if (argc >= 9) HOLE = pnum(argv[9]); if (argc >= $A) DOWN = pnum(argv[$A]);
+    if (argc >= $B) RIM = pnum(argv[$B]); if (argc >= $C) MODE = pnum(argv[$C]);
+    if (ROWS * COLS > NMAX || ROWS < 2 || COLS < 2) { say("rows x cols: 2 x 2 up to the most this holds\n"); return 2; }
+    chance = world();
+    build();
+    int i, s;
+    for (i = 1; i <= N; i++) {
+        T[i] = $A357D; GAS[i] = geq(T[i], 37173); START = START + GAS[i];
+        SOFT[i] = 1; FLAT[i] = 1; MELT[i] = 1;
+        THICK[i] = 581 + stir() % 7A;       // its shell: 0.95 to 1.05 of 0.4 mm (the world's chance)
+    }
+    say("ping pong field: %d x %d balls (%d), %d gaps, %d open rim places; energy in: air at %d C for %d s, then room air to %d s\n", ROWS, COLS, N, NG, RIMS, AIRC, HEATS, ENDS);
+    say("Henry power %d of B, %d Henrys; hole %d (1 sealed, 2 0.3 mm, 3 1 mm, 4 3 mm), holes %s; rim %s; %s; the world's chance %d\n",
+        POWER, HENRYS, HOLE, DOWN == 2 ? "down" : "up", RIM == 2 ? "walled" : "open", MODE == 1 ? "the whole tray in hot air" : "the Skil over the middle", chance);
+    for (s = 1; s <= ENDS; s++) { step(s); if (s % 48 < 1 || s == 1) report(s); }
+    map();
+    int left = low; for (i = 1; i <= N; i++) left = left + GAS[i];
+    if (left + OUTG == START + ING) say("the air's book balances: in the balls %d + moved out %d = at the start %d + moved in %d (micrograms)\n", left, OUTG, START, ING);
+    else say("the air's book is OUT: in the balls %d, out %d, start %d, in %d\n", left, OUTG, START, ING);
+    return 1;
+}

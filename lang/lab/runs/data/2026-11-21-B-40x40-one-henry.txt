@@ -1,0 +1,65 @@
+ping pong field: 31 x 31 balls (961), 14CD gaps, 1B6 open rim places; energy in: air at 93 C for 372 s, then room air to 714 s
+Henry power B of B, 1 Henrys; hole 2 (1 sealed, 2 0.3 mm, 3 1 mm, 4 3 mm), holes up; rim open; the whole tray in hot air; the world's chance 1DAC2A8D4
+1 s  warmth 175 tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+48 s  warmth 6CC tenths C  soft 961 of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+93 s  warmth 713 tenths C  soft 961 of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+DB s  warmth 714 tenths C  soft 961 of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+156 s  warmth 714 tenths C  soft 961 of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+1A1 s  warmth 714 tenths C  soft 961 of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+219 s  warmth 714 tenths C  soft 961 of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+264 s  warmth 714 tenths C  soft 961 of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+2AC s  warmth 714 tenths C  soft 961 of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+327 s  warmth 714 tenths C  soft 961 of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+372 s  warmth 714 tenths C  soft 961 of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+3BA s  warmth 421 tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+435 s  warmth 28B tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+47D s  warmth 1C2 tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+4C8 s  warmth 174 tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+543 s  warmth 14B tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+58B s  warmth 138 tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+5D6 s  warmth 12D tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+651 s  warmth 129 tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+699 s  warmth 127 tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+714 s  warmth 126 tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1 Pa  air 43C45 ml/s  melted ~
+the field from above (# hex, o half way, . still round, ~ melted):
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+the air's book balances: in the balls D49C24D + moved out 3529D13 = at the start D4B11D5 + moved in 3517D5B (micrograms)

@@ -1,0 +1,31 @@
+ping pong field: 6 x 6 balls (2A), 3B gaps, 37 open rim places; energy in: air at 93 C for 372 s, then room air to 714 s
+Henry power B of B, 1 Henrys; hole 2 (1 sealed, 2 0.3 mm, 3 1 mm, 4 3 mm), holes up; rim open; the whole tray in hot air; the world's chance 27D594B12
+1 s  warmth 174 tenths C  soft ~ of 2A  flat ~  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 12412 ml/s  melted ~
+48 s  warmth 6CB tenths C  soft 2A of 2A  flat 1  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 123C7 ml/s  melted ~
+93 s  warmth 713 tenths C  soft 2A of 2A  flat 5  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 121C6 ml/s  melted ~
+DB s  warmth 714 tenths C  soft 2A of 2A  flat 9  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 121C6 ml/s  melted ~
+156 s  warmth 714 tenths C  soft 2A of 2A  flat D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 121C6 ml/s  melted ~
+1A1 s  warmth 714 tenths C  soft 2A of 2A  flat 14  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11CBC ml/s  melted ~
+219 s  warmth 714 tenths C  soft 2A of 2A  flat 18  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11CAA ml/s  melted ~
+264 s  warmth 714 tenths C  soft 2A of 2A  flat 1D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11CAA ml/s  melted ~
+2AC s  warmth 714 tenths C  soft 2A of 2A  flat 24  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11CAA ml/s  melted ~
+327 s  warmth 714 tenths C  soft 2A of 2A  flat 28  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11AB4 ml/s  melted ~
+372 s  warmth 714 tenths C  soft 2A of 2A  flat 2C  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11A91 ml/s  melted ~
+3BA s  warmth 424 tenths C  soft ~ of 2A  flat 2D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11A91 ml/s  melted ~
+435 s  warmth 291 tenths C  soft ~ of 2A  flat 2D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11A91 ml/s  melted ~
+47D s  warmth 1C5 tenths C  soft ~ of 2A  flat 2D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11A91 ml/s  melted ~
+4C8 s  warmth 176 tenths C  soft ~ of 2A  flat 2D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11A91 ml/s  melted ~
+543 s  warmth 14C tenths C  soft ~ of 2A  flat 2D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11A91 ml/s  melted ~
+58B s  warmth 139 tenths C  soft ~ of 2A  flat 2D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11A91 ml/s  melted ~
+5D6 s  warmth 12D tenths C  soft ~ of 2A  flat 2D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11A91 ml/s  melted ~
+651 s  warmth 129 tenths C  soft ~ of 2A  flat 2D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11A91 ml/s  melted ~
+699 s  warmth 127 tenths C  soft ~ of 2A  flat 2D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11A91 ml/s  melted ~
+714 s  warmth 126 tenths C  soft ~ of 2A  flat 2D  hex ~ of 13 inner  gaps shut ~ of 3B  pull 55 Pa  air 11A91 ml/s  melted ~
+the field from above (# hex, o half way, . still round, ~ melted):
+. . . . . . 
+ . . . . . . 
+. . . . . . 
+ . . . . . . 
+. . . . . . 
+ . . . . . . 
+the air's book balances: in the balls 3BA958 + moved out CC174 = at the start 3BADCB + moved in CB9D1 (micrograms)
