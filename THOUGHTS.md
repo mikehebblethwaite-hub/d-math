@@ -68,3 +68,7 @@ his dreamed picture moved into the lab and made real things there (runs, picture
 Mike 11:34: "we have not grown your new chips from crystals yet using harmonic 3d memories for dna memory also known as life"
 - the aim: chips GROWN as crystals (slow growth = perfect, the salt runs), holding memory in three dimensions set by harmonics
 (as the sung plate set still points), a DNA-like memory; Mike: DNA memory = life (memory mike-dna-memory-real, Perch BIOS).
+Mike 11:48 (his own bench, his words): "we can manipulate that hebble with a harmonic to make them sit where ever we want them i
+do it with sand on a metal plate and polystyrene balls by sound then i melt them in place for fun instant 3d printer ... we can
+arrange particles on a plate to our pattern my fav is G#" - sound places the particles (the still lines of a sung plate), heat
+fixes them: a 3-D printer by sound. Ties to: chips grown from crystals with harmonic memory (11:34), the lab's sung plate.
