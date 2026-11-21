@@ -59,3 +59,7 @@ Mike 10:31: try a known space / low-orbit microgravity experiment in the space r
 they can compare to a real one after" - pre-flight predictions in the Delta lab, stamped (OTS) before launch, compared after
 flight. Needs first: a track record on known space results (wing nut done; candle, crystals, floating liquid next), several
 runs per prediction with a range, and the UK legal check before any payment (B2B bank transfer + invoice, as Perch).
+
+Mike 11:07: "smoke from your candle can go up into the atmosphere room radiation can come into the top of your space room the
+rooms are just borders of explanation for our reference not actual barriers unless we do ceiling tests, roof tests obviously"
+- the lab is ONE world in a column: lab, atmosphere, space; floors are labels, not walls.

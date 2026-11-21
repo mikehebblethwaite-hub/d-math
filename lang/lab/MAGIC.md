@@ -36,6 +36,7 @@ not yet traced) comes down as this list does.
 | A hand on the rig: the tray shaken 0.05 g, 20 a second | pingblind part 2 | how Mike really nudges his rig (taps, nozzle moves): watch him on the bench, then model what he does |
 | Mass forms where the light is brightest | lightmass, the space room's light sheet | a rule for light becoming mass that comes out of the run itself, not put in |
 | The lift between the floors (not drawn) | the lab's floors | a lift shaft and stairs, drawn |
+| The ceilings between the floors block air, smoke and light | the lab's floors | Mike, 21 Nov: "the rooms are just borders of explanation ... not actual barriers unless we do ceiling tests, roof tests": one column of air from the lab floor up through the atmosphere room into space; the candle's smoke rises up into the atmosphere room; the sun's radiation comes in at the top of the space room and down through the air. A ceiling or roof is solid only in a ceiling or roof test |
 | The air on floors 2 and 3 is the lab's | the lab's floors | each floor its own air cells |
 | A bit of salt holds 1 in 3 on a step, 1 in 40 alone (rough guesses) | saltplay, saltcube | measured attachment from the real seed beaker under the Perch eye |
 
