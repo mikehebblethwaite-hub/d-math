@@ -25,3 +25,10 @@ First sweep (21 Nov 2026, ~100 balls, 250 mm to the rim, 30 mm hole, Henry on; d
 1 degree: a loose jammed heap, 6 balls with six touching; 2 degrees and up: mostly hex, 60-65 of 101 (the rest at the
 edge), settling faster the steeper. The step from jammed to ordered lies between 1 and 2 degrees: look closer next.
 Fixed the same day: the Henry's air volume uses the root of 2 x push / 1.2 (was the mass rule's 2.4: ~20% too much air).
+
+## pingfield with a plate: a hole under every three (Mike: "expand it out with a hole for each 3")
+PLATE (13th input): a plate under the balls with a hole that many tenths of a mm across under every gap, the rim walled;
+each gap's air passes the gap, then its hole (two openings one after the other). 40 x 40 balls, ONE Henry, 120 C:
+no plate ~1 Pa, nothing; 1 mm holes 374 Pa, 22% flat; 0.5 mm holes 3,947 Pa, every gap shut by 7 min (1,095/1,444 hex);
+0.3 mm holes 10,435 Pa, every gap shut by 4 min (1,128 hex). Fine holes under every three let one Henry do what took
+178 Henrys over an open tray (data/2026-11-21-plate-*.txt). For the real rig: a plate with fine holes in hex under the balls.

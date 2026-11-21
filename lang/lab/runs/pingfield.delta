@@ -11,11 +11,13 @@
 // pliable from 90 C, full at 120, melting past 125; the gap's pull flattens soft walls (softness x pull / 1,000,000 a
 // second, faster for thinner shells); fusing where they touch. Magic: the gun's power; balls never sag under their weight.
 //
-//   delta run lang/lab/runs/pingfield.delta ROWS COLS AIR_C HEAT_S END_S POWER HENRYS HOLE DOWN RIM MODE > out.txt
+//   delta run lang/lab/runs/pingfield.delta ROWS COLS AIR_C HEAT_S END_S POWER HENRYS HOLE DOWN RIM MODE PLATE > out.txt
+//   (PLATE: 1 none; 2 or more: a plate with a hole that many tenths of a mm across under every gap, the rim walled)
 //   (all D numerals; any left off take the defaults: 3D x 3D balls, air 93 C (120), heat 1D3 s, end 3A1 s, power B,
 //    henrys 1, hole 2 (0.3 mm; 1 sealed, 3 1 mm, 4 3 mm), down 1 (holes up; 2 down), rim 1 (open; 2 walled), mode 1
 //    (the whole tray in hot air; 2 the Skil over the middle, 4 in up, fan 5))
 #define NMAX 4723
+int PLATE = 1;                                  // 1: no plate (the tray open under the field); more: a plate with a hole this many TENTHS of a mm across under every gap (Mike: "a hole for each 3")
 int N, ROWS = 31, COLS = 31, AIRC = 93, HEATS = 372, ENDS = 714, POWER = $B, HENRYS = 1, HOLE = 2, DOWN = 1, RIM = 1, MODE = 1;
 int low;
 int T[NMAX], GAS[NMAX], SOFT[NMAX], FLAT[NMAX], MELT[NMAX], THICK[NMAX], NBN[NMAX];   // FLAT in millionths (slow changes add up)
@@ -63,17 +65,22 @@ void build()
 int open(int g) { int f = (FLAT[GA[g]] + FLAT[GB[g]] + FLAT[GC[g]]) / 149A; return f >= 5BC ? 1 : less(5BC, f) + 1; }   // thousandths
 void henry()                                    // the pull where the Henrys' fans and the open gaps agree
 {
-    int g, area = RIMS * 26;                 // mm2: the open rim, half a gap a missing neighbour (a rough guide)
-    for (g = 1; g <= NG; g++) area = area + 4C * open(g) / 5BC;
+    int g, area = RIMS * 15C2;               // hundredths of a mm2: the open rim, half a gap a missing neighbour (a rough guide)
+    int ph = PLATE * PLATE * 485 / 5BC + 1;              // a plate hole's open area (PLATE in tenths of a mm across: 0.785 x across x across)
+    for (g = 1; g <= NG; g++) {
+        int a1 = 2BB4 * open(g) / 5BC + 1;
+        if (PLATE < 2) area = area + a1;
+        else area = area + a1 * ph / (isqrt(a1 * a1 + ph * ph) + 1);   // the gap, then the plate's hole: two openings one after the other
+    }
     area = area + 1;
     int top = 9146 * POWER / $B, most = 12C14 * HENRYS, lo = 1, hi = top, k;
     for (k = 1; k <= 24; k++) {
         int mid = (lo + hi) / 2;
-        int q = area * isqrt(mid * 9B3 / 5BC) * 6 / $A;
+        int q = area * isqrt(mid * 9B3 / 5BC) * 6 / 5BC;
         int fan = top * less(most, q < most ? q : less(most, 1)) / most;
         if (fan > mid) lo = mid; else hi = mid;
     }
-    PULL = lo; FLOW = area * isqrt(lo * 9B3 / 5BC) * 6 / $A;
+    PULL = lo; FLOW = area * isqrt(lo * 9B3 / 5BC) * 6 / 5BC;
 }
 int airat(int i)                                 // the air the ball sits in, thousandths of a degree from absolute cold
 {
@@ -149,7 +156,8 @@ int main(int argc, char **argv)
     if (argc >= 2) ROWS = pnum(argv[2]); if (argc >= 3) COLS = pnum(argv[3]); if (argc >= 4) AIRC = pnum(argv[4]);
     if (argc >= 5) HEATS = pnum(argv[5]); if (argc >= 6) ENDS = pnum(argv[6]); if (argc >= 7) POWER = pnum(argv[7]);
     if (argc >= 8) HENRYS = pnum(argv[8]); if (argc >= 9) HOLE = pnum(argv[9]); if (argc >= $A) DOWN = pnum(argv[$A]);
-    if (argc >= $B) RIM = pnum(argv[$B]); if (argc >= $C) MODE = pnum(argv[$C]);
+    if (argc >= $B) RIM = pnum(argv[$B]); if (argc >= $C) MODE = pnum(argv[$C]); if (argc >= $D) PLATE = pnum(argv[$D]);
+    if (PLATE >= 2) RIM = 2;                                   // a plate under the balls: the rim walled, the air only through the holes
     if (ROWS * COLS > NMAX || ROWS < 2 || COLS < 2) { say("rows x cols: 2 x 2 up to the most this holds\n"); return 2; }
     chance = world();
     build();
@@ -160,6 +168,7 @@ int main(int argc, char **argv)
         THICK[i] = 581 + stir() % 7A;       // its shell: 0.95 to 1.05 of 0.4 mm (the world's chance)
     }
     say("ping pong field: %d x %d balls (%d), %d gaps, %d open rim places; energy in: air at %d C for %d s, then room air to %d s\n", ROWS, COLS, N, NG, RIMS, AIRC, HEATS, ENDS);
+    if (PLATE >= 2) say("a plate under the balls: a hole %d tenths of a mm across under every gap, the rim walled\n", PLATE);
     say("Henry power %d of B, %d Henrys; hole %d (1 sealed, 2 0.3 mm, 3 1 mm, 4 3 mm), holes %s; rim %s; %s; the world's chance %d\n",
         POWER, HENRYS, HOLE, DOWN == 2 ? "down" : "up", RIM == 2 ? "walled" : "open", MODE == 1 ? "the whole tray in hot air" : "the Skil over the middle", chance);
     for (s = 1; s <= ENDS; s++) { step(s); if (s % 48 < 1 || s == 1) report(s); }

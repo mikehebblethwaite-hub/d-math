@@ -1,0 +1,66 @@
+ping pong field: 31 x 31 balls (961), 14CD gaps, ~ open rim places; energy in: air at 93 C for 372 s, then room air to 714 s
+a plate under the balls: a hole 5 tenths of a mm across under every gap, the rim walled
+Henry power B of B, 1 Henrys; hole 2 (1 sealed, 2 0.3 mm, 3 1 mm, 4 3 mm), holes up; rim walled; the whole tray in hot air; the world's chance 5767DD64
+1 s  warmth 1C5 tenths C  soft ~ of 961  flat ~  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1A48 Pa  air CA2B ml/s  melted ~
+48 s  warmth 714 tenths C  soft 961 of 961  flat D7  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1A48 Pa  air CA2B ml/s  melted ~
+93 s  warmth 714 tenths C  soft 961 of 961  flat 259  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1A48 Pa  air CA2B ml/s  melted ~
+DB s  warmth 714 tenths C  soft 961 of 961  flat 3AC  hex ~ of 871 inner  gaps shut ~ of 14CD  pull 1A48 Pa  air CA2B ml/s  melted ~
+156 s  warmth 714 tenths C  soft 961 of 961  flat 532  hex 161 of 871 inner  gaps shut 4C of 14CD  pull 1A48 Pa  air CA2B ml/s  melted ~
+1A1 s  warmth 714 tenths C  soft 961 of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+219 s  warmth 714 tenths C  soft 961 of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+264 s  warmth 714 tenths C  soft 961 of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+2AC s  warmth 714 tenths C  soft 961 of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+327 s  warmth 714 tenths C  soft 961 of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+372 s  warmth 714 tenths C  soft 961 of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+3BA s  warmth 421 tenths C  soft ~ of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+435 s  warmth 28B tenths C  soft ~ of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+47D s  warmth 1C3 tenths C  soft ~ of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+4C8 s  warmth 174 tenths C  soft ~ of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+543 s  warmth 14B tenths C  soft ~ of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+58B s  warmth 138 tenths C  soft ~ of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+5D6 s  warmth 12D tenths C  soft ~ of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+651 s  warmth 129 tenths C  soft ~ of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+699 s  warmth 127 tenths C  soft ~ of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+714 s  warmth 126 tenths C  soft ~ of 961  flat 59A  hex 663 of 871 inner  gaps shut 14CD of 14CD  pull 1B5B Pa  air C68A ml/s  melted ~
+the field from above (# hex, o half way, . still round, ~ melted):
+o o # # o # # o # # o # # o # # o # # # # # # o o # o # o # # # o # # # # # # o 
+ o # # o # # # # # o o # # # # o # # # o # # # # # # o # # # o # o # # o # # o # 
+# # # # # # o # # # # # o # # # # o # # o # # o # # # o # # o # # # o # # # o o 
+ o # o # o # o # # o # # o # # o # # # o # # o # # # # # # o o # # # # o # o # # 
+o # # # # # o # # # # # # # # # # # # o o # # o o # # o o # # # o # # # # o # o 
+ # # o # # # # o # # # # # o # # # # # # # # # # # # # # # # # # o # o # # o # # 
+# # # # o o # # # # # # o # # # o o # # # # o # # o # o # o # # o # # # # # # # 
+ # # o # # # # # # # # # # # # # # # # # # # # o # # # # # # # o # # o # # o # # 
+o o # o # # # # # # o # # # o # # # # o # o # # o # # o # o # # o # # # # # # o 
+ o # o # # # # # # o # # # # o # # o # # # # o o # # # o # # # # # # # o o # # # 
+# # # # o o # o # # # o # o # # # # # # # # # # o # o # o o # o # o # # o # # # 
+ # # o # # # o # # o # # # # # o # # o # # # # # # # o # # # # # # # # o # # # # 
+# # # # # # # # o # o # # # # # # # o o # # # o # # # o # o # # # o o # # o # # 
+ o # # # # o # # # # # # o # # # # # # # # # # # # # o # # # # # o o # # # o # # 
+# o o # # # o # # # # # # # # o o # # o # o # # # # # o # o # o # o # # # o # o 
+ # # # # # # # o o o # o o # # # # # # # # # o # o # # # # # # # # o # o o # # # 
+o o # # o # # # # o # # o # # # # # o # # # # # # o # o o # o # # o # # o o o o 
+ # # # # # # # # # # # o # # o # # o # # o o o # # # # # # # # # # # # o # # # # 
+# # o # o # o # o # # # # o # o # # o # # # o o # o # # o # # o # o # # # # # # 
+ o o # # # # # # o # # o # # # o # # # # # # # # # # # # # # o # o # # # # # o o 
+# # # o o # o # # o # # o # # o # # # o # # # o # # o o # # # # # # # o o # # # 
+ # # # # # # # # # # # o # o # # # # o # # o # # # o # # # # o # # # # # # # # # 
+# o # o # # o # o # # # # # # # o # # # # # # o # o # o # # # # o # # # # o # o 
+ o # # # # # # # # # # o o o # # # # o # o o # # # # # # # o # # # # # # o # # # 
+# o # o o o # o # # # # # # o # # # o # # # o # o # o o # # # # o # o # # o # # 
+ # # # # # # # o # # o o # # # # # o # # # o # # o # # # # # o o # # o # # # # o 
+# o o # # # o # # # # # # o # o # # # # # # o o # # # # # # # # # # # o # o # # 
+ # o # # # # o # # o # # # # # # # # # o # # o # # o # o # o # o # # o # # # # o 
+# # # # o # o # # # o o # o o # # o # # # # # o # # # # # # o # # # # # # # # # 
+ o # o # # # # # o # # # # # # # # # # # # o o # # o # # # o # # # o # # # # # o 
+# o # # # # # # # # # # # # o # # o # # # # # # # # o # o # # # # # o # # o # # 
+ # o # # # # o # # o o # o # o # # # # # o # # # o # # # # # o # o o # # # # # o 
+# # # # o # # o o # # o # # o # o # # # # # o # # # # # o # # # # # # # # # # # 
+ # # # o o # # # # # o o # o # # # # # # o # # o o # # o # # o # # o o # # o # # 
+# o # # # # o o o # # # # # # # # # # # # o # # # # # # # # o # # # o # # # # # 
+ o # # # # o # # # # # o # o o o # # # o # o # # # # o # # # # # # # # o # # # # 
+# o # # # # # o # # # # # # # # # # # # # # # o # # # # o o # # # o # # # o # # 
+ o # # o o # # # # # # # o o # # # # # # # # o # o # # o # # # o # # # # o # o # 
+# # # # # o o # # # # # # # o # # # o # # # # # # # # # o # # # # # # # # # o o 
+ o # # o # o # o # o # o # o # o # o # # # o # o # o # o # # # o # o # # o # o # 
+the air's book balances: in the balls D49C181 + moved out 352A974 = at the start D4B11D5 + moved in 351891D (micrograms)
