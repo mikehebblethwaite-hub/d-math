@@ -1,0 +1,32 @@
+  at BAB ms: wick top 127B68 mK, wick holds C349BA483 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning ~, molten pool ~ mm
+    the wick's foot (left, under, right): A357D A357D A357D mK, melted ~ ~ ~; the wick's bottom A357D mK
+  at 1A89 ms: wick top 18A95A mK, wick holds C349BA483 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning ~, molten pool ~ mm
+    the wick's foot (left, under, right): A357D A357D A357D mK, melted ~ ~ ~; the wick's bottom A357D mK
+  at 2967 ms: wick top 196D83 mK, wick holds AC96A2919 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 1BB694, molten pool ~ mm
+    the wick's foot (left, under, right): AC199 ABD4B AC1CB mK, melted ~ ~ ~; the wick's bottom ADCD4 mK
+  at 3845 ms: wick top 196CA9 mK, wick holds 95A722D57 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 222C24, molten pool ~ mm
+    the wick's foot (left, under, right): B411B B3DDB B411C mK, melted ~ ~ ~; the wick's bottom B4119 mK
+  at 4723 ms: wick top 19717A mK, wick holds 7ACBDA364 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 264347, molten pool ~ mm
+    the wick's foot (left, under, right): B4122 B4119 B4119 mK, melted ~ ~ ~; the wick's bottom B4119 mK
+  the match taken away at 4724 ms (the wick caught at ~ ms)
+  at 55D1 ms: wick top 196C75 mK, wick holds 7A51DA6CC units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 245D6B, molten pool ~ mm
+    the wick's foot (left, under, right): B411B B4121 B411B mK, melted ~ ~ ~; the wick's bottom B4119 mK
+  at 64AC ms: wick top 196A19 mK, wick holds 7927DADD2 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 1C7188, molten pool ~ mm
+    the wick's foot (left, under, right): B411D B411A B411D mK, melted ~ ~ ~; the wick's bottom B4119 mK
+  at 738A ms: wick top 196D52 mK, wick holds 773D3113A units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 16A7C7, molten pool ~ mm
+    the wick's foot (left, under, right): B411B B4119 B411B mK, melted ~ ~ ~; the wick's bottom BC284 mK
+  at 8268 ms: wick top 196964 mK, wick holds 74BC32243 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning CC574, molten pool ~ mm
+    the wick's foot (left, under, right): B4123 B411B B4123 mK, melted ~ ~ ~; the wick's bottom C9C76 mK
+  at 9146 ms: wick top 197156 mK, wick holds 18A9DDDA43 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 149528, molten pool 3 mm
+    the wick's foot (left, under, right): B5134 B9B99 B5179 mK, melted 1 1 1; the wick's bottom D4C97 mK
+  at 9D24 ms: wick top 196C54 mK, wick holds 1B696A7936 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 154991, molten pool B mm
+    the wick's foot (left, under, right): BC132 C4847 BC167 mK, melted 1 1 1; the wick's bottom 111C71 mK
+  at ABD2 ms: wick top 197158 mK, wick holds 1B696A7936 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 157861, molten pool 14 mm
+    the wick's foot (left, under, right): C5495 CBBCA C54C4 mK, melted 1 1 1; the wick's bottom 11C368 mK
+  at BAAD ms: wick top 196B7C mK, wick holds 1B696A7936 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 1B94CB, molten pool 1A mm
+    the wick's foot (left, under, right): CB9CA D6B71 CBA25 mK, melted 1 1 1; the wick's bottom 129B53 mK
+  at C98B ms: wick top 196B4D mK, wick holds 1B696A7936 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 22D243, molten pool 21 mm
+    the wick's foot (left, under, right): D4DB6 DD942 D4DB4 mK, melted 1 1 1; the wick's bottom 13728D mK
+  at D869 ms: wick top 196BD1 mK, wick holds 1B696A7936 units of wax (a unit: a thousandth of a millionth of a millionth of a kg), burning 25B355, molten pool 23 mm
+    the wick's foot (left, under, right): DA69A 116227 DA37C mK, melted 1 1 1; the wick's bottom 1446D5 mK
+candle2 WITH gravity, wax paraffin (low melt, container) (melts at B4119 mK): after 3 minutes the molten pool is 23 mm across; burning in the last 5 s 4A739C683; still burning: yes

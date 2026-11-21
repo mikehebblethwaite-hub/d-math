@@ -274,3 +274,13 @@ answers written first (sky 10, the measured normal gravity). Equator 9.7800 (9.7
 9.8317 (9.8322): MATCH, within 0.005%. On the way I slipped three times (two sums a thousand out, the Earth's mass factor in
 the wrong units), all caught before the result by checking the sums by hand and by the run's own numbers. Mike then sent a
 picture of the gravity potato (the satellites' map of the Earth's lumps): the next layer, now the magic in its place.
+
+**31.** Correction to 2B: the cause I gave there ("the wick loses heat down itself faster than the flame gives it") was not
+the cause. candle2 was built on two thousand-fold unit errors of mine (air's heat per cell, the heat over boiling; FAILS
+14:41), and on a match that first gave endless heat, then all its heat into the wick, then none. Fixed: the air's and the
+wick's heat in true units; the match a hot gas held as a hand holds it, until the wick catches. Then, WITH gravity: the wick
+caught at about 6 s and sat at wax's boiling heat (643 K, where a real wick's tip sits); the flame's light melted the wax at
+its foot by 20 s; the wick drank and filled; the pool spread to the whole 29 mm top by 30 s and the flame grew steady. Known
+answer 2a: MATCH. It burns about 5 times too strongly (41 W a mm of slice against a real candle's about 8), so the pool melts
+in seconds where a real one takes minutes: written down as 2e, the next to chase. Mike's drowning wick (2d) waits for the
+pool to lie as a real liquid level.
