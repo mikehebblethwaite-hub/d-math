@@ -182,3 +182,13 @@ his cold rigs never made hex, even with his hands on them). Paragraph 13's singl
 AGAINST his bench and should have been checked against it before being called a finding. The repeat (24) agrees with his
 bench: cold shaken balls mostly do not pack hex. The one shaken cold run in five that did is where the lab disagrees with the
 real world; that is the thing to explain. Lesson: check every lab "finding" against the real checks already on record first.
+
+**26.** Family media (private; no files leave the coops). Mike: "I want to be able to say things like move all ... other peoples
+owned media than mine to another folder and keep all family stuff in a folder called family". Gemma (gemma-chuck, local, via
+Perch) had described all 3,464 photos and 341 of 342 videos on 16 Nov. Sorted by EVIDENCE, not by an AI's say: the media's own
+camera/device data, file-name patterns (WhatsApp, Facebook-saved, phone cameras; news, stock, YouTube downloads), and Mike's
+own words (22+ photos named by him: who is in them). No-camera pictures were NOT called other people's on a guess: two of
+them were his sons with Joe Johnson and his son Anthony. Photos: family 2,817, screenshots 324, friends 1, his work 1, other
+people's 5, unsorted 316; videos: family 312, other people's 10, unsorted 19. Moved, never deleted; sha256 before and after;
+logged and undoable. Then a search page (wildcards, all fields) and right-click (move, name, delete-to-bin) through a guarded
+door and a worker with its own user. Mike's product idea from it: wildcard search of the "i" data.
