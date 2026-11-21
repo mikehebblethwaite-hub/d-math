@@ -1,0 +1,217 @@
+// The raft in moving air, side on, with smoke (21 Nov 2026, Mike: "if hexed the flow can no longer go through, it will eddy up
+// and off that set ... it does not go to zero, it then reflects away ... lets just smoke, observe where, what it does").
+// A slice through Mike's rig: air above, open to the room; the holed plate; a raft of balls resting on it in the middle; the
+// Henry pulling from a chamber under the plate. The air is the wind tunnel's (examples/windtunnel.delta): every hex cell holds
+// air at rest and air going each of the six ways, never nothing; each step the air going one way moves to the neighbour that
+// way, then settles a little toward the balance its own air and movement call for; air that meets a solid turns straight
+// back. Nothing about an eddy is written in. Smoke is let in along a line above the raft and is carried by the air: the
+// share of a cell's smoke going each way is the share of its air going that way. The books: the air (in at the top, out at
+// the Henry) and the smoke (let in, still here, gone) are checked every step.
+// Honest: the slice shows the SHAPE of the flow (where it goes, where it curls), in lattice steps, not its real speeds; the
+// balls are drawn as their side-on circles (40 mm = CELLB cells); the Henry's pull is a small drop of the chamber's air.
+//
+//   delta run lang/lab/runs/rafttunnel.delta [sealed|round] [STEPS]  > out.txt      frames in raft-frames/ (pictures)
+#define GW 125
+#define GH 93
+#define N $ABD2
+#define RHO 12DA68                  // the air in a still cell (the room)
+#define SUCKR 1276DC                // the Henry's chamber: the air 3 hundredths thinner (lower pressure)
+#define CELLB 11                    // a ball across, in cells
+#define PLY 79                     // the plate's row (rows count down from the top)
+#define PW 24A
+#define PH 156
+int f[5B612], g[5B612];       // the air going each way (1 east, 2 up-east, 3 up-west, 4 west, 5 down-west, 6 down-east, 7 still)
+int nbt[4D6DD];
+int solid[N];                           // 1 a wall or the plate, 2 a ball
+int smoke[N], sm2[N];                   // smoke in each cell
+int low, sealed, steps, nballs;
+int MM[4], MS[4], RH, U2;
+int fanned, gone, smokein, smokegone, holesunder, holesbare;
+int qunder, qbare;                      // air going down through the holes under the raft, and through the bare holes, this step
+char pic[$A671C];
+int pn;
+int isqrtd(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+int at(int x, int y) { return less(y, 1) * GW + x; }
+int F(int d, int c) { return less(d, 1) * N + c; }
+int opp(int d) { return d <= 3 ? d + 3 : less(d, 3); }
+int nbway(int x, int y, int d)
+{
+    int nx = x, ny = y;
+    if (d == 1) nx = x + 1;
+    if (d == 4) { if (x < 2) return low; nx = less(x, 1); }
+    if (d == 2 || d == 3) { if (y < 2) return low; ny = less(y, 1); int ul = ny % 2 ? less(x, 1) : x; nx = d == 3 ? ul : ul + 1; }
+    if (d == 5 || d == 6) { ny = y + 1; int dl = y % 2 ? x : less(x, 1); nx = d == 5 ? dl : dl + 1; }
+    if (nx < 1 || nx > GW || ny < 1 || ny > GH) return low;
+    return at(nx, ny);
+}
+int place2(int x, int y) { return y % 2 ? less(x * 2, 1) : x * 2; }   // across in half cells
+int ishole(int x) { return x % 8 == 4; }                               // a hole in the plate every 8 cells (one under each gap)
+int raftleft() { return less(GW / 2, nballs * CELLB / 2); }
+int raftright() { return GW / 2 + nballs * CELLB / 2; }
+int inball(int x, int y)                // in a ball (side on: circles sitting on the plate), or in the sealed raft between them
+{
+    if (x < raftleft() || x > raftright() || y >= PLY) return low;
+    int k = less(x, raftleft()) / CELLB, cx = raftleft() * 2 + k * CELLB * 2 + CELLB, cy = less(PLY, CELLB / 2);
+    int ax = apart(place2(x, y), cx), ay = apart(y, cy) * 2;           // half cells across, rows doubled (hex rows are 0.866)
+    if (ax * ax + ay * ay * 3 / 4 <= CELLB * CELLB) return 1;
+    if (sealed && y >= less(PLY, CELLB) && y < PLY) return 1;          // sealed: the flattened walls fill the gaps down to the plate
+    return low;
+}
+void push(int c)
+{
+    int d;
+    RH = low; for (d = 1; d <= 7; d++) RH = RH + f[F(d, c)];
+    for (d = 1; d <= 3; d++) {
+        int a = (d % 6) + 1, b = ((d + 4) % 6) + 1;
+        int pa = 2 * f[F(d, c)] + f[F(a, c)] + f[F(b, c)];
+        int na = 2 * f[F(opp(d), c)] + f[F(opp(a), c)] + f[F(opp(b), c)];
+        if (pa >= na) { MM[d] = less(pa, na); MS[d] = 1; } else { MM[d] = less(na, pa); MS[d] = 2; }
+    }
+    U2 = (MM[1] * MM[1] + MM[2] * MM[2] + MM[3] * MM[3]) / 6;
+}
+int balance(int d)
+{
+    int k = d <= 3 ? d : less(d, 3), with = d <= 3 ? MS[k] == 1 : MS[k] == 2;
+    int m = MM[k];
+    int up = RH + 2 * m * m / RH, down = 2 * U2 / RH;
+    if (with) up = up + 2 * m; else down = down + 2 * m;
+    if (down >= up) return 1;
+    return less(up, down) / $C;
+}
+void settle(int c)
+{
+    if (solid[c]) return;
+    push(c);
+    int d, moving = low;
+    for (d = 1; d <= 6; d++) {
+        int e = balance(d), now = f[F(d, c)], nw;
+        if (now >= e) { int over = less(now, e) * 9 / $B; nw = e > over ? less(e, over) : 1; }
+        else nw = e + less(e, now) * 9 / $B;
+        f[F(d, c)] = nw; moving = moving + nw;
+    }
+    f[F(7, c)] = less(RH, moving);
+}
+void still(int c, int rho)              // a cell set to still air of this much (the room at the top, the Henry's chamber at the bottom)
+{
+    int d, before = low; for (d = 1; d <= 7; d++) before = before + f[F(d, c)];
+    MM[1] = low; MM[2] = low; MM[3] = low; MS[1] = 1; MS[2] = 1; MS[3] = 1; RH = rho; U2 = low;
+    int moving = low; for (d = 1; d <= 6; d++) { f[F(d, c)] = balance(d); moving = moving + f[F(d, c)]; }
+    f[F(7, c)] = less(rho, moving);
+    if (rho >= before) fanned = fanned + less(rho, before); else gone = gone + less(before, rho);
+}
+void stream()
+{
+    int c, d, x, y;
+    for (c = 1; c <= N * 7; c++) g[c] = f[c];
+    // the smoke rides the air's NET movement (fixed 21 Nov: moving it with every share spread it like fog): the cell's push along
+    // ways 1, 2, 3 over its air is how far it moves along each that step (a share of a cell), toward the way the push points
+    for (c = 1; c <= N; c++) sm2[c] = low;
+    for (c = 1; c <= N; c++) if (solid[c] < 1 && smoke[c] >= 1) {
+        push(c);
+        int left = smoke[c], k;
+        for (k = 1; k <= 3; k++) {
+            int share = MM[k] * 5BC / (RH * 2 + 1);   // thousandths of a cell moved along way k (halves kept whole: /2)
+            if (share > 1A1) share = 1A1;
+            int sh = smoke[c] * share / 5BC;
+            if (sh < 1) continue;
+            int way = MS[k] == 1 ? k : k + 3, dest = nbt[F(way, c)];
+            left = less(left, sh);
+            if (dest < 1) smokegone = smokegone + sh; else if (solid[dest]) sm2[c] = sm2[c] + sh; else sm2[dest] = sm2[dest] + sh;
+        }
+        sm2[c] = sm2[c] + left;
+    }
+    for (c = 1; c <= N; c++) smoke[c] = sm2[c];
+    for (c = 1; c <= N; c++) if (solid[c] < 1) for (d = 1; d <= 6; d++) {
+        int src = nbt[F(opp(d), c)];
+        if (nbt[F(d, c)] < 1) gone = gone + g[F(d, c)];
+        if (src < 1) fanned = fanned + f[F(d, c)];
+        else if (solid[src] < 1) f[F(d, c)] = g[F(d, src)];
+        else f[F(d, c)] = g[F(opp(d), c)];          // into a solid: turned straight back
+    }
+    // the air going down through the plate's holes this step: under the raft, and bare
+    qunder = low; qbare = low;
+    for (x = 1; x <= GW; x++) if (ishole(x)) {
+        c = at(x, PLY + 1);                          // just under the plate
+        int dn = f[F(5, c)] + f[F(6, c)], up = f[F(2, c)] + f[F(3, c)];
+        int down = dn > up ? less(dn, up) : low;     // the NET air going down (still air holds air going every way)
+        if (x >= raftleft() && x <= raftright()) qunder = qunder + down; else qbare = qbare + down;
+    }
+}
+void edges()                            // the top is the room (still air at the room's), the bottom the Henry's chamber
+{
+    int x;
+    for (x = 2; x < GW; x++) { still(at(x, 1), RHO); still(at(x, GH), SUCKR); }
+}
+void put(int ch) { pn++; pic[pn] = ch; }
+void putdec(int n) { if (n >= $A) putdec(n / $A); put('0' + n % $A); }
+void frame(int n)
+{
+    char name[31];
+    char *base = "raft-frames/f";
+    int k = 1, dd = 5BC, px, py;
+    while (base[k] >= 1) { name[k] = base[k]; k++; }
+    while (dd >= 1) { name[k] = '0' + n / dd % $A; k++; dd = dd / $A; }
+    name[k] = '.'; name[k + 1] = 'p'; name[k + 2] = 'p'; name[k + 3] = 'm'; name[k + 4] = low;
+    pn = low;
+    put('P'); put('6'); put('\n'); putdec(PW); put(' '); putdec(PH); put('\n'); putdec(168); put('\n');
+    for (py = 1; py <= PH; py++) for (px = 1; px <= PW; px++) {
+        int y = less(py, 1) * GH / PH + 1;
+        int x = higher(1, lower(GW, (less(px, 1) * GW * 2 / PW + (y % 2 ? 1 : 2)) / 2));
+        int c = at(x, y);
+        if (solid[c] == 2) { put(151); put($B7); put(48); continue; }   // the balls, orange
+        if (solid[c] == 1) { put(93); put(95); put(9B); continue; }  // the plate and walls, grey
+        int sv = smoke[c] >= 1 ? isqrtd(smoke[c]) * 3 : low; if (sv > 144) sv = 144;   // root scale: thin smoke shows, thick stays white
+        put(17 + sv); put(19 + sv); put(24 + sv);                     // smoke white on dark air
+    }
+    int fd = linux(2, name, 355, 264);
+    if (fd < 1) { say("cannot write %s\n", name); return; }
+    int done = 1;
+    while (done <= pn) { int got = linux(1, fd, &pic[done], less(pn + 1, done)); if (got < 1) return; done = done + got; }
+    linux(3, fd);
+}
+int dnumeral(char *a)
+{
+    int k = 1, v = low;
+    while (a[k] >= 1) { int ch = a[k], d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + $A : low; if (d < 1) return v; v = v * $D + d; k++; }
+    return v;
+}
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    sealed = 1; steps = 2967; nballs = 7;
+    if (argc >= 2) { char *a = argv[2]; if (a[1] == 'r') sealed = low; }
+    if (argc >= 3) steps = higher(79, dnumeral(argv[3]));
+    int x, y, c, d;
+    for (y = 1; y <= GH; y++) for (x = 1; x <= GW; x++) {
+        c = at(x, y);
+        int wall = x == 1 || x == GW || (y == PLY && ishole(x) < 1);
+        solid[c] = wall ? 1 : inball(x, y) ? 2 : low;
+        for (d = 1; d <= 6; d++) nbt[F(d, c)] = nbway(x, y, d);
+        if (solid[c]) { for (d = 1; d <= 7; d++) f[F(d, c)] = low; } else still(c, y > PLY ? SUCKR : RHO);
+        smoke[c] = low;
+    }
+    fanned = low; gone = low;
+    for (x = 1; x <= GW; x++) if (ishole(x)) { if (x >= raftleft() && x <= raftright()) holesunder++; else holesbare++; }
+    int total = low; for (c = 1; c <= N * 7; c++) total = total + f[c];
+    linux(65, "raft-frames", 2BC);
+    say("the raft in moving air, side on: %s, %d balls on a holed plate (%d holes under the raft, %d bare), the Henry below\n",
+        sealed ? "SEALED (walls flattened, the gaps shut)" : "ROUND (the gaps open)", nballs, holesunder, holesbare);
+    int s, fr = low, bad = low, under = low, bare = low;
+    for (s = 1; s <= steps; s++) {
+        for (c = 1; c <= N; c++) settle(c);
+        stream();
+        edges();
+        // smoke let in: a line across above the raft, a little each step
+        for (x = less(GW / 2, 48); x <= GW / 2 + 48; x++) { c = at(x, 24); if (solid[c] < 1) { smoke[c] = smoke[c] + 125; smokein = smokein + 125; } }
+        int t = low; for (c = 1; c <= N * 7; c++) t = t + f[c];
+        if (t + gone != total + fanned && bad < 1) { bad = s; say("the air book is out at step %d\n", s); }
+        if (s > steps / 2) { under = under + qunder; bare = bare + qbare; }
+        if (s % 31 < 1) { fr++; frame(fr); }
+    }
+    int held = low; for (c = 1; c <= N; c++) held = held + smoke[c];
+    say("after %d steps: air down the holes under the raft %d, through the bare holes %d (the second half, summed)\n", steps, under + 1, bare + 1);
+    say("the smoke's book: let in %d = still here %d + gone %d%s\n", smokein, held, smokegone, held + smokegone == smokein ? " (balanced)" : " (OUT)");
+    if (bad < 1) say("the air book balanced every step\n");
+    say("frames: raft-frames/ (%d pictures: smoke white, balls orange, the plate grey)\n", fr);
+    return 1;
+}

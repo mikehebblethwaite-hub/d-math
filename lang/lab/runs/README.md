@@ -60,3 +60,11 @@ Skil over the middle warms only the few balls under it (mean 28 C). The cone as 
 three"; 18th-19th: 10 mm apart, 0.5 mm across, tray 150 mm): the suction stays ~14 kPa and, at 120 C, ALL walls go fully flat
 by ~100 s, none melting; but the balls were scattered and jammed (one with six neighbours), so they flatten against
 whichever neighbours they touch: flat-faced clumps, not a raft. A raft needs them packed hex before they soften.
+
+## THE RAFT (21 Nov 2026, ~08:31): hand-set hex patch on the holed cone plate, 120 C
+pingfunnel 23rd input 2 (set by hand in hex, a hair's unevenness by the world's chance), the holed plate (10 mm, 0.5 mm),
+2 degrees, grip 0.3, the Henry, the lock fixed (suction x the gap's open area). At 120 C every wall goes fully flat, none melt:
+170 mm tray (the patch fills it) 38 balls by ~110 s; 250 mm tray 64 balls by ~240 s (bare plate leaks the suction: size the
+tray to the patch). The map: a whole hex raft. Scattered balls (sung or not) only flatten into clumps (they jam first);
+the sung plate (MAGIC pattern) pulled a few more into place (3 six-touching vs 1).
+Bench recipe from the lab: set balls by hand in hex on a fine-holed plate, Henry pulling, ~120 C, two to four minutes.
