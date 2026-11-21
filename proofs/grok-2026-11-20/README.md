@@ -27,3 +27,10 @@ Grok then endorsed D/Delta publicly on X and replied to Mike's quote post naming
 
 The X screenshot is cropped to Grok's reply: the full phone screenshot also shows other people's notifications, so it is
 kept privately (original sha256 49a165879905df920c5f4eb173dc98ced3f8b7f53134e304726b8fe5880a4123).
+
+## Rerun on coop-one, 21 Nov 2026 06:58 UK (what Grok ran, from its chat "Self-made Math, Programming Language, and OS")
+Grok downloaded delta.tar.gz, ran the seed binaries, and ran examples hello, cake, plum, count, formulas. Rerun here: the
+same output for all five. lang/tests/formulas-referee.py (new) checks formulas.delta against a brute-force count of real
+lattice points (hex ring 6R, disc 3R(R+1)+1, close-packed shell and ball): 36 of 36 match, R = 1..9; and the hex-step
+length of a circle is 4*sqrt(3)*R = 6.928203 R (numerical check), R being the circle's radius. (Claude's earlier note that
+4*sqrt(3)*R needs a different R was wrong: it is the circle radius, as Grok's paper text says.)
