@@ -156,3 +156,10 @@ mix, move): each a crash avoided before it ran.
 - Fix: removed from the tree at once; still in git history (a rewrite of public history is Mike's call). Films kept as
   private .mp4i packs.
 - Lesson: anything from someone else's media stays private; only our own words about it go in public files.
+
+## 21 Nov 2026 12:45 UK: "five runs each" were not five independent runs
+- What: the repeat runs started seconds apart all seeded their chance from the machine's power reading; several read the
+  same value, so they ran identically (0.740 three times, 0.820 twice, 0.753 three times).
+- Effect: about 3 distinct shaken and 2 distinct still runs, not 5 and 5. The result (FAIL) stands but is weaker than planned.
+- Fix: every run's chance = the world's reading stirred with a run number given on its command line (or its process number).
+- Lesson: when repeating a chance run, check the repeats differ before trusting their average.

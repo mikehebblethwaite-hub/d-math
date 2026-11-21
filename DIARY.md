@@ -169,3 +169,10 @@ in (NOT A TEST). Run: lang/lab/runs/crust.delta (Doomsday Book 448603f0-b8ef-45b
 trench, where one plate slides under another (the Mariana trench is the deep's own 11 km bottom). Its four known answers
 (trench, volcano line, deepening earthquakes, heat flow low at the trench and high under the volcanoes) written in TRACK.md
 before any run.
+
+**24.** Correction of 13. The repeat of "a hand on the rig" (5 shaken, 5 still, cold; pass mark stamped first) FAILED:
+shaken mean 0.762 (11.6 balls six round one), still 0.780 (13.8). One shaken run in five packed hex (0.931); part 2's single
+run (0.914) was such a lucky one. So shaking does NOT reliably pack scattered balls hex in the lab; paragraph 13's finding is
+withdrawn. A fault was found too: runs started seconds apart took the same chance from the machine's power reading, so
+several repeats ran identically (FAILS.md); about 3 distinct shaken and 2 distinct still. The fail stands; the test was
+weaker than planned. (proofs/blind-wall-2026-11-21/RESULT-shake-repeat.md)

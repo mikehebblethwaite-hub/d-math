@@ -1,0 +1,353 @@
+ping pong funnel: 7A balls on a cone tray at 17 tenths of a degree, 1A3 mm to the rim, a 24 mm hole; Henry on, power B of B; the world's chance 175DB9CB8
+the flow lock on; the hole ~ mm off the cone's low point
+the cone is a holed plate: holes A mm apart, 5 tenths of a mm across, under the whole tray (no single hole)
+each ball: 562 microNewtons down the slope, 62 held back by rolling on the tray; grip ball on ball 1A1 thousandths; shaken 1 thousandths of g at 17 a second
+1 s  rolling 7A of 7A  fastest 1A1 mm/s  hex (six touching) ~  middle to ball, mean C2 mm  Henry A877 ml/s pull 2C52 Pa  hole open
+ORDER now: balls with 2+ neighbours 66, mean psi6 34B thousandths, psi6 >= 0.9: 11, exactly six neighbours: ~ (of 7A)
+2 s  rolling 26 of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean C1 mm  Henry A8D3 ml/s pull 2C52 Pa  hole open
+3 s  rolling A of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean BD mm  Henry A95D ml/s pull 2C52 Pa  hole open
+4 s  rolling A of 7A  fastest 2 mm/s  hex (six touching) ~  middle to ball, mean BC mm  Henry A975 ml/s pull 2C52 Pa  hole open
+5 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean BC mm  Henry A9A3 ml/s pull 2C52 Pa  hole open
+6 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean BB mm  Henry A9AC ml/s pull 2C52 Pa  hole open
+7 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean BB mm  Henry A9AC ml/s pull 2C52 Pa  hole open
+8 s  rolling 41 of 7A  fastest 25 mm/s  hex (six touching) ~  middle to ball, mean BB mm  Henry A9C5 ml/s pull 2C4B Pa  hole open
+9 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean BB mm  Henry A9DB ml/s pull 2C3D Pa  hole open
+A s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean BB mm  Henry A9DB ml/s pull 2C3D Pa  hole open
+B s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean BB mm  Henry A9DB ml/s pull 2C3D Pa  hole open
+C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry A9DB ml/s pull 2C3D Pa  hole open
+D s  rolling 11 of 7A  fastest 8 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry A9DB ml/s pull 2C3D Pa  hole open
+11 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry AA17 ml/s pull 2C38 Pa  hole open
+12 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry AA23 ml/s pull 2C33 Pa  hole open
+13 s  rolling 69 of 7A  fastest 7 mm/s  hex (six touching) ~  middle to ball, mean BA mm  Henry AA23 ml/s pull 2C33 Pa  hole open
+14 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA45 ml/s pull 2C1D Pa  hole open
+15 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA45 ml/s pull 2C1D Pa  hole open
+16 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA45 ml/s pull 2C1D Pa  hole open
+17 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA45 ml/s pull 2C1D Pa  hole open
+18 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+19 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+1A s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+1B s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+1C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+1D s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA5A ml/s pull 2C13 Pa  hole open
+21 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+22 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+23 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+24 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+ORDER now: balls with 2+ neighbours 77, mean psi6 3B3 thousandths, psi6 >= 0.9: 1B, exactly six neighbours: ~ (of 7A)
+25 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B9 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+26 s  rolling 53 of 7A  fastest 9 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AA73 ml/s pull 2BD5 Pa  hole open
+27 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+28 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+29 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+2A s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+2B s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+2C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+2D s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+31 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+32 s  rolling 38 of 7A  fastest 3 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAA1 ml/s pull 2BBA Pa  hole open
+33 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+34 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+35 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+36 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+37 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+38 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+39 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+3A s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+3B s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+3C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAB7 ml/s pull 2BAC Pa  hole open
+3D s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAC3 ml/s pull 2BA7 Pa  hole open
+41 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+42 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+43 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+44 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+45 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+46 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+47 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+48 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+ORDER now: balls with 2+ neighbours 79, mean psi6 3B4 thousandths, psi6 >= 0.9: 24, exactly six neighbours: ~ (of 7A)
+49 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+4A s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+4B s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B8 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+4C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+4D s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+51 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+52 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+53 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+54 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+55 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+56 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+57 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+58 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+59 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+5A s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+5B s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AAD8 ml/s pull 2B99 Pa  hole open
+5C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+5D s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+61 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+62 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+63 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+64 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+65 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+66 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+67 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+68 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+69 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+6A s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+6B s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+6C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+ORDER now: balls with 2+ neighbours 79, mean psi6 3C1 thousandths, psi6 >= 0.9: 27, exactly six neighbours: ~ (of 7A)
+6D s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+71 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+72 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+73 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+74 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+75 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+76 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+77 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+78 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+79 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) ~  middle to ball, mean B7 mm  Henry AB15 ml/s pull 2B94 Pa  hole open
+7A s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+7B s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+7C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+7D s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+81 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+82 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+83 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+84 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+85 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+86 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+87 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+88 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+89 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+8A s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+8B s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+8C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+8D s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+91 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+92 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+93 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+ORDER now: balls with 2+ neighbours 79, mean psi6 3C5 thousandths, psi6 >= 0.9: 28, exactly six neighbours: 1 (of 7A)
+94 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+95 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+96 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+97 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+98 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+99 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+9A s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+9B s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+9C s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+9D s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+A1 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+A2 s  rolling 7 of 7A  fastest 3 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry AB21 ml/s pull 2B8C Pa  hole open
+A3 s  rolling 2 of 7A  fastest 2 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+A4 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 1  middle to ball, mean B7 mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+A5 s  rolling C of 7A  fastest 3 mm/s  hex (six touching) 2  middle to ball, mean B7 mm  Henry A9AC ml/s pull 2B88 Pa  hole open
+A6 s  rolling 1 of 7A  fastest 2 mm/s  hex (six touching) 2  middle to ball, mean B7 mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+A7 s  rolling 12 of 7A  fastest 7 mm/s  hex (six touching) 2  middle to ball, mean B7 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+A8 s  rolling 16 of 7A  fastest 8 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+A9 s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+AA s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+AB s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+AC s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+AD s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+B1 s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+B2 s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+B3 s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+B4 s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+B5 s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+B6 s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+B7 s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+ORDER now: balls with 2+ neighbours 79, mean psi6 3D5 thousandths, psi6 >= 0.9: 29, exactly six neighbours: 2 (of 7A)
+B8 s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+B9 s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+BA s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+BB s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+BC s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+BD s  rolling 16 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+C1 s  rolling 36 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+C2 s  rolling 15 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+C3 s  rolling 15 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+C4 s  rolling 15 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+C5 s  rolling 15 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+C6 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+C7 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+C8 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+C9 s  rolling 16 of 7A  fastest 2 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9C5 ml/s pull 2B88 Pa  hole open
+CA s  rolling 68 of 7A  fastest 9 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9D1 ml/s pull 2B88 Pa  hole open
+CB s  rolling 34 of 7A  fastest 13 mm/s  hex (six touching) 2  middle to ball, mean B6 mm  Henry A9DA ml/s pull 2B88 Pa  hole open
+CC s  rolling 27 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+CD s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+D1 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+D2 s  rolling 27 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+D3 s  rolling 27 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA2C ml/s pull 2B88 Pa  hole open
+D4 s  rolling 27 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+D5 s  rolling 27 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+D6 s  rolling 28 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+D7 s  rolling 27 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+D8 s  rolling 29 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+D9 s  rolling 29 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+DA s  rolling 2A of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+DB s  rolling 29 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+ORDER now: balls with 2+ neighbours 79, mean psi6 448 thousandths, psi6 >= 0.9: 27, exactly six neighbours: 3 (of 7A)
+DC s  rolling 29 of 7A  fastest A mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+DD s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+111 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+112 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+113 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+114 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+115 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+116 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+117 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+118 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+119 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+11A s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+11B s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+11C s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+11D s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+121 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+122 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+123 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+124 s  rolling 26 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+125 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+126 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+127 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+128 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+129 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+12A s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA38 ml/s pull 2B88 Pa  hole open
+12B s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+12C s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+12D s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+131 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+132 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+ORDER now: balls with 2+ neighbours 79, mean psi6 458 thousandths, psi6 >= 0.9: 29, exactly six neighbours: 3 (of 7A)
+133 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+134 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+135 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+136 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+137 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+138 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+139 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+13A s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+13B s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+13C s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+13D s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+141 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+142 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+143 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+144 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+145 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+146 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+147 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+148 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+149 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+14A s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+14B s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+14C s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+14D s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+151 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+152 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+153 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+154 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+155 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+156 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+ORDER now: balls with 2+ neighbours 79, mean psi6 45B thousandths, psi6 >= 0.9: 29, exactly six neighbours: 3 (of 7A)
+157 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+158 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+159 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+15A s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+15B s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+15C s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+15D s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+161 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+162 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+163 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+164 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+165 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+166 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+167 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+168 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+169 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+16A s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+16B s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+16C s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+16D s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+171 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+172 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+173 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+174 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+175 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+176 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+177 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+178 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+179 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+17A s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+ORDER now: balls with 2+ neighbours 79, mean psi6 45B thousandths, psi6 >= 0.9: 29, exactly six neighbours: 3 (of 7A)
+17B s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+17C s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+17D s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+181 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+182 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+183 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+184 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+185 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+186 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+187 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+188 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+189 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+18A s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+18B s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+18C s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+18D s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+191 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+192 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+193 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+194 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+195 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+196 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+197 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+198 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+199 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+19A s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+19B s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+19C s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+19D s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+1A1 s  rolling 27 of 7A  fastest 9 mm/s  hex (six touching) 3  middle to ball, mean B5 mm  Henry AA44 ml/s pull 2B88 Pa  hole open
+ORDER now: balls with 2+ neighbours 79, mean psi6 45C thousandths, psi6 >= 0.9: 29, exactly six neighbours: 3 (of 7A)
+ORDER end: balls with 2+ neighbours 79, mean psi6 45C thousandths, psi6 >= 0.9: 29, exactly six neighbours: 3 (of 7A)
+the tray from above (X walls fully flat, ~ melted, # six touching, o four or five, . fewer, H over the hole; a letter a ball, 10 mm across, 17 mm down):
+
+
+
+
+
+                      .   .   o
+                  .               .
+                           o           .
+                      o        #   o
+                  o      o   o          o     .
+              .      #           o   o      o
+            .     o      o              o       o
+                     o       o  o   o
+               o          o                  o   o
+            o     o   o       o   o     o
+               o                           o   #   .
+          .         o      o       o   o
+              o         o      H             o   o
+          .      o   o     o         o   o
+                                 o          o     .
+           .  o           o   o         o
+                  .   o          o  o      o   o
+              o          o   .         o          .
+           .     o   o              o         .
+                            o   o      o   .
+               .    o   o          o
+                           o   o         .
+                  .    o             .
+                              .  .
+                     .   .
+
+
+
+
+
+

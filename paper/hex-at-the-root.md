@@ -434,8 +434,8 @@ that down by name, and the amount itself is always something.
 
 - The raft (5.8), checked blind (proofs/blind-wall-2026-11-21, every plan stamped before its runs): a fresh helper, never told
   the dream, wrote the wall rule from celluloid alone. Scattered balls did NOT go hex from heat and suction (sealed and
-  vented: FAIL). Shaking the tray (Mike: his hand on his rig) packed scattered balls hex, cold or hot (0.91-0.93 six-fold
-  order, up to 45 of 100 six round one), so the heat added nothing to the packing; repeated runs are checking it. Hand-set
+  vented: FAIL). Shaking the tray (Mike: his hand on his rig) packed scattered balls hex in single runs (0.91-0.93), but
+  repeated five times each it did not hold (shaken mean 0.762, still 0.780): shaking does not reliably pack them hex in the lab. Hand-set
   in hex, the real-material walls flatten 12-38%, none fully: the raft does not seal in the lab's 5 minutes. Packing and
   sealing are two steps; the sealing is still to be shown.
 - The models are demonstrations by model, not proofs. They show that D's rules, kept exactly, produce hex where
