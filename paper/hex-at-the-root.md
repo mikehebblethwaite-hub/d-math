@@ -362,6 +362,42 @@ The author's challenge to any peer who wants to disprove D: give one example, an
 there is nothing. D cannot have a zero, because a zero is not possible. (Even the emptiest vacuum yet measured is not
 empty: it holds energy, fields and radiation, and particles appear and vanish in it.)
 
+### 5.8 Ping pong balls, heat and a Henry: the raft (`lang/lab/runs/pingfunnel.delta`)
+
+The author's dream, told before any run: ping pong balls, warm and pliable, pulled together by air flowing out through
+the gaps where three meet, go hex. The lab built it as a cone tray (2 degrees) of fine-holed plate (holes A mm apart)
+with a Henry vacuum pulling under it and hot air from above at 93 C. 2C balls were set by hand in hex, as on the bench.
+Cold, the suction only locks them; warm (see the warmth window below), each
+wall flattens against its neighbour as the flow pulls it into the gaps, and the raft closes: every inside ball a
+hexagon, the edge balls flat where they touch and round where the air is their neighbour.
+
+![The raft from above: set round by hand, then every wall flat at 93 C](images/raft-hex.png)
+
+![The same raft at 45 degrees: a hex block with rounded tops](images/raft-45.png)
+
+**Warmth window** (81 to 98 C all close the raft, none melting; 9D C melts every ball): on the bench anywhere in that
+window works; past it the plastic drips.
+
+**Hole size and Henry power.** The time (seconds) until every wall in the raft is flat, and the Henry's pull under the
+plate, for each size of plate hole and each Henry power (1A1 s run, 93 C):
+
+| plate holes (tenths of a mm across) | Henry power 3 | power 6 | power 9 | power B |
+|---|---|---|---|---|
+| 3 | 14C s (2415 Pa) | A4 s (4669 Pa) | 79 s (67B2 Pa) | 69 s (7C84 Pa) |
+| 4 | 158 s (22B8 Pa) | AA s (432D Pa) | 81 s (61BA Pa) | 71 s (7497 Pa) |
+| 5 | 169 s (213D Pa) | B7 s (3BC8 Pa) | 89 s (5769 Pa) | 79 s (67BB Pa) |
+| 7 | 199 s (1A3D Pa) | DC s (322C Pa) | AB s (43C5 Pa) | 9A s (4C8D Pa) |
+| A | not all in 1A1 s (1355 Pa) | 17B s (1DB4 Pa) | 141 s (2753 Pa) | 129 s (2AC2 Pa) |
+
+A stronger Henry closes the raft sooner at every hole size. Finer holes hold more suction (the plate leaks less) and
+close it sooner; at 1 mm holes the weakest Henry never closes it in 1A1 s. Bench recipe: the finest holes the plate
+allows, the Henry at full power, about 93 C: 69 s (power B, holes 3 tenths).
+
+**What is put in, said plainly.** The hand-set hex start, and the flattening rule (how fast a warm wall flattens under
+the pull) is the lab's own choice, marked as magic. In these runs one flatness number is kept per ball and the
+pictures draw its faces half way to each neighbour, so the hexagons in the pictures follow from the hex start. A blind
+test is under way (section 7).
+
 ## 6. Measuring without negatives
 
 The outside world's scales go below zero in many places. D cannot, because a negative amount is impossible. Each
@@ -393,6 +429,11 @@ that down by name, and the amount itself is always something.
 
 ## 7. What is shown, and what is not yet
 
+- The raft (5.8): a blind test is running. A fresh helper, never told the dream or any expected pattern, wrote the wall
+  rule from materials alone (celluloid; sealed, with a hole, and splitting at its seam); the balls start scattered, each
+  wall is its own, and hex is judged by numbers (six-fold order round each ball). The plan and pass mark were stamped
+  before any run (`proofs/blind-wall-2026-11-21/`). Its first finding: a sealed ball barely flattens (its heated air
+  pushes back like a tyre); a vented or split ball flattens about a third of the way.
 - The models are demonstrations by model, not proofs. They show that D's rules, kept exactly, produce hex where
   neighbours share evenly. A proof in D's own terms is the next step.
 - In three dimensions equal balls pack in hex layers stacked in the hollows (twelve neighbours), but D's own sharing

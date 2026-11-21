@@ -36,7 +36,7 @@
 int SHAKEG = 1, SHAKEHZ = {{20}}, SHAKES = {{1000}}, STEPNOW;   // ... and for SHAKES seconds, then still (to settle)          // the tray shaken side to side: its strongest push, thousandths of g (1: still); beats a second
 int LOCK = 2, HOFF = 1, HX, HY, VAIR[NMAX];
 int PLATEP = 1, PLATED = 5, VGAP;                  // the cone as a holed plate (Mike: "a hole under every three"): holes PLATEP mm apart (1: no plate, one hole in the middle), PLATED tenths of a mm across; air speed through a gap (mm/s)
-int PLACE = 1, FILM = 1;                           // FILM 2: a picture from above every 2 s while it heats (raft-film/); 3: and at 45 degrees
+int PLACE = 1, FILM = 1;                           // FILM 2: a picture from above every 2 s while it heats (raft-film/); 3: and at 45 degrees; 4: with the forces drawn
                                      // 1: scattered by the world's chance; 2: set by hand in hex (a hand's unevenness, up to 1 mm, by the world's chance)
 int CHLAD = 1, CHLADMM = {{40}}, CHLADS = {{20}}, CNORM = 1;   // the plate sung like Chladni's: drift strength (thousandths of g, 1 none), still points this far apart (mm), for this many seconds
 int HEATC = 1, HEATAT = 6, HMODE = 2;              // the heat: air at HEATC C from above (1: none), from second HEATAT on; 1 the whole tray, 2 the Skil over the middle
@@ -98,6 +98,7 @@ int lie(int d)
     int c[{{46}}] = {{{999848}}, {{999391}}, {{998630}}, {{997564}}, {{996195}}, {{994522}}, {{992546}}, {{990268}}, {{987688}}, {{984808}}, {{981627}}, {{978148}}, {{974370}}, {{970296}}, {{965926}}, {{961262}}, {{956305}}, {{951057}}, {{945519}}, {{939693}}, {{933580}}, {{927184}}, {{920505}}, {{913545}}, {{906308}}, {{898794}}, {{891007}}, {{882948}}, {{874620}}, {{866025}}, {{857167}}, {{848048}}, {{838671}}, {{829038}}, {{819152}}, {{809017}}, {{798636}}, {{788011}}, {{777146}}, {{766044}}, {{754710}}, {{743145}}, {{731354}}, {{719340}}, {{707107}}};
     return c[d];
 }
+int KIND = 1, KFX[{{12004}}], KFY[{{12004}}], AKX[{{12004}}], AKY[{{12004}}];   // each ball's forces by kind (1 the cone and rim, 2 the flow's lock, 3 neighbours pushing, 4 grip), now and summed over a second
 int way(int px, int py) { return 1 + (px ? 2 : low) + (py ? 1 : low); }   // both directions in one: 1 to 4
 void push(int i, int mag, int w, int ax, int ay, int d)   // add a force of mag along (ax, ay)/d, + or - each way (w from way)
 {
@@ -106,6 +107,8 @@ void push(int i, int mag, int w, int ax, int ay, int d)   // add a force of mag 
     int fx = mag * (ax / {{1000}}) / (d / {{1000}} + 1), fy = mag * (ay / {{1000}}) / (d / {{1000}} + 1);
     FX[i] = px ? FX[i] + fx : less(FX[i], fx);
     FY[i] = py ? FY[i] + fy : less(FY[i], fy);
+    int k = less(KIND, 1) * NMAX + i;
+    if (FILM >= 4 && i <= NMAX) { KFX[k] = px ? KFX[k] + fx : less(KFX[k], fx); KFY[k] = py ? KFY[k] + fy : less(KFY[k], fy); }
 }
 int cellof(int x, int y) { return (y / DIA) * GW + x / DIA + 1; }
 int fanq(int s) { int top = {{20000}} * POWER / {{11}}; return s >= top ? low : {{35000}} * less(top, s) / top; }   // ml a second
@@ -141,7 +144,7 @@ void forces()
 {
     int i, j, c;
     for (c = 1; c <= GW * GW; c++) HEAD[c] = N + 1;
-    for (i = 1; i <= N; i++) { c = cellof(X[i], Y[i]); NEXT[i] = HEAD[c]; HEAD[c] = i; FX[i] = FB; FY[i] = FB; NC[i] = low; }
+    for (i = 1; i <= N; i++) { c = cellof(X[i], Y[i]); NEXT[i] = HEAD[c]; HEAD[c] = i; FX[i] = FB; FY[i] = FB; NC[i] = low; int kq; for (kq = low; kq < 4; kq++) { KFX[kq * NMAX + i] = FB; KFY[kq * NMAX + i] = FB; } }
     BLOCKED = low;
     int shakef = low, shakeplus = 1;
     if (SHAKEG >= 2 && STEPNOW <= SHAKES * {{4000}}) {                                              // the tray pushed side to side: every ball feels it (2.7 g x the push)
@@ -161,6 +164,7 @@ void forces()
             FX[i] = bxp > bxm ? less(FX[i], gx) : FX[i] + gx;
             FY[i] = byp > bym ? less(FY[i], gy) : FY[i] + gy;
         }
+        KIND = 1;
         if (r > DIA / {{100}}) push(i, GRAV, way(inx, iny), dx, dy, r);   // down the cone, to its low point
         int hx = apart(HX, X[i]), hy = apart(HY, Y[i]), rh = isqrt(hx * hx + hy * hy);   // and the hole (moved, perhaps)
         int hinx = HX > X[i], hiny = HY > Y[i];
@@ -199,7 +203,8 @@ void forces()
                             // over the holed plate the pull is the suction on the gap's OPEN area (Pa x mm2 = microNewtons): as the
                             // gap closes its pull goes with it (fixed 21 Nov 2026: the speed-only rule threw shut balls about)
                             if (PLATEP >= 2) { int op = less({{1000000}}, (FLATB[i] + FLATB[j]) / 2) / {{1000}} + 1; fl = SUCK * {{64}} * op / {{1000}} / 3; }
-                            if (fl >= 1) push(i, fl, way(X[j] >= X[i], Y[j] >= Y[i]), ax, ay, d);   // toward j
+                            KIND = 2; if (fl >= 1) push(i, fl, way(X[j] >= X[i], Y[j] >= Y[i]), ax, ay, d);   // toward j
+                            KIND = 1;
                         }
                         if (d < DIA) {
                             if (d * {{100}} < DIA * {{102}}) NC[i]++;
@@ -215,7 +220,7 @@ void forces()
                                     + (py ? (rvy < VB ? less(VB, rvy) * uy : low) : (rvy >= VB ? less(rvy, VB) * uy : low));
                             if (neg > pos) f = f + less(neg, pos) / dd * 4;               // closing: the knock loses some
                             else { int damp = less(pos, neg) / dd * 4; f = f > damp ? less(f, damp) : low; }
-                            if (f >= 1) push(i, f, way(px, py), ax, ay, d);
+                            KIND = 3; if (f >= 1) push(i, f, way(px, py), ax, ay, d); KIND = 1;
                             // the grip where they touch: their sliding past each other (what is left of i's speed less j's once the
                             // closing along the line is taken out) meets up to GRIP thousandths of how hard they press
                             if (GRIP >= 1 && f >= 1) {
@@ -231,6 +236,7 @@ void forces()
                                     int gx = ft * ax2 / vt, gy = ft * ay2 / vt;
                                     FX[i] = tx >= VB ? less(FX[i], gx) : FX[i] + gx;     // against its sliding
                                     FY[i] = ty >= VB ? less(FY[i], gy) : FY[i] + gy;
+                                    if (FILM >= 4) { int kg = 3 * NMAX + i; KFX[kg] = tx >= VB ? less(KFX[kg], gx) : KFX[kg] + gx; KFY[kg] = ty >= VB ? less(KFY[kg], gy) : KFY[kg] + gy; }
                                 }
                             }
                         }
@@ -444,6 +450,50 @@ int ballat(int x, int y, int z)                   // which ball holds this point
     }
     return N + 1;
 }
+int HDR, PSIDE, PROWS;
+void pset(int px, int py, int r, int g, int b)
+{
+    if (px < 1 || py < 1 || px > PSIDE || py > PROWS) return;
+    int k = HDR + 3 * (less(py, 1) * PSIDE + less(px, 1)) + 1;
+    PIC[k] = r; PIC[k + 1] = g; PIC[k + 2] = b;
+}
+int lg2(int n) { int k = low; while (n >= 2) { n = n / 2; k++; } return k; }
+void arrow(int sx, int sy, int mx, int my, int pl, int col)   // a force (mx, my microN each way; pl: 2 x (+ along x) + (+ along y)); col: r x 65536 + g x 256 + b
+{                                                  // from the screen point (sx, sy); length by the force's size, doubling = 4 px more
+    int plx = pl >= 2, ply = pl % 2, r = col / {{65536}}, g = col / {{256}} % {{256}}, b = col % {{256}};
+    int my2 = my * {{707}} / {{1000}}, mag = isqrt(mx / {{10}} * (mx / {{10}}) + my / {{10}} * (my / {{10}})) * {{10}};
+    if (mag < {{100}}) return;
+    int len = 4 * lg2(mag / {{50}}); if (len > {{60}}) len = {{60}};
+    int m2 = isqrt(mx / {{10}} * (mx / {{10}}) + my2 / {{10}} * (my2 / {{10}})) + 1;
+    int ex = mx / {{10}} * len / m2, ey = my2 / {{10}} * len / m2, t;
+    for (t = 1; t <= len; t++) {
+        int ux = ex * t / len, uy = ey * t / len;
+        int px = plx ? sx + ux : (ux < sx ? less(sx, ux) : 1), py = ply ? sy + uy : (uy < sy ? less(sy, uy) : 1);
+        pset(px, py, r, g, b); pset(px + 1, py, r, g, b); pset(px, py + 1, r, g, b);
+        if (t == len) { int a, c; for (a = 1; a <= 5; a++) for (c = 1; c <= 5; c++) if (px + a > 3 && py + c > 3) pset(less(px + a, 3), less(py + c, 3), r, g, b); }
+    }
+}
+void forcesdrawn(int xleftp, int kmin, int ps, int ks)   // FILM 4: each ball's forces over the last second, drawn on its top
+{
+    int i, kq, r = DIA / 2;
+    for (i = 1; i <= N; i++) {
+        int sx = less(X[i], xleftp) / ps, sy = less(less(Y[i], r * {{19}} / {{10}}), kmin) / ks;
+        int npx = low, nnx = low, npy = low, nny = low;
+        for (kq = low; kq < 3; kq++) {
+            int k = kq * NMAX + i, fx = AKX[k], fy = AKY[k];
+            int mx = apart(fx, FB), my = apart(fy, FB), plx = fx >= FB, ply = fy >= FB;
+            if (plx) npx = npx + mx; else nnx = nnx + mx;
+            if (ply) npy = npy + my; else nny = nny + my;
+            if (kq == low) arrow(sx, sy, mx, my, plx * 2 + ply, {{15461355}});      // the cone and rim: white
+            if (kq == 1) arrow(sx, sy, mx, my, plx * 2 + ply, {{3988720}});         // the flow's lock: cyan
+            if (kq == 2) arrow(sx, sy, mx, my, plx * 2 + ply, {{15086130}});          // neighbours pushing: red
+        }
+        int k4 = 3 * NMAX + i, gfx = AKX[k4], gfy = AKY[k4];             // grip joins the total
+        if (gfx >= FB) npx = npx + less(gfx, FB); else nnx = nnx + less(FB, gfx);
+        if (gfy >= FB) npy = npy + less(gfy, FB); else nny = nny + less(FB, gfy);
+        arrow(sx, sy, apart(npx, nnx), apart(npy, nny), (npx >= nnx) * 2 + (npy >= nny), {{16439080}});   // all together: yellow
+    }
+}
 void picture45(char *name)                        // looking down at 45 degrees from the front (the tray drawn level; the cone's
 {                                                 // 2 degrees left out); along each sight line y - z stays the same
     int side = {{600}}, px, py, c, r = DIA / 2;
@@ -466,6 +516,7 @@ void picture45(char *name)                        // looking down at 45 degrees 
     }
     PICN = low;
     pput('P'); pput('6'); pput('\n'); pdec(side); pput(' '); pdec(rows); pput('\n'); pdec({{255}}); pput('\n');
+    HDR = PICN; PSIDE = side; PROWS = rows;
     for (py = 1; py <= rows; py++) for (px = 1; px <= side; px++) {
         int pix = less(py, 1) * side + px, k = HIT[pix];
         if (k > N) { if (SHADE[pix] == 1) { pput({{18}}); pput({{18}}); pput({{22}}); } else { pput({{70}}); pput({{72}}); pput({{78}}); } continue; }
@@ -476,6 +527,7 @@ void picture45(char *name)                        // looking down at 45 degrees 
         if (MELTB[k] >= {{500}}) { pput({{200}} * b / {{1000}}); pput({{90}} * b / {{1000}}); pput({{40}} * b / {{1000}}); }
         else { pput({{240}} * b / {{1000}}); pput(less({{240}}, w / 2) * b / {{1000}}); pput(less({{235}}, w) * b / {{1000}}); }
     }
+    if (FILM >= 4) forcesdrawn(xleftp, kmin, ps, ks);
     int fd = linux(2, name, {{577}}, {{420}});
     if (fd < 1) { say("cannot write %s\n", name); return; }
     int done = 1;
@@ -561,11 +613,13 @@ int main(int argc, char **argv)
     for (step = 1; step <= SECS * {{4000}}; step++) {
         if (step % {{400}} == 1) henry();
         STEPNOW = step; forces(); roll();
+        if (FILM >= 4) { int q; for (q = 1; q <= 4 * NMAX && q <= {{12000}}; q++) if (q % NMAX >= 1 && q % NMAX <= N) { AKX[q] = AKX[q] + KFX[q] / {{4000}}; AKY[q] = AKY[q] + KFY[q] / {{4000}}; } }
         if (step % {{4000}} < 1) {
             s++; heat(s); report(s);
             if (FILM >= 2 && s % 2 < 1) { char nm[{{40}}]; char *b = "raft-film/f"; int k = 1, dd = {{1000}}, n = s / 2; while (b[k] >= 1) { nm[k] = b[k]; k++; }
                 while (dd >= 1) { nm[k] = '0' + n / dd % {{10}}; k++; dd = dd / {{10}}; } nm[k] = '.'; nm[k + 1] = 'p'; nm[k + 2] = 'p'; nm[k + 3] = 'm'; nm[k + 4] = low; picture(nm);
-                if (FILM >= 3) { nm[{{11}}] = 's'; picture45(nm); } }   // FILM 3: the 45 degree view too (raft-film/sNNNN.ppm)
+                if (FILM >= 3) { nm[{{11}}] = 's'; picture45(nm); } }
+            if (FILM >= 4) { int q; for (q = 1; q <= {{12000}}; q++) { AKX[q] = low; AKY[q] = low; } }   // FILM 3: the 45 degree view too (raft-film/sNNNN.ppm)
         }
     }
     map();

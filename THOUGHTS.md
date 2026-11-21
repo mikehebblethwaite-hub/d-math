@@ -45,3 +45,7 @@ time he has tested them in real life; the lab runs are drawn from them, and his 
 "fun to put other different melting point stuffs in with those balls and the base atomic foundation of each will tell us (my
 prdiction) the amount of space left for flow through heated or outerwise is the type of material" - mix things with different
 melting points in with the balls; the space each leaves for the flow to pass (heated or not) is set by, and tells, its material.
+Mike 09:21: "things split not hole in real life" - a real ball vents by SPLITTING (its shell opening, e.g. at the seam) as the
+gas inside pushes, not by a ready-made hole. (For the blind wall test: the hole was the dream as first told; next blind case = a split.)
+Mike 09:31, on the Hebble picture (the holes per three joined up make a honeycomb net): "graphene" - the lattice of holes has
+the same honeycomb shape as graphene's carbon sheet; stacked layers of it, the flow threading through.

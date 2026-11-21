@@ -1,0 +1,462 @@
+// BLIND WALL: one shared wall between two table-tennis balls, flattening as the plastic softens.
+//
+// MATERIAL: celluloid (cellulose nitrate plasticised with camphor), the classic ball plastic.
+//   Why: a 40 mm ball with a 0.40 mm shell has 4 pi R^2 h = 2.01 cm^3 of plastic; at 2.7 g that is
+//   1.34 g/cm^3, which is celluloid (1.35..1.40), not ABS (1.04) or other "40+" plastics.
+//   Numbers used:
+//     glassy Young's modulus       2.0 GPa (up to 70 C)
+//     relaxed (soft) modulus       20 MPa  (from 110 C up; celluloid never becomes a true rubber)
+//     between 70 and 110 C         log-linear: 2 decades over 40 K
+//     Poisson's ratio              0.4
+//     softening (glass) range      70..110 C, middle about 90 C
+//     flow / collapse range        from 140 C (camphor boils off, nitrate decomposes); burns ~170 C
+//   Ball: radius R = 20 mm; shell h given per ball (um); sealed with air at 20 C, 101325 Pa.
+//
+// MODEL (one second per call):
+//   Forces pushing the two balls together (micronewtons):
+//     press                         given
+//     pull * pi * R * h             the suction acts on the narrow neck round the contact, out to where the
+//                                   gap between the balls is one shell thickness. For two touching spheres
+//                                   (also with a flat disc between them) that ring has area pi R h, so the
+//                                   pull force does not grow as the wall flattens.
+//   What holds the wall up, as a pressure over the flat disc (N/m^2), so disc area = force / pressure:
+//     shell:  Reissner stiffness of a thin sphere k = 4 E h^2 / (R sqrt(3 (1 - nu^2))); a flat disc of
+//             radius a needs each cap pushed in a^2 / (2R), so the shell gives k / (2R) per unit a^2 (with pi).
+//             E here is the modulus the plastic settles to at that warmth (the relaxed modulus above).
+//     air:    the sealed air warms with the plastic: gauge pressure dp = 101325 (T - 293.15 K) / 293.15 K.
+//             A soft wall pressed flat carries exactly that pressure over its disc (like a tyre).
+//     So the wall heads for  a_eq^2 = F / (k / (2R) + pi dp).
+//   Creep: the wall moves toward a_eq with a relaxation time tau(T) (a creep / viscoelastic step, standard
+//     linear solid); each second it covers the fraction 1 - e^(-1/tau). log10(1/tau per s):
+//       20 C: -11 (never in a lifetime)   70 C: -6   90 C: -3   110 C: -1   130 C and up: 0 (1 s)
+//     linear between, flat below 20 C. Cold stays round because nothing can creep in seconds.
+//     The wall also creeps back toward a_eq if a_eq is smaller (a hot dented ball pops out: its air pushes).
+//   Only the lasting (creep) flattening is counted, not the elastic dent that goes when the force goes.
+//
+// FLATNESS: flat = a / a_max in millionths, a = radius of the flat disc shared by the two balls.
+//   "Fully flat" (1000000) = the wall is a flat disc of radius a_max = R = 20 mm: so wide its lower edge
+//   reaches the plate both balls sit on; it cannot grow further while they still sit on the plate. Reaching
+//   it needs a shell with no stiffness left and its air let out (molten/collapsed), not just softened.
+//
+// SITAPART: centre distance for a disc of radius a, keeping each shell's area (the shell does not stretch
+//   or thin): each ball becomes a sphere of radius R' cut flat at distance s from its centre, with
+//   area = 3 pi R'^2 + 2 pi R' s - pi s^2 = 4 pi R^2 and a^2 = R'^2 - s^2. Centres sit 2 s apart.
+//
+// WMELTB: thousandths of the shell lost (flowed / decomposed, the shell collapses) per second:
+//   10^((T - 140 C) / 10 K): 140 C 1, 150 C 10, 160 C 100, 170 C 1000 = the whole shell at once (burns).
+//   Returned as 1 + that, 1 = none, at most 1000.
+//
+// Not modelled: seams, a leaking ball, the plate contact, gravity sag, heat flow (warm is the plastic's own
+// temperature), snap-through (mirror buckling) of a large cap, and wallflat ignores melting (see wmeltb).
+//
+// SECOND VERSION: A BALL WITH ONE SMALL HOLE (0.3 mm across) in its shell. The first functions are unchanged.
+//   wallflatv: the same rule as wallflat, but the air term uses the ball's present inside excess pressure
+//     (inside, Pa, kept 1 or more) instead of the sealed-ball figure. A vented soft ball is held up by its
+//     shell alone, so it flattens much further.
+//   wventp: the gas in the ball over one second, worked in 1000 steps of 1 ms:
+//     heating: at fixed volume the absolute pressure rises with temperature, P' = P T / Tbefore (spread evenly
+//       over the second); cooling lowers it the same way.
+//     flow through the hole: a short tube, radius r = 0.15 mm, length = the shell thickness. Two resistances
+//       in series (Q = Qv Qo / (Qv + Qo)):
+//         viscous (Poiseuille)  Qv = pi r^4 dp / (8 mu L),  mu = 18.1 uPa s at 20 C, +0.047 uPa s per K
+//         orifice (inertia)     Qo = Cd pi r^2 sqrt(2 dp / rho), Cd = 0.6, rho = 353 / T(K) kg/m^3
+//       The gas in the ball loses (or gains) pressure at P Q / V per second, V = 4/3 pi (R - h)^3 (inside volume,
+//       about 31.5 cm^3), the ball's gas kept at the plastic's temperature (isothermal in each step).
+//     The hole opens to the surrounding air at plain outside pressure (not into the suction neck).
+//     The answer cannot go below 1 Pa: a cooling ball draws air in through the hole, and the hole refills it
+//     within milliseconds, so "below outside" is shown as 1 (level).
+//   Time scale this gives: about 15..20 ms for small excess pressures, so a vented ball stays almost level
+//   with the outside air; steady heating at 1 K/s holds only a few pascals inside.
+//   Not modelled: air squeezed out by the flattening itself (under 1 % of the volume), the hole closing up as
+//   the plastic softens, a hole placed in the suction neck.
+//
+// THIRD VERSION: A SEALED BALL THAT CAN SPLIT. Everything above is unchanged.
+//   Seam: celluloid balls are two half-shells joined round the middle; the joint is the weak line.
+//   Hoop (membrane) stress from the inside gas: sigma = p R / (2 h).
+//   Warm seam strength (my choice): 25 MPa up to 70 C (about half of celluloid's ~50 MPa tensile strength,
+//     for the joint), falling log-linearly through softening to 1.5 MPa at 110 C, then to 0.5 MPa at 140 C,
+//     held at 0.5 MPa above (wmeltb takes over there). A sealed ball's own heated air gives
+//     0.82 MPa at 110 C, 0.87 MPa at 120 C, 0.95 MPa at 130 C, so it splits at about 124 C, not below.
+//   Crack: starts as a 1 mm flaw in the seam when sigma passes the strength. A crack of length L runs on while
+//     sigma > strength * sqrt(1 mm / L) (fracture mechanics: K = sigma sqrt(pi c) held at the warm toughness),
+//     tearing at 2 mm/s for each unit of overstress (sigma / sigma_crit - 1); at most the whole seam, 125.7 mm.
+//   SPLIT VALUE: split = the crack's length in micrometres (1 = shut, no crack). Its open width is not stored:
+//     it is the elastic opening at that moment, centre width d = 2 sigma L / E (a slit in a sheet under
+//     membrane stress, E = the relaxed modulus above), mean width 0.785 d, open area 0.785 d L. So the crack
+//     gapes while the gas pushes and closes as the pressure falls: it acts as a pressure-relief valve.
+//   Closing again: when the gas no longer holds the lips 1 um apart, the lips touch; on softened celluloid
+//     touching lips weld (the chains cross the join), at the same creep rate as the wall (1 - e^(-1/tau) of
+//     the crack per second). Below softening a closed crack does not weld in seconds.
+//   wventsp: as wventp, but the gas leaves through the crack: a slit L long, mean width wm, the shell's depth;
+//     viscous Qv = L wm^3 dp / (12 mu h) in series with orifice Qo = 0.6 L wm sqrt(2 dp / rho). The crack's
+//     width is worked again each millisecond from the pressure at that moment. No crack: sealed (heating only).
+//     A crack under suction from inside (cooling ball) is pressed shut: no flow; shown as 1 Pa as before.
+//   Not modelled: slow creep rupture (a weaker seam after long holding), the crack's bulging lips, the seam
+//     stress being changed by the flattened wall, and wventsp takes the shell as 400 um like wventp.
+
+int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+
+// square root to the nearest whole number
+int wrsqrt(int n) { int s = isqrt(n); if (less(n, s * s) > s) s++; return s; }
+
+// e^x, x and the answer scaled by 1e8, x up to about 2.31
+int wexp(int x)
+{
+    int s = {{100000000}}, t = s, n = 1;
+    while (n < {{30}}) { t = t * x / ({{100000000}} * n); s = s + t; n++; }
+    return s;
+}
+
+// 10^(m / 1000), m in thousandths of a decade, answer scaled by 1000
+int wpowten(int m)
+{
+    int k = m / {{1000}}, f = m % {{1000}};
+    int r = wexp(f * {{230258509}} / {{1000}}) / {{100000}};
+    while (k > 1) { r = r * {{10}}; k = less(k, 1); }
+    if (k == 1) r = r * {{10}};
+    return r;
+}
+
+// decades below 1 per second of the creep rate, thousandths
+int wslow(int warm)
+{
+    if (warm <= {{293150}}) return {{11000}};
+    if (warm <= {{343150}}) return less({{11000}}, less(warm, {{293150}}) / {{10}});
+    if (warm <= {{363150}}) return less({{6000}}, less(warm, {{343150}}) * {{150}} / {{1000}});
+    if (warm <= {{383150}}) return less({{3000}}, less(warm, {{363150}}) / {{10}});
+    if (warm < {{403150}}) return less({{1000}}, less(warm, {{383150}}) / {{20}});
+    return less(1, 1);
+}
+
+// relaxed modulus at this warmth, kPa
+int wmod(int warm)
+{
+    if (warm <= {{343150}}) return {{2000000}};
+    if (warm >= {{383150}}) return {{20000}};
+    return {{2000000000}} / wpowten(less(warm, {{343150}}) / {{20}});
+}
+
+// the flat disc radius the wall heads for, in millionths of a_max
+int wtarget(int warm, int shell, int pull, int press)
+{
+    int force = press + pull * shell * {{62832}} / {{1000000}};               // micronewtons
+    int sshell = wmod(warm) * shell * shell / {{1000}} * {{31496}} / {{10000000}};  // N/m^2
+    int dp = 1;
+    if (warm > {{293150}}) dp = {{101325}} * less(warm, {{293150}}) / {{293150}};
+    int sair = {{314159}} * dp / {{100000}};
+    int a2 = force * {{1000000000}} / (sshell + sair + 1) * {{1000}};       // nm^2
+    int t = isqrt(a2) / {{20}};                                               // a_max = 2e7 nm
+    if (t < 1) t = 1;
+    if (t > {{1000000}}) t = {{1000000}};
+    return t;
+}
+
+int wallflat(int flat, int warm, int shell, int pull, int press)
+{
+    int aim = wtarget(warm, shell, pull, press);
+    int rate = {{1000000000000}} / wpowten(wslow(warm));         // creep rate, billionths per second
+    if (rate > {{1000000000}}) rate = {{1000000000}};
+    int q = less({{100000000}}, {{10000000000000000}} / wexp(rate / {{10}})) * {{10}};   // 1 - e^-rate, billionths
+    int step = apart(aim, flat) * q / {{1000000000}};
+    int f = flat;
+    if (aim > flat) f = flat + step; else f = less(flat, step);
+    if (f < 1) f = 1;
+    if (f > {{1000000}}) f = {{1000000}};
+    return f;
+}
+
+int sitapart(int flat)
+{
+    int r = {{20000000}};                                   // ball radius, nm
+    int a = flat * {{20}};                                   // disc radius, nm
+    int lo = r, hi = r * 6 / 5;
+    while (hi > lo + 1) {                                    // find R' keeping the shell's area
+        int m = (lo + hi) / 2;
+        int s = isqrt(less(m * m, a * a));
+        int lhs = 2 * m * s + 2 * m * m + a * a;
+        if (lhs > 4 * r * r) hi = m; else lo = m;
+    }
+    if (a > lo) a = lo;
+    return 2 * wrsqrt(less(lo * lo, a * a));
+}
+
+
+int wmeltb(int warm)
+{
+    if (warm < {{413150}}) return 1;
+    if (warm >= {{443150}}) return {{1000}};
+    int m = wpowten(less(warm, {{413150}}) / {{10}}) / {{1000}};
+    if (m >= {{999}}) return {{1000}};
+    return 1 + m;
+}
+
+// ---- second version: one 0.3 mm hole in the shell ----
+
+// the flat disc radius the wall heads for, with the ball's own inside excess pressure (Pa)
+int wtargetv(int warm, int shell, int pull, int press, int inside)
+{
+    int force = press + pull * shell * {{62832}} / {{1000000}};               // micronewtons
+    int sshell = wmod(warm) * shell * shell / {{1000}} * {{31496}} / {{10000000}};  // N/m^2
+    int dp = inside;
+    if (dp < 1) dp = 1;
+    int sair = {{314159}} * dp / {{100000}};
+    int a2 = force * {{1000000000}} / (sshell + sair + 1) * {{1000}};       // nm^2
+    int t = isqrt(a2) / {{20}};                                               // a_max = 2e7 nm
+    if (t < 1) t = 1;
+    if (t > {{1000000}}) t = {{1000000}};
+    return t;
+}
+
+int wallflatv(int flat, int warm, int shell, int pull, int press, int inside)
+{
+    int aim = wtargetv(warm, shell, pull, press, inside);
+    int rate = {{1000000000000}} / wpowten(wslow(warm));         // creep rate, billionths per second
+    if (rate > {{1000000000}}) rate = {{1000000000}};
+    int q = less({{100000000}}, {{10000000000000000}} / wexp(rate / {{10}})) * {{10}};   // 1 - e^-rate, billionths
+    int step = apart(aim, flat) * q / {{1000000000}};
+    int f = flat;
+    if (aim > flat) f = flat + step; else f = less(flat, step);
+    if (f < 1) f = 1;
+    if (f > {{1000000}}) f = {{1000000}};
+    return f;
+}
+
+// volume flow through the hole, in units of 1e-15 m^3/s, for a pressure difference dpm (mPa)
+int wholeflow(int dpm, int warm, int shell)
+{
+    int mun = {{18100}};                                      // viscosity, 1e-9 Pa s
+    if (warm > {{293150}}) mun = mun + less(warm, {{293150}}) * {{47}} / {{1000}};
+    else mun = less(mun, less({{293150}}, warm) * {{47}} / {{1000}});
+    int qv = dpm * ({{198800000000}} / (shell * mun));        // Poiseuille, pi r^4 / (8 mu L)
+    int qo = {{42412}} * isqrt(dpm * warm * 2 / {{353}});     // orifice, Cd pi r^2 sqrt(2 dp / rho)
+    int sum = qv + qo;
+    if (sum < 1) return 1;
+    int share = qv / (sum / {{1000000}} + 1);                 // qv / (qv + qo), millionths
+    return qo * share / {{1000000}};
+}
+
+int wventp(int inside, int warm, int warmbefore)
+{
+    int shell = {{400}};                                      // hole length: the shell (um)
+    int ri = less({{20000}}, shell);                            // inside radius, um
+    int vol = ri * ri * ri / {{1000000}} * {{4188790}} / {{1000000000}};   // mm^3
+    int e = inside * {{1000}};                                 // excess, mPa
+    int over = 1;                                              // 1: inside above outside, 2: below
+    int dt = apart(warm, warmbefore);
+    int n = 1;
+    while (n <= {{1000}}) {
+        int tnow = warmbefore;                                 // temperature through the second
+        if (warm >= warmbefore) tnow = warmbefore + dt * n / {{1000}}; else tnow = less(warmbefore, dt * n / {{1000}});
+        int pabs = {{101325000}} + e;
+        if (over == 2) pabs = less({{101325000}}, e);
+        int heat = pabs / {{1000}} * dt / tnow;                // mPa this ms
+        int up = 2;
+        if (warm > warmbefore) up = 1;
+        if (heat >= 1) {
+            if (up == over) e = e + heat;
+            else { if (heat > e) { e = less(heat, e); over = up; } else e = less(e, heat); }
+        }
+        if (e >= 1) {
+            int q = wholeflow(e, tnow, shell);
+            int drop = pabs / {{1000}} * q / (vol * {{1000000}});   // mPa this ms
+            if (drop > e) drop = e;
+            e = less(e, drop);
+        }
+        n++;
+    }
+    if (over == 2) return 1;
+    int r = e / {{1000}};
+    if (r < 1) r = 1;
+    return r;
+}
+
+// ---- third version: a sealed ball whose seam can split ----
+
+// warm seam strength, kPa
+int wseam(int warm)
+{
+    if (warm <= {{343150}}) return {{25000}};
+    if (warm <= {{383150}}) return {{25000000}} / wpowten(less(warm, {{343150}}) * {{3055}} / {{100000}});
+    if (warm <= {{413150}}) return {{1500000}} / wpowten(less(warm, {{383150}}) * {{159}} / {{10000}});
+    return {{500}};
+}
+
+// hoop stress from the inside excess pressure, Pa
+int whoop(int inside, int shell) { return inside * {{10000}} / shell; }
+
+// mean open width of a crack L um long, um (1 = touching)
+int wcrackw(int len, int inside, int warm, int shell)
+{
+    if (len <= 1) return 1;
+    int d = 2 * whoop(inside, shell) * len / (wmod(warm) * {{1000}});
+    int wm = d * {{785}} / {{1000}};
+    if (wm < 1) wm = 1;
+    if (wm > {{2000}}) wm = {{2000}};
+    return wm;
+}
+
+int wsplit(int inside, int warm, int shell, int split)
+{
+    int len = split;
+    if (len < 1) len = 1;
+    int sig = whoop(inside, shell);                         // Pa
+    int str = wseam(warm) * {{1000}};                       // Pa
+    if (len <= 1) {
+        if (sig > str) return {{1000}};                     // the seam flaw opens: 1 mm
+        return 1;
+    }
+    int crit = str * isqrt({{1000000000}} / len) / {{1000}};   // str * sqrt(1 mm / L)
+    if (crit < 1) crit = 1;
+    if (sig > crit) {
+        len = len + {{2000}} * less(sig, crit) / crit;
+        if (len > {{125664}}) len = {{125664}};
+        return len;
+    }
+    // lips held less than 1 um apart: they touch and weld at the creep rate
+    int d = 2 * sig * len / (wmod(warm) * {{1000}});
+    if (d < 1) {
+        int rate = {{1000000000000}} / wpowten(wslow(warm));
+        if (rate > {{1000000000}}) rate = {{1000000000}};
+        int q = less({{100000000}}, {{10000000000000000}} / wexp(rate / {{10}})) * {{10}};
+        int heal = less(len, 1) * q / {{1000000000}};
+        len = less(len, heal);
+        if (len < {{10}}) len = 1;
+    }
+    return len;
+}
+
+// flow out through the crack, units of 1e-15 m^3/s, for a pressure difference dpm (mPa)
+int wcrackflow(int dpm, int warm, int shell, int len)
+{
+    int wm = wcrackw(len, dpm / {{1000}}, warm, shell);
+    if (wm <= 1) return 1;
+    int mun = {{18100}};
+    if (warm > {{293150}}) mun = mun + less(warm, {{293150}}) * {{47}} / {{1000}};
+    int k = {{12}} * mun * shell / {{1000}};                   // 12 mu h, scaled
+    int y = len * wm * wm * {{1000}} / k;                    // L wm^2 / (12 mu h), scaled by 1e6
+    int yw = y * wm;
+    int qv = {{900000000000000000}};
+    if (dpm < 1) qv = 1;
+    else if (yw < {{900000000000000000}} / dpm) qv = yw * dpm / {{1000}};
+    int qo = len * wm * 6 / {{10}} * isqrt(dpm * warm * 2 / {{353}});
+    int sum = qv / 2 + qo / 2;
+    if (sum < 1) return 1;
+    int share = (qv / 2) / (sum / {{1000000}} + 1);              // qv / (qv + qo), millionths
+    return qo * share / {{1000000}};
+}
+
+int wventsp(int inside, int warm, int warmbefore, int split)
+{
+    int shell = {{400}};
+    int ri = less({{20000}}, shell);
+    int vol = ri * ri * ri / {{1000000}} * {{4188790}} / {{1000000000}};   // mm^3
+    int e = inside * {{1000}};
+    int over = 1;
+    int dt = apart(warm, warmbefore);
+    int n = 1;
+    while (n <= {{1000}}) {
+        int tnow = warmbefore;
+        if (warm >= warmbefore) tnow = warmbefore + dt * n / {{1000}}; else tnow = less(warmbefore, dt * n / {{1000}});
+        int pabs = {{101325000}} + e;
+        if (over == 2) pabs = less({{101325000}}, e);
+        int heat = pabs / {{1000}} * dt / tnow;
+        int up = 2;
+        if (warm > warmbefore) up = 1;
+        if (heat >= 1) {
+            if (up == over) e = e + heat;
+            else { if (heat > e) { e = less(heat, e); over = up; } else e = less(e, heat); }
+        }
+        if (e >= 1 && over == 1 && split > 1) {
+            int q = wcrackflow(e, tnow, shell, split);
+            int drop = pabs / {{1000}} * q / (vol * {{1000000}});
+            if (drop > e) drop = e;
+            e = less(e, drop);
+        }
+        n++;
+    }
+    if (over == 2) return 1;
+    int r = e / {{1000}};
+    if (r < 1) r = 1;
+    return r;
+}
+
+int low;
+
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    int temps[7];
+    temps[1] = {{293150}}; temps[2] = {{353150}}; temps[3] = {{373150}};
+    temps[4] = {{383150}}; temps[5] = {{393150}}; temps[6] = {{403150}};
+    int pulls[4];
+    pulls[1] = 1; pulls[2] = {{2000}}; pulls[3] = {{15000}};
+    say("warm(mK) pull(Pa)  flat@60  flat@120  flat@240  target  melt\n");
+    int i = 1;
+    while (i <= 6) {
+        int j = 1;
+        while (j <= 3) {
+            int f = 1, s = 1, fsixty = 1, foneh = 1;
+            while (s <= {{240}}) {
+                f = wallflat(f, temps[i], {{400}}, pulls[j], {{600}});
+                if (s == {{60}}) fsixty = f;
+                if (s == {{120}}) foneh = f;
+                s++;
+            }
+            say("%d %d  %d  %d  %d  %d  %d\n", temps[i], pulls[j], fsixty, foneh, f, wtarget(temps[i], {{400}}, pulls[j], {{600}}), wmeltb(temps[i]));
+            j++;
+        }
+        i++;
+    }
+    say("sitapart: %d %d %d %d\n", sitapart(1), sitapart({{250000}}), sitapart({{500000}}), sitapart({{1000000}}));
+    say("wmeltb 140C %d  150C %d  160C %d  170C %d\n", wmeltb({{413150}}), wmeltb({{423150}}), wmeltb({{433150}}), wmeltb({{443150}}));
+    say("vented ball (0.3 mm hole), warm jumps from 20 C in the first second, then holds\n");
+    say("warm(mK) pull(Pa)  flat@60  flat@120  flat@240  inside@1s  inside@240s\n");
+    i = 1;
+    while (i <= 6) {
+        int j = 1;
+        while (j <= 3) {
+            int f = 1, s = 1, fsixty = 1, foneh = 1, in = 1, inone = 1, wb = {{293150}};
+            while (s <= {{240}}) {
+                in = wventp(in, temps[i], wb);
+                wb = temps[i];
+                if (s == 1) inone = in;
+                f = wallflatv(f, temps[i], {{400}}, pulls[j], {{600}}, in);
+                if (s == {{60}}) fsixty = f;
+                if (s == {{120}}) foneh = f;
+                s++;
+            }
+            say("%d %d  %d  %d  %d  %d  %d\n", temps[i], pulls[j], fsixty, foneh, f, inone, in);
+            j++;
+        }
+        i++;
+    }
+    int in2 = 1, tk = {{293150}};
+    while (tk < {{373150}}) { in2 = wventp(in2, tk + {{1000}}, tk); tk = tk + {{1000}}; }
+    say("steady heating 1 K/s, inside at 100 C: %d Pa\n", in2);
+    in2 = wventp({{38000}}, {{403150}}, {{403150}});
+    say("sealed-level 38000 Pa let out through the hole for 1 s: %d Pa\n", in2);
+    say("sitapart sealed 110 C 15000 Pa: %d  vented: %d\n", sitapart({{93565}}), sitapart({{305980}}));
+    say("split ball: sealed until its seam splits, heated 20 C to the end warmth over 60 s, then held; pull 15000, press 600\n");
+    say("end(mK)  time  inside(Pa)  crack(um)  open(um2)  flat\n");
+    i = 3;
+    while (i <= 6) {
+        int f = 1, s = 1, in = 1, sp = 1, wb = {{293150}};
+        while (s <= {{240}}) {
+            int w = temps[i];
+            if (s < {{60}}) w = {{293150}} + less(temps[i], {{293150}}) * s / {{60}};
+            sp = wsplit(in, w, {{400}}, sp);
+            in = wventsp(in, w, wb, sp);
+            wb = w;
+            f = wallflatv(f, w, {{400}}, {{15000}}, {{600}}, in);
+            if (s == {{30}} || s == {{60}} || s == {{120}} || s == {{240}}) {
+                int op = 1;
+                if (sp > 1) op = sp * wcrackw(sp, in, w, {{400}});
+                say("%d  %d  %d  %d  %d  %d\n", temps[i], s, in, sp, op, f);
+            }
+            s++;
+        }
+        i++;
+    }
+    say("seam strength kPa: 100C %d 110C %d 120C %d 130C %d\n", wseam({{373150}}), wseam({{383150}}), wseam({{393150}}), wseam({{403150}}));
+    return 1;
+}
