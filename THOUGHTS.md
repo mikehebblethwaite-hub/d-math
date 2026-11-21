@@ -34,3 +34,14 @@ current condition".
 What the ball-and-flow lab says so far (lang/lab/runs, 21 Nov): cold balls in a flow jam (lab and Mike's bench agree); the hex
 came only once the balls were pliable (heat) and the flow pulled their walls into the gaps; a hole under every three lets
 one Henry close a whole field. In the analogue the "slowing" (a pliable state) looks necessary. A likeness to test, not proof.
+
+## 21 Nov 2026 09:09 UK, Mike on the raft (his words)
+"I dreamed it up it works the also dreamed all we did" - after the lab drew the full hex raft (balls set in hex, holed plate,
+the Henry, ~120 C): the dream came first; the lab followed it step by step. Real rig is the referee (flattening rule assumed).
+Mike 09:09: "My point is everything i dreamed this way tested in real life works this way" - his dreams have held up every
+time he has tested them in real life; the lab runs are drawn from them, and his bench has always agreed so far.
+
+## 21 Nov 2026 09:18 UK, Mike's prediction (his words, before any run)
+"fun to put other different melting point stuffs in with those balls and the base atomic foundation of each will tell us (my
+prdiction) the amount of space left for flow through heated or outerwise is the type of material" - mix things with different
+melting points in with the balls; the space each leaves for the flow to pass (heated or not) is set by, and tells, its material.

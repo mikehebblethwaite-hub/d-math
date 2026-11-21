@@ -1,0 +1,785 @@
+// pingblind: the BLIND WALL TEST (21 Nov 2026, proofs/blind-wall-2026-11-21/PLAN.md). pingfunnel with every touching pair's
+// wall its own (flatness, how hard they press), the wall rule written blind by a fresh helper (between the BLIND RULE marks,
+// never edited), centres sitting at the rule's sitapart distance, and the hex judged by numbers (psi6), not the picture.
+// The ping pong funnel: balls on a shallow cone tray, falling in toward the hole in the middle (21 Nov 2026, Mike:
+// "instead of a flat cd a cone ... slight to begin with ... the angle you can mess with ... 1 degree test one and so on
+// until we see real life events ... the balls fall, we all fall, they fall towards the hole in the center by cone and then
+// Henry flow"). No pictures, only the data and a map from above at the end.
+// Each ball rolls: a ping pong ball is a hollow shell, so rolling it moves as if 5/3 its weight (2.7 g rolls like 4.5 g);
+// down the cone by its weight (2.7 g x 9.81 x the slope's rise, from a table of slopes: the bridge from degrees); slowed by
+// rolling on the tray (3 thousandths of its weight on the tray, a rough guide); the Henry's air drawn across the tray to
+// the hole drags it in (air speed = the Henry's flow / (the ring round the hole x 40 mm high); the ring measured in hex
+// steps, 4 x root 3 x its radius: D's own circle); drag = 0.5 x 1.2 kg/m3 x 0.47 x 1257 mm2 (the ball's measured cross
+// section) x speed squared. Balls bump: a springy touch (10 microNewtons for each nanometre they press in) losing some of
+// each knock (4 microNewtons for each micrometre a second they close in), and the tray's rim holds them. A ball over the
+// hole stops most of the air (a twentieth leaks past) and the Henry's pull holds it there. They start scattered by the
+// world's chance (the box's own watts, mixed) and still; then they are let go. A quarter of a millisecond a step.
+// Rebuilt toward the real (Mike: "keep rebuilding the rig to be real to the real world flow"): where balls touch they grip
+// (sliding past each other meets up to GRIP thousandths of how hard they press: 0.3 for plastic on plastic, a rough guide;
+// 9th input, 1 for nearly none). Waves (Mike: particles in waves, dependent on neighbours): the tray shaken side to side,
+// its strongest push SHAKEG thousandths of g (10th input; 1 still) at SHAKEHZ beats a second (11th) for SHAKES seconds (12th),
+// then still so they settle; the push passing ball to ball. The flow's lock (13th: 2 on, 1 off) and the hole moved off the
+// cone's low point (14th: mm + 1), from Mike's real rig and video (sand/NOTES.md, 16 Nov 2026).
+// The heat (15th: air C, 1 none; 16th: from that second; 17th: 1 the whole tray, 2 Mike's Skil over the middle): each ball
+// warms by h, pliable from 90 C, full at 120, melting past 125; the flow's low pressure pulls soft walls into the gaps
+// (the seated ball: the Henry's full suction). Real check (Mike, 21 Nov): cold rigs never rafted hex; grip kept.
+// The cone as a holed plate (18th: holes that many mm apart, 1 none; 19th: tenths of a mm across): no single hole; every gap
+// has holes under it (air through the gap then the holes: two openings one after the other); the bare tray leaks straight down.
+// The plate sung like Chladni's sand (Mike: "the correct harmonic forms the patterns ... a bow drawn down it"): 20th: drift
+// strength (thousandths of g, 1 none), 21st: still points this many mm apart (hex grid, one at the low point), 22nd: seconds.
+// MAGIC until a real plate's modes are measured: the pattern itself (still points on a hex grid); the drift's strength.
+// 23rd: 1 scattered, 2 set by hand in hex (a round patch from the low point, a hair's unevenness by the world's chance).
+//
+//   delta run lang/lab/runs/pingfunnel.delta BALLS TENTHS_OF_A_DEGREE TRAY_MM HOLE_MM SECONDS HENRY POWER > out.txt
+//   (D numerals; left off: 7A balls (100), A tenths (1 degree), tray 1A3 mm across the middle to the rim (250), hole 24 mm (30),
+//    seconds 1A (23), Henry 2 (on; 1 off), power B)
+#define NMAX 149A
+#define VB 733B8298841                    // velocities are kept above VB (no negatives in D: VB is standing still)
+#define FB 733B8298841                    // and forces above FB
+int SHAKEG = 1, SHAKEHZ = 17, SHAKES = 5BC, STEPNOW;   // ... and for SHAKES seconds, then still (to settle)          // the tray shaken side to side: its strongest push, thousandths of g (1: still); beats a second
+int LOCK = 2, HOFF = 1, HX, HY, VAIR[NMAX];
+int PLATEP = 1, PLATED = 5, VGAP;                  // the cone as a holed plate (Mike: "a hole under every three"): holes PLATEP mm apart (1: no plate, one hole in the middle), PLATED tenths of a mm across; air speed through a gap (mm/s)
+int PLACE = 1, FILM = 1;                           // FILM 2: a picture from above every 2 s while it heats (raft-film/); 3: and at 45 degrees
+                                     // 1: scattered by the world's chance; 2: set by hand in hex (a hand's unevenness, up to 1 mm, by the world's chance)
+int CHLAD = 1, CHLADMM = 31, CHLADS = 17, CNORM = 1;   // the plate sung like Chladni's: drift strength (thousandths of g, 1 none), still points this far apart (mm), for this many seconds
+int HEATC = 1, HEATAT = 6, HMODE = 2;              // the heat: air at HEATC C from above (1: none), from second HEATAT on; 1 the whole tray, 2 the Skil over the middle
+int TB[NMAX], SOFTB[NMAX], FLATB[NMAX], MELTB[NMAX], THK[NMAX], PULLB[NMAX];   // each ball's warmth (mK), softness, flatness (millionths), melt, shell, pull (Pa)         // the flow's lock between neighbours (2 on, 1 off); the hole moved off the cone's low point (mm, 1 = not)
+#define WS $C
+int WJ[13513], WF[13513], WP[13513];   // each ball's walls: the ball on the other side, how flat (millionths), how hard they press (microN)
+int GRIP = 1A1;                                 // ball on ball grip, thousandths of how hard they press (0.3, a rough guide)
+int low, N = 79, ANG = $A,                 // ANG in tenths of a degree
+ TRAYMM = 163, HOLEMM = 24, SECS = 1A, HENRY = 2, POWER = $B;
+int X[NMAX], Y[NMAX], VX[NMAX], VY[NMAX], FX[NMAX], FY[NMAX], NC[NMAX], NEXT[NMAX], SEAT[NMAX];   // SEAT: sucked down into the hole
+int HEAD[4723], GW;                        // the grid: cells a ball wide, each holding a chain of balls
+int CX, CY, RT, RH, DIA = 8396851;          // the tray's middle, its rim, the hole (nanometres); a ball across
+int SINA, COSA, GRAV, ROLL, QAIR, BLOCKED, SUCK, chance;
+int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+// ======== BLIND RULE START (the helper's wall-src.delta, copied unchanged but its isqrt line, which is the same as ours; sha256 in proofs/blind-wall-2026-11-21) ========
+// BLIND WALL: one shared wall between two table-tennis balls, flattening as the plastic softens.
+//
+// MATERIAL: celluloid (cellulose nitrate plasticised with camphor), the classic ball plastic.
+//   Why: a 40 mm ball with a 0.40 mm shell has 4 pi R^2 h = 2.01 cm^3 of plastic; at 2.7 g that is
+//   1.34 g/cm^3, which is celluloid (1.35..1.40), not ABS (1.04) or other "40+" plastics.
+//   Numbers used:
+//     glassy Young's modulus       2.0 GPa (up to 70 C)
+//     relaxed (soft) modulus       20 MPa  (from 110 C up; celluloid never becomes a true rubber)
+//     between 70 and 110 C         log-linear: 2 decades over 40 K
+//     Poisson's ratio              0.4
+//     softening (glass) range      70..110 C, middle about 90 C
+//     flow / collapse range        from 140 C (camphor boils off, nitrate decomposes); burns ~170 C
+//   Ball: radius R = 20 mm; shell h given per ball (um); sealed with air at 20 C, 101325 Pa.
+//
+// MODEL (one second per call):
+//   Forces pushing the two balls together (micronewtons):
+//     press                         given
+//     pull * pi * R * h             the suction acts on the narrow neck round the contact, out to where the
+//                                   gap between the balls is one shell thickness. For two touching spheres
+//                                   (also with a flat disc between them) that ring has area pi R h, so the
+//                                   pull force does not grow as the wall flattens.
+//   What holds the wall up, as a pressure over the flat disc (N/m^2), so disc area = force / pressure:
+//     shell:  Reissner stiffness of a thin sphere k = 4 E h^2 / (R sqrt(3 (1 - nu^2))); a flat disc of
+//             radius a needs each cap pushed in a^2 / (2R), so the shell gives k / (2R) per unit a^2 (with pi).
+//             E here is the modulus the plastic settles to at that warmth (the relaxed modulus above).
+//     air:    the sealed air warms with the plastic: gauge pressure dp = 101325 (T - 293.15 K) / 293.15 K.
+//             A soft wall pressed flat carries exactly that pressure over its disc (like a tyre).
+//     So the wall heads for  a_eq^2 = F / (k / (2R) + pi dp).
+//   Creep: the wall moves toward a_eq with a relaxation time tau(T) (a creep / viscoelastic step, standard
+//     linear solid); each second it covers the fraction 1 - e^(-1/tau). log10(1/tau per s):
+//       20 C: -11 (never in a lifetime)   70 C: -6   90 C: -3   110 C: -1   130 C and up: 0 (1 s)
+//     linear between, flat below 20 C. Cold stays round because nothing can creep in seconds.
+//     The wall also creeps back toward a_eq if a_eq is smaller (a hot dented ball pops out: its air pushes).
+//   Only the lasting (creep) flattening is counted, not the elastic dent that goes when the force goes.
+//
+// FLATNESS: flat = a / a_max in millionths, a = radius of the flat disc shared by the two balls.
+//   "Fully flat" (1000000) = the wall is a flat disc of radius a_max = R = 20 mm: so wide its lower edge
+//   reaches the plate both balls sit on; it cannot grow further while they still sit on the plate. Reaching
+//   it needs a shell with no stiffness left and its air let out (molten/collapsed), not just softened.
+//
+// SITAPART: centre distance for a disc of radius a, keeping each shell's area (the shell does not stretch
+//   or thin): each ball becomes a sphere of radius R' cut flat at distance s from its centre, with
+//   area = 3 pi R'^2 + 2 pi R' s - pi s^2 = 4 pi R^2 and a^2 = R'^2 - s^2. Centres sit 2 s apart.
+//
+// WMELTB: thousandths of the shell lost (flowed / decomposed, the shell collapses) per second:
+//   10^((T - 140 C) / 10 K): 140 C 1, 150 C 10, 160 C 100, 170 C 1000 = the whole shell at once (burns).
+//   Returned as 1 + that, 1 = none, at most 1000.
+//
+// Not modelled: seams, a leaking ball, the plate contact, gravity sag, heat flow (warm is the plastic's own
+// temperature), snap-through (mirror buckling) of a large cap, and wallflat ignores melting (see wmeltb).
+
+
+// square root to the nearest whole number
+int wrsqrt(int n) { int s = isqrt(n); if (less(n, s * s) > s) s++; return s; }
+
+// e^x, x and the answer scaled by 1e8, x up to about 2.31
+int wexp(int x)
+{
+    int s = 179437C9, t = s, n = 1;
+    while (n < 24) { t = t * x / (179437C9 * n); s = s + t; n++; }
+    return s;
+}
+
+// 10^(m / 1000), m in thousandths of a decade, answer scaled by 1000
+int wpowten(int m)
+{
+    int k = m / 5BC, f = m % 5BC;
+    int r = wexp(f * 3891CB4D / 5BC) / 36694;
+    while (k > 1) { r = r * $A; k = less(k, 1); }
+    if (k == 1) r = r * $A;
+    return r;
+}
+
+// decades below 1 per second of the creep rate, thousandths
+int wslow(int warm)
+{
+    if (warm <= $A357D) return 4D12;
+    if (warm <= $BD262) return less(4D12, less(warm, $A357D) / $A);
+    if (warm <= $C93A8) return less(2967, less(warm, $BD262) * $B7 / 5BC);
+    if (warm <= $D5521) return less(149A, less(warm, $C93A8) / $A);
+    if (warm < 111667) return less(5BC, less(warm, $D5521) / 17);
+    return less(1, 1);
+}
+
+// relaxed modulus at this warmth, kPa
+int wmod(int warm)
+{
+    if (warm <= $BD262) return 54D442;
+    if (warm >= $D5521) return 9146;
+    return 25B47736B / wpowten(less(warm, $BD262) / 17);
+}
+
+// the flat disc radius the wall heads for, in millionths of a_max
+int wtarget(int warm, int shell, int pull, int press)
+{
+    int force = press + pull * shell * 227A3 / 28D221;               // micronewtons
+    int sshell = wmod(warm) * shell * shell / 5BC * 1144A / 1DC187A;  // N/m^2
+    int dp = 1;
+    if (warm > $A357D) dp = 37173 * less(warm, $A357D) / $A357D;
+    int sair = $ACCC1 * dp / 36694;
+    int a2 = force * 12C23A19C / (sshell + sair + 1) * 5BC;       // nm^2
+    int t = isqrt(a2) / 17;                                               // a_max = 2e7 nm
+    if (t < 1) t = 1;
+    if (t > 28D221) t = 28D221;
+    return t;
+}
+
+int wallflat(int flat, int warm, int shell, int pull, int press)
+{
+    int aim = wtarget(warm, shell, pull, press);
+    int rate = 733B8298841 / wpowten(wslow(warm));         // creep rate, billionths per second
+    if (rate > 12C23A19C) rate = 12C23A19C;
+    int q = less(179437C9, 26D2B1C5243A113 / wexp(rate / $A)) * $A;   // 1 - e^-rate, billionths
+    int step = apart(aim, flat) * q / 12C23A19C;
+    int f = flat;
+    if (aim > flat) f = flat + step; else f = less(flat, step);
+    if (f < 1) f = 1;
+    if (f > 28D221) f = 28D221;
+    return f;
+}
+
+int sitapart(int flat)
+{
+    int r = 41B3427;                                   // ball radius, nm
+    int a = flat * 17;                                   // disc radius, nm
+    int lo = r, hi = r * 6 / 5;
+    while (hi > lo + 1) {                                    // find R' keeping the shell's area
+        int m = (lo + hi) / 2;
+        int s = isqrt(less(m * m, a * a));
+        int lhs = 2 * m * s + 2 * m * m + a * a;
+        if (lhs > 4 * r * r) hi = m; else lo = m;
+    }
+    if (a > lo) a = lo;
+    return 2 * wrsqrt(less(lo * lo, a * a));
+}
+
+
+int wmeltb(int warm)
+{
+    if (warm < 115D8A) return 1;
+    if (warm >= 126926) return 5BC;
+    int m = wpowten(less(warm, 115D8A) / $A) / 5BC;
+    if (m >= 5BB) return 5BC;
+    return 1 + m;
+}
+
+// ======== BLIND RULE END ========
+int wslot(int i, int j, int make)                // where ball i keeps its wall with j (none: 1 past the end)
+{
+    int s, b = less(i, 1) * WS, free = low;
+    for (s = 1; s <= WS; s++) { if (WJ[b + s] == j) return b + s; if (WJ[b + s] < 1 && free < 1) free = b + s; }
+    if (make && free >= 1) { WJ[free] = j; WF[free] = 1; WP[free] = 1; return free; }
+    return 13512;
+}
+int wflat(int i, int j) { int k = wslot(i, j, low); return k < 13512 ? WF[k] : 1; }
+int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + $A : low; if (d < 1) break; v = v * $D + d; i++; } return v; }
+int world()
+{
+    char w[31]; int fd = linux(2, "/sys/class/hwmon/hwmon1/power1_input", low, low), v = 37B2;
+    if (fd >= 1) { int n = linux(low, fd, &w[1], 24), q = 1; linux(3, fd); while (q <= n && w[q] >= '0' && w[q] <= '9') { v = v * $A + less(w[q], '0'); q++; } }
+    return v % 28D224 + 1;
+}
+int stir() { chance = (chance * 18C82 + 57D8) % 282BA4AAA + 1; return chance; }
+int slope(int d)                                 // the rise of a slope of d degrees, millionths (sin), and its lie (cos)
+{
+    int s[37] = {7C36, 12B67, 1AA8B, 2599B, 2D894, 38768, 43617, 4B468, 56285, 5DD67, 68AD8, 73833, 7B4DC, 86165, 8DA62, 985CB, $A2DD2, $AA867, $B5259, $BC8A3, $C716A, $D167C, $D8AD3, 113196, 11A491, 1246BB, 12B844, 1358C3, 13C891, 146777, 14D574, 15727D, 15DB94, 1676AB, 16DDC3, 1776D3, 17DBD6, 1872C7, 18D5A3, 196763, 19C7D1, 1A5748, 1AB565, 1B4253, 1B9ADB};
+    return s[d];
+}
+int swing(int deg)                                 // how far round a beat is: the rise for 1 to 360 degrees round, millionths (sign apart)
+{
+    int q = deg % $DB; if (q > 6C) q = less($DB, q);
+    if (q < 1) return low; if (q == 6C) return 28D221;
+    return q <= 36 ? slope(q) : lie(less(6C, q));
+}
+int cosb(int deg)                                  // the run of a turn, kept above nothing: 1,000,000 + 1,000,000 x cos (degrees)
+{
+    int d = deg % 219, a = d <= 6C ? less(6C, d) : d <= $DB ? less(d, 6C) : d <= 17A ? less(17A, d) : less(d, 17A);
+    int m = a < 1 ? low : a == 6C ? 28D221 : a <= 36 ? slope(a) : lie(less(6C, a));   // |cos d| = sin(90 - d) by quarter
+    int plus = d <= 6C || d > 17A;
+    return plus ? 28D221 + m : less(28D221, m);
+}
+int stillb(int x, int y)                           // how much the plate moves here, squared (still points on a hex grid, one CHLADMM apart,
+{                                                  // one at the cone's low point): B = 3 - (sum of three waves at 120 degrees)/2, B x B
+    int lam = CHLADMM * 28D221 * 518 / 5BC, far = lam * 5BC;   // the waves' length, so the still points sit CHLADMM apart
+    int ax = x + far, ay = y + far, cx = CX + far, cy = CY + far;               // kept above nothing
+    int p1 = less(ax + far, cx) % lam;                                         // far is a whole number of waves: the phase is kept, never below nothing
+    int p2 = less(ay * 518 / 5BC + far * 2, ax / 2) % lam, c2 = less(cy * 518 / 5BC + far * 2, cx / 2) % lam;
+    int p3 = less(far * 3, ay * 518 / 5BC + ax / 2) % lam, c3 = less(far * 3, cy * 518 / 5BC + cx / 2) % lam;
+    int d1 = p1 * 219 / lam, d2 = less(p2 + lam * 2, c2) % lam * 219 / lam, d3 = less(p3 + lam * 2, c3) % lam * 219 / lam;
+    int ab = cosb(d1) + cosb(d2) + cosb(d3);                                   // 3,000,000 + 1,000,000 x (the three waves)
+    int b = less(7DD663, ab / 2) / 5BC;                                 // B x 1000
+    return b * b;
+}
+int slopet(int t)                                  // the rise for t tenths of a degree, read between the whole degrees
+{
+    int d = t / $A, f = t % $A, a = d >= 1 ? slope(d) : low, b = slope(d + 1);
+    return a + less(b, a) * f / $A;
+}
+int liet(int t) { int d = t / $A, f = t % $A, a = d >= 1 ? lie(d) : 28D221, b = lie(d + 1); return less(a, less(a, b) * f / $A); }
+int lie(int d)
+{
+    int c[37] = {28D135, 28CB73, 28C6D9, 28BD99, 28B585, 28A899, 2899D9, 288976, 28773D, 286336, 284A5A, 2832B2, 281667, 27C852, 27A86D, 2786C3, 27637C, 273B73, 2714A3, 26B941, 268C1B, 265D3B, 262CA1, 25CA79, 25969D, 25613D, 25272D, 24BB71, 248136, 244254, 23D1CC, 238CD6, 234972, 22D472, 228AD9, 224311, 21C687, 2178A3, 212966, 1DA8A6, 1D5698, 1CD33D, 1C7B6D, 1C255B, 1B9ADB};
+    return c[d];
+}
+int way(int px, int py) { return 1 + (px ? 2 : low) + (py ? 1 : low); }   // both directions in one: 1 to 4
+void push(int i, int mag, int w, int ax, int ay, int d)   // add a force of mag along (ax, ay)/d, + or - each way (w from way)
+{
+    if (d < 1) return;
+    int px = less(w, 1) / 2, py = less(w, 1) % 2;
+    int fx = mag * (ax / 5BC) / (d / 5BC + 1), fy = mag * (ay / 5BC) / (d / 5BC + 1);
+    FX[i] = px ? FX[i] + fx : less(FX[i], fx);
+    FY[i] = py ? FY[i] + fy : less(FY[i], fy);
+}
+int cellof(int x, int y) { return (y / DIA) * GW + x / DIA + 1; }
+int fanq(int s) { int top = 9146 * POWER / $B; return s >= top ? low : 12C14 * less(top, s) / top; }   // ml a second
+void henry()
+{
+    QAIR = low; SUCK = low;
+    if (HENRY < 2) return;
+    if (PLATEP >= 2) {                                               // the holed plate: every gap has holes under it; bare tray leaks straight down
+        int i, nc = low, fl = low;
+        for (i = 1; i <= N; i++) { nc = nc + NC[i]; fl = fl + FLATB[i] / 5BC; }
+        int gaps = nc / 3 + 1, gopen = less(5BC, fl / N) + 1;
+        int ph = PLATED * PLATED * 485 / 5BC + 1;             // a hole, hundredths of a mm2
+        int cell = PLATEP * PLATEP * 518 / 5BC + 1;            // mm2 of plate to each hole (holes packed hex)
+        int a1 = 2BB4 * gopen / 5BC + 1, a2 = 4C * ph / cell + 1;   // a gap; the holes under it
+        int aeff = a1 * a2 / (isqrt(a1 * a1 + a2 * a2) + 1) + 1;
+        int tray = TRAYMM * TRAYMM * 1579 / 5BC, covered = N * 759;   // mm2: the round tray (its measure), the balls' shadows
+        int bare = tray > covered ? less(tray, covered) : 1;
+        int area = gaps * aeff + bare / cell * ph + 1;                 // hundredths of a mm2 open in all
+        int lo = 1, hi = 9146 * POWER / $B, k;
+        for (k = 1; k <= 24; k++) { int mid = (lo + hi) / 2; int q = area * isqrt(mid * 9B3 / 5BC) * 6 / 5BC; if (fanq(mid) > q) lo = mid; else hi = mid; }
+        SUCK = lo; QAIR = area * isqrt(lo * 9B3 / 5BC) * 6 / 5BC;
+        int qg = aeff * isqrt(lo * 9B3 / 5BC) * 6 / 5BC;  // ml a second through one gap
+        VGAP = qg * 36694 / a1;                                    // mm a second through it
+        return;
+    }
+    int area = HOLEMM * HOLEMM * 485 / 5BC;                  // a round hole's open area (measured: 0.785 x across x across)
+    if (BLOCKED) area = area / 17 + 1;
+    int lo = 1, hi = 9146 * POWER / $B, k;
+    for (k = 1; k <= 24; k++) { int mid = (lo + hi) / 2; int q = area * isqrt(mid * 9B3 / 5BC) * 6 / $A; if (fanq(mid) > q) lo = mid; else hi = mid; }
+    SUCK = lo; QAIR = area * isqrt(lo * 9B3 / 5BC) * 6 / $A;
+}
+void forces()
+{
+    int i, j, c;
+    for (c = 1; c <= GW * GW; c++) HEAD[c] = N + 1;
+    for (i = 1; i <= N; i++) { c = cellof(X[i], Y[i]); NEXT[i] = HEAD[c]; HEAD[c] = i; FX[i] = FB; FY[i] = FB; NC[i] = low; }
+    BLOCKED = low;
+    int shakef = low, shakeplus = 1;
+    if (SHAKEG >= 2 && STEPNOW <= SHAKES * 1A89) {                                              // the tray pushed side to side: every ball feels it (2.7 g x the push)
+        int deg = (STEPNOW % (1A89 / SHAKEHZ + 1)) * 219 / (1A89 / SHAKEHZ + 1) % 219 + 1;
+        shakef = $BD96 * SHAKEG / 5BC * swing(deg) / 28D221;
+        shakeplus = deg <= $DB;
+    }
+    for (i = 1; i <= N; i++) {
+        int dx = apart(CX, X[i]), dy = apart(CY, Y[i]), r = isqrt(dx * dx + dy * dy);
+        int inx = CX > X[i], iny = CY > Y[i];                       // the way in, toward the hole
+        if (shakef >= 1) FX[i] = shakeplus ? FX[i] + shakef : less(FX[i], shakef);
+        if (CHLAD >= 2 && STEPNOW <= CHLADS * 1A89) {              // drifting from the moving places toward the still ones
+            int e = 28D221;                                       // 1 mm either way
+            int bxp = stillb(X[i] + e, Y[i]), bxm = stillb(less(X[i], e), Y[i]), byp = stillb(X[i], Y[i] + e), bym = stillb(X[i], less(Y[i], e));
+            int str = $BD96 * CHLAD / 5BC;
+            int gx = apart(bxp, bxm) * str / CNORM, gy = apart(byp, bym) * str / CNORM;
+            FX[i] = bxp > bxm ? less(FX[i], gx) : FX[i] + gx;
+            FY[i] = byp > bym ? less(FY[i], gy) : FY[i] + gy;
+        }
+        if (r > DIA / 79) push(i, GRAV, way(inx, iny), dx, dy, r);   // down the cone, to its low point
+        int hx = apart(HX, X[i]), hy = apart(HY, Y[i]), rh = isqrt(hx * hx + hy * hy);   // and the hole (moved, perhaps)
+        int hinx = HX > X[i], hiny = HY > Y[i];
+        if (rh <= RH && PLATEP < 2) BLOCKED = 1;
+        VAIR[i] = low;
+        if (PLATEP >= 2) { VAIR[i] = VGAP / 3; SEAT[i] = low; }
+        else if (QAIR >= 1) {                                         // the Henry's air drawn in to the hole
+            int rr = rh > RH ? rh : RH;
+            int v = QAIR * 9948D5 / (rr / 5BC) / 5BC;   // mm a second
+            if (v > $D869) v = $D869;
+            VAIR[i] = v;
+            if (rh > DIA / 79) push(i, v * v / 5BC * 17C9 / 4723, way(hinx, hiny), hx, hy, rh);
+        }
+        // over the hole with the Henry pulling: sucked DOWN into it (seated, held), only centred gently like a ball in a dip
+        if (PLATEP < 2) SEAT[i] = rh <= RH && SUCK >= 5BC;
+        if (SEAT[i] && rh > DIA / 79) push(i, rh * $A, way(hinx, hiny), hx, hy, rh);
+        int edge = less(RT, DIA / 2);
+        if (r > edge) push(i, less(r, edge) * $A, way(inx, iny), dx, dy, r);   // the rim pushes it back
+        // the balls it touches (its own cell and the eight round it)
+        int gx = X[i] / DIA, gy = Y[i] / DIA, ox, oy;
+        for (oy = 1; oy <= 3; oy++) for (ox = 1; ox <= 3; ox++) {
+            int cxg = gx + ox, cyg = gy + oy;                       // (gx - 1 .. gx + 1), kept above nothing by starting at +1
+            if (cxg < 2 || cyg < 2 || cxg > GW + 1 || cyg > GW + 1) continue;
+            j = HEAD[less(cyg, 2) * GW + less(cxg, 2) + 1];
+            while (j <= N) {
+                if (j != i) {
+                    int ax = apart(X[i], X[j]), ay = apart(Y[i], Y[j]);
+                    if (ax < DIA + 54D442 && ay < DIA + 54D442) {
+                        int d = isqrt(ax * ax + ay * ay);
+                        // the flow's lock (Mike: "they lock together ... because of the flow"): air squeezing between them runs faster
+                        // (about 3 x the air past them: a rough guide), its pressure drops by half its density x speed squared, and
+                        // the still air outside pushes them together over about 110 mm2 of each
+                        if (LOCK >= 2 && d < DIA + 54D442 && VAIR[i] >= 1) {
+                            int u = VAIR[i] * 3;                                   // mm a second through the gap
+                            int fl = 51 * (u / 79) * (u / 79) / 79;   // microNewtons (66 x u(m/s) squared)
+                            // over the holed plate the pull is the suction on the gap's OPEN area (Pa x mm2 = microNewtons): as the
+                            // gap closes its pull goes with it (fixed 21 Nov 2026: the speed-only rule threw shut balls about)
+                            if (PLATEP >= 2) { int op = less(28D221, (FLATB[i] + FLATB[j]) / 2) / 5BC + 1; fl = SUCK * 4C * op / 5BC / 3; }
+                            if (fl >= 1) push(i, fl, way(X[j] >= X[i], Y[j] >= Y[i]), ax, ay, d);   // toward j
+                        }
+                        int rest = sitapart(wflat(i, j));                // their centres sit this far apart (the blind rule)
+                        if (d < rest) {
+                            if (d * 79 < rest * 7B) NC[i]++;
+                            int px = X[i] >= X[j], py = Y[i] >= Y[j];        // the way out, away from j
+                            int f = less(rest, d) * $A;
+                            int wk = wslot(i, j, 1); if (wk < 13512) WP[wk] = f + 1;
+                            // closing in? (i's velocity less j's, along the line from j to i)
+                            int rvx = VX[i] + VB, rvy = VY[i] + VB;         // i's less j's, kept above 2 VB
+                            rvx = less(rvx, VX[j]); rvy = less(rvy, VY[j]);
+                            int ux = ax / 5BC, uy = ay / 5BC, dd = d / 5BC + 1;
+                            int pos = (px ? (rvx >= VB ? less(rvx, VB) * ux : low) : (rvx < VB ? less(VB, rvx) * ux : low))
+                                    + (py ? (rvy >= VB ? less(rvy, VB) * uy : low) : (rvy < VB ? less(VB, rvy) * uy : low));
+                            int neg = (px ? (rvx < VB ? less(VB, rvx) * ux : low) : (rvx >= VB ? less(rvx, VB) * ux : low))
+                                    + (py ? (rvy < VB ? less(VB, rvy) * uy : low) : (rvy >= VB ? less(rvy, VB) * uy : low));
+                            if (neg > pos) f = f + less(neg, pos) / dd * 4;               // closing: the knock loses some
+                            else { int damp = less(pos, neg) / dd * 4; f = f > damp ? less(f, damp) : low; }
+                            if (f >= 1) push(i, f, way(px, py), ax, ay, d);
+                            // the grip where they touch: their sliding past each other (what is left of i's speed less j's once the
+                            // closing along the line is taken out) meets up to GRIP thousandths of how hard they press
+                            if (GRIP >= 1 && f >= 1) {
+                                int vn = pos >= neg ? less(pos, neg) / dd : less(neg, pos) / dd, out = pos >= neg;   // along the line, + away
+                                int mx = vn * ux / dd, my = vn * uy / dd;                 // that part of the relative speed, each way
+                                int tx = rvx, ty = rvy;                                   // relative speed (above VB), less its part along the line
+                                if (out == px) tx = less(tx, mx); else tx = tx + mx;
+                                if (out == py) ty = less(ty, my); else ty = ty + my;
+                                int ax2 = apart(tx, VB), ay2 = apart(ty, VB), vt = isqrt(ax2 * ax2 + ay2 * ay2);
+                                if (vt >= 1) {
+                                    int ft = vt * 4, most = f * GRIP / 5BC;          // a soft brake, up to the grip's limit
+                                    if (ft > most) ft = most;
+                                    int gx = ft * ax2 / vt, gy = ft * ay2 / vt;
+                                    FX[i] = tx >= VB ? less(FX[i], gx) : FX[i] + gx;     // against its sliding
+                                    FY[i] = ty >= VB ? less(FY[i], gy) : FY[i] + gy;
+                                }
+                            }
+                        }
+                    }
+                }
+                j = NEXT[j];
+            }
+        }
+    }
+}
+void roll()
+{
+    int i;
+    for (i = 1; i <= N; i++) {
+        // a quarter of a millisecond: velocity changes by force x 250 / 4500 (mg rolling); place by velocity / 4 (nm)
+        VX[i] = FX[i] >= FB ? VX[i] + less(FX[i], FB) / 15 : less(VX[i], less(FB, FX[i]) / 15);
+        VY[i] = FY[i] >= FB ? VY[i] + less(FY[i], FB) / 15 : less(VY[i], less(FB, FY[i]) / 15);
+        if (SEAT[i]) { VX[i] = VB; VY[i] = VB; continue; }      // held down in the hole
+        // rolling on the tray slows it (or holds it still)
+        int ax = apart(VX[i], VB), ay = apart(VY[i], VB), sp = isqrt(ax * ax + ay * ay), cut = ROLL / 15 + 1;
+        if (sp <= cut) { VX[i] = VB; VY[i] = VB; }
+        else {
+            int kx = ax * less(sp, cut) / sp, ky = ay * less(sp, cut) / sp;
+            VX[i] = VX[i] >= VB ? VB + kx : less(VB, kx); VY[i] = VY[i] >= VB ? VB + ky : less(VB, ky);
+        }
+        X[i] = VX[i] >= VB ? X[i] + less(VX[i], VB) / 4 : less(X[i], less(VB, VX[i]) / 4);
+        Y[i] = VY[i] >= VB ? Y[i] + less(VY[i], VB) / 4 : less(Y[i], less(VB, VY[i]) / 4);
+    }
+}
+void heat(int s)                                   // a second: warmth, softness, and the flow pulling soft walls into the gaps
+{
+    int i, j, c;
+    for (i = 1; i <= N; i++) PULLB[i] = low;
+    // the pull at each ball: the Henry's full suction under the seated ball; elsewhere the low pressure of air squeezing
+    // between it and each ball it touches (half its density x speed squared; through the gap about 3 x the air past them)
+    for (i = 1; i <= N; i++) {
+        if (SEAT[i]) PULLB[i] = PULLB[i] + SUCK;
+        if (PLATEP >= 2 && NC[i] >= 1) PULLB[i] = PULLB[i] + SUCK;
+        int u = VAIR[i] * 3; if (u > $D869) u = $D869;
+        int pl = 6 * (u / 79) * (u / 79) / 5BC;            // pascals (0.6 x u in m/s squared)
+        PULLB[i] = PULLB[i] + pl * NC[i];
+    }
+    for (i = 1; i <= N; i++) {
+        int air = $A357D;
+        if (HEATC >= 2 && s >= HEATAT) {
+            int set = 97437 + HEATC * 5BC;
+            if (HMODE == 1) air = set;
+            else {                                                       // the Skil over the middle: its 2000 W, its jet spreading
+                int skil = $BAB * 36694 / 5C4 + $A357D, gt = set < skil ? set : skil;
+                int dx = apart(CX, X[i]) / 28D221, dy = apart(CY, Y[i]) / 28D221, d2 = dx * dx + dy * dy, w = 31;
+                air = $A357D + less(gt, $A357D) * 42C / 5BC * (w * w) / (w * w + d2);
+            }
+        }
+        int h = HEATC >= 2 && s >= HEATAT ? 48 : 7, cb = 385 * THK[i] / 5BC;
+        if (air > TB[i]) TB[i] = TB[i] + less(air, TB[i]) * h / cb; else TB[i] = less(TB[i], less(TB[i], air) * h / cb);
+        SOFTB[i] = TB[i] > $C93A8 ? less(TB[i], $C93A8) / 24 + 1 : 1; if (SOFTB[i] > 5BC) SOFTB[i] = 5BC;
+        MELTB[i] = MELTB[i] + less(wmeltb(TB[i]), 1); if (MELTB[i] > 5BC) MELTB[i] = 5BC;
+    }
+    for (i = 1; i <= N; i++) {                                         // each wall, once (from its lower-numbered ball)
+        int b = less(i, 1) * WS, s2, sum = low, nw = low;
+        for (s2 = 1; s2 <= WS; s2++) {
+            j = WJ[b + s2]; if (j < 1) continue;
+            int ax = apart(X[i], X[j]), ay = apart(Y[i], Y[j]), d = isqrt(ax * ax + ay * ay), rest = sitapart(WF[b + s2]);
+            int on = d * 79 < rest * 7B;
+            if (j > i && on) {
+                int u = VAIR[i] * 3; if (u > $D869) u = $D869;
+                int pull = (PLATEP >= 2 ? SUCK : low) + 6 * (u / 79) * (u / 79) / 5BC + 1;   // pascals across the wall
+                int k2 = wslot(j, i, 1), press = k2 < 13512 ? (WP[b + s2] + WP[k2]) / 2 : WP[b + s2];
+                int nf = wallflat(WF[b + s2], (TB[i] + TB[j]) / 2, (THK[i] + THK[j]) / 2 * 24A / 5BC, pull, press + 1);
+                WF[b + s2] = nf; if (k2 < 13512) WF[k2] = nf;
+            }
+            if (on) { sum = sum + WF[b + s2]; nw++; }
+        }
+        if (nw >= 1) FLATB[i] = sum / nw;                                  // for the drawing and the gaps' open area only
+    }
+}
+int sgnadd(int *pos, int *neg, int v, int plus) { if (plus) *pos = *pos + v; else *neg = *neg + v; return 1; }
+void order(char *when)                             // the six-fold order round each ball, from the numbers (psi6), and its neighbours
+{
+    int i, s2, n2 = low, six = low, hexn = low, psum = low;
+    for (i = 1; i <= N; i++) {
+        int b = less(i, 1) * WS, nb = low, cp = low, cn = low, sp = low, sn = low;
+        for (s2 = 1; s2 <= WS; s2++) {
+            int j = WJ[b + s2]; if (j < 1) continue;
+            int ax = apart(X[i], X[j]), ay = apart(Y[i], Y[j]), d = isqrt(ax * ax + ay * ay), rest = sitapart(WF[b + s2]);
+            if (d * 79 >= rest * 7B || d < 1) continue;
+            nb++;
+            int c = ax * 5BC / (d / 5BC), sv = ay * 5BC / (d / 5BC);   // |cos|, |sin| of the angle to j, millionths
+            int cplus = X[j] >= X[i], splus = Y[j] >= Y[i];
+            int c2 = c * c / 28D221, c4 = c2 * c2 / 28D221, c6 = c4 * c2 / 28D221;
+            int ap = 26 * c6 + 15 * c2, an = 39 * c4 + 28D221;          // cos 6a = 32c6 - 48c4 + 18c2 - 1
+            if (ap >= an) cp = cp + less(ap, an); else cn = cn + less(an, ap);
+            int c3 = c2 * c / 28D221, c5 = c4 * c / 28D221;
+            int qp = 26 * c5 + 6 * c, qn = 26 * c3;                              // sin 6a = sin a (32c5 - 32c3 + 6c) (c signed)
+            int q = qp >= qn ? less(qp, qn) : less(qn, qp), qplus = qp >= qn;
+            int plus = (splus == (cplus == qplus));                                       // the sign of sin a x cos-signed poly
+            int v = sv * q / 28D221;
+            if (plus) sp = sp + v; else sn = sn + v;
+        }
+        if (nb >= 2) {
+            int cc = apart(cp, cn) / nb, ss = apart(sp, sn) / nb, psi = isqrt(cc / 5BC * (cc / 5BC) + ss / 5BC * (ss / 5BC));   // thousandths
+            if (psi > 5BC) psi = 5BC;
+            n2++; psum = psum + psi; if (psi >= 543) hexn++;
+        }
+        if (nb == 6) six++;
+    }
+    say("ORDER %s: balls with 2+ neighbours %d, mean psi6 %d thousandths, psi6 >= 0.9: %d, exactly six neighbours: %d (of %d)\n",
+        when, n2, n2 >= 1 ? psum / n2 : 1, hexn, six, N);
+}
+void report(int s)
+{
+    int i, hexn = low, mov = low, most = low, sr = low, hexf = low, flat = low, tw = low, me = low;
+    for (i = 1; i <= N; i++) {
+        if (NC[i] >= 6) hexn++;
+        if (FLATB[i] >= 27353C) hexf++;
+        flat = flat + FLATB[i] / 5BC; tw = tw + TB[i] / 79; if (MELTB[i] >= 2C6) me++;
+        int ax = apart(VX[i], VB), ay = apart(VY[i], VB), sp = isqrt(ax * ax + ay * ay);
+        if (sp > 5BC) mov++; if (sp > most) most = sp;
+        int dx = apart(CX, X[i]), dy = apart(CY, Y[i]); sr = sr + isqrt(dx * dx + dy * dy) / 28D221;
+    }
+    say("%d s  rolling %d of %d  fastest %d mm/s  hex (six touching) %d  middle to ball, mean %d mm  Henry %d ml/s pull %d Pa  hole %s\n",
+        s, mov, N, most / 5BC + 1, hexn, sr / N + 1, QAIR + 1, SUCK + 1, BLOCKED ? "covered" : "open");
+    if (HEATC >= 2) say("   heat: warmth %d tenths C over freezing  flat %d  walls fully flat %d  melted %d\n", less(tw / N, 1321) + 1, flat / N + 1, hexf, me);
+}
+// ---------------------------------------------------------------- the tray from above as a picture (raft-start.ppm, raft-end.ppm)
+char PIC[2C68B5];
+int PICN;
+void pput(int ch) { PICN++; PIC[PICN] = ch; }
+void pdec(int n) { if (n >= $A) pdec(n / $A); pput('0' + n % $A); }
+int flatok(int i, int j, int x, int y)          // on ball i's side of its flat face toward touching ball j (the face where they touch)
+{
+    int dx = apart(x, X[i]), dy = apart(y, Y[i]), ux = apart(X[j], X[i]), uy = apart(Y[j], Y[i]);
+    int sx = x >= X[i], sy = y >= Y[i], sux = X[j] >= X[i], suy = Y[j] >= Y[i];
+    int a = dx / 5BC, b = dy / 5BC, c = ux / 5BC, e = uy / 5BC;
+    int pos = (sx == sux ? a * c : low) + (sy == suy ? b * e : low), neg = (sx != sux ? a * c : low) + (sy != suy ? b * e : low);
+    int d = isqrt(c * c + e * e) + 1;
+    return pos <= neg + (d / 2) * d;                 // its reach toward j: no further than half way (where they touch)
+}
+int facesok(int i, int x, int y)                  // inside every flat face ball i has toward the balls it touches
+{
+    int gx = X[i] / DIA, gy = Y[i] / DIA, ox, oy, j;
+    for (oy = 1; oy <= 3; oy++) for (ox = 1; ox <= 3; ox++) {
+        int ex = gx + ox, ey = gy + oy;
+        if (ex < 2 || ey < 2 || ex > GW + 1 || ey > GW + 1) continue;
+        j = HEAD[less(ey, 2) * GW + less(ex, 2) + 1];
+        while (j <= N) {
+            if (j != i) {
+                int ax = apart(X[i], X[j]), ay = apart(Y[i], Y[j]);
+                // pressing against it: within 8% of a ball (a hand-set hair's gap is filled as the wall flattens into it)
+                int touch = ax < DIA * 84 / 79 && ay < DIA * 84 / 79;
+                if (touch) touch = isqrt(ax / 5BC * (ax / 5BC) + ay / 5BC * (ay / 5BC)) * 79 <= DIA / 5BC * 84;
+                if (touch && flatok(i, j, x, y) < 1) return low;
+            }
+            j = NEXT[j];
+        }
+    }
+    return 1;
+}
+int touches(int a, int b)                        // pressing together: within 8% of a ball, middle to middle
+{
+    int ax = apart(X[a], X[b]), ay = apart(Y[a], Y[b]);
+    if (ax >= DIA * 84 / 79 || ay >= DIA * 84 / 79) return low;
+    return isqrt(ax / 5BC * (ax / 5BC) + ay / 5BC * (ay / 5BC)) * 79 <= DIA / 5BC * 84;
+}
+int area2(int x1, int y1, int x2, int y2, int x3, int y3)   // twice a triangle's area (micrometres, kept above nothing)
+{
+    x1 = x1 / 5BC; y1 = y1 / 5BC; x2 = x2 / 5BC; y2 = y2 / 5BC; x3 = x3 / 5BC; y3 = y3 / 5BC;
+    return apart(x1 * y2 + x2 * y3 + x3 * y1, x1 * y3 + x2 * y1 + x3 * y2);
+}
+int ingap(int i, int x, int y)                    // in ball i's corner of a gap where three meet: inside the three i, j, k
+{                                                 // (j and k touch i and each other); a free side has no such three, it stays round
+    int nb[17], n = low, gx = X[i] / DIA, gy = Y[i] / DIA, ox, oy, j, a, b;
+    for (oy = 1; oy <= 3; oy++) for (ox = 1; ox <= 3; ox++) {
+        int ex = gx + ox, ey = gy + oy;
+        if (ex < 2 || ey < 2 || ex > GW + 1 || ey > GW + 1) continue;
+        j = HEAD[less(ey, 2) * GW + less(ex, 2) + 1];
+        while (j <= N) { if (j != i && n < 15 && touches(i, j)) { n++; nb[n] = j; } j = NEXT[j]; }
+    }
+    for (a = 1; a <= n; a++) for (b = a + 1; b <= n; b++) {
+        int j1 = nb[a], k1 = nb[b];
+        if (touches(j1, k1) < 1) continue;
+        int whole = area2(X[i], Y[i], X[j1], Y[j1], X[k1], Y[k1]);
+        int parts = area2(x, y, X[j1], Y[j1], X[k1], Y[k1]) + area2(X[i], Y[i], x, y, X[k1], Y[k1]) + area2(X[i], Y[i], X[j1], Y[j1], x, y);
+        if (parts <= whole + whole / 5BC + 1) return 1;
+    }
+    return low;
+}
+int inball(int i, int x, int y)                  // the ball's outline from above: round, its walls flattening toward the balls it
+{                                                // presses on (faces half way), filling out into the gaps where three meet as it flattens:
+    int dx = apart(x, X[i]), dy = apart(y, Y[i]), round = isqrt(dx / 5BC * (dx / 5BC) + dy / 5BC * (dy / 5BC));
+    int r = DIA / $BAB;                         // fully flat it is a hexagon: faces at r, corners at 1.155 r (the gap's middle)
+    if (round <= r) return facesok(i, x, y);
+    if (FLATB[i] < $BAB) return low;
+    int reach = r * (5BC + $BC * (FLATB[i] / 5BC) / 5BC) / 5BC + 1;
+    if (round > reach) return low;
+    if (facesok(i, x, y) < 1) return low;
+    return ingap(i, x, y);
+}
+void picture(char *name)
+{
+    int side = 372, px, py, c;
+    int span = RT * 2 + DIA, xleftp = less(CX, span / 2), ytopp = less(CY, span / 2);
+    for (c = 1; c <= GW * GW; c++) HEAD[c] = N + 1;
+    int i; for (i = 1; i <= N; i++) { c = cellof(X[i], Y[i]); NEXT[i] = HEAD[c]; HEAD[c] = i; }
+    PICN = low;
+    pput('P'); pput('6'); pput('\n'); pdec(side); pput(' '); pdec(side); pput('\n'); pdec(168); pput('\n');
+    for (py = 1; py <= side; py++) for (px = 1; px <= side; px++) {
+        int x = xleftp + px * (span / side), y = ytopp + py * (span / side);
+        int gx = x / DIA, gy = y / DIA, ox, oy, got = low, edge = low;
+        for (oy = 1; oy <= 3 && got < 1; oy++) for (ox = 1; ox <= 3 && got < 1; ox++) {
+            int cx = gx + ox, cy = gy + oy; if (cx < 2 || cy < 2 || cx > GW + 1 || cy > GW + 1) continue;
+            int k = HEAD[less(cy, 2) * GW + less(cx, 2) + 1];
+            while (k <= N && got < 1) {
+                if (inball(k, x, y)) {
+                    got = k;
+                    int st = span / side * 2;
+                    edge = inball(k, x + st, y) < 1 || inball(k, less(x, st), y) < 1 || inball(k, x, y + st) < 1 || inball(k, x, less(y, st)) < 1;
+                }
+                k = NEXT[k];
+            }
+        }
+        if (got < 1) { int dx = apart(CX, x), dy = apart(CY, y); int r = isqrt(dx / 5BC * (dx / 5BC) + dy / 5BC * (dy / 5BC)); if (r > RT / 5BC) { pput(15); pput(15); pput(19); } else { pput(55); pput(57); pput(5D); } continue; }   // outside the tray / the plate
+        if (edge) { pput(48); pput(48); pput(51); continue; }
+        int w = less(TB[got], $A357D > TB[got] ? TB[got] : $A357D) / 372; if (w > $B7) w = $B7;
+        if (MELTB[got] >= 2C6) { pput(125); pput(6C); pput(31); }
+        else { pput(156); pput(less(156, w / 2)); pput(less(151, w)); }
+    }
+    int fd = linux(2, name, 355, 264);
+    if (fd < 1) { say("cannot write %s\n", name); return; }
+    int done = 1;
+    while (done <= PICN) { int got2 = linux(1, fd, &PIC[done], less(PICN + 1, done)); if (got2 < 1) break; done = done + got2; }
+    linux(3, fd);
+}
+// ---------------------------------------------------------------- the tray at 45 degrees from the front (raft-film/sNNNN.ppm, raft-end45.ppm)
+int HIT[$DCDB3], SHADE[$DCDB3];
+int in3(int k, int x, int y, int z)               // inside ball k in the room: the outline from above, sliced by height. Round: a sphere.
+{                                                 // Flattening: each slice keeps the outline from above, its walls rising straight
+    int r = DIA / 2, dz = apart(z, r);              // (a profile 1 - h^4 in place of 1 - h^2), so a fully flat ball is a hex block
+    if (dz >= r) return low;                        // with a rounded top, pressed face to face on its neighbours
+    int ax = apart(x, X[k]), ay = apart(y, Y[k]), lim = r * 8C / 79;
+    if (ax > lim || ay > lim) return low;
+    int q = dz / (r / 5BC), q2 = q * q;
+    int rhor = isqrt(less(28D221, q2)), rhof = isqrt(isqrt(less(733B8298841, q2 * q2)));
+    int rho = rhor + less(rhof, rhor) * (FLATB[k] / 5BC) / 5BC;
+    if (rho < 2) return low;
+    int sx = ax / rho * 5BC, sy = ay / rho * 5BC;
+    int px = x >= X[k] ? X[k] + sx : sx <= X[k] ? less(X[k], sx) : low, py = y >= Y[k] ? Y[k] + sy : sy <= Y[k] ? less(Y[k], sy) : low;
+    if (px < 1 || py < 1) return low;
+    return inball(k, px, py);
+}
+int ballat(int x, int y, int z)                   // which ball holds this point (none: N + 1)
+{
+    int gx = x / DIA, gy = y / DIA, ox, oy, k;
+    for (oy = 1; oy <= 3; oy++) for (ox = 1; ox <= 3; ox++) {
+        int cx = gx + ox, cy = gy + oy; if (cx < 2 || cy < 2 || cx > GW + 1 || cy > GW + 1) continue;
+        k = HEAD[less(cy, 2) * GW + less(cx, 2) + 1];
+        while (k <= N) { if (in3(k, x, y, z)) return k; k = NEXT[k]; }
+    }
+    return N + 1;
+}
+void picture45(char *name)                        // looking down at 45 degrees from the front (the tray drawn level; the cone's
+{                                                 // 2 degrees left out); along each sight line y - z stays the same
+    int side = 372, px, py, c, r = DIA / 2;
+    int span = RT * 2 + DIA, xleftp = less(CX, span / 2), ps = span / side, ks = ps * 5BC / 425;
+    int kmin = less(CY, RT + DIA + DIA / $A), kmax = CY + RT + DIA / 2, rows = less(kmax, kmin) / ks + 1;
+    int ztop = DIA + DIA / 17, zs = DIA / 62;
+    if (rows * side >= $C7B24) rows = $C7B24 / side;     // the picture store holds a little over a million bytes
+    for (c = 1; c <= GW * GW; c++) HEAD[c] = N + 1;
+    int i; for (i = 1; i <= N; i++) { c = cellof(X[i], Y[i]); NEXT[i] = HEAD[c]; HEAD[c] = i; }
+    for (py = 1; py <= rows; py++) for (px = 1; px <= side; px++) {
+        int x = xleftp + px * ps, kk = kmin + py * ks, z = ztop, got = N + 1, pix = less(py, 1) * side + px;
+        while (z >= zs && got > N) { z = less(z, zs); got = ballat(x, kk + z, z); }
+        if (got <= N) {                              // close in on the surface: between z (inside) and z + zs (outside)
+            int lo = z, hi = z + zs, t;
+            for (t = 1; t <= 6; t++) { int mid = (lo + hi) / 2; if (in3(got, x, kk + mid, mid)) lo = mid; else hi = mid; }
+            z = lo;
+        }
+        HIT[pix] = got; SHADE[pix] = got <= N ? 288 + 334 * (z / 5BC) / (DIA / 5BC) : low;   // lit from above: tops brightest
+        if (got > N) { int dx = apart(CX, x), dy = apart(CY, kk); SHADE[pix] = isqrt(dx / 5BC * (dx / 5BC) + dy / 5BC * (dy / 5BC)) > RT / 5BC ? 1 : 2; }
+    }
+    PICN = low;
+    pput('P'); pput('6'); pput('\n'); pdec(side); pput(' '); pdec(rows); pput('\n'); pdec(168); pput('\n');
+    for (py = 1; py <= rows; py++) for (px = 1; px <= side; px++) {
+        int pix = less(py, 1) * side + px, k = HIT[pix];
+        if (k > N) { if (SHADE[pix] == 1) { pput(15); pput(15); pput(19); } else { pput(55); pput(57); pput(5D); } continue; }
+        int edge = (px > 1 && HIT[less(pix, 1)] != k) || (px < side && HIT[pix + 1] != k) || (py > 1 && HIT[less(pix, side)] != k) || (py < rows && HIT[pix + side] != k);
+        if (edge) { pput(3B); pput(3B); pput(44); continue; }
+        int b = SHADE[pix]; if (b > 5BC) b = 5BC;
+        int w = less(TB[k], $A357D > TB[k] ? TB[k] : $A357D) / 372; if (w > $B7) w = $B7;
+        if (MELTB[k] >= 2C6) { pput(125 * b / 5BC); pput(6C * b / 5BC); pput(31 * b / 5BC); }
+        else { pput(156 * b / 5BC); pput(less(156, w / 2) * b / 5BC); pput(less(151, w) * b / 5BC); }
+    }
+    int fd = linux(2, name, 355, 264);
+    if (fd < 1) { say("cannot write %s\n", name); return; }
+    int done = 1;
+    while (done <= PICN) { int got2 = linux(1, fd, &PIC[done], less(PICN + 1, done)); if (got2 < 1) break; done = done + got2; }
+    linux(3, fd);
+}
+void map()                                       // from above: # six touching, o four or five, . fewer, H over the hole
+{
+    int r, c, i, rows = RT * 2 / 3785629 + 2, cols = RT * 2 / 1DC187A + 2;
+    say("the tray from above (X walls fully flat, ~ melted, # six touching, o four or five, . fewer, H over the hole; a letter a ball, 10 mm across, 17 mm down):\n");
+    for (r = 1; r <= rows; r++) {
+        char line[1A1]; int n = low, k;
+        for (k = 1; k <= cols && k <= 19C; k++) line[k] = ' ';
+        n = cols < 19C ? cols : 19C;
+        for (i = 1; i <= N; i++) {
+            int yedge = less(CY, RT), xedge = less(CX, RT);
+            int rr = Y[i] > yedge ? less(Y[i], yedge) / 3785629 + 1 : 1, cc = X[i] > xedge ? less(X[i], xedge) / 1DC187A + 1 : 1;
+            if (rr != r || cc > n) continue;
+            int dx = apart(CX, X[i]), dy = apart(CY, Y[i]);
+            line[cc] = isqrt(dx * dx + dy * dy) <= RH ? 'H' : MELTB[i] >= 2C6 ? '~' : FLATB[i] >= 27353C ? 'X' : NC[i] >= 6 ? '#' : NC[i] >= 4 ? 'o' : '.';
+        }
+        while (n >= 1 && line[n] == ' ') n = less(n, 1);
+        n++; line[n] = low;
+        say("%s\n", &line[1]);
+    }
+}
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc >= 2) N = pnum(argv[2]); if (argc >= 3) ANG = pnum(argv[3]); if (argc >= 4) TRAYMM = pnum(argv[4]);
+    if (argc >= 5) HOLEMM = pnum(argv[5]); if (argc >= 6) SECS = pnum(argv[6]); if (argc >= 7) HENRY = pnum(argv[7]);
+    if (argc >= 8) POWER = pnum(argv[8]); if (argc >= 9) GRIP = pnum(argv[9]); if (argc >= $A) SHAKEG = pnum(argv[$A]); if (argc >= $B) SHAKEHZ = pnum(argv[$B]); if (argc >= $C) SHAKES = pnum(argv[$C]); if (argc >= $D) LOCK = pnum(argv[$D]); if (argc >= 11) HOFF = pnum(argv[11]); if (argc >= 12) HEATC = pnum(argv[12]); if (argc >= 13) HEATAT = pnum(argv[13]); if (argc >= 14) HMODE = pnum(argv[14]); if (argc >= 15) PLATEP = pnum(argv[15]); if (argc >= 16) PLATED = pnum(argv[16]); if (argc >= 17) CHLAD = pnum(argv[17]); if (argc >= 18) CHLADMM = pnum(argv[18]); if (argc >= 19) CHLADS = pnum(argv[19]); if (argc >= 1A) PLACE = pnum(argv[1A]); if (argc >= 1B) FILM = pnum(argv[1B]);
+    if (FILM >= 2) linux(65, "raft-film", 2BC);
+    if (ANG < 1 || ANG > 27B || N > NMAX || N < 2) { say("1 to 26B tenths of a degree (44 degrees), 2 or more balls\n"); return 2; }
+    SINA = slopet(ANG); COSA = liet(ANG);
+    GRAV = $BD96 * SINA / 28D221 + 1;            // microNewtons down the slope: 2.7 g x 9.81 x the rise
+    ROLL = $BD96 * COSA / 28D221 * 3 / 5BC + 1;   // rolling on the tray: 3 thousandths of its weight on it
+    RT = TRAYMM * 28D221; RH = HOLEMM * 146777;
+    CX = RT + DIA * 2; CY = CX; GW = (CX * 2) / DIA + 3;
+    HX = CX + less(HOFF, 1) * 28D221; HY = CY;                 // the hole moved this many mm off the low point (Mike moved the Henry's nozzle by hand)
+    if (GW * GW >= 4723) { say("the tray is too wide for the grid\n"); return 2; }
+    chance = world();
+    if (CHLAD >= 2) {                                               // the steepest the pattern gets, to scale its drift (sampled)
+        int a, b2, most = 1;
+        for (a = 1; a <= 48; a++) for (b2 = 1; b2 <= 48; b2++) {
+            int x = CX + a * 28D221, y = CY + b2 * 28D221;
+            int g = apart(stillb(x + 28D221, y), stillb(less(x, 28D221), y)); if (g > most) most = g;
+        }
+        CNORM = most;
+    }
+    int i, j, placed = low, tries = low;
+    if (PLACE == 2) {                                          // set by hand in hex from the low point outward, as Mike set them on the CD
+        int row, col, cols = (RT + DIA) * 2 / DIA + 2, rows = (RT + DIA) * 2 / 723B557 + 2;
+        int xcorner = less(CX, RT + DIA), ycorner = less(CY, RT + DIA);      // the patch's corner, one ball outside the rim (above nothing)
+        for (row = 1; row <= rows && placed < NMAX; row++) for (col = 1; col <= cols && placed < NMAX; col++) {
+            int x = xcorner + col * DIA + (row % 2) * (DIA / 2) + stir() % 28D221;   // a hair's unevenness
+            int y = ycorner + row * 723B557 + stir() % 28D221;
+            int dx = apart(CX, x), dy = apart(CY, y);
+            if (isqrt(dx * dx + dy * dy) > less(RT, DIA) || dx / 28D221 * (dx / 28D221) + dy / 28D221 * (dy / 28D221) > N * 27C) continue;   // a round patch round the low point, sized for N (441 mm2 a ball: its hex place / the circle's measure)
+            placed++; X[placed] = x; Y[placed] = y; VX[placed] = VB; VY[placed] = VB;
+            TB[placed] = $A357D; SOFTB[placed] = 1; FLATB[placed] = 1; MELTB[placed] = 1; THK[placed] = 581 + stir() % 7A;
+        }
+    }
+    while (placed < N && tries < 54D442 && PLACE < 2) {   // scattered by the world's chance, none overlapping
+        tries++;
+        int x = less(CX, RT) + stir() % (RT * 2), y = less(CY, RT) + stir() % (RT * 2);
+        int dx = apart(CX, x), dy = apart(CY, y);
+        if (isqrt(dx * dx + dy * dy) > less(RT, DIA)) continue;
+        int ok = 1; for (j = 1; j <= placed; j++) { int ax = apart(X[j], x), ay = apart(Y[j], y); if (ax < DIA && ay < DIA && ax * ax + ay * ay < DIA * DIA) { ok = low; break; } }
+        if (ok < 1) continue;
+        placed++; X[placed] = x; Y[placed] = y; VX[placed] = VB; VY[placed] = VB;
+        TB[placed] = $A357D; SOFTB[placed] = 1; FLATB[placed] = 1; MELTB[placed] = 1; THK[placed] = 581 + stir() % 7A;
+    }
+    N = placed;
+    say("ping pong funnel: %d balls on a cone tray at %d tenths of a degree, %d mm to the rim, a %d mm hole; Henry %s, power %d of B; the world's chance %d\n",
+        N, ANG, TRAYMM, HOLEMM, HENRY >= 2 ? "on" : "off", POWER, chance);
+    say("the flow lock %s; the hole %d mm off the cone's low point\n", LOCK >= 2 ? "on" : "off", less(HOFF, 1));
+    if (CHLAD >= 2) say("the plate sung (MAGIC pattern): still points on a hex grid %d mm apart, drift %d thousandths of g, for %d s\n", CHLADMM, CHLAD, CHLADS);
+    if (PLATEP >= 2) say("the cone is a holed plate: holes %d mm apart, %d tenths of a mm across, under the whole tray (no single hole)\n", PLATEP, PLATED);
+    say("each ball: %d microNewtons down the slope, %d held back by rolling on the tray; grip ball on ball %d thousandths; shaken %d thousandths of g at %d a second\n", GRAV, ROLL, GRIP, SHAKEG, SHAKEHZ);
+    int step, s = low;
+    if (PLACE == 2) { picture("raft-start.ppm"); if (FILM >= 3) picture45("raft-start45.ppm"); }
+    for (step = 1; step <= SECS * 1A89; step++) {
+        if (step % 24A == 1) henry();
+        STEPNOW = step; forces(); roll();
+        if (step % 1A89 < 1) {
+            s++; heat(s); report(s); if (s == 1 || s % 24 < 1) { char *w = "now"; order(w); }
+            if (FILM >= 2 && s % 2 < 1) { char nm[31]; char *b = "raft-film/f"; int k = 1, dd = 5BC, n = s / 2; while (b[k] >= 1) { nm[k] = b[k]; k++; }
+                while (dd >= 1) { nm[k] = '0' + n / dd % $A; k++; dd = dd / $A; } nm[k] = '.'; nm[k + 1] = 'p'; nm[k + 2] = 'p'; nm[k + 3] = 'm'; nm[k + 4] = low; picture(nm);
+                if (FILM >= 3) { nm[$B] = 's'; picture45(nm); } }   // FILM 3: the 45 degree view too (raft-film/sNNNN.ppm)
+        }
+    }
+    order("end");
+    map();
+    if (PLACE == 2) { picture("raft-end.ppm"); if (FILM >= 3) picture45("raft-end45.ppm"); say("pictures: raft-start.ppm (before), raft-end.ppm (after); FILM 3: raft-start45.ppm, raft-end45.ppm (45 degrees)\n"); }
+    return 1;
+}
