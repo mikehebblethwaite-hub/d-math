@@ -136,3 +136,11 @@ Last daily review: 20 Nov 2026 00:15 (the second).
   a run where things move after they should have settled is a fail to look for (the timeline shows "rolling").
 Also this morning, caught by Delta at build (zero-free names: u60, u120, x0, y0, x0b; a take-away; 7 inputs; reserved words
 mix, move): each a crash avoided before it ran.
+
+## 21 Nov 2026 10:10 UK: lightmass "honeycomb" was the cut-off, not the light
+- What: I said (site, Made, commit) the bright points from three-sided light sit in a honeycomb (3 nearest, 6 at root 3).
+- Cause: bright points were only counted at half the brightest or more; one point in three is a little dimmer (the three sides'
+  light not quite equal), so a third of a six-round-one lattice was left out, which IS a honeycomb.
+- Found: writing the old-maths translation (three equal waves give six round one, two thirds of a wave apart = 18.1 cells).
+- Fix: CUT input (4th); at 24% and 20% every middle point has six round it (17.3-18.2 cells). Site corrected, said plainly.
+- Lesson: before naming a pattern, vary the cut-off that picks the points; and check against the old maths' prediction.

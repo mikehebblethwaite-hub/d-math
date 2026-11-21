@@ -14,7 +14,7 @@
 #define RH 6C
 #define W 112
 #define LEVEL 12C23A19C
-int low, K = 3, PER, STIFF = 41B, STEPS;
+int low, K = 3, PER, STIFF = 41B, STEPS, CUT = 3B;   // CUT: a bright point is at least CUT hundredths of the brightest
 int H[12625], V[12625], EN[12625], PK[12625], PV[12625], DRV[7];
 int BQ[1A89], BR[1A89], NBR, DQ[1A89], DR[1A89], DW[1A89], NDK, emax;
 int ix(int q, int r) { return less(r, 1) * W + q; }                      // q, r from 2: the axial place, kept above nothing (RH + 2 = middle)
@@ -113,7 +113,7 @@ void measure()
     for (r = 2; r <= 2 * RH + 2; r++) for (q = 2; q <= 2 * RH + 2; q++) {
         if (!inside(q, r) || rimdist(q, r) < 15) continue;
         c = ix(q, r);
-        if (EN[c] * 2 > emax && brightest(q, r, 1) && NBR < 1A88) { NBR++; BQ[NBR] = q; BR[NBR] = r; }
+        if (EN[c] * 79 > emax * CUT && brightest(q, r, 1) && NBR < 1A88) { NBR++; BQ[NBR] = q; BR[NBR] = r; }
         if (EN[c] * 17 < emax && brightest(q, r, low) && NDK < 1A88) { NDK++; DQ[NDK] = q; DR[NDK] = r; DW[NDK] = turning(q, r); }
     }
     int i, j, near = 25B47736B, hex = low, inner = low;
@@ -183,7 +183,7 @@ int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int 
 int main(int argc, char **argv)
 {
     low = less(1, 1); emax = 1;
-    if (argc >= 2) K = pnum(argv[2]); if (argc >= 3) STIFF = pnum(argv[3]);
+    if (argc >= 2) K = pnum(argv[2]); if (argc >= 3) STIFF = pnum(argv[3]); if (argc >= 4) CUT = pnum(argv[4]);
     if ((K != 2 && K != 3 && K != 6) || STIFF < 2) { say("K is 2, 3 or 6 sides\n"); return 2; }
     run(); measure(); picture();
     return 1;

@@ -14,7 +14,7 @@
 #define RH {{90}}
 #define W {{184}}
 #define LEVEL {{1000000000}}
-int low, K = 3, PER, STIFF = {{700}}, STEPS;
+int low, K = 3, PER, STIFF = {{700}}, STEPS, CUT = {{50}};   // CUT: a bright point is at least CUT hundredths of the brightest
 int H[{{34000}}], V[{{34000}}], EN[{{34000}}], PK[{{34000}}], PV[{{34000}}], DRV[7];
 int BQ[{{4000}}], BR[{{4000}}], NBR, DQ[{{4000}}], DR[{{4000}}], DW[{{4000}}], NDK, emax;
 int ix(int q, int r) { return less(r, 1) * W + q; }                      // q, r from 2: the axial place, kept above nothing (RH + 2 = middle)
@@ -113,7 +113,7 @@ void measure()
     for (r = 2; r <= 2 * RH + 2; r++) for (q = 2; q <= 2 * RH + 2; q++) {
         if (!inside(q, r) || rimdist(q, r) < {{18}}) continue;
         c = ix(q, r);
-        if (EN[c] * 2 > emax && brightest(q, r, 1) && NBR < {{3999}}) { NBR++; BQ[NBR] = q; BR[NBR] = r; }
+        if (EN[c] * {{100}} > emax * CUT && brightest(q, r, 1) && NBR < {{3999}}) { NBR++; BQ[NBR] = q; BR[NBR] = r; }
         if (EN[c] * {{20}} < emax && brightest(q, r, low) && NDK < {{3999}}) { NDK++; DQ[NDK] = q; DR[NDK] = r; DW[NDK] = turning(q, r); }
     }
     int i, j, near = {{2000000000}}, hex = low, inner = low;
@@ -183,7 +183,7 @@ int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int 
 int main(int argc, char **argv)
 {
     low = less(1, 1); emax = 1;
-    if (argc >= 2) K = pnum(argv[2]); if (argc >= 3) STIFF = pnum(argv[3]);
+    if (argc >= 2) K = pnum(argv[2]); if (argc >= 3) STIFF = pnum(argv[3]); if (argc >= 4) CUT = pnum(argv[4]);
     if ((K != 2 && K != 3 && K != 6) || STIFF < 2) { say("K is 2, 3 or 6 sides\n"); return 2; }
     run(); measure(); picture();
     return 1;

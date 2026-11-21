@@ -1,0 +1,111 @@
+light along 3 of the sheet's six sides, the springs swing every 4B steps (counted), 11BB steps, the sheet 6C cells from middle to side
+MASS (bright points; MAGIC: mass forms where light is brightest): 1C; away from the rim 19, of those six round one, each touching the next (hex): 4
+HOLES (dark still points): 62; away from the rim 49, in the middle of three bright points: 5
+the holes' spin (the light's peak coming round): one way 23, the other way 23, none 3
+bright points with the peak coming round them: ~
+every point (q r, axial places; bright, then holes with spin 3 one way, 1 the other, 2 none):
+bright 79 32
+bright A5 32
+bright 49 49
+bright 71 49
+bright 96 49
+bright BB 49
+bright 57 56
+bright 7C 56
+bright A4 56
+bright 64 64
+bright 88 64
+bright 49 71
+bright 71 71
+bright 96 71
+bright 32 79
+bright A5 79
+bright 7C 7B
+bright 56 7C
+bright 64 88
+bright 49 96
+bright 71 96
+bright 56 A4
+bright 32 A5
+bright 79 A5
+bright 49 BB
+hole 97 17 3
+hole A2 17 1
+hole 82 25 2
+hole AA 25 2
+hole 8C 2C 3
+hole 93 2D 1
+hole 68 32 1
+hole B6 32 3
+hole 58 36 2
+hole C2 36 2
+hole 7A 3A 1
+hole 99 3A 3
+hole 75 3B 3
+hole 9D 3B 1
+hole 72 3C 3
+hole 81 47 3
+hole 88 47 1
+hole 64 48 1
+hole A4 48 3
+hole 51 4D 2
+hole B2 51 2
+hole 73 54 1
+hole 89 54 3
+hole 36 58 2
+hole 63 58 3
+hole 95 58 1
+hole C2 59 2
+hole 58 63 1
+hole 95 63 3
+hole 48 64 3
+hole 71 64 3
+hole 7B 64 1
+hole A4 64 1
+hole 32 68 3
+hole B6 68 1
+hole 64 71 1
+hole 7B 71 3
+hole 3C 72 1
+hole A2 72 3
+hole 54 73 3
+hole 89 73 1
+hole 3B 75 1
+hole 9D 75 3
+hole 3A 7A 3
+hole 99 7A 1
+hole 64 7B 3
+hole 71 7B 1
+hole 47 81 1
+hole 88 81 3
+hole AA 81 2
+hole 25 82 2
+hole 47 88 3
+hole 81 88 1
+hole 54 89 1
+hole 73 89 3
+hole 2C 8C 1
+hole 95 8C 3
+hole 2D 93 3
+hole 58 95 3
+hole 63 95 1
+hole 8C 95 1
+hole 17 97 1
+hole A2 97 3
+hole 3A 99 1
+hole 7A 99 3
+hole 3B 9D 3
+hole 75 9D 1
+hole 17 A2 3
+hole 72 A2 1
+hole 97 A2 1
+hole 48 A4 1
+hole 64 A4 3
+hole 25 AA 2
+hole 81 AA 2
+hole 51 B2 2
+hole 32 B6 1
+hole 68 B6 3
+hole 36 C2 2
+hole 59 C2 2
+hole 6B C8 3
