@@ -57,12 +57,28 @@
     <table>
       <tr><th>known result</th><th>the lab</th></tr>
       <tr><td>A wing nut spun about its middle axis turns over and over</td><td><b>Match</b> (above)</td></tr>
-      <tr><td>A candle flame with no gravity is round, dimmer and blue, and may go out</td><td>to run</td></tr>
+      <tr><td>A candle flame with no gravity is round, dimmer and blue, and may go out</td><td><b>Round: match. Dimmer: match.</b> Blue: <b>miss</b>. Going out: not run long enough (below)</td></tr>
       <tr><td>Crystals grown in orbit come out larger and more perfect</td><td>to run</td></tr>
       <tr><td>Liquid floating free pulls itself into a ball, and wobbles when touched</td><td>to run</td></tr>
     </table>
     <p>Why: a company sending an experiment into low Earth orbit could have it run here first, the prediction stamped
       before launch, and compare after the flight. The record above is what such a prediction would stand on.</p>
+  </section>
+
+  <section id="candle">
+    <h2>A candle with and without gravity</h2>
+    <figure class="wide">
+      <img src="images/candles.png" alt="Left: a long thin flame with gravity. Right: a round flame with no gravity." width="672" height="484">
+      <figcaption class="ddb">Doomsday Book ID <code>31b5c66e-4557-42a5-ab70-9e9e52ba18d8</code>, Mike J Hebblethwaite</figcaption>
+    </figure>
+    <p>A slice through a flame in millimetre cells, each step a thousandth of a second, set from real air. Wax vapour comes
+      off the wick and spreads; oxygen spreads in; where both meet and it is hot enough, they burn. With gravity, gas
+      lighter than the air round it (warmer) is pushed up by the heavier air sinking under it; in space nothing is
+      lighter or heavier, so nothing rises. The only difference between the two runs is that one switch.</p>
+    <p><b>Round with no gravity</b> (32 by 31 mm; with gravity 81 by 23): matches what is seen in orbit. <b>Dimmer</b>: it
+      burns about 3% as much: matches. <b>Blue</b> (less soot): <b>miss</b>; the lab&rsquo;s rough soot rule knows nothing of
+      cooling yet. The flame with gravity is also too long and widens upward, where a real one is widest near the wick: a
+      rough edge, said plainly. Code: <code>lang/lab/runs/src/candlespace-src.delta</code>.</p>
   </section>
 
   <section id="light">

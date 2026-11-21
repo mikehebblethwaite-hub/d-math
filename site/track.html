@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Track records: Delta lab</title>
+<meta name="description" content="Each Delta lab room against known results: every match and every miss, the known answer written down before each run.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+  <nav><a href="index.html">Back to D</a> <a href="space.html">The space room</a> <a href="calcs.html">The calculations</a></nav>
+  <section>
+    <h1>Track records</h1>
+    <p class="lede">Each room of the Delta lab against results already known from the real world. The known answer is
+      written down before each run is built; the run is not changed after it is seen, except to fix a fault (written in
+      the fails list); every match and every miss stays here.</p>
+    <p>Why: a company sending an experiment up to low Earth orbit could have it run in the lab first, the prediction
+      stamped before launch, and compare after the flight. These records are what such a prediction stands on. The same
+      list, with the code for each run, is in the repository (<code>lang/lab/TRACK.md</code>).</p>
+  </section>
+  <section><h2>Floor 3: the space room</h2>
+    <table>
+      <tr><th>#</th><th>Known result (what really happens)</th><th>Lab</th><th>Lab's answer</th><th>Match?</th><th>Run</th></tr>
+      <tr><td>1</td><td>Wing nut / T-handle spun about its middle axis turns over and over (Dzhanibekov, 1985 in orbit; also on Earth, Mike at home)</td><td>space room</td><td>easiest and hardest axes steady; middle turned over 10 times in 200,000 steps</td><td>MATCH</td><td>runs/wingnut.delta</td></tr>
+      <tr><td>2</td><td>A candle flame with no gravity: round (a sphere), dimmer, blue (little or no yellow soot), and it may go out as the air round it is used up (shuttle, ISS and drop tower candle tests)</td><td>space room</td><td>no gravity: round, 32 x 31 mm (with gravity 81 x 23); burns about 3% as much; the same share burned short of oxygen (363 v 348 thousandths); still burning at 9 s</td><td>ROUND: MATCH. DIMMER: MATCH. BLUE: MISS (the soot rule knows nothing of cooling yet). GOES OUT: not run long enough</td><td>runs/candlespace.delta</td></tr>
+      <tr><td>3</td><td>Crystals grown in orbit come out larger and more perfect than on the ground (no convection, no settling)</td><td>space room</td><td>not run yet</td><td>-</td><td>-</td></tr>
+      <tr><td>4</td><td>Liquid in free fall pulls itself into a ball; a floating ball of water wobbles when touched (ISS water demos)</td><td>space room</td><td>not run yet</td><td>-</td><td>-</td></tr>
+    </table>
+  </section>
+  <section><h2>Floor 2: atmosphere tests</h2>
+    <p>The known answers here were written down before any run for this room.</p>
+    <table>
+      <tr><th>#</th><th>Known result (what really happens)</th><th>Lab's answer</th><th>Match?</th><th>Run</th></tr>
+      <tr><td>1</td><td>Air pressure falls by about half every 5.5 km up</td><td>not run yet</td><td>-</td><td>-</td></tr>
+      <tr><td>2</td><td>Air cools about 6.5 C for every km up (on average, in the lowest part of the sky)</td><td>not run yet</td><td>-</td><td>-</td></tr>
+      <tr><td>3</td><td>Water boils at about 70 C on top of Everest (8.8 km)</td><td>not run yet</td><td>-</td><td>-</td></tr>
+      <tr><td>4</td><td>A sealed balloon grows as it rises, about doubling by 5.5 km</td><td>not run yet</td><td>-</td><td>-</td></tr>
+    </table>
+  </section>
+  <section><h2>Floor 1: the lab (Earth)</h2>
+    <table>
+      <tr><th>#</th><th>Known result (what really happens)</th><th>Lab's answer</th><th>Match?</th><th>Run</th></tr>
+      <tr><td>1</td><td>Cold ping pong balls in a funnel under suction jam: they do not raft hex (Mike's own cold rigs, 2009)</td><td>jams at 2 degrees with ball-on-ball grip</td><td>MATCH (proofs/pingpong-2026-11-21/REAL-CHECKS.md)</td><td>runs/pingfunnel.delta</td></tr>
+      <tr><td>2</td><td>Salt grown slowly makes clear cubes; grown fast it branches and crusts, and makes hollow stepped hopper cubes</td><td>slow: a full square; fast: branching</td><td>cubes and branching: MATCH; hoppers: not seen yet</td><td>runs/saltplay.delta, saltcube.delta</td></tr>
+      <tr><td>3</td><td>Faraday's 1821 rotations: a wire turns round a magnet in mercury, and a magnet round a wire</td><td></td><td>to check against the lab's faraday object</td><td>lab objects/faraday.delta</td></tr>
+      <tr><td>4</td><td>Basalt cooling cracks into columns, most of them six-sided (Giant's Causeway)</td><td></td><td>to check (paper 5.3)</td><td>causeway.delta</td></tr>
+    </table>
+  </section>
+  <nav class="pager"><a href="index.html">Back to D</a> <a href="space.html">The space room</a></nav>
+</div>
+<footer class="site"><p>D and Delta &copy; Mike J Hebblethwaite. <a href="index.html">Back to D</a></p></footer>
+</body>
+</html>
