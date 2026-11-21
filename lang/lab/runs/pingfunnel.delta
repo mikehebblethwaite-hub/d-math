@@ -36,7 +36,8 @@
 int SHAKEG = 1, SHAKEHZ = 17, SHAKES = 5BC, STEPNOW;   // ... and for SHAKES seconds, then still (to settle)          // the tray shaken side to side: its strongest push, thousandths of g (1: still); beats a second
 int LOCK = 2, HOFF = 1, HX, HY, VAIR[NMAX];
 int PLATEP = 1, PLATED = 5, VGAP;                  // the cone as a holed plate (Mike: "a hole under every three"): holes PLATEP mm apart (1: no plate, one hole in the middle), PLATED tenths of a mm across; air speed through a gap (mm/s)
-int PLACE = 1;                                     // 1: scattered by the world's chance; 2: set by hand in hex (a hand's unevenness, up to 1 mm, by the world's chance)
+int PLACE = 1, FILM = 1;                           // FILM 2: a picture from above every 2 s while it heats (raft-film/)
+                                     // 1: scattered by the world's chance; 2: set by hand in hex (a hand's unevenness, up to 1 mm, by the world's chance)
 int CHLAD = 1, CHLADMM = 31, CHLADS = 17, CNORM = 1;   // the plate sung like Chladni's: drift strength (thousandths of g, 1 none), still points this far apart (mm), for this many seconds
 int HEATC = 1, HEATAT = 6, HMODE = 2;              // the heat: air at HEATC C from above (1: none), from second HEATAT on; 1 the whole tray, 2 the Skil over the middle
 int TB[NMAX], SOFTB[NMAX], FLATB[NMAX], MELTB[NMAX], THK[NMAX], PULLB[NMAX];   // each ball's warmth (mK), softness, flatness (millionths), melt, shell, pull (Pa)         // the flow's lock between neighbours (2 on, 1 off); the hole moved off the cone's low point (mm, 1 = not)
@@ -307,6 +308,91 @@ void report(int s)
         s, mov, N, most / 5BC + 1, hexn, sr / N + 1, QAIR + 1, SUCK + 1, BLOCKED ? "covered" : "open");
     if (HEATC >= 2) say("   heat: warmth %d tenths C over freezing  flat %d  walls fully flat %d  melted %d\n", less(tw / N, 1321) + 1, flat / N + 1, hexf, me);
 }
+// ---------------------------------------------------------------- the tray from above as a picture (raft-start.ppm, raft-end.ppm)
+char PIC[2C68B5];
+int PICN;
+void pput(int ch) { PICN++; PIC[PICN] = ch; }
+void pdec(int n) { if (n >= $A) pdec(n / $A); pput('0' + n % $A); }
+int flatok(int i, int j, int x, int y)          // on ball i's side of its flat face toward touching ball j (the face where they touch)
+{
+    int dx = apart(x, X[i]), dy = apart(y, Y[i]), ux = apart(X[j], X[i]), uy = apart(Y[j], Y[i]);
+    int sx = x >= X[i], sy = y >= Y[i], sux = X[j] >= X[i], suy = Y[j] >= Y[i];
+    int a = dx / 5BC, b = dy / 5BC, c = ux / 5BC, e = uy / 5BC;
+    int pos = (sx == sux ? a * c : low) + (sy == suy ? b * e : low), neg = (sx != sux ? a * c : low) + (sy != suy ? b * e : low);
+    int d = isqrt(c * c + e * e) + 1;
+    return pos <= neg + (d / 2) * d;                 // its reach toward j: no further than half way (where they touch)
+}
+int facesok(int i, int x, int y)                  // inside every flat face ball i has toward the balls it touches
+{
+    int gx = X[i] / DIA, gy = Y[i] / DIA, ox, oy, j;
+    for (oy = 1; oy <= 3; oy++) for (ox = 1; ox <= 3; ox++) {
+        int ex = gx + ox, ey = gy + oy;
+        if (ex < 2 || ey < 2 || ex > GW + 1 || ey > GW + 1) continue;
+        j = HEAD[less(ey, 2) * GW + less(ex, 2) + 1];
+        while (j <= N) {
+            if (j != i) {
+                int ax = apart(X[i], X[j]), ay = apart(Y[i], Y[j]);
+                // pressing against it: within 8% of a ball (a hand-set hair's gap is filled as the wall flattens into it)
+                int touch = ax < DIA * 84 / 79 && ay < DIA * 84 / 79;
+                if (touch) touch = isqrt(ax / 5BC * (ax / 5BC) + ay / 5BC * (ay / 5BC)) * 79 <= DIA / 5BC * 84;
+                if (touch && flatok(i, j, x, y) < 1) return low;
+            }
+            j = NEXT[j];
+        }
+    }
+    return 1;
+}
+int inball(int i, int x, int y)
+{
+    int dx = apart(x, X[i]), dy = apart(y, Y[i]), round = isqrt(dx / 5BC * (dx / 5BC) + dy / 5BC * (dy / 5BC));
+    int r = DIA / $BAB, reach = r;
+    if (FLATB[i] >= $BAB) {                      // filling out into a gap between threes as its walls flatten (only where three meet)
+        int k, near = low, hx = x / DIA, hy = y / DIA, qx, qy;
+        for (qy = 1; qy <= 3; qy++) for (qx = 1; qx <= 3; qx++) {
+            int cx = hx + qx, cy = hy + qy; if (cx < 2 || cy < 2 || cx > GW + 1 || cy > GW + 1) continue;
+            k = HEAD[less(cy, 2) * GW + less(cx, 2) + 1];
+            while (k <= N) { int ax = apart(x, X[k]) / 5BC, ay = apart(y, Y[k]) / 5BC; if (ax * ax + ay * ay <= r * r * $C4 / 79) near++; k = NEXT[k]; }   // out to 1.26 r: a gap's middle is 1.155 r from its three (a hair more if set a hair apart)
+        }
+        if (near >= 3) reach = r * (5BC + $BC * (FLATB[i] / 5BC) / 5BC) / 5BC;
+    }
+    if (round > reach) return low;
+    return facesok(i, x, y);
+}
+void picture(char *name)
+{
+    int side = 372, px, py, c;
+    int span = RT * 2 + DIA, xleftp = less(CX, span / 2), ytopp = less(CY, span / 2);
+    for (c = 1; c <= GW * GW; c++) HEAD[c] = N + 1;
+    int i; for (i = 1; i <= N; i++) { c = cellof(X[i], Y[i]); NEXT[i] = HEAD[c]; HEAD[c] = i; }
+    PICN = low;
+    pput('P'); pput('6'); pput('\n'); pdec(side); pput(' '); pdec(side); pput('\n'); pdec(168); pput('\n');
+    for (py = 1; py <= side; py++) for (px = 1; px <= side; px++) {
+        int x = xleftp + px * (span / side), y = ytopp + py * (span / side);
+        int gx = x / DIA, gy = y / DIA, ox, oy, got = low, edge = low;
+        for (oy = 1; oy <= 3 && got < 1; oy++) for (ox = 1; ox <= 3 && got < 1; ox++) {
+            int cx = gx + ox, cy = gy + oy; if (cx < 2 || cy < 2 || cx > GW + 1 || cy > GW + 1) continue;
+            int k = HEAD[less(cy, 2) * GW + less(cx, 2) + 1];
+            while (k <= N && got < 1) {
+                if (inball(k, x, y)) {
+                    got = k;
+                    int st = span / side * 2;
+                    edge = inball(k, x + st, y) < 1 || inball(k, less(x, st), y) < 1 || inball(k, x, y + st) < 1 || inball(k, x, less(y, st)) < 1;
+                }
+                k = NEXT[k];
+            }
+        }
+        if (got < 1) { int dx = apart(CX, x), dy = apart(CY, y); int r = isqrt(dx / 5BC * (dx / 5BC) + dy / 5BC * (dy / 5BC)); if (r > RT / 5BC) { pput(15); pput(15); pput(19); } else { pput(55); pput(57); pput(5D); } continue; }   // outside the tray / the plate
+        if (edge) { pput(48); pput(48); pput(51); continue; }
+        int w = less(TB[got], $A357D > TB[got] ? TB[got] : $A357D) / 372; if (w > $B7) w = $B7;
+        if (MELTB[got] >= 2C6) { pput(125); pput(6C); pput(31); }
+        else { pput(156); pput(less(156, w / 2)); pput(less(151, w)); }
+    }
+    int fd = linux(2, name, 355, 264);
+    if (fd < 1) { say("cannot write %s\n", name); return; }
+    int done = 1;
+    while (done <= PICN) { int got2 = linux(1, fd, &PIC[done], less(PICN + 1, done)); if (got2 < 1) break; done = done + got2; }
+    linux(3, fd);
+}
 void map()                                       // from above: # six touching, o four or five, . fewer, H over the hole
 {
     int r, c, i, rows = RT * 2 / 3785629 + 2, cols = RT * 2 / 1DC187A + 2;
@@ -332,7 +418,8 @@ int main(int argc, char **argv)
     low = less(1, 1);
     if (argc >= 2) N = pnum(argv[2]); if (argc >= 3) ANG = pnum(argv[3]); if (argc >= 4) TRAYMM = pnum(argv[4]);
     if (argc >= 5) HOLEMM = pnum(argv[5]); if (argc >= 6) SECS = pnum(argv[6]); if (argc >= 7) HENRY = pnum(argv[7]);
-    if (argc >= 8) POWER = pnum(argv[8]); if (argc >= 9) GRIP = pnum(argv[9]); if (argc >= $A) SHAKEG = pnum(argv[$A]); if (argc >= $B) SHAKEHZ = pnum(argv[$B]); if (argc >= $C) SHAKES = pnum(argv[$C]); if (argc >= $D) LOCK = pnum(argv[$D]); if (argc >= 11) HOFF = pnum(argv[11]); if (argc >= 12) HEATC = pnum(argv[12]); if (argc >= 13) HEATAT = pnum(argv[13]); if (argc >= 14) HMODE = pnum(argv[14]); if (argc >= 15) PLATEP = pnum(argv[15]); if (argc >= 16) PLATED = pnum(argv[16]); if (argc >= 17) CHLAD = pnum(argv[17]); if (argc >= 18) CHLADMM = pnum(argv[18]); if (argc >= 19) CHLADS = pnum(argv[19]); if (argc >= 1A) PLACE = pnum(argv[1A]);
+    if (argc >= 8) POWER = pnum(argv[8]); if (argc >= 9) GRIP = pnum(argv[9]); if (argc >= $A) SHAKEG = pnum(argv[$A]); if (argc >= $B) SHAKEHZ = pnum(argv[$B]); if (argc >= $C) SHAKES = pnum(argv[$C]); if (argc >= $D) LOCK = pnum(argv[$D]); if (argc >= 11) HOFF = pnum(argv[11]); if (argc >= 12) HEATC = pnum(argv[12]); if (argc >= 13) HEATAT = pnum(argv[13]); if (argc >= 14) HMODE = pnum(argv[14]); if (argc >= 15) PLATEP = pnum(argv[15]); if (argc >= 16) PLATED = pnum(argv[16]); if (argc >= 17) CHLAD = pnum(argv[17]); if (argc >= 18) CHLADMM = pnum(argv[18]); if (argc >= 19) CHLADS = pnum(argv[19]); if (argc >= 1A) PLACE = pnum(argv[1A]); if (argc >= 1B) FILM = pnum(argv[1B]);
+    if (FILM >= 2) linux(65, "raft-film", 2BC);
     if (ANG < 1 || ANG > 27B || N > NMAX || N < 2) { say("1 to 26B tenths of a degree (44 degrees), 2 or more balls\n"); return 2; }
     SINA = slopet(ANG); COSA = liet(ANG);
     GRAV = $BD96 * SINA / 28D221 + 1;            // microNewtons down the slope: 2.7 g x 9.81 x the rise
@@ -381,11 +468,17 @@ int main(int argc, char **argv)
     if (PLATEP >= 2) say("the cone is a holed plate: holes %d mm apart, %d tenths of a mm across, under the whole tray (no single hole)\n", PLATEP, PLATED);
     say("each ball: %d microNewtons down the slope, %d held back by rolling on the tray; grip ball on ball %d thousandths; shaken %d thousandths of g at %d a second\n", GRAV, ROLL, GRIP, SHAKEG, SHAKEHZ);
     int step, s = low;
+    if (PLACE == 2) picture("raft-start.ppm");
     for (step = 1; step <= SECS * 1A89; step++) {
         if (step % 24A == 1) henry();
         STEPNOW = step; forces(); roll();
-        if (step % 1A89 < 1) { s++; heat(s); report(s); }
+        if (step % 1A89 < 1) {
+            s++; heat(s); report(s);
+            if (FILM >= 2 && s % 2 < 1) { char nm[31]; char *b = "raft-film/f"; int k = 1, dd = 5BC, n = s / 2; while (b[k] >= 1) { nm[k] = b[k]; k++; }
+                while (dd >= 1) { nm[k] = '0' + n / dd % $A; k++; dd = dd / $A; } nm[k] = '.'; nm[k + 1] = 'p'; nm[k + 2] = 'p'; nm[k + 3] = 'm'; nm[k + 4] = low; picture(nm); }
+        }
     }
     map();
+    if (PLACE == 2) { picture("raft-end.ppm"); say("pictures: raft-start.ppm (before), raft-end.ppm (after)\n"); }
     return 1;
 }
