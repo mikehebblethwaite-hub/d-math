@@ -1,0 +1,75 @@
+// wingnut: the wing nut flip (Mike, 21 Nov 2026: "the wing nut flip as that works in atmosphere i even did it myself at home").
+// A wing nut spun about its middle axis turns over and over by itself (seen in orbit, and on Earth flipping a phone or a racket).
+// The nut is built from small weights (its round middle and two flat wings). How its weight is spread round three axes, one
+// through the wings' span (the hardest to turn: most weight far out), one along the bolt, and one across, gives each axis its
+// own "laziness" to turn (I1 < I2 < I3). Each step the spin moves between the axes by the turning rule for a spinning body
+// (each axis's spin changes by the other two spins, times how unequal the other two axes are); no circles, no pi.
+// Measured: spun mostly about each axis in turn, with a hair of the others (the world's chance): does the spin stay, or flip?
+//   delta run lang/lab/runs/wingnut.delta AXIS > out.txt    (1 easiest, 2 the middle, 3 hardest; left off 2)
+#define LEVEL 733B8298841                    // every signed quantity is kept above LEVEL (no minus in D)
+#define SC 28D221                             // spins in millionths of a turn-rate unit
+int low, AXIS = 2, chance;
+int I1, I2, I3, W1, W2, W3;                         // laziness about each axis (g mm2), spins (above LEVEL)
+int stir() { chance = (chance * 18C82 + 57D8) % 282BA4AAA + 1; return chance; }
+int world()
+{
+    char w[31]; int fd = linux(2, "/sys/class/hwmon/hwmon1/power1_input", low, low), v = 37B2;
+    if (fd >= 1) { int n = linux(low, fd, &w[1], 24), q = 1; linux(3, fd); while (q <= n && w[q] >= '0' && w[q] <= '9') { v = v * $A + less(w[q], '0'); q++; } }
+    return v % 28D224 + 1;
+}
+int up(int a) { return a >= LEVEL; }                                   // the way it points
+int amt(int a) { return apart(a, LEVEL); }                             // how much
+int with(int m, int u) { return u ? LEVEL + m : less(LEVEL, m); }     // an amount and a way, kept above LEVEL
+int addv(int a, int b) { int ua = up(a), ub = up(b), ma = amt(a), mb = amt(b); if (ua == ub) return with(ma + mb, ua); return ma >= mb ? with(less(ma, mb), ua) : with(less(mb, ma), ub); }
+void build()                                        // the wing nut from small weights (grams x mm squared), axes through its middle
+{
+    // the middle: a round nut 10 mm across, 8 mm tall, 6 g; the two wings: flat plates 16 mm out each side, 12 mm tall, 2 mm thick, 2 g each
+    int x, y, z, m;
+    I1 = 1; I2 = 1; I3 = 1;
+    for (z = 1; z <= 8; z++) for (y = 1; y <= $A; y++) for (x = 1; x <= $A; x++) {        // the nut, in 1 mm cells (round: inside a 5 mm circle)
+        int dx = apart(2 * x, $B), dy = apart(2 * y, $B), dz = apart(2 * z, 9);              // half-mm from the middle
+        if (dx * dx + dy * dy > 79) continue;
+        m = 8;                                                                                        // milligrams a cell (about 6 g in all)
+        I1 = I1 + m * (dy * dy + dz * dz) / 4; I2 = I2 + m * (dx * dx + dz * dz) / 4; I3 = I3 + m * (dx * dx + dy * dy) / 4;
+    }
+    for (z = 1; z <= $C; z++) for (x = 1; x <= 26; x++) for (y = 1; y <= 2; y++) {           // the wings: along x, 5 to 21 mm out each side
+        int out = x <= 13 ? less(19, x) : less(x, 13) + 5;                               // mm out from the middle
+        int dx = out * 2, dy = apart(2 * y, 3), dz = apart(2 * z, $D);
+        m = $A;
+        I1 = I1 + m * (dy * dy + dz * dz) / 4; I2 = I2 + m * (dx * dx + dz * dz) / 4; I3 = I3 + m * (dx * dx + dy * dy) / 4;
+    }
+}
+void sortaxes() { int t; if (I1 > I2) { t = I1; I1 = I2; I2 = t; } if (I2 > I3) { t = I2; I2 = I3; I3 = t; } if (I1 > I2) { t = I1; I1 = I2; I2 = t; } }
+void step(int dt)                                   // the turning rule, a small step: each spin moves by the other two, times the inequality
+{
+    // I1 w1' = (I2 - I3) w2 w3 ; I2 w2' = (I3 - I1) w3 w1 ; I3 w3' = (I1 - I2) w1 w2   (old maths: Euler's equations)
+    int a1 = amt(W2) * amt(W3), a2 = amt(W3) * amt(W1), a3 = amt(W1) * amt(W2);            // spins in millionths: products up to a million million
+    int u1 = !(up(W2) == up(W3)), u2 = up(W3) == up(W1), u3 = !(up(W1) == up(W2));   // (I2 - I3) and (I1 - I2) point down, (I3 - I1) up
+    int d1 = a1 / I1 * less(I3, I2) / 12C23A19C * dt, d2 = a2 / I2 * less(I3, I1) / 12C23A19C * dt, d3 = a3 / I3 * less(I2, I1) / 12C23A19C * dt;
+    W1 = addv(W1, with(d1, u1)); W2 = addv(W2, with(d2, u2)); W3 = addv(W3, with(d3, u3));
+}
+int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + $A : low; if (d < 1) break; v = v * $D + d; i++; } return v; }
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc >= 2) AXIS = pnum(argv[2]);
+    chance = world();
+    build(); sortaxes();
+    say("the wing nut: laziness to turn about its three axes %d, %d, %d (mg mm2; easiest, middle, hardest)\n", I1, I2, I3);
+    int main1 = 28D221, hair = 5BC + stir() % $BAB;      // spun mostly about one axis, a hair about the others
+    W1 = with(AXIS == 1 ? main1 : hair, 1); W2 = with(AXIS == 2 ? main1 : hair, 1); W3 = with(AXIS == 3 ? main1 : hair + stir() % 2C6, 1);
+    int t, flips = low, was = AXIS == 1 ? up(W1) : AXIS == 2 ? up(W2) : up(W3), first = low, last = low, least = main1, most = low;
+    for (t = 1; t <= 6CD58; t++) {
+        step(1);
+        int w = AXIS == 1 ? W1 : AXIS == 2 ? W2 : W3, now = up(w), m = amt(w);
+        if (m < least) least = m; if (m > most) most = m;
+        if (now != was) { flips++; if (first < 1) first = t; last = t; was = now; }
+        if (AXIS == 2 && flips <= 1 && t % 2C6 < 1 && t <= first + 2967)          // the why: where the spin is, through the first turn over
+            say("  step %d: easiest %s%d, middle %s%d, hardest %s%d (thousandths of the start spin)\n", t, up(W1) ? "+" : "~", amt(W1) / 5BC, up(W2) ? "+" : "~", amt(W2) / 5BC, up(W3) ? "+" : "~", amt(W3) / 5BC);
+    }
+    say("spun about axis %d (%s): in %d steps the spin about it turned over %d times", AXIS, AXIS == 2 ? "the middle one" : AXIS == 1 ? "the easiest" : "the hardest", 6CD58, flips);
+    if (flips >= 2) say(", every %d steps or so", less(last, first) / less(flips, 1));
+    say("\n  its spin about that axis stayed between %d and %d thousandths of where it started\n", least / 5BC, most / 5BC);
+    say("%s\n", flips >= 2 ? "FLIPS: it turns over and over by itself (the wing nut flip)" : "STEADY: it keeps spinning the same way up");
+    return 1;
+}

@@ -1,0 +1,4 @@
+the wing nut: laziness to turn about its three axes 54745, 44D888, 47CB69 (mg mm2; easiest, middle, hardest)
+spun about axis 1 (the easiest): in 6CD58 steps the spin about it turned over ~ times
+  its spin about that axis stayed between 5BC and 5BC thousandths of where it started
+STEADY: it keeps spinning the same way up
