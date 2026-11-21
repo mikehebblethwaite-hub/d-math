@@ -125,3 +125,14 @@ Last daily review: 20 Nov 2026 00:15 (the second).
 - The OS accounts test only photographed the read tricks' answers: now each answer is read back as words (cleared first:
   the serial line drops letters on long looks, which failed my first try at this). All 16 checks pass.
 - Lesson: a test that only saves a picture is not a test; a reading must come from the same rule as the thing it reads.
+
+## 21 Nov 2026 08:21 UK: the flow's lock threw shut balls about (lab runs, pingfunnel)
+- What: the lock between neighbours used only the air's speed through the gap (half rho u squared over ~110 mm2). Over the
+  holed plate that speed stays high as a gap closes (~90 m/s), so once the walls were flat the lock grew past half a newton on
+  a 2.7 g ball and 18 shut balls started rolling at 131 s. Not real.
+- Fix: over the plate the pull is the suction on the gap's OPEN area (Pa x mm2 = microNewtons): as the gap shuts its pull
+  goes with it. (Mike: "good fail and account for it and keep inside the real world from that fail".)
+- Lesson -> system: every force is a pressure times the area it acts on, and that area is checked as things change shape;
+  a run where things move after they should have settled is a fail to look for (the timeline shows "rolling").
+Also this morning, caught by Delta at build (zero-free names: u60, u120, x0, y0, x0b; a take-away; 7 inputs; reserved words
+mix, move): each a crash avoided before it ran.
