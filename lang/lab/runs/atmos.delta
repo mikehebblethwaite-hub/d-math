@@ -1,0 +1,78 @@
+// atmos: the atmosphere room's tests (21 Nov 2026; known answers written in lang/lab/TRACK.md BEFORE this was built).
+// A column of air built up 10 m at a time from the ground (sea level, 1013.25 hPa, 15 C), from measured constants only:
+// g 9.81 m/s2, air 28.97 g a mole, the gas constant 8.314, air's warmth per kg 1005 J/kg K, dry air's own gas constant 287,
+// water vapour's 461.5, water's heat of boiling 2,501,000 J/kg at freezing falling 2,370 J/kg per degree warmer.
+//   Pressure: each 10 m up it drops by the weight of that 10 m of air (how heavy air is, from the gas law, times g).
+//   Cooling: a parcel of air rising pushes outward as the pressure drops and that work costs its warmth (dry: g / air's warmth
+//   per kg); a parcel full of water vapour gets warmth back as water condenses out of it (moist).
+//   Boiling: water's push to escape as vapour, stepped down a tenth of a degree at a time from 100 C at 1013.25 hPa (each step it
+//   falls by itself x heat of boiling / (water's gas constant x warmth squared) x the step), until it equals the air's pressure.
+//   A balloon: the same air inside, at the air's warmth and pressure (the gas law).
+// No pi, no curves, no exp: every one stepped. Prints in D numerals.
+#define DZ $A
+int low;
+int heatL(int tmk) { return tmk >= 97437 ? less(6974A8, less(tmk, 97437) * $DD4 / 5BC) : 6974A8 + less(97437, tmk) * $DD4 / 5BC; }   // J/kg
+int vapour(int tmk)                               // water's push to escape as vapour (milli-pascals) at this warmth, stepped from 100 C
+{
+    int t = $CDACB, e = 17CB892A;
+    while (t > tmk + 3B) {
+        int dt = 79;                            // a tenth of a degree
+        int k = heatL(t) * 5BC / 213D * $A / (t / 79) * 5BC / (t / 79);   // L / (Rv T^2), millionths per degree x 10
+        e = less(e, e / 5BC * k / 4723 * dt);
+        t = less(t, dt);
+    }
+    while (t + 3B < tmk) { int k = heatL(t) * 5BC / 213D * $A / (t / 79) * 5BC / (t / 79); e = e + e / 5BC * k / 4723 * 79; t = t + 79; }
+    return e;
+}
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    int col;
+    for (col = 1; col <= 2; col++) {                 // 1: dry air rising; 2: air full of water vapour rising
+        int z = low, p = 17CB892A, t = $A11D5, half = low, h5 = low, t5 = low, p88 = low, t88 = low, t1 = low, t9 = low;
+        while (z < 4D12) {
+            int dp = p / 5BC * 13A8 / 3A27 * 5BC / (t / 5BC);   // the weight of 10 m of air: p g M dz / (R T)
+            int dt = 35578 / 5BC;                                              // dry: g dz / cp = 0.0976 K (millikelvin)
+            if (col == 2) {                                                             // moist: water condensing gives warmth back
+                int es = vapour(t), rs = es / 5BC * 18A162 / (less(p, es) / 5BC);   // its water, millionths of a kg a kg of air
+                int L = heatL(t) / 5BC, tk = t / 5BC;
+                int num = 28D221 + L * rs / (191 * tk) * 5BC;                            // 1 + L r / (Rd T), in millionths
+                int den = 28D221 + L * L * rs / 5BC * 38B * 5BC / (5C4 * 191 * tk * tk / 5BC);   // 1 + L^2 r e / (cp Rd T^2)
+                dt = 35578 * (num / 5BC) / (den / 5BC) / 5BC;
+            }
+            p = less(p, dp); t = less(t, dt); z = z + DZ;
+            if (half < 1 && p * 2 <= 17CB892A) half = z;
+            if (z == 5BC) t1 = t; if (z == 2671) { h5 = p; t5 = t; } if (z == 3D4A) { p88 = p; t88 = t; } if (z == 4134) t9 = t;
+        }
+        int boil = $CDACB; while (boil > 97A26 && vapour(boil) > p88) boil = less(boil, 79);
+        say("%s: the air's pressure is half the ground's at %d m; at 5,500 m it is %d Pa; at 8,850 m (Everest) %d Pa\n", col == 1 ? "DRY air rising" : "air FULL OF WATER VAPOUR rising", half, h5 / 5BC, p88 / 5BC);
+        say("  it cools %d thousandths of a degree in the first km, %d thousandths a km on average over 9 km (%d thousandths of a degree over the lowest at 9 km)\n",
+            less($A11D5, t1), less($A11D5, t9) / 9, t9);
+        say("  water boils on Everest at %d thousandths of a degree over freezing (%d tenths C)\n", less(boil, 97437), less(boil, 97437) / 79);
+        say("  a sealed balloon at 5,500 m is %d thousandths of its size at the ground\n", 17CB892A / (h5 / 5BC) * (t5 / 79) / 13D8);
+    }
+    say("checks: water's push to escape at 15 C, %d Pa (measured 1,705); at 100 C, %d Pa (the ground's air, so it boils)\n", vapour($A11D5) / 5BC, vapour($CDACB) / 5BC);
+    // THE BALLOON (Mike 11:03): climbing to 40 km. Up to 11 km the column of air full of water vapour (worked out above);
+    // above it MEASURED warmth (the standard atmosphere: level to 20 km, then 1 degree warmer a km to 32 km, then 2.8 a km), not
+    // worked out: the sky warms up there as the ozone soaks up sunlight, which this column does not know. A rubber weather
+    // balloon 2 m across at launch (its maker's burst size for a 1200 g balloon: 8.63 m across), the gas inside at the air's
+    // warmth and pressure (the rubber's own squeeze is small: left out, MAGIC).
+    int z = low, p = 17CB892A, t = $A11D5, burst = low, pb = low, tb = low;
+    while (z < 17637 && burst < 1) {
+        int dp = p / 5BC * 13A8 / 3A27 * 5BC / (t / 5BC);
+        int dt = 35578 / 5BC;
+        if (z < 4D12) {
+            int es = vapour(t), rs = es / 5BC * 18A162 / (less(p, es) / 5BC), L = heatL(t) / 5BC, tk = t / 5BC;
+            int num = 28D221 + L * rs / (191 * tk) * 5BC, den = 28D221 + L * L * rs / 5BC * 38B * 5BC / (5C4 * 191 * tk * tk / 5BC);
+            t = less(t, 35578 * (num / 5BC) / (den / 5BC) / 5BC);
+        } else if (z >= 9146 && z < 11747) t = t + $A; else if (z >= 11747) t = t + 22;
+        p = less(p, dp); z = z + DZ;
+        // its size: across^3 grows as (ground pressure / pressure) x (warmth / ground warmth)
+        int grow = 17CB892A / (p / 5BC) * (t / 79) / 13D8;          // thousandths
+        int cube = 3BDB * 3BDB / $BAB * 3BDB / $BAB * 5BC / $BAB;   // (8.63 / 2)^3, thousandths
+        if (grow >= cube) { burst = z; pb = p; tb = t; }
+    }
+    if (burst) say("THE BALLOON: 2 m across at the ground, it burst at %d m up, 8.63 m across, where the air's pressure is %d Pa (%d thousandths of the ground's), %d thousandths of a degree over the lowest\n", burst, pb / 5BC, pb / 37173, tb);
+    else say("THE BALLOON: did not burst by 45 km\n");
+    return 1;
+}

@@ -1,0 +1,10 @@
+DRY air rising: the air's pressure is half the ground's at 2549 m; at 5,500 m it is 194B7 Pa; at 8,850 m (Everest) D2AA Pa
+  it cools 4552 thousandths of a degree in the first km, 4552 thousandths a km on average over 9 km (6D55D thousandths of a degree over the lowest at 9 km)
+  water boils on Everest at 24CC6 thousandths of a degree over freezing (3D5 tenths C)
+  a sealed balloon at 5,500 m is 9C2 thousandths of its size at the ground
+air FULL OF WATER VAPOUR rising: the air's pressure is half the ground's at 2695 m; at 5,500 m it is 1A1AB Pa; at 8,850 m (Everest) 11593 Pa
+  it cools 2277 thousandths of a degree in the first km, 2D58 thousandths a km on average over 9 km (7CB1A thousandths of a degree over the lowest at 9 km)
+  water boils on Everest at 25BA4 thousandths of a degree over freezing (41C tenths C)
+  a sealed balloon at 5,500 m is A66 thousandths of its size at the ground
+checks: water's push to escape at 15 C, A3A Pa (measured 1,705); at 100 C, 37173 Pa (the ground's air, so it boils)
+THE BALLOON: 2 m across at the ground, it burst at DBC4 m up, 8.63 m across, where the air's pressure is 592 Pa (9 thousandths of the ground's), 7945A thousandths of a degree over the lowest

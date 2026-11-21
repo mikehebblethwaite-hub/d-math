@@ -1,0 +1,78 @@
+// atmos: the atmosphere room's tests (21 Nov 2026; known answers written in lang/lab/TRACK.md BEFORE this was built).
+// A column of air built up 10 m at a time from the ground (sea level, 1013.25 hPa, 15 C), from measured constants only:
+// g 9.81 m/s2, air 28.97 g a mole, the gas constant 8.314, air's warmth per kg 1005 J/kg K, dry air's own gas constant 287,
+// water vapour's 461.5, water's heat of boiling 2,501,000 J/kg at freezing falling 2,370 J/kg per degree warmer.
+//   Pressure: each 10 m up it drops by the weight of that 10 m of air (how heavy air is, from the gas law, times g).
+//   Cooling: a parcel of air rising pushes outward as the pressure drops and that work costs its warmth (dry: g / air's warmth
+//   per kg); a parcel full of water vapour gets warmth back as water condenses out of it (moist).
+//   Boiling: water's push to escape as vapour, stepped down a tenth of a degree at a time from 100 C at 1013.25 hPa (each step it
+//   falls by itself x heat of boiling / (water's gas constant x warmth squared) x the step), until it equals the air's pressure.
+//   A balloon: the same air inside, at the air's warmth and pressure (the gas law).
+// No pi, no curves, no exp: every one stepped. Prints in D numerals.
+#define DZ {{10}}
+int low;
+int heatL(int tmk) { return tmk >= {{273150}} ? less({{2501000}}, less(tmk, {{273150}}) * {{2370}} / {{1000}}) : {{2501000}} + less({{273150}}, tmk) * {{2370}} / {{1000}}; }   // J/kg
+int vapour(int tmk)                               // water's push to escape as vapour (milli-pascals) at this warmth, stepped from 100 C
+{
+    int t = {{373150}}, e = {{101325000}};
+    while (t > tmk + {{50}}) {
+        int dt = {{100}};                            // a tenth of a degree
+        int k = heatL(t) * {{1000}} / {{4615}} * {{10}} / (t / {{100}}) * {{1000}} / (t / {{100}});   // L / (Rv T^2), millionths per degree x 10
+        e = less(e, e / {{1000}} * k / {{10000}} * dt);
+        t = less(t, dt);
+    }
+    while (t + {{50}} < tmk) { int k = heatL(t) * {{1000}} / {{4615}} * {{10}} / (t / {{100}}) * {{1000}} / (t / {{100}}); e = e + e / {{1000}} * k / {{10000}} * {{100}}; t = t + {{100}}; }
+    return e;
+}
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    int col;
+    for (col = 1; col <= 2; col++) {                 // 1: dry air rising; 2: air full of water vapour rising
+        int z = low, p = {{101325000}}, t = {{288150}}, half = low, h5 = low, t5 = low, p88 = low, t88 = low, t1 = low, t9 = low;
+        while (z < {{11000}}) {
+            int dp = p / {{1000}} * {{2842}} / {{8314}} * {{1000}} / (t / {{1000}});   // the weight of 10 m of air: p g M dz / (R T)
+            int dt = {{97612}} / {{1000}};                                              // dry: g dz / cp = 0.0976 K (millikelvin)
+            if (col == 2) {                                                             // moist: water condensing gives warmth back
+                int es = vapour(t), rs = es / {{1000}} * {{622000}} / (less(p, es) / {{1000}});   // its water, millionths of a kg a kg of air
+                int L = heatL(t) / {{1000}}, tk = t / {{1000}};
+                int num = {{1000000}} + L * rs / ({{287}} * tk) * {{1000}};                            // 1 + L r / (Rd T), in millionths
+                int den = {{1000000}} + L * L * rs / {{1000}} * {{622}} * {{1000}} / ({{1005}} * {{287}} * tk * tk / {{1000}});   // 1 + L^2 r e / (cp Rd T^2)
+                dt = {{97612}} * (num / {{1000}}) / (den / {{1000}}) / {{1000}};
+            }
+            p = less(p, dp); t = less(t, dt); z = z + DZ;
+            if (half < 1 && p * 2 <= {{101325000}}) half = z;
+            if (z == {{1000}}) t1 = t; if (z == {{5500}}) { h5 = p; t5 = t; } if (z == {{8850}}) { p88 = p; t88 = t; } if (z == {{9000}}) t9 = t;
+        }
+        int boil = {{373150}}; while (boil > {{274150}} && vapour(boil) > p88) boil = less(boil, {{100}});
+        say("%s: the air's pressure is half the ground's at %d m; at 5,500 m it is %d Pa; at 8,850 m (Everest) %d Pa\n", col == 1 ? "DRY air rising" : "air FULL OF WATER VAPOUR rising", half, h5 / {{1000}}, p88 / {{1000}});
+        say("  it cools %d thousandths of a degree in the first km, %d thousandths a km on average over 9 km (%d thousandths of a degree over the lowest at 9 km)\n",
+            less({{288150}}, t1), less({{288150}}, t9) / 9, t9);
+        say("  water boils on Everest at %d thousandths of a degree over freezing (%d tenths C)\n", less(boil, {{273150}}), less(boil, {{273150}}) / {{100}});
+        say("  a sealed balloon at 5,500 m is %d thousandths of its size at the ground\n", {{101325000}} / (h5 / {{1000}}) * (t5 / {{100}}) / {{2881}});
+    }
+    say("checks: water's push to escape at 15 C, %d Pa (measured 1,705); at 100 C, %d Pa (the ground's air, so it boils)\n", vapour({{288150}}) / {{1000}}, vapour({{373150}}) / {{1000}});
+    // THE BALLOON (Mike 11:03): climbing to 40 km. Up to 11 km the column of air full of water vapour (worked out above);
+    // above it MEASURED warmth (the standard atmosphere: level to 20 km, then 1 degree warmer a km to 32 km, then 2.8 a km), not
+    // worked out: the sky warms up there as the ozone soaks up sunlight, which this column does not know. A rubber weather
+    // balloon 2 m across at launch (its maker's burst size for a 1200 g balloon: 8.63 m across), the gas inside at the air's
+    // warmth and pressure (the rubber's own squeeze is small: left out, MAGIC).
+    int z = low, p = {{101325000}}, t = {{288150}}, burst = low, pb = low, tb = low;
+    while (z < {{45000}} && burst < 1) {
+        int dp = p / {{1000}} * {{2842}} / {{8314}} * {{1000}} / (t / {{1000}});
+        int dt = {{97612}} / {{1000}};
+        if (z < {{11000}}) {
+            int es = vapour(t), rs = es / {{1000}} * {{622000}} / (less(p, es) / {{1000}}), L = heatL(t) / {{1000}}, tk = t / {{1000}};
+            int num = {{1000000}} + L * rs / ({{287}} * tk) * {{1000}}, den = {{1000000}} + L * L * rs / {{1000}} * {{622}} * {{1000}} / ({{1005}} * {{287}} * tk * tk / {{1000}});
+            t = less(t, {{97612}} * (num / {{1000}}) / (den / {{1000}}) / {{1000}});
+        } else if (z >= {{20000}} && z < {{32000}}) t = t + {{10}}; else if (z >= {{32000}}) t = t + {{28}};
+        p = less(p, dp); z = z + DZ;
+        // its size: across^3 grows as (ground pressure / pressure) x (warmth / ground warmth)
+        int grow = {{101325000}} / (p / {{1000}}) * (t / {{100}}) / {{2881}};          // thousandths
+        int cube = {{8630}} * {{8630}} / {{2000}} * {{8630}} / {{2000}} * {{1000}} / {{2000}};   // (8.63 / 2)^3, thousandths
+        if (grow >= cube) { burst = z; pb = p; tb = t; }
+    }
+    if (burst) say("THE BALLOON: 2 m across at the ground, it burst at %d m up, 8.63 m across, where the air's pressure is %d Pa (%d thousandths of the ground's), %d thousandths of a degree over the lowest\n", burst, pb / {{1000}}, pb / {{101325}}, tb);
+    else say("THE BALLOON: did not burst by 45 km\n");
+    return 1;
+}
