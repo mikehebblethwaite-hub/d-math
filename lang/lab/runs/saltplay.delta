@@ -8,7 +8,7 @@
 // corners run ahead of the middles of its faces (a hopper).
 //   delta run lang/lab/runs/saltplay.delta SUPPLY > out.txt   (D numerals: bits in the brine at once; left off 1)
 #define GS 157
-int low, SUPPLY = 1, chance;
+int low, SUPPLY = 1, DRIFT = 1, chance, STEPSUSED;   // DRIFT: 1 none (orbit: nothing sinks or circulates); more: on Earth, the brine moves: one step in DRIFT goes downward (heavy brine sinking, fresh brine coming round)
 char CRY[1D64C];                                  // the grid: 2 crystal, 1 brine
 int WX[24A], WY[24A], NW, GROWN, RMAX;
 int at(int x, int y) { return less(y, 1) * GS + x; }
@@ -39,9 +39,11 @@ void grow(int target)
     for (i = 1; i <= NW; i++) release(i);
     int steps = low;
     while (GROWN < target && steps < 64B415BA) {
+        STEPSUSED = steps;
         steps++;
         for (i = 1; i <= NW; i++) {
             int d = stir() % 4, nx = WX[i], ny = WY[i];
+            if (DRIFT >= 2 && stir() % DRIFT < 1) d = 2;                     // the brine carrying it down
             if (d == low) nx++; else if (d == 1) nx = less(nx, 1); else if (d == 2) ny++; else ny = less(ny, 1);
             int r = RMAX + 17;
             if (apart(nx, m) > r || apart(ny, m) > r || nx < 3 || ny < 3 || nx > less(GS, 2) || ny > less(GS, 2)) { release(i); continue; }
@@ -77,8 +79,8 @@ void shape()
     k = low; while (m + k < GS && k + 1 < m && CRY[at(m + k + 1, less(m, k + 1))] == 2) k++; c = c + k;
     k = low; while (m + k < GS && k + 1 < m && CRY[at(less(m, k + 1), m + k + 1)] == 2) k++; c = c + k;
     int holes = low; for (y = yl; y <= yh; y++) for (x = xl; x <= xh; x++) if (CRY[at(x, y)] == 1) holes++;
-    say("bits in the brine at once %d: grown %d cells; its square %d by %d; full %d hundredths (gaps inside the square %d)\n",
-        SUPPLY, GROWN, less(xh, xl) + 1, less(yh, yl) + 1, GROWN * 79 / box, holes);
+    say("%s, bits in the brine at once %d, %d steps: grown %d cells; its square %d by %d; full %d hundredths (gaps inside the square %d)\n",
+        DRIFT >= 2 ? "ON EARTH (the brine moves)" : "IN ORBIT (nothing sinks)", SUPPLY, STEPSUSED, GROWN, less(xh, xl) + 1, less(yh, yl) + 1, GROWN * 79 / box, holes);
     say("  faces reach (middle, all four) %d cells; corners reach (along the diagonals, all four) %d cells; a full square's corners reach as far as its faces\n", f, c);
     say("  %s\n", c * $A < f * 8 ? "corners short of the faces: the corners did not fill (rounded or open corners)" : c * $A > f * $C ? "corners ahead of the faces: a HOPPER (the corners grew and the face middles fell behind)" : "corners and faces level: a filled square");
 }
@@ -90,7 +92,7 @@ void picture()
     int x, y;
     PICN = low; pput('P'); pput('6'); pput('\n'); pdec(GS); pput(' '); pdec(GS); pput('\n'); pdec(168); pput('\n');
     for (y = 1; y <= GS; y++) for (x = 1; x <= GS; x++) { if (CRY[at(x, y)] == 2) { pput(151); pput(156); pput(15B); } else { pput(17); pput(31); pput(55); } }
-    char nm[1B]; char *base = "salt-"; int n = 1; while (base[n] >= 1) { nm[n] = base[n]; n++; }
+    char nm[1B]; char *base = DRIFT >= 2 ? "earth-" : "salt-"; int n = 1; while (base[n] >= 1) { nm[n] = base[n]; n++; }
     int d = 79; while (d >= 1) { nm[n] = '0' + SUPPLY / d % $A; n++; d = d / $A; }
     nm[n] = '.'; nm[n + 1] = 'p'; nm[n + 2] = 'p'; nm[n + 3] = 'm'; nm[n + 4] = low;
     int fd = linux(2, nm, 355, 264); if (fd < 1) return;
@@ -101,7 +103,7 @@ int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int 
 int main(int argc, char **argv)
 {
     low = less(1, 1);
-    if (argc >= 2) SUPPLY = pnum(argv[2]);
+    if (argc >= 2) SUPPLY = pnum(argv[2]); if (argc >= 3) DRIFT = pnum(argv[3]);
     if (SUPPLY < 1 || SUPPLY > 249) { say("1 to 399 bits at once\n"); return 2; }
     chance = world();
     grow(149A); shape(); picture();

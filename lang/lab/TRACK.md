@@ -15,7 +15,7 @@ to fix a fault (written in FAILS.md); several runs where chance is used; misses 
 |---|---|---|---|---|---|
 | 1 | Wing nut / T-handle spun about its middle axis turns over and over (Dzhanibekov, 1985 in orbit; also on Earth, Mike at home) | space room | easiest and hardest axes steady; middle turned over 10 times in 200,000 steps | MATCH | runs/wingnut.delta |
 | 2 | A candle flame with no gravity: round (a sphere), dimmer, blue (little or no yellow soot), and it may go out as the air round it is used up (shuttle, ISS and drop tower candle tests) | space room | no gravity: round, 32 x 31 mm (with gravity 81 x 23); burns about 3% as much; the same share burned short of oxygen (363 v 348 thousandths); still burning at 9 s | ROUND: MATCH. DIMMER: MATCH. BLUE: MISS (the soot rule knows nothing of cooling yet). GOES OUT: not run long enough | runs/candlespace.delta |
-| 3 | Crystals grown in orbit come out larger and more perfect than on the ground (no convection, no settling) | space room | not run yet | - | - |
+| 3 | Crystals grown in orbit come out larger and more perfect than on the ground (no convection, no settling) | space room | salt round a seed, 5 runs each: in orbit 78% full, nearly square (long/short 1.07); on Earth (brine moving down) 65% full, a lopsided column (2.28) growing toward the incoming brine; no overlap | MORE PERFECT: MATCH. LARGER: not tested yet | runs/saltplay.delta (2nd input: drift) |
 | 4 | Liquid in free fall pulls itself into a ball; a floating ball of water wobbles when touched (ISS water demos) | space room | not run yet | - | - |
 
 ## Floor 1: the lab (Earth)
