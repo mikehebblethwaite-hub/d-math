@@ -284,3 +284,8 @@ its foot by 20 s; the wick drank and filled; the pool spread to the whole 29 mm 
 answer 2a: MATCH. It burns about 5 times too strongly (41 W a mm of slice against a real candle's about 8), so the pool melts
 in seconds where a real one takes minutes: written down as 2e, the next to chase. Mike's drowning wick (2d) waits for the
 pool to lie as a real liquid level.
+
+**32.** 2e looked at again before chasing it: "5 times too strong" was a bad yardstick of mine. A slice of the candle stands
+for a wall of wick, so each mm of slice has about 10 mm2 of wick in the flame; a real round wick has about 15-55 mm2 in all
+(by its size). Per area of wick in the flame the lab burns 3.7 W a mm2; a real candle 1.5-5. Inside the real range: 2e is NOT
+A TEST as written. A fair one needs a real wick's size measured (Mike's data names the kinds of wick, not their sizes).
