@@ -69,11 +69,11 @@ void henry()                                    // the pull where the Henrys' fa
     int top = {{20000}} * POWER / {{11}}, most = {{35000}} * HENRYS, lo = 1, hi = top, k;
     for (k = 1; k <= {{30}}; k++) {
         int mid = (lo + hi) / 2;
-        int q = area * isqrt(mid * {{24}} / {{10}}) * 6 / {{10}};
+        int q = area * isqrt(mid * {{1667}} / {{1000}}) * 6 / {{10}};
         int fan = top * less(most, q < most ? q : less(most, 1)) / most;
         if (fan > mid) lo = mid; else hi = mid;
     }
-    PULL = lo; FLOW = area * isqrt(lo * {{24}} / {{10}}) * 6 / {{10}};
+    PULL = lo; FLOW = area * isqrt(lo * {{1667}} / {{1000}}) * 6 / {{10}};
 }
 int airat(int i)                                 // the air the ball sits in, thousandths of a degree from absolute cold
 {

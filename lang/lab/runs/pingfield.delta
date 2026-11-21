@@ -69,11 +69,11 @@ void henry()                                    // the pull where the Henrys' fa
     int top = 9146 * POWER / $B, most = 12C14 * HENRYS, lo = 1, hi = top, k;
     for (k = 1; k <= 24; k++) {
         int mid = (lo + hi) / 2;
-        int q = area * isqrt(mid * 1B / $A) * 6 / $A;
+        int q = area * isqrt(mid * 9B3 / 5BC) * 6 / $A;
         int fan = top * less(most, q < most ? q : less(most, 1)) / most;
         if (fan > mid) lo = mid; else hi = mid;
     }
-    PULL = lo; FLOW = area * isqrt(lo * 1B / $A) * 6 / $A;
+    PULL = lo; FLOW = area * isqrt(lo * 9B3 / 5BC) * 6 / $A;
 }
 int airat(int i)                                 // the air the ball sits in, thousandths of a degree from absolute cold
 {

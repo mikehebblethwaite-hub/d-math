@@ -1,0 +1,211 @@
+// The ping pong funnel: balls on a shallow cone tray, falling in toward the hole in the middle (21 Nov 2026, Mike:
+// "instead of a flat cd a cone ... slight to begin with ... the angle you can mess with ... 1 degree test one and so on
+// until we see real life events ... the balls fall, we all fall, they fall towards the hole in the center by cone and then
+// Henry flow"). No pictures, only the data and a map from above at the end.
+// Each ball rolls: a ping pong ball is a hollow shell, so rolling it moves as if 5/3 its weight (2.7 g rolls like 4.5 g);
+// down the cone by its weight (2.7 g x 9.81 x the slope's rise, from a table of slopes: the bridge from degrees); slowed by
+// rolling on the tray (3 thousandths of its weight on the tray, a rough guide); the Henry's air drawn across the tray to
+// the hole drags it in (air speed = the Henry's flow / (the ring round the hole x 40 mm high); the ring measured in hex
+// steps, 4 x root 3 x its radius: D's own circle); drag = 0.5 x 1.2 kg/m3 x 0.47 x 1257 mm2 (the ball's measured cross
+// section) x speed squared. Balls bump: a springy touch (10 microNewtons for each nanometre they press in) losing some of
+// each knock (4 microNewtons for each micrometre a second they close in), and the tray's rim holds them. A ball over the
+// hole stops most of the air (a twentieth leaks past) and the Henry's pull holds it there. They start scattered by the
+// world's chance (the box's own watts, mixed) and still; then they are let go. A quarter of a millisecond a step.
+//
+//   delta run lang/lab/runs/pingfunnel.delta BALLS DEGREES TRAY_MM HOLE_MM SECONDS HENRY POWER > out.txt
+//   (D numerals; left off: 7A balls (100), 1 degree, tray 1A3 mm across the middle to the rim (250), hole 24 mm (30),
+//    seconds 1A (23), Henry 2 (on; 1 off), power B)
+#define NMAX {{3000}}
+#define VB {{1000000000000}}                    // velocities are kept above VB (no negatives in D: VB is standing still)
+#define FB {{1000000000000}}                    // and forces above FB
+int low, N = {{100}}, ANG = 1, TRAYMM = {{250}}, HOLEMM = {{30}}, SECS = {{23}}, HENRY = 2, POWER = {{11}};
+int X[NMAX], Y[NMAX], VX[NMAX], VY[NMAX], FX[NMAX], FY[NMAX], NC[NMAX], NEXT[NMAX], SEAT[NMAX];   // SEAT: sucked down into the hole
+int HEAD[{{10000}}], GW;                        // the grid: cells a ball wide, each holding a chain of balls
+int CX, CY, RT, RH, DIA = {{40000000}};          // the tray's middle, its rim, the hole (nanometres); a ball across
+int SINA, COSA, GRAV, ROLL, QAIR, BLOCKED, SUCK, chance;
+int isqrt(int n) { if (n < 2) return n; int x = n, y = (x + 1) / 2; while (y < x) { x = y; y = (x + n / x) / 2; } return x; }
+int pnum(char *s) { int v = low, i = 1; while (s[i] >= 1) { char ch = s[i]; int d = ch >= '1' && ch <= '9' ? less(ch, '0') : ch >= 'A' && ch <= 'D' ? less(ch, 'A') + {{10}} : low; if (d < 1) break; v = v * {{13}} + d; i++; } return v; }
+int world()
+{
+    char w[{{40}}]; int fd = linux(2, "/sys/class/hwmon/hwmon1/power1_input", low, low), v = {{7919}};
+    if (fd >= 1) { int n = linux(low, fd, &w[1], {{30}}), q = 1; linux(3, fd); while (q <= n && w[q] >= '0' && w[q] <= '9') { v = v * {{10}} + less(w[q], '0'); q++; } }
+    return v % {{1000003}} + 1;
+}
+int stir() { chance = (chance * {{48271}} + {{12345}}) % {{2147483647}} + 1; return chance; }
+int slope(int d)                                 // the rise of a slope of d degrees, millionths (sin), and its lie (cos)
+{
+    int s[{{46}}] = {{{17452}}, {{34899}}, {{52336}}, {{69756}}, {{87156}}, {{104528}}, {{121869}}, {{139173}}, {{156434}}, {{173648}}, {{190809}}, {{207912}}, {{224951}}, {{241922}}, {{258819}}, {{275637}}, {{292372}}, {{309017}}, {{325568}}, {{342020}}, {{358368}}, {{374607}}, {{390731}}, {{406737}}, {{422618}}, {{438371}}, {{453990}}, {{469472}}, {{484810}}, {{500000}}, {{515038}}, {{529919}}, {{544639}}, {{559193}}, {{573576}}, {{587785}}, {{601815}}, {{615661}}, {{629320}}, {{642788}}, {{656059}}, {{669131}}, {{681998}}, {{694658}}, {{707107}}};
+    return s[d];
+}
+int lie(int d)
+{
+    int c[{{46}}] = {{{999848}}, {{999391}}, {{998630}}, {{997564}}, {{996195}}, {{994522}}, {{992546}}, {{990268}}, {{987688}}, {{984808}}, {{981627}}, {{978148}}, {{974370}}, {{970296}}, {{965926}}, {{961262}}, {{956305}}, {{951057}}, {{945519}}, {{939693}}, {{933580}}, {{927184}}, {{920505}}, {{913545}}, {{906308}}, {{898794}}, {{891007}}, {{882948}}, {{874620}}, {{866025}}, {{857167}}, {{848048}}, {{838671}}, {{829038}}, {{819152}}, {{809017}}, {{798636}}, {{788011}}, {{777146}}, {{766044}}, {{754710}}, {{743145}}, {{731354}}, {{719340}}, {{707107}}};
+    return c[d];
+}
+int way(int px, int py) { return 1 + (px ? 2 : low) + (py ? 1 : low); }   // both directions in one: 1 to 4
+void push(int i, int mag, int w, int ax, int ay, int d)   // add a force of mag along (ax, ay)/d, + or - each way (w from way)
+{
+    if (d < 1) return;
+    int px = less(w, 1) / 2, py = less(w, 1) % 2;
+    int fx = mag * (ax / {{1000}}) / (d / {{1000}} + 1), fy = mag * (ay / {{1000}}) / (d / {{1000}} + 1);
+    FX[i] = px ? FX[i] + fx : less(FX[i], fx);
+    FY[i] = py ? FY[i] + fy : less(FY[i], fy);
+}
+int cellof(int x, int y) { return (y / DIA) * GW + x / DIA + 1; }
+int fanq(int s) { int top = {{20000}} * POWER / {{11}}; return s >= top ? low : {{35000}} * less(top, s) / top; }   // ml a second
+void henry()
+{
+    QAIR = low; SUCK = low;
+    if (HENRY < 2) return;
+    int area = HOLEMM * HOLEMM * {{785}} / {{1000}};                  // a round hole's open area (measured: 0.785 x across x across)
+    if (BLOCKED) area = area / {{20}} + 1;
+    int lo = 1, hi = {{20000}} * POWER / {{11}}, k;
+    for (k = 1; k <= {{30}}; k++) { int mid = (lo + hi) / 2; int q = area * isqrt(mid * {{1667}} / {{1000}}) * 6 / {{10}}; if (fanq(mid) > q) lo = mid; else hi = mid; }
+    SUCK = lo; QAIR = area * isqrt(lo * {{1667}} / {{1000}}) * 6 / {{10}};
+}
+void forces()
+{
+    int i, j, c;
+    for (c = 1; c <= GW * GW; c++) HEAD[c] = N + 1;
+    for (i = 1; i <= N; i++) { c = cellof(X[i], Y[i]); NEXT[i] = HEAD[c]; HEAD[c] = i; FX[i] = FB; FY[i] = FB; NC[i] = low; }
+    BLOCKED = low;
+    for (i = 1; i <= N; i++) {
+        int dx = apart(CX, X[i]), dy = apart(CY, Y[i]), r = isqrt(dx * dx + dy * dy);
+        int inx = CX > X[i], iny = CY > Y[i];                       // the way in, toward the hole
+        if (r <= RH) BLOCKED = 1;
+        if (r > DIA / {{100}}) {
+            push(i, GRAV, way(inx, iny), dx, dy, r);                       // down the cone
+            if (QAIR >= 1) {                                          // the Henry's air drawn in to the hole
+                int rr = r > RH ? r : RH;
+                int v = QAIR * {{3609000}} / (rr / {{1000}}) / {{1000}};   // mm a second
+                if (v > {{30000}}) v = {{30000}};
+                push(i, v * v / {{1000}} * {{3545}} / {{10000}}, way(inx, iny), dx, dy, r);
+            }
+            // over the hole with the Henry pulling: sucked DOWN into it (seated, held), only centred gently like a ball in a dip
+            SEAT[i] = r <= RH && SUCK >= {{1000}};
+            if (SEAT[i]) push(i, r * {{10}}, way(inx, iny), dx, dy, r);
+        }
+        int edge = less(RT, DIA / 2);
+        if (r > edge) push(i, less(r, edge) * {{10}}, way(inx, iny), dx, dy, r);   // the rim pushes it back
+        // the balls it touches (its own cell and the eight round it)
+        int gx = X[i] / DIA, gy = Y[i] / DIA, ox, oy;
+        for (oy = 1; oy <= 3; oy++) for (ox = 1; ox <= 3; ox++) {
+            int cxg = gx + ox, cyg = gy + oy;                       // (gx - 1 .. gx + 1), kept above nothing by starting at +1
+            if (cxg < 2 || cyg < 2 || cxg > GW + 1 || cyg > GW + 1) continue;
+            j = HEAD[less(cyg, 2) * GW + less(cxg, 2) + 1];
+            while (j <= N) {
+                if (j != i) {
+                    int ax = apart(X[i], X[j]), ay = apart(Y[i], Y[j]);
+                    if (ax < DIA && ay < DIA) {
+                        int d = isqrt(ax * ax + ay * ay);
+                        if (d < DIA) {
+                            if (d * {{100}} < DIA * {{102}}) NC[i]++;
+                            int px = X[i] >= X[j], py = Y[i] >= Y[j];        // the way out, away from j
+                            int f = less(DIA, d) * {{10}};
+                            // closing in? (i's velocity less j's, along the line from j to i)
+                            int rvx = VX[i] + VB, rvy = VY[i] + VB;         // i's less j's, kept above 2 VB
+                            rvx = less(rvx, VX[j]); rvy = less(rvy, VY[j]);
+                            int ux = ax / {{1000}}, uy = ay / {{1000}}, dd = d / {{1000}} + 1;
+                            int pos = (px ? (rvx >= VB ? less(rvx, VB) * ux : low) : (rvx < VB ? less(VB, rvx) * ux : low))
+                                    + (py ? (rvy >= VB ? less(rvy, VB) * uy : low) : (rvy < VB ? less(VB, rvy) * uy : low));
+                            int neg = (px ? (rvx < VB ? less(VB, rvx) * ux : low) : (rvx >= VB ? less(rvx, VB) * ux : low))
+                                    + (py ? (rvy < VB ? less(VB, rvy) * uy : low) : (rvy >= VB ? less(rvy, VB) * uy : low));
+                            if (neg > pos) f = f + less(neg, pos) / dd * 4;               // closing: the knock loses some
+                            else { int damp = less(pos, neg) / dd * 4; f = f > damp ? less(f, damp) : low; }
+                            if (f >= 1) push(i, f, way(px, py), ax, ay, d);
+                        }
+                    }
+                }
+                j = NEXT[j];
+            }
+        }
+    }
+}
+void roll()
+{
+    int i;
+    for (i = 1; i <= N; i++) {
+        // a quarter of a millisecond: velocity changes by force x 250 / 4500 (mg rolling); place by velocity / 4 (nm)
+        VX[i] = FX[i] >= FB ? VX[i] + less(FX[i], FB) / {{18}} : less(VX[i], less(FB, FX[i]) / {{18}});
+        VY[i] = FY[i] >= FB ? VY[i] + less(FY[i], FB) / {{18}} : less(VY[i], less(FB, FY[i]) / {{18}});
+        if (SEAT[i]) { VX[i] = VB; VY[i] = VB; continue; }      // held down in the hole
+        // rolling on the tray slows it (or holds it still)
+        int ax = apart(VX[i], VB), ay = apart(VY[i], VB), sp = isqrt(ax * ax + ay * ay), cut = ROLL / {{18}} + 1;
+        if (sp <= cut) { VX[i] = VB; VY[i] = VB; }
+        else {
+            int kx = ax * less(sp, cut) / sp, ky = ay * less(sp, cut) / sp;
+            VX[i] = VX[i] >= VB ? VB + kx : less(VB, kx); VY[i] = VY[i] >= VB ? VB + ky : less(VB, ky);
+        }
+        X[i] = VX[i] >= VB ? X[i] + less(VX[i], VB) / 4 : less(X[i], less(VB, VX[i]) / 4);
+        Y[i] = VY[i] >= VB ? Y[i] + less(VY[i], VB) / 4 : less(Y[i], less(VB, VY[i]) / 4);
+    }
+}
+void report(int s)
+{
+    int i, hexn = low, mov = low, most = low, sr = low;
+    for (i = 1; i <= N; i++) {
+        if (NC[i] >= 6) hexn++;
+        int ax = apart(VX[i], VB), ay = apart(VY[i], VB), sp = isqrt(ax * ax + ay * ay);
+        if (sp > {{1000}}) mov++; if (sp > most) most = sp;
+        int dx = apart(CX, X[i]), dy = apart(CY, Y[i]); sr = sr + isqrt(dx * dx + dy * dy) / {{1000000}};
+    }
+    say("%d s  rolling %d of %d  fastest %d mm/s  hex (six touching) %d  middle to ball, mean %d mm  Henry %d ml/s pull %d Pa  hole %s\n",
+        s, mov, N, most / {{1000}} + 1, hexn, sr / N + 1, QAIR + 1, SUCK + 1, BLOCKED ? "covered" : "open");
+}
+void map()                                       // from above: # six touching, o four or five, . fewer, H over the hole
+{
+    int r, c, i, rows = RT * 2 / {{17320000}} + 2, cols = RT * 2 / {{10000000}} + 2;
+    say("the tray from above (# six touching, o four or five, . fewer, H over the hole; a letter a ball, 10 mm across, 17 mm down):\n");
+    for (r = 1; r <= rows; r++) {
+        char line[{{300}}]; int n = low, k;
+        for (k = 1; k <= cols && k <= {{298}}; k++) line[k] = ' ';
+        n = cols < {{298}} ? cols : {{298}};
+        for (i = 1; i <= N; i++) {
+            int yedge = less(CY, RT), xedge = less(CX, RT);
+            int rr = Y[i] > yedge ? less(Y[i], yedge) / {{17320000}} + 1 : 1, cc = X[i] > xedge ? less(X[i], xedge) / {{10000000}} + 1 : 1;
+            if (rr != r || cc > n) continue;
+            int dx = apart(CX, X[i]), dy = apart(CY, Y[i]);
+            line[cc] = isqrt(dx * dx + dy * dy) <= RH ? 'H' : NC[i] >= 6 ? '#' : NC[i] >= 4 ? 'o' : '.';
+        }
+        while (n >= 1 && line[n] == ' ') n = less(n, 1);
+        n++; line[n] = low;
+        say("%s\n", &line[1]);
+    }
+}
+int main(int argc, char **argv)
+{
+    low = less(1, 1);
+    if (argc >= 2) N = pnum(argv[2]); if (argc >= 3) ANG = pnum(argv[3]); if (argc >= 4) TRAYMM = pnum(argv[4]);
+    if (argc >= 5) HOLEMM = pnum(argv[5]); if (argc >= 6) SECS = pnum(argv[6]); if (argc >= 7) HENRY = pnum(argv[7]);
+    if (argc >= 8) POWER = pnum(argv[8]);
+    if (ANG < 1 || ANG > {{45}} || N > NMAX || N < 2) { say("1 to 3C degrees (45), 2 or more balls\n"); return 2; }
+    SINA = slope(ANG); COSA = lie(ANG);
+    GRAV = {{26487}} * SINA / {{1000000}} + 1;            // microNewtons down the slope: 2.7 g x 9.81 x the rise
+    ROLL = {{26487}} * COSA / {{1000000}} * 3 / {{1000}} + 1;   // rolling on the tray: 3 thousandths of its weight on it
+    RT = TRAYMM * {{1000000}}; RH = HOLEMM * {{500000}};
+    CX = RT + DIA * 2; CY = CX; GW = (CX * 2) / DIA + 3;
+    if (GW * GW >= {{10000}}) { say("the tray is too wide for the grid\n"); return 2; }
+    chance = world();
+    int i, j, placed = low, tries = low;
+    while (placed < N && tries < {{2000000}}) {                // scattered by the world's chance, none overlapping
+        tries++;
+        int x = less(CX, RT) + stir() % (RT * 2), y = less(CY, RT) + stir() % (RT * 2);
+        int dx = apart(CX, x), dy = apart(CY, y);
+        if (isqrt(dx * dx + dy * dy) > less(RT, DIA)) continue;
+        int ok = 1; for (j = 1; j <= placed; j++) { int ax = apart(X[j], x), ay = apart(Y[j], y); if (ax < DIA && ay < DIA && ax * ax + ay * ay < DIA * DIA) { ok = low; break; } }
+        if (ok < 1) continue;
+        placed++; X[placed] = x; Y[placed] = y; VX[placed] = VB; VY[placed] = VB;
+    }
+    N = placed;
+    say("ping pong funnel: %d balls on a cone tray at %d degrees, %d mm to the rim, a %d mm hole; Henry %s, power %d of B; the world's chance %d\n",
+        N, ANG, TRAYMM, HOLEMM, HENRY >= 2 ? "on" : "off", POWER, chance);
+    say("each ball: %d microNewtons down the slope, %d held back by rolling on the tray\n", GRAV, ROLL);
+    int step, s = low;
+    for (step = 1; step <= SECS * {{4000}}; step++) {
+        if (step % {{400}} == 1) henry();
+        forces(); roll();
+        if (step % {{4000}} < 1) { s++; report(s); }
+    }
+    map();
+    return 1;
+}

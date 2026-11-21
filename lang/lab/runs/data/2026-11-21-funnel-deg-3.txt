@@ -1,0 +1,47 @@
+ping pong funnel: 7A balls on a cone tray at 3 degrees, 1A3 mm to the rim, a 24 mm hole; Henry on, power B of B; the world's chance 11B74D174
+each ball: 829 microNewtons down the slope, 62 held back by rolling on the tray
+1 s  rolling 79 of 7A  fastest 64 mm/s  hex (six touching) ~  middle to ball, mean AD mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+2 s  rolling 48 of 7A  fastest 2B mm/s  hex (six touching) ~  middle to ball, mean AC mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+3 s  rolling 12 of 7A  fastest 28 mm/s  hex (six touching) 34  middle to ball, mean AB mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+4 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 4A  middle to ball, mean AB mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+5 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 4A  middle to ball, mean AB mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+6 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 4A  middle to ball, mean AB mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+7 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 4A  middle to ball, mean AB mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+8 s  rolling ~ of 7A  fastest 1 mm/s  hex (six touching) 4A  middle to ball, mean AB mm  Henry 18CB ml/s pull 81A2 Pa  hole covered
+the tray from above (# six touching, o four or five, . fewer, H over the hole; a letter a ball, 10 mm across, 17 mm down):
+
+
+
+
+
+                      .          .
+                          o   o
+                    o             o   o
+                        #  #   #          .
+                 o   #             #   #
+                         #   #             o   .
+              .   o   #          #   #
+                          #   #         #   o
+                o   #             #   #
+                       #   #              #   o
+             .   o   #         #   #   #          .
+                         #   H             #   o
+              o   #              #  #
+            .         #   #             #   #
+                o  #          #   #   #         o
+                       #   #              #   #
+             o   #             #   #              .
+          .          #   #   #         #   #
+              o   #             #   #          o
+                      #   #             #   o
+               .   o          #   #
+                       #   #          #   o
+                               #   o
+                     .   o             .
+                            o   .
+
+
+
+
+
+

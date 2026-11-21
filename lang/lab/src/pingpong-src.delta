@@ -87,11 +87,11 @@ void pphenry()                               // the pull in the gaps: where the 
     int top = {{20000}} * PPHL / {{11}}, lo = 1, hi = top, k;
     for (k = 1; k <= {{30}}; k++) {                                               // halve the range till the two agree
         int mid = (lo + hi) / 2;
-        int q = a * isqrt(mid * {{24}} / {{10}}) * 6 / {{10}};                    // ml a second through the gaps (0.6 x area x speed)
+        int q = a * isqrt(mid * {{1667}} / {{1000}}) * 6 / {{10}};                    // ml a second through the gaps (0.6 x area x speed)
         int fan = top * less({{35000}}, q < {{35000}} ? q : {{34999}}) / {{35000}};   // what the fan pulls at that flow
         if (fan > mid) lo = mid; else hi = mid;
     }
-    PPGAP = lo; PPFLOW = a * isqrt(lo * {{24}} / {{10}}) * 6 / {{10}};
+    PPGAP = lo; PPFLOW = a * isqrt(lo * {{1667}} / {{1000}}) * 6 / {{10}};
 }
 int pout() { return PPDOWN && PPHENRY ? less({{101325}}, PPGAP) : {{101325}}; }   // the pressure at the hole's mouth
 int ppjetT(int i)                            // the air the ball sits in: the room's, plus the gun's share where its jet reaches
