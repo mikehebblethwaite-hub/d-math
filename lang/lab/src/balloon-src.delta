@@ -8,7 +8,8 @@
 // 100 km, 1 ft for every 5 km (MAGIC: the drawing scale), so the balloon climbs through the room; drawn a fifth of its size.
 #define BLEVEL {{101325000}}
 int GMASS = {{1000}};                              // the Earth's mass in thousandths of its own (the gravity changer)
-int gpull(int zm) { int r = ({{6371000}} + zm) / {{1000}}; return {{398600}} * GMASS * {{1000}} / r / r * {{1000}}; }   // the Earth's pull at height zm: G x its mass / (distance from its middle)^2, in micrometres a second squared (GM = 398,600 km3/s2 x GMASS thousandths)
+int bspin(int zm) { int v = {{28337}} * {{1000000}} / {{86164}}; return v * v / {{6371000}} * ({{6371000}} + zm) / {{6371000}}; }   // the Earth's turning lightens you (45 degrees: its circle of latitude 28,337 km, one turn 86,164 s), as lang/lab/runs/atmos.delta
+int gpull(int zm) { int r = ({{6371000}} + zm) / {{1000}}; return less({{398600}} * GMASS * {{1000}} / r / r * {{1000}}, bspin(zm)); }   // the Earth's pull at height zm: G x its mass / (distance from its middle)^2, less the spin's lightening, in micrometres a second squared
 int BZ, BP, BT, BAL, BPOP, BBURSTZ, BRISEN = 1;
 int bheat(int tmk) { return tmk >= {{273150}} ? less({{2501000}}, less(tmk, {{273150}}) * {{2370}} / {{1000}}) : {{2501000}} + less({{273150}}, tmk) * {{2370}} / {{1000}}; }
 int bvapour(int tmk)
