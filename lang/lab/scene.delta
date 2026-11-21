@@ -50,8 +50,8 @@ void scene_step()                         // only what is in focus runs (Mike: n
     if (FLOOR == 2) balloon_step();
     if (FLOOR == 3) { lightsheet_step(); wingnut_step(); }
     seedcup1.step();                                                 // DAEMON: the growing salt keeps its time on every floor
+    washroom1.step();                                                // DAEMON: who needs the washroom, wherever you stand (on every floor)
     if (FLOOR > 1) return;
-    washroom1.step();                                                // DAEMON: who needs the washroom, wherever you stand
     if (focus(5, SCX, (SCZ1 + SCZ2) / 2)) scope1.step();
     if (focus(6, MSX, MSZ)) microscope1.step();
     if (focus(8, MTX, MTZ)) meter1.step();
@@ -95,7 +95,7 @@ void scene_draw()                         // farthest first, the painter's way, 
         int pick = low, most = low;
         for (i = 1; i <= 4; i++) if (done[i] < 1 && far[i] >= most) { most = far[i]; pick = i; }
         done[pick] = 1;
-        if (pick == 1) { CLIP = clipfor(candle1.z); candle1.draw(); CLIP = low; lab_mark(1, candle1.x, 1C1, candle1.z); }
+        if (pick == 1) { CLIP = clipfor(candle1.z); candle1.draw(); CLIP = low; lab_mark(1, candle1.x, cdtop() + 1C, candle1.z); }
         if (pick == 2) { CLIP = clipfor(faraday1.z); faraday1.draw(); CLIP = low; lab_mark(2, faraday1.x, 1C1, faraday1.z); }
         if (pick == 3) { CLIP = clipfor(tunnel1.z); tunnel1.draw(); CLIP = low; lab_mark(3, tunnel1.x, 1C1, tunnel1.z); }
         if (pick == 4) { CLIP = clipfor(tank1.z); tank1.draw(); CLIP = low; lab_mark(4, tank1.x, 1C1, tank1.z); }
@@ -146,7 +146,7 @@ void scene_panel(int sel)
 void scene_air()                          // what each thing gives the air, and where it fills it
 {
     CANX = candle1.x; CANZ = candle1.z;
-    if (CDBURN >= 1) air_heat(candle1.x, 2B5, candle1.z, 2A54B);        // the candle's flame, while it burns: about 80 watts (a real candle's; MAGIC: not yet from the core's own burning)
+    if (CDBURN >= 1 && focus(1, candle1.x, candle1.z)) air_heat(candle1.x, 2B5, candle1.z, 2A54B);        // the candle's flame, while it burns: about 80 watts (a real candle's; MAGIC: not yet from the core's own burning)
     air_heat(faraday1.x, 1A5, faraday1.z, 3C63);                         // Faraday's pile and contacts: 8.7 watts
     air_heat(MID, less(ROOM, 4C * 6), MID, 213D5);                       // the lab's lamp: 60 watts
     air_heat(MID, less(ROOM, 4C * 6), MID + ROOM, 213D5);                // the wave room's lamp

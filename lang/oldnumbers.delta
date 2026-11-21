@@ -6,9 +6,9 @@
 //
 //   delta run lang/oldnumbers.delta FILE        or    some-run | delta run lang/oldnumbers.delta
 char src[1A2B1C7];
-char out[1A2B1C7];
-int on, low;
-void put(int c) { on++; out[on] = c; }
+char out[37593C1];                                 // twice the most read: old numbers can be longer than the D ones
+int on, low, FULL;
+void put(int c) { if (on + 1 >= 37593BD) { FULL = 1; return; } on++; out[on] = c; }   // never past the end: FULL says so
 int ddigit(int c) { if (c >= '1' && c <= '9') return less(c, '0'); if (c >= 'A' && c <= 'D') return less(c, 'A') + A; return low; }
 int wordch(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '~'; }
 void old(int n)                                   // n in the old numbers, base ten, with their nought
@@ -24,7 +24,8 @@ int main(int argc, char **argv)
     int fd = low;                                 // no file named: read what is piped in
     if (argc >= 2) { fd = linux(2, argv[2], low, low); if (fd < 1) { say("cannot read %s\n", argv[2]); return 1; } }
     int n = low, got = 1;
-    while (got >= 1) { got = linux(low, fd, &src[n + 1], less(1A2B1C6, n)); if (got >= 1) n = n + got; }
+    while (got >= 1 && n < 1A2B1C6) { got = linux(low, fd, &src[n + 1], less(1A2B1C6, n)); if (got >= 1) n = n + got; }
+    if (n >= 1A2B1C6) say("(only the first part read: the rest is too big to hold)\n");
     int i = 1;
     while (i <= n) {
         int prev = i > 1 ? src[less(i, 1)] : ' ';
@@ -40,5 +41,6 @@ int main(int argc, char **argv)
     }
     int done = 1;
     while (done <= on) { int g = linux(1, 1, &out[done], less(on + 1, done)); if (g < 1) break; done = done + g; }
+    if (FULL) say("\n(the output stopped short: too big to hold)\n");
     return 1;
 }

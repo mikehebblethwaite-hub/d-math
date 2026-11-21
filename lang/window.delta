@@ -51,7 +51,8 @@ int dl_xbe2(char *b, int k) { return b[k + 1] * 169 + b[k + 2]; }
 // read the display's answers until the one asked for comes (keys pressed meanwhile are kept)
 char dl_xheld[16A];                           // keys held down now (by the display's key number)
 int dl_xmx, dl_xmy, dl_xbl, dl_xbm, dl_xbr, dl_xup, dl_xdown;  // the mouse: where, its buttons held, wheel turns
-int dl_xclick, dl_xcx, dl_xcy, dl_xpx, dl_xpy, dl_xrclick, dl_xrx, dl_xry;   // dl_xr*: a right click, kept until read   // a left click (pressed and let go without moving far), kept until read
+int dl_xclick, dl_xcx, dl_xcy, dl_xpx, dl_xpy;   // a left click (pressed and let go without moving far), kept until read
+int dl_xrclick, dl_xrx, dl_xry;                 // a right click, kept until read
 void dl_xevent(char *ev)                         // one event from the display: keys, buttons, moves
 {
         int t = ev[1] % 9B, d = ev[2];                 // 9B (128) marks an event another program sent

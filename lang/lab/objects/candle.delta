@@ -44,7 +44,7 @@ void candle_panel()
     lab_value("candle time, ms", cnSTEPN, "");
     if (CDFROM >= 1) lab_value("  lit before you came in: the run burned it for (ms), the room carries on", CDFROM, "");
     lab_value("this machine's time watching it, ms", CDREAL, "");
-    if (cnSTEPN >= 1 && CDREAL >= 1) lab_value("  so it runs slower than real time by", CDREAL / cnSTEPN + 1, "times");
+    if (cnSTEPN > CDFROM && CDREAL >= 1) lab_value("  so it runs slower than real time by", CDREAL / less(cnSTEPN, CDFROM) + 1, "times");   // only the candle time you watched
     lab_line(cnMATCHON ? "  the match is held to the wick" : cnLIT >= 1 ? "  the match is away: it burns on its own" : "  the match is away");
     lab_value("melted pool across, mm", cnpool(), "");
     lab_value("wax in the wick, thousandths of a mg", cnWSTORE / 28D221, "");

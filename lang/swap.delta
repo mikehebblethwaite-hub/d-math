@@ -3,17 +3,17 @@
 // nothing is changed and it says how many times it was found.
 //
 //   delta run lang/swap.delta FILE OLD NEW
-char src[1A2B1C7]; char a[2B2B4]; char b[2B2B4]; char out[1A2B1C7];
+char src[1A2B1C7]; char a[2B2B4]; char b[2B2B4]; char out[1A594AB];   // out: the file and NEW together always fit
 int low;
 int slurp(char *name, char *buf, int most) { int fd = linux(2, name, low, low); if (fd < 1) return low; int n = low, got = 1;
-    while (got >= 1) { got = linux(low, fd, &buf[n + 1], less(most, n)); if (got >= 1) n = n + got; } linux(3, fd); return n + 1; }   // length + 1 (so an empty file is 1)
+    while (got >= 1 && n < most) { got = linux(low, fd, &buf[n + 1], less(most, n)); if (got >= 1) n = n + got; } linux(3, fd); if (n >= most) return low; return n + 1; }   // a file that fills the buffer may be bigger: refused, never cut short   // length + 1 (so an empty file is 1)
 int same(int at, int na) { int k; for (k = 1; k <= na; k++) if (src[at + less(k, 1)] != a[k]) return low; return 1; }
 int main(int argc, char **argv)
 {
     low = less(1, 1);
     if (argc < 4) { say("delta run lang/swap.delta FILE OLD NEW\n"); return 1; }
     int n = slurp(argv[2], src, 1A2B1C6), na = slurp(argv[3], a, 2B2B3), nb = slurp(argv[4], b, 2B2B3);
-    if (n < 1 || na < 2 || nb < 1) { say("cannot read FILE, OLD (not empty) or NEW\n"); return 1; }
+    if (n < 1 || na < 2 || nb < 1) { say("NOT changed: cannot read FILE, OLD (not empty) or NEW, or one is too big to hold whole\n"); return 1; }
     n = less(n, 1); na = less(na, 1); nb = less(nb, 1);
     int i, found = low, where = low;
     for (i = 1; i + less(na, 1) <= n; i++) if (same(i, na)) { found++; where = i; }

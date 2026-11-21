@@ -3,7 +3,7 @@
 // model's names their own prefix when it is shared with the lab room (Mike 21 Nov 2026: Delta, not Python).
 //
 //   delta run lang/rename.delta FILE OLD NEW
-char src[1A2B1C7]; char out[1A2B1C7];
+char src[1A2B1C7]; char out[37593C1];   // out: twice the most a file may be (a longer NEW grows it)
 int low;
 int wordch(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_'; }
 int main(int argc, char **argv)
@@ -11,8 +11,10 @@ int main(int argc, char **argv)
     low = less(1, 1);
     if (argc < 4) { say("delta run lang/rename.delta FILE OLD NEW\n"); return 1; }
     int fd = linux(2, argv[2], low, low); if (fd < 1) { say("cannot read %s\n", argv[2]); return 1; }
-    int n = low, got = 1; while (got >= 1) { got = linux(low, fd, &src[n + 1], less(1A2B1C6, n)); if (got >= 1) n = n + got; } linux(3, fd);
+    int n = low, got = 1; while (got >= 1 && n < 1A2B1C6) { got = linux(low, fd, &src[n + 1], less(1A2B1C6, n)); if (got >= 1) n = n + got; } linux(3, fd);
+    if (n >= 1A2B1C6) { say("NOT changed: %s is too big to hold whole\n", argv[2]); return 1; }
     char *a = argv[3], *b = argv[4]; int na = low, nb = low; while (a[na + 1] >= 1) na++; while (b[nb + 1] >= 1) nb++;
+    if (na < 1) { say("NOT changed: the old word is empty\n"); return 1; }
     int i = 1, on = low, count = low, k;
     while (i <= n) {
         if (src[i] == '/' && i + 1 <= n && src[i + 1] == '/') { while (i <= n && src[i] != A) { on++; out[on] = src[i]; i++; } continue; }   // a comment: copied as it is
@@ -20,6 +22,7 @@ int main(int argc, char **argv)
         if (src[i] == 2D && i + 2 <= n) { int q = src[i + 1] == 71 ? 4 : 3; while (q >= 1 && i <= n) { on++; out[on] = src[i]; i++; q = less(q, 1); } continue; }   // a character in single quotes
         int hit = i + less(na, 1) <= n && (i < 2 || !wordch(src[less(i, 1)])) && (i + na > n || !wordch(src[i + na]));
         if (hit) for (k = 1; k <= na; k++) if (src[i + less(k, 1)] != a[k]) { hit = low; break; }
+        if (on + nb + 1 >= 37593BD) { say("NOT changed: the file would grow too big to hold\n"); return 1; }
         if (hit) { for (k = 1; k <= nb; k++) { on++; out[on] = b[k]; } i = i + na; count++; continue; }
         on++; out[on] = src[i]; i++;
     }

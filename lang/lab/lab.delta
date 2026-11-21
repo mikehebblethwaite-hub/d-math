@@ -497,8 +497,12 @@ void zoom_to(int id)
     ZID = id; ZD = INCH * 18; ZOOM = 1; PIT = 1; zoom_aim();
 }
 void zoom_back() { if (ZOOM < 1) return; ZTX = ZBX; ZTY = ZBY; ZTZ = ZBZ; PIT = ZBP; ZOOM = 2; }
-int zoom_step() { if (ZOOM < 1) return low; camX = toward(camX, ZTX); camY = toward(camY, ZTY); camZ = toward(camZ, ZTZ);
-    if (camX == ZTX && camY == ZTY && camZ == ZTZ && ZOOM == 2) ZOOM = low; return 1; }
+int zoom_step()                                 // the glide: 1 while it is still moving (quick pictures), nothing once there (the full room again)
+{
+    if (ZOOM < 1) return low;
+    if (camX == ZTX && camY == ZTY && camZ == ZTZ) { if (ZOOM == 2) ZOOM = low; return low; }
+    camX = toward(camX, ZTX); camY = toward(camY, ZTY); camZ = toward(camZ, ZTZ); return 1;
+}
 
 // ---------------------------------------------------------------- the panel: what is in the room, the chosen object
 int LINE;
@@ -1026,6 +1030,7 @@ int main(int argc, char **argv)
         frame++;
         FR = frame;
         int key = window_key();
+        int ocx = camX, ocy = camY, ocz = camZ, oyaw = YAW, opit = PIT, ofl = FLOOR;   // to see if you moved yourself (that ends a zoom)
         if (key == 9) { hexi_stop(); return 1; }                      // Esc (a recording is ended first)
         if (key == 34) showpanel = showpanel ? low : 1;           // H
         if (key == 22) { HEATVIEW = HEATVIEW ? low : 1; moved = 1; }   // T: heat view, or as the eye sees
@@ -1043,7 +1048,7 @@ int main(int argc, char **argv)
         if (key == 43) VENTON = VENTON ? low : 1;                       // V: the vent's fan
         if (key == 38 || key == 39) moved = 1;
         if (WHO[1] == 'd' && WHO[2] == 'a' && WHO[3] == 'n' && DANNEED) { dangoes(); moved = 1; }   // Dan walks to the toilet
-        outside_keys(key); if (key == 27 || key == 28 || key == 29 || key == 38 || key == 39) moved = 1;
+        outside_keys(sel == 9 && key == 27 ? low : key); if (key == 27 || key == 28 || key == 29 || key == 38 || key == 39) moved = 1;
         if (key == 26) { DOOROPEN = DOOROPEN ? low : 1; moved = 1; }   // O: the door between, open or shut
         if (key == 88 && FLOOR < 3) { FLOOR++; moved = 1; }              // Page Up: the lift up a floor (atmosphere, then space)
         if (key == 8D && FLOOR > 1) { FLOOR = less(FLOOR, 1); moved = 1; }   // Page Down: the lift down a floor
@@ -1080,6 +1085,7 @@ int main(int argc, char **argv)
                 if (d < best) { best = d; sel = id; PAGE = 4; showpanel = 1; }   // a click shows the thing's page
             }
         }
+        if (ZOOM >= 1 && (camX != ocx || camY != ocy || camZ != ocz || YAW != oyaw || PIT != opit || FLOOR != ofl)) ZOOM = low;   // you walked, turned, looked or took the lift: the zoom lets go
         if (window_rclicked()) {                                      // a right click: zoom to observe the thing under it
             int rx = window_rclick_x(), ry = window_rclick_y(), id, best = 6C * 13, got = low;
             for (id = 1; id <= 31; id++) if (MARKON[id]) { int d = apart(MARKX[id], BIG * 13 + rx * 13) + apart(MARKY[id], BIG * 13 + ry * 13); if (d < best) { best = d; got = id; } }
@@ -1108,8 +1114,8 @@ int main(int argc, char **argv)
         if (WHO[1] != 'd') air_breath(camX, camY, camZ, D8);       // their breath: 5 millilitres of carbon dioxide a second
         if (OTHHERE) air_body(OTHX, OTHZ, OTHY + INCH * 4, WHO[1] == 'd' ? 5BC * 5BC / $A : DANRAD);
         air_step(); air_draught(); hexi_step();
-        if (frame % 2B < 1) { air_note(); scope_note(); microscope_note(); seedcup_note(); meter_note(); pingpong_note(); }                                // the air in words, for bots
         }
+        if (frame % 2B < 1) { air_note(); scope_note(); microscope_note(); seedcup_note(); meter_note(); pingpong_note(); }   // the notes for bots, on every floor and while the air rests (the seed beaker is a daemon: its note keeps up)
         scene_draw();
         if (frame % 8 < 1) presence_write(frame);                    // where I stand, for the others
         if (frame % 4 < 1) presence_read(other);
