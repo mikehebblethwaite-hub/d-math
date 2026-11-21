@@ -52,3 +52,11 @@ memory of the bench: did his rigs jam or raft into hex? That sets whether the gr
 REAL CHECK (Mike, 21 Nov 2026 08:10, his 2009-era rigs): "no hex rafts as it was cold air only back then". So the GRIP
 version (jams) matches the bench; the gripless version (60% hex at 2 degrees) did not: grip stays in, 0.3. Hex comes only
 with heat (soft walls pulled into the gaps by the flow), as the dream said.
+
+## funnel + heat, and the holed cone plate (21 Nov 2026)
+Heat added (15th-17th inputs). One 30 mm hole, 2 degrees, grip: the whole tray in 120 C air softens the balls (117 C) but
+the walls only reach 2/1000 flat: the seated ball chokes the Henry (3.7 l/s), so away from the hole there is no pull; the
+Skil over the middle warms only the few balls under it (mean 28 C). The cone as a holed plate (Mike: "a hole under every
+three"; 18th-19th: 10 mm apart, 0.5 mm across, tray 150 mm): the suction stays ~14 kPa and, at 120 C, ALL walls go fully flat
+by ~100 s, none melting; but the balls were scattered and jammed (one with six neighbours), so they flatten against
+whichever neighbours they touch: flat-faced clumps, not a raft. A raft needs them packed hex before they soften.

@@ -17,6 +17,11 @@
 // its strongest push SHAKEG thousandths of g (10th input; 1 still) at SHAKEHZ beats a second (11th) for SHAKES seconds (12th),
 // then still so they settle; the push passing ball to ball. The flow's lock (13th: 2 on, 1 off) and the hole moved off the
 // cone's low point (14th: mm + 1), from Mike's real rig and video (sand/NOTES.md, 16 Nov 2026).
+// The heat (15th: air C, 1 none; 16th: from that second; 17th: 1 the whole tray, 2 Mike's Skil over the middle): each ball
+// warms by h, pliable from 90 C, full at 120, melting past 125; the flow's low pressure pulls soft walls into the gaps
+// (the seated ball: the Henry's full suction). Real check (Mike, 21 Nov): cold rigs never rafted hex; grip kept.
+// The cone as a holed plate (18th: holes that many mm apart, 1 none; 19th: tenths of a mm across): no single hole; every gap
+// has holes under it (air through the gap then the holes: two openings one after the other); the bare tray leaks straight down.
 //
 //   delta run lang/lab/runs/pingfunnel.delta BALLS TENTHS_OF_A_DEGREE TRAY_MM HOLE_MM SECONDS HENRY POWER > out.txt
 //   (D numerals; left off: 7A balls (100), A tenths (1 degree), tray 1A3 mm across the middle to the rim (250), hole 24 mm (30),
@@ -25,7 +30,10 @@
 #define VB {{1000000000000}}                    // velocities are kept above VB (no negatives in D: VB is standing still)
 #define FB {{1000000000000}}                    // and forces above FB
 int SHAKEG = 1, SHAKEHZ = {{20}}, SHAKES = {{1000}}, STEPNOW;   // ... and for SHAKES seconds, then still (to settle)          // the tray shaken side to side: its strongest push, thousandths of g (1: still); beats a second
-int LOCK = 2, HOFF = 1, HX, HY, VAIR[NMAX];         // the flow's lock between neighbours (2 on, 1 off); the hole moved off the cone's low point (mm, 1 = not)
+int LOCK = 2, HOFF = 1, HX, HY, VAIR[NMAX];
+int PLATEP = 1, PLATED = 5, VGAP;                  // the cone as a holed plate (Mike: "a hole under every three"): holes PLATEP mm apart (1: no plate, one hole in the middle), PLATED tenths of a mm across; air speed through a gap (mm/s)
+int HEATC = 1, HEATAT = 6, HMODE = 2;              // the heat: air at HEATC C from above (1: none), from second HEATAT on; 1 the whole tray, 2 the Skil over the middle
+int TB[NMAX], SOFTB[NMAX], FLATB[NMAX], MELTB[NMAX], THK[NMAX], PULLB[NMAX];   // each ball's warmth (mK), softness, flatness (millionths), melt, shell, pull (Pa)         // the flow's lock between neighbours (2 on, 1 off); the hole moved off the cone's low point (mm, 1 = not)
 int GRIP = {{300}};                                 // ball on ball grip, thousandths of how hard they press (0.3, a rough guide)
 int low, N = {{100}}, ANG = {{10}},                 // ANG in tenths of a degree
  TRAYMM = {{250}}, HOLEMM = {{30}}, SECS = {{23}}, HENRY = 2, POWER = {{11}};
@@ -79,6 +87,24 @@ void henry()
 {
     QAIR = low; SUCK = low;
     if (HENRY < 2) return;
+    if (PLATEP >= 2) {                                               // the holed plate: every gap has holes under it; bare tray leaks straight down
+        int i, nc = low, fl = low;
+        for (i = 1; i <= N; i++) { nc = nc + NC[i]; fl = fl + FLATB[i] / {{1000}}; }
+        int gaps = nc / 3 + 1, gopen = less({{1000}}, fl / N) + 1;
+        int ph = PLATED * PLATED * {{785}} / {{1000}} + 1;             // a hole, hundredths of a mm2
+        int cell = PLATEP * PLATEP * {{866}} / {{1000}} + 1;            // mm2 of plate to each hole (holes packed hex)
+        int a1 = {{6400}} * gopen / {{1000}} + 1, a2 = {{64}} * ph / cell + 1;   // a gap; the holes under it
+        int aeff = a1 * a2 / (isqrt(a1 * a1 + a2 * a2) + 1) + 1;
+        int tray = TRAYMM * TRAYMM * {{3142}} / {{1000}}, covered = N * {{1257}};   // mm2: the round tray (its measure), the balls' shadows
+        int bare = tray > covered ? less(tray, covered) : 1;
+        int area = gaps * aeff + bare / cell * ph + 1;                 // hundredths of a mm2 open in all
+        int lo = 1, hi = {{20000}} * POWER / {{11}}, k;
+        for (k = 1; k <= {{30}}; k++) { int mid = (lo + hi) / 2; int q = area * isqrt(mid * {{1667}} / {{1000}}) * 6 / {{1000}}; if (fanq(mid) > q) lo = mid; else hi = mid; }
+        SUCK = lo; QAIR = area * isqrt(lo * {{1667}} / {{1000}}) * 6 / {{1000}};
+        int qg = aeff * isqrt(lo * {{1667}} / {{1000}}) * 6 / {{1000}};  // ml a second through one gap
+        VGAP = qg * {{100000}} / a1;                                    // mm a second through it
+        return;
+    }
     int area = HOLEMM * HOLEMM * {{785}} / {{1000}};                  // a round hole's open area (measured: 0.785 x across x across)
     if (BLOCKED) area = area / {{20}} + 1;
     int lo = 1, hi = {{20000}} * POWER / {{11}}, k;
@@ -104,9 +130,10 @@ void forces()
         if (r > DIA / {{100}}) push(i, GRAV, way(inx, iny), dx, dy, r);   // down the cone, to its low point
         int hx = apart(HX, X[i]), hy = apart(HY, Y[i]), rh = isqrt(hx * hx + hy * hy);   // and the hole (moved, perhaps)
         int hinx = HX > X[i], hiny = HY > Y[i];
-        if (rh <= RH) BLOCKED = 1;
+        if (rh <= RH && PLATEP < 2) BLOCKED = 1;
         VAIR[i] = low;
-        if (QAIR >= 1) {                                              // the Henry's air drawn in to the hole
+        if (PLATEP >= 2) { VAIR[i] = VGAP / 3; SEAT[i] = low; }
+        else if (QAIR >= 1) {                                         // the Henry's air drawn in to the hole
             int rr = rh > RH ? rh : RH;
             int v = QAIR * {{3609000}} / (rr / {{1000}}) / {{1000}};   // mm a second
             if (v > {{30000}}) v = {{30000}};
@@ -114,7 +141,7 @@ void forces()
             if (rh > DIA / {{100}}) push(i, v * v / {{1000}} * {{3545}} / {{10000}}, way(hinx, hiny), hx, hy, rh);
         }
         // over the hole with the Henry pulling: sucked DOWN into it (seated, held), only centred gently like a ball in a dip
-        SEAT[i] = rh <= RH && SUCK >= {{1000}};
+        if (PLATEP < 2) SEAT[i] = rh <= RH && SUCK >= {{1000}};
         if (SEAT[i] && rh > DIA / {{100}}) push(i, rh * {{10}}, way(hinx, hiny), hx, hy, rh);
         int edge = less(RT, DIA / 2);
         if (r > edge) push(i, less(r, edge) * {{10}}, way(inx, iny), dx, dy, r);   // the rim pushes it back
@@ -196,22 +223,58 @@ void roll()
         Y[i] = VY[i] >= VB ? Y[i] + less(VY[i], VB) / 4 : less(Y[i], less(VB, VY[i]) / 4);
     }
 }
+void heat(int s)                                   // a second: warmth, softness, and the flow pulling soft walls into the gaps
+{
+    int i, j, c;
+    for (i = 1; i <= N; i++) PULLB[i] = low;
+    // the pull at each ball: the Henry's full suction under the seated ball; elsewhere the low pressure of air squeezing
+    // between it and each ball it touches (half its density x speed squared; through the gap about 3 x the air past them)
+    for (i = 1; i <= N; i++) {
+        if (SEAT[i]) PULLB[i] = PULLB[i] + SUCK;
+        if (PLATEP >= 2 && NC[i] >= 1) PULLB[i] = PULLB[i] + SUCK;
+        int u = VAIR[i] * 3; if (u > {{30000}}) u = {{30000}};
+        int pl = 6 * (u / {{100}}) * (u / {{100}}) / {{1000}};            // pascals (0.6 x u in m/s squared)
+        PULLB[i] = PULLB[i] + pl * NC[i];
+    }
+    for (i = 1; i <= N; i++) {
+        int air = {{293150}};
+        if (HEATC >= 2 && s >= HEATAT) {
+            int set = {{273150}} + HEATC * {{1000}};
+            if (HMODE == 1) air = set;
+            else {                                                       // the Skil over the middle: its 2000 W, its jet spreading
+                int skil = {{2000}} * {{100000}} / {{1005}} + {{293150}}, gt = set < skil ? set : skil;
+                int dx = apart(CX, X[i]) / {{1000000}}, dy = apart(CY, Y[i]) / {{1000000}}, d2 = dx * dx + dy * dy, w = {{40}};
+                air = {{293150}} + less(gt, {{293150}}) * {{714}} / {{1000}} * (w * w) / (w * w + d2);
+            }
+        }
+        int h = HEATC >= 2 && s >= HEATAT ? {{60}} : 7, cb = {{616}} * THK[i] / {{1000}};
+        if (air > TB[i]) TB[i] = TB[i] + less(air, TB[i]) * h / cb; else TB[i] = less(TB[i], less(TB[i], air) * h / cb);
+        SOFTB[i] = TB[i] > {{363150}} ? less(TB[i], {{363150}}) / {{30}} + 1 : 1; if (SOFTB[i] > {{1000}}) SOFTB[i] = {{1000}};
+        if (TB[i] > {{398150}}) { MELTB[i] = MELTB[i] + less(TB[i], {{398150}}) / {{1000}} * 3 + 1; if (MELTB[i] > {{1000}}) MELTB[i] = {{1000}}; }
+        int thin = {{1000}} * {{1000}} / THK[i] * {{1000}} / THK[i];
+        if (NC[i] >= 1) FLATB[i] = FLATB[i] + SOFTB[i] * PULLB[i] / {{1000}} * thin / {{1000}};
+        if (FLATB[i] > {{1000000}}) FLATB[i] = {{1000000}};
+    }
+}
 void report(int s)
 {
-    int i, hexn = low, mov = low, most = low, sr = low;
+    int i, hexn = low, mov = low, most = low, sr = low, hexf = low, flat = low, tw = low, me = low;
     for (i = 1; i <= N; i++) {
         if (NC[i] >= 6) hexn++;
+        if (FLATB[i] >= {{950000}}) hexf++;
+        flat = flat + FLATB[i] / {{1000}}; tw = tw + TB[i] / {{100}}; if (MELTB[i] >= {{500}}) me++;
         int ax = apart(VX[i], VB), ay = apart(VY[i], VB), sp = isqrt(ax * ax + ay * ay);
         if (sp > {{1000}}) mov++; if (sp > most) most = sp;
         int dx = apart(CX, X[i]), dy = apart(CY, Y[i]); sr = sr + isqrt(dx * dx + dy * dy) / {{1000000}};
     }
     say("%d s  rolling %d of %d  fastest %d mm/s  hex (six touching) %d  middle to ball, mean %d mm  Henry %d ml/s pull %d Pa  hole %s\n",
         s, mov, N, most / {{1000}} + 1, hexn, sr / N + 1, QAIR + 1, SUCK + 1, BLOCKED ? "covered" : "open");
+    if (HEATC >= 2) say("   heat: warmth %d tenths C over freezing  flat %d  walls fully flat %d  melted %d\n", less(tw / N, {{2731}}) + 1, flat / N + 1, hexf, me);
 }
 void map()                                       // from above: # six touching, o four or five, . fewer, H over the hole
 {
     int r, c, i, rows = RT * 2 / {{17320000}} + 2, cols = RT * 2 / {{10000000}} + 2;
-    say("the tray from above (# six touching, o four or five, . fewer, H over the hole; a letter a ball, 10 mm across, 17 mm down):\n");
+    say("the tray from above (X walls fully flat, ~ melted, # six touching, o four or five, . fewer, H over the hole; a letter a ball, 10 mm across, 17 mm down):\n");
     for (r = 1; r <= rows; r++) {
         char line[{{300}}]; int n = low, k;
         for (k = 1; k <= cols && k <= {{298}}; k++) line[k] = ' ';
@@ -221,7 +284,7 @@ void map()                                       // from above: # six touching, 
             int rr = Y[i] > yedge ? less(Y[i], yedge) / {{17320000}} + 1 : 1, cc = X[i] > xedge ? less(X[i], xedge) / {{10000000}} + 1 : 1;
             if (rr != r || cc > n) continue;
             int dx = apart(CX, X[i]), dy = apart(CY, Y[i]);
-            line[cc] = isqrt(dx * dx + dy * dy) <= RH ? 'H' : NC[i] >= 6 ? '#' : NC[i] >= 4 ? 'o' : '.';
+            line[cc] = isqrt(dx * dx + dy * dy) <= RH ? 'H' : MELTB[i] >= {{500}} ? '~' : FLATB[i] >= {{950000}} ? 'X' : NC[i] >= 6 ? '#' : NC[i] >= 4 ? 'o' : '.';
         }
         while (n >= 1 && line[n] == ' ') n = less(n, 1);
         n++; line[n] = low;
@@ -233,7 +296,7 @@ int main(int argc, char **argv)
     low = less(1, 1);
     if (argc >= 2) N = pnum(argv[2]); if (argc >= 3) ANG = pnum(argv[3]); if (argc >= 4) TRAYMM = pnum(argv[4]);
     if (argc >= 5) HOLEMM = pnum(argv[5]); if (argc >= 6) SECS = pnum(argv[6]); if (argc >= 7) HENRY = pnum(argv[7]);
-    if (argc >= 8) POWER = pnum(argv[8]); if (argc >= 9) GRIP = pnum(argv[9]); if (argc >= {{10}}) SHAKEG = pnum(argv[{{10}}]); if (argc >= {{11}}) SHAKEHZ = pnum(argv[{{11}}]); if (argc >= {{12}}) SHAKES = pnum(argv[{{12}}]); if (argc >= {{13}}) LOCK = pnum(argv[{{13}}]); if (argc >= {{14}}) HOFF = pnum(argv[{{14}}]);
+    if (argc >= 8) POWER = pnum(argv[8]); if (argc >= 9) GRIP = pnum(argv[9]); if (argc >= {{10}}) SHAKEG = pnum(argv[{{10}}]); if (argc >= {{11}}) SHAKEHZ = pnum(argv[{{11}}]); if (argc >= {{12}}) SHAKES = pnum(argv[{{12}}]); if (argc >= {{13}}) LOCK = pnum(argv[{{13}}]); if (argc >= {{14}}) HOFF = pnum(argv[{{14}}]); if (argc >= {{15}}) HEATC = pnum(argv[{{15}}]); if (argc >= {{16}}) HEATAT = pnum(argv[{{16}}]); if (argc >= {{17}}) HMODE = pnum(argv[{{17}}]); if (argc >= {{18}}) PLATEP = pnum(argv[{{18}}]); if (argc >= {{19}}) PLATED = pnum(argv[{{19}}]);
     if (ANG < 1 || ANG > {{440}} || N > NMAX || N < 2) { say("1 to 26B tenths of a degree (44 degrees), 2 or more balls\n"); return 2; }
     SINA = slopet(ANG); COSA = liet(ANG);
     GRAV = {{26487}} * SINA / {{1000000}} + 1;            // microNewtons down the slope: 2.7 g x 9.81 x the rise
@@ -252,17 +315,19 @@ int main(int argc, char **argv)
         int ok = 1; for (j = 1; j <= placed; j++) { int ax = apart(X[j], x), ay = apart(Y[j], y); if (ax < DIA && ay < DIA && ax * ax + ay * ay < DIA * DIA) { ok = low; break; } }
         if (ok < 1) continue;
         placed++; X[placed] = x; Y[placed] = y; VX[placed] = VB; VY[placed] = VB;
+        TB[placed] = {{293150}}; SOFTB[placed] = 1; FLATB[placed] = 1; MELTB[placed] = 1; THK[placed] = {{950}} + stir() % {{101}};
     }
     N = placed;
     say("ping pong funnel: %d balls on a cone tray at %d tenths of a degree, %d mm to the rim, a %d mm hole; Henry %s, power %d of B; the world's chance %d\n",
         N, ANG, TRAYMM, HOLEMM, HENRY >= 2 ? "on" : "off", POWER, chance);
     say("the flow lock %s; the hole %d mm off the cone's low point\n", LOCK >= 2 ? "on" : "off", less(HOFF, 1));
+    if (PLATEP >= 2) say("the cone is a holed plate: holes %d mm apart, %d tenths of a mm across, under the whole tray (no single hole)\n", PLATEP, PLATED);
     say("each ball: %d microNewtons down the slope, %d held back by rolling on the tray; grip ball on ball %d thousandths; shaken %d thousandths of g at %d a second\n", GRAV, ROLL, GRIP, SHAKEG, SHAKEHZ);
     int step, s = low;
     for (step = 1; step <= SECS * {{4000}}; step++) {
         if (step % {{400}} == 1) henry();
         STEPNOW = step; forces(); roll();
-        if (step % {{4000}} < 1) { s++; report(s); }
+        if (step % {{4000}} < 1) { s++; heat(s); report(s); }
     }
     map();
     return 1;
