@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 {
     low = less(1, 1);
     int d = low, p = {{101325}}, k;                 // depth (m), pressure (Pa)
-    say("the deep: sea water from the surface down (air above at 101,325 Pa); the water's warmth by depth MEASURED (typical ocean), not worked out\n");
+    say("the deep: sea water from the surface down (air above at 101,325 Pa); the water's warmth by depth fixed from measurements (MAGIC: fixed temps)\n");
     while (d < {{11000}}) {
         int rho = {{1025}} + {{1025}} * (p / {{1000}}) / {{2340000}};                 // kg a cubic metre, squeezed: 1 + p/K
         p = p + rho * (gdeep(d) / {{1000}}) * DZ / {{1000}};
