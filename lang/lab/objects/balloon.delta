@@ -8,8 +8,22 @@
 // 100 km, 1 ft for every 5 km (MAGIC: the drawing scale), so the balloon climbs through the room; drawn a fifth of its size.
 #define BLEVEL 17CB892A
 int GMASS = 5BC;                              // the Earth's mass in thousandths of its own (the gravity changer)
-int bspin(int zm) { int v = $CB8A * 28D221 / 2D2AD; return v * v / 141DB2C * (141DB2C + zm) / 141DB2C; }   // the Earth's turning lightens you (45 degrees: its circle of latitude 28,337 km, one turn 86,164 s), as lang/lab/runs/atmos.delta
-int gpull(int zm) { int r = (141DB2C + zm) / 5BC; return less($DC577 * GMASS * 5BC / r / r * 5BC, bspin(zm)); }   // the Earth's pull at height zm: G x its mass / (distance from its middle)^2, less the spin's lightening, in micrometres a second squared
+// The Earth's real shape, as lang/lab/runs/atmos.delta (which MATCHES measured gravity to 0.005%): flattened (6,378,137 m to the
+// equator, 6,356,752 to a pole) and the bulge's own pull (J2, measured from satellites); the place: 45 degrees, its circle of
+// latitude 28,385 km (measured). No cosine, no pi.
+int BAXIS, BPLANE2, BSURF;
+void bshape() { int ea = 142415C, eb = 14174BC; BAXIS = ea * $CBC6 / 15319; int bx = eb * (BAXIS / 5BC) / (ea / 5BC);
+    BPLANE2 = less(eb * eb, bx * bx); BSURF = isqrt(BAXIS * BAXIS + BPLANE2); }
+int gpull(int zm)
+{
+    if (BSURF < 1) bshape();
+    int R = BSURF + zm, g = 2B7846B5518 * GMASS / R * 5BC / R * 5BC;      // G x the Earth's mass / R^2, micrometres a second squared
+    int aR = 142415C * 5BC / (R / 5BC), lean = BPLANE2 / (R * R / 28D221) * 3;
+    int bulge = g / 5BC * 44B21B / 28D221 * (aR * aR / 28D221) / 28D221;   // g x 1.5 J2 x (a/R)^2
+    if (lean >= 28D221) g = less(g, bulge * less(lean, 28D221) / 28D221); else g = g + bulge * less(28D221, lean) / 28D221;
+    int v = $CBC6 * 28D221 / 2D2AD;                                          // the spin: (speed round, mm/s)^2 / R
+    return less(g, v * v / R);
+}
 int BZ, BP, BT, BAL, BPOP, BBURSTZ, BRISEN = 1;
 int bheat(int tmk) { return tmk >= 97437 ? less(6974A8, less(tmk, 97437) * $DD4 / 5BC) : 6974A8 + less(97437, tmk) * $DD4 / 5BC; }
 int bvapour(int tmk)

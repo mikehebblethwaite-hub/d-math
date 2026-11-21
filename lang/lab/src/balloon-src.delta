@@ -8,8 +8,22 @@
 // 100 km, 1 ft for every 5 km (MAGIC: the drawing scale), so the balloon climbs through the room; drawn a fifth of its size.
 #define BLEVEL {{101325000}}
 int GMASS = {{1000}};                              // the Earth's mass in thousandths of its own (the gravity changer)
-int bspin(int zm) { int v = {{28337}} * {{1000000}} / {{86164}}; return v * v / {{6371000}} * ({{6371000}} + zm) / {{6371000}}; }   // the Earth's turning lightens you (45 degrees: its circle of latitude 28,337 km, one turn 86,164 s), as lang/lab/runs/atmos.delta
-int gpull(int zm) { int r = ({{6371000}} + zm) / {{1000}}; return less({{398600}} * GMASS * {{1000}} / r / r * {{1000}}, bspin(zm)); }   // the Earth's pull at height zm: G x its mass / (distance from its middle)^2, less the spin's lightening, in micrometres a second squared
+// The Earth's real shape, as lang/lab/runs/atmos.delta (which MATCHES measured gravity to 0.005%): flattened (6,378,137 m to the
+// equator, 6,356,752 to a pole) and the bulge's own pull (J2, measured from satellites); the place: 45 degrees, its circle of
+// latitude 28,385 km (measured). No cosine, no pi.
+int BAXIS, BPLANE2, BSURF;
+void bshape() { int ea = {{6378137}}, eb = {{6356752}}; BAXIS = ea * {{28385}} / {{40075}}; int bx = eb * (BAXIS / {{1000}}) / (ea / {{1000}});
+    BPLANE2 = less(eb * eb, bx * bx); BSURF = isqrt(BAXIS * BAXIS + BPLANE2); }
+int gpull(int zm)
+{
+    if (BSURF < 1) bshape();
+    int R = BSURF + zm, g = {{398600441000}} * GMASS / R * {{1000}} / R * {{1000}};      // G x the Earth's mass / R^2, micrometres a second squared
+    int aR = {{6378137}} * {{1000}} / (R / {{1000}}), lean = BPLANE2 / (R * R / {{1000000}}) * 3;
+    int bulge = g / {{1000}} * {{1623945}} / {{1000000}} * (aR * aR / {{1000000}}) / {{1000000}};   // g x 1.5 J2 x (a/R)^2
+    if (lean >= {{1000000}}) g = less(g, bulge * less(lean, {{1000000}}) / {{1000000}}); else g = g + bulge * less({{1000000}}, lean) / {{1000000}};
+    int v = {{28385}} * {{1000000}} / {{86164}};                                          // the spin: (speed round, mm/s)^2 / R
+    return less(g, v * v / R);
+}
 int BZ, BP, BT, BAL, BPOP, BBURSTZ, BRISEN = 1;
 int bheat(int tmk) { return tmk >= {{273150}} ? less({{2501000}}, less(tmk, {{273150}}) * {{2370}} / {{1000}}) : {{2501000}} + less({{273150}}, tmk) * {{2370}} / {{1000}}; }
 int bvapour(int tmk)
